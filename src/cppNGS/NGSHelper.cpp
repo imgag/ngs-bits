@@ -324,7 +324,7 @@ void NGSHelper::createSampleOverview(QStringList in, QString out, int indel_wind
 char NGSHelper::translateCodon(const QByteArray& codon, bool use_mito_table)
 {
 	//init
-	const static QHash<QByteArray, char> dictionary =   {{"TTT", 'F'}, {"TTC", 'F'}, {"TTA", 'L'}, {"TTG", 'L'}, {"CTT", 'L'}, {"CTC", 'L'},
+	const static QHash<QByteArray, char> dictionary =   {{"TTT", 'F'}, {"TTC", 'F'}, {"TTA", 'L'},  {"TTG", 'L'}, {"CTT", 'L'}, {"CTC", 'L'},
 														  {"CTA", 'L'}, {"CTG", 'L'}, {"TCT", 'S'}, {"TCC", 'S'}, {"TCA", 'S'}, {"TCG", 'S'},
 														  {"AGT", 'S'}, {"AGC", 'S'}, {"TAT", 'Y'}, {"TAC", 'Y'}, {"TAA", '*'}, {"TAG", '*'},
 														  {"TGA", '*'}, {"TGT", 'C'}, {"TGC", 'C'}, {"TGG", 'W'}, {"CCT", 'P'}, {"CCC", 'P'},
@@ -356,6 +356,32 @@ QByteArray NGSHelper::translateCodonThreeLetterCode(const QByteArray& codon, boo
 {
 	char one_letter_code = translateCodon(codon, use_mito_table);
 	return threeLetterCode(one_letter_code);
+}
+
+QByteArray NGSHelper::translateSequence(const Sequence& sequence, bool use_three_letter_code, bool use_mito_table, bool end_at_stop)
+{
+	//translate a DNA sequence into an amino acid sequence
+	if(sequence.length() % 3 != 0) THROW(ArgumentException, "Coding sequence length must be multiple of three.")
+
+	QByteArray aa_seq;
+
+	for(int i=0; i<sequence.length(); i+=3)
+	{
+		if (use_three_letter_code)
+		{
+			aa_seq.append(NGSHelper::translateCodonThreeLetterCode(sequence.mid(i, 3), use_mito_table));
+		}
+		else
+		{
+			aa_seq.append(NGSHelper::translateCodon(sequence.mid(i, 3), use_mito_table));
+		}
+
+		//only translate up to termination codon
+		if(end_at_stop && use_three_letter_code && aa_seq.right(3) == "Ter") break;
+		if(end_at_stop && ! use_three_letter_code && aa_seq.right(1) == "*") break;
+	}
+	return aa_seq;
+
 }
 
 QByteArray NGSHelper::threeLetterCode(char one_letter_code)
@@ -643,8 +669,6 @@ QString NGSHelper::populationCodeToHumanReadable(QString code)
 
 void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_ref_pos)
 {
-	QList<CigarOp> old_CIGAR = al.cigarData();
-
 	//backup old CIGAR string
 	al.addTag("BS", 'Z', al.cigarDataAsString());
 
@@ -662,21 +686,19 @@ void NGSHelper::softClipAlignment(BamAlignment& al, int start_ref_pos, int end_r
 	{
 		THROW(ToolFailedException, "End position " + QString::number(end_ref_pos) + " not within alignment (" + QString::number(al.start()) + ":" + QString::number(al.end()) + ").");
 	}
-	for(int i=0;i<old_CIGAR.size(); ++i)
-	{
-		if(old_CIGAR[i].Type!=BAM_CDEL && old_CIGAR[i].Type!=BAM_CSOFT_CLIP && old_CIGAR[i].Type!=BAM_CMATCH && old_CIGAR[i].Type!=BAM_CINS && old_CIGAR[i].Type!=BAM_CHARD_CLIP)
-		{
-            THROW(ToolFailedException, "Unsupported CIGAR type '" + QString::number(old_CIGAR[i].Type) + "'");
-		}
-	}
+
 
 	//generate CIGAR char matrix from CIGAR
 	QList<QPair<int,int>> matrix;
-	for (int i=0; i<old_CIGAR.size(); ++i)
+	CigarData old_CIGAR = al.cigarData();
+	for(uint32_t i=0; i<old_CIGAR.size(); ++i)
 	{
-		for(int j=0; j<old_CIGAR[i].Length; ++j)
+		uint32_t op = old_CIGAR.opType(i);
+		if(op!=BAM_CDEL && op!=BAM_CSOFT_CLIP && op!=BAM_CMATCH && op!=BAM_CINS && op!=BAM_CHARD_CLIP) THROW(ToolFailedException, "Unsupported CIGAR type '" + QString(old_CIGAR.opTypeAsChar(i)) + "'");
+
+		for(uint32_t j=0; j< old_CIGAR.opLength(i); ++j)
 		{
-			matrix.append(qMakePair(old_CIGAR[i].Type, old_CIGAR[i].Type));
+			matrix.append(qMakePair(op, op));
 		}
 	}
 

@@ -1,5 +1,5 @@
 ### BedAnnotateFreq tool help
-	BedAnnotateFreq (2025_01-78-g8ec81140)
+	BedAnnotateFreq (2025_12-266-g396e1fe11)
 	
 	Extracts base counts and depth in the given regions from a BAM/CRAM files.
 	
@@ -14,7 +14,7 @@
 	  -ref <file>       Reference genome for CRAM support (mandatory if CRAM is used).
 	                    Default value: ''
 	  -min_mapq <int>   Minimum mapping quality.
-	                    Default value: '1'
+	                    Default value: '20'
 	  -min_baseq <int>  Minimum base quality.
 	                    Default value: '25'
 	  -long_read        Support long reads (> 1kb).
@@ -28,7 +28,7 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### BedAnnotateFreq changelog
-	BedAnnotateFreq 2025_01-78-g8ec81140
+	BedAnnotateFreq 2025_12-266-g396e1fe11
 	
 	2025-03-18 Added long_read support.
 	2020-11-27 Added CRAM support.

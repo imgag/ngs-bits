@@ -4,7 +4,6 @@
 #include <QMessageBox>
 #include <QMenu>
 #include "DBSelector.h"
-#include "HttpHandler.h"
 #include "LoginManager.h"
 #include "ClientHelper.h"
 
@@ -170,7 +169,7 @@ void UserPermissionsEditor::clearServerCache()
 {
 	try
 	{
-		HttpHandler(true).post(ClientHelper::serverApiUrl() + "clear_cache?token=" + LoginManager::userToken(), QByteArray{});
+		HttpRequestHandler().post(ClientHelper::serverApiUrl() + "clear_cache?token=" + LoginManager::userToken(), QByteArray{});
 	}
 	catch (Exception& e)
 	{

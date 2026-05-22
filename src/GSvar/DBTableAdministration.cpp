@@ -8,7 +8,6 @@
 #include "UserPermissionsEditor.h"
 #include "GenLabDB.h"
 #include "ScrollableTextDialog.h"
-#include "HttpHandler.h"
 #include "ClientHelper.h"
 #include <QMessageBox>
 #include <QAction>
@@ -130,8 +129,7 @@ void DBTableAdministration::edit()
 		return;
 	}
 
-
-    edit(rows.values().first());
+	edit(Helper::setToList(rows).at(0));
 }
 
 void DBTableAdministration::edit(int row)
@@ -155,7 +153,7 @@ void DBTableAdministration::edit(int row)
 				try
 				{
 					HttpHeaders add_headers;
-					folder_check_response = QJsonDocument::fromJson(HttpHandler(true).get(ClientHelper::serverApiUrl() + "project_folder?id=" + QString::number(id) + "&token=" + LoginManager::userToken(), add_headers)).object();
+					folder_check_response = QJsonDocument::fromJson(HttpRequestHandler().get(ClientHelper::serverApiUrl() + "project_folder?id=" + QString::number(id) + "&token=" + LoginManager::userToken(), add_headers).body).object();
 				}
 				catch (HttpException& e)
 				{
@@ -170,7 +168,7 @@ void DBTableAdministration::edit(int row)
 					try
 					{
 						HttpHeaders add_headers;
-						settings_response = QJsonDocument::fromJson(HttpHandler(true).get(ClientHelper::serverApiUrl() + "project_folder_settings?token=" + LoginManager::userToken(), add_headers)).array();
+						settings_response = QJsonDocument::fromJson(HttpRequestHandler().get(ClientHelper::serverApiUrl() + "project_folder_settings?token=" + LoginManager::userToken(), add_headers).body).array();
 					}
 					catch (HttpException& e)
 					{
@@ -183,7 +181,7 @@ void DBTableAdministration::edit(int row)
 						QHash<QString, QVariant> current_values = editor->getCurrentValues();
 						if (current_values["folder_override"].toString().trimmed().isEmpty())
 						{
-							for (const QJsonValue& override_path: settings_response)
+							for (const QJsonValue& override_path: std::as_const(settings_response))
 							{
 								if (override_path.toObject().value("type").toString() == current_values["type"].toString())
 								{
@@ -228,9 +226,10 @@ void DBTableAdministration::changeUserPermissions()
 		{
 			INFO(ArgumentException, "Please select exactly one user!");
 		}
+		int row =Helper::setToList(rows).at(0);
 
 		//check user role
-		int user_id = ui_.table->getId(rows.values()[0]).toInt();
+		int user_id = ui_.table->getId(row).toInt();
 		QString user_role = NGSD().getUserRole(user_id);
 		if (user_role!="user_restricted")
 		{
@@ -238,7 +237,7 @@ void DBTableAdministration::changeUserPermissions()
 		}
 
 		//show dialog
-		UserPermissionsEditor* widget = new UserPermissionsEditor("user_permissions", ui_.table->getId(rows.values()[0]), this);
+		UserPermissionsEditor* widget = new UserPermissionsEditor("user_permissions", ui_.table->getId(row), this);
 		auto dlg = GUIHelper::createDialog(widget, "User permissions", "", false);
 		dlg->exec();
 	}
@@ -312,9 +311,10 @@ void DBTableAdministration::resetUserPassword()
 		QMessageBox::information(this, "Selection error", "Please select exactly one item!");
 		return;
 	}
+	int row = Helper::setToList(rows).at(0);
 
 	//set password
-    int user_id = ui_.table->getId(rows.values().first()).toInt();
+	int user_id = ui_.table->getId(row).toInt();
 	QString password = Helper::randomString(15) + Helper::randomString(1, "0123456789");
 	NGSD db;
 	db.setPassword(user_id, password);
@@ -348,11 +348,12 @@ void DBTableAdministration::importStudySamples()
 		QMessageBox::information(this, "Selection error", "Please select exactly one study!");
 		return;
 	}
+	int row = Helper::setToList(rows).at(0);
 
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	//get study ID and name
-    int study_id = ui_.table->getId(rows.values().first()).toInt();
+	int study_id = ui_.table->getId(row).toInt();
 	NGSD db;
 	QString study = db.getValue("SELECT name FROM study WHERE id='"+QString::number(study_id)+"'", false).toString();
 

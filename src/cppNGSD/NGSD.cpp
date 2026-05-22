@@ -19,7 +19,6 @@
 #include <QCryptographicHash>
 #include <QDir>
 #include <QThread>
-#include <ProxyDataService.h>
 #include <QMap>
 #include "cmath"
 #include "QUuid"
@@ -5427,7 +5426,7 @@ ClinvarSubmissionStatus NGSD::getSubmissionStatus(const QString& submission_id, 
 	if (api_key.isEmpty()) THROW(FileParseException, "Settings INI file does not contain ClinVar API key!");
 
 	ClinvarSubmissionStatus submission_status;
-	HttpRequestHandler request_handler(ProxyDataService::getProxy());
+	HttpRequestHandler request_handler;
 
 	try
 	{

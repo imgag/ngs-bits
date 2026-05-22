@@ -30,14 +30,16 @@ public:
         addInfileList("in", "Input files to merge in VCF or VCG.GZ format.", false);
         //optional
         addOutfile("out", "Output multi-sample VCF. If unset, writes to STDOUT.", true);
-        addFlag("trio", "Enables trio mendelian error calculation. Expected sample order: child, father, mother.");
-		addFlag("no_special_calls", "Ignores special variant calls in input VCF files (mosaic and low-mappabilty).");
+		addFlag("no_special_calls", "Ignores special variant calls in input VCF files (mosaic, low-mappabilty, targeted, etc).");
 		addFloat("min_qual", "If set, ignores input variants with less than the given QUAL cutoff.", true, 0.0);
 		addInfileList("bam", "Input BAM/CRAM files used for variant re-calling of uncalled variants. If not given, no re-calling is performed. For each 'in' file, a BAM file has to be provided in the same order.", true);
+		addInt("min_mapq", "Minimum mapping quality for re-calling.", true, 20);
 		addFlag("no_genotype_correction", "Do not perform genotype correction during re-calling, only calculate DP and AF.");
 		addInt("threads", "Number of threads used for re-calling", true, 1);
 		addInfile("ref", "Reference genome FASTA file of BAM files. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
+		addFlag("long_read", "Support long reads (> 1kb).");
 
+		changeLog(2026, 5,  5, "Added 'long_read' parameter.");
 		changeLog(2026, 5,  3, "Added 'threads' parameter.");
 		changeLog(2026, 4, 30, "Added 'no_genotype_correction' parameter.");
 		changeLog(2026, 4, 26, "Added 'min_qual' and 'no_special_calls' parameters.");
@@ -113,17 +115,34 @@ public:
                 QByteArrayList format_values = parts[9].split(':');
                 if (format_keys.count()!=format_values.count()) THROW(FileParseException, "Input file '" + filename + "' has differing format key/value count: " +line);
 
+				//parse filters
+				QByteArrayList filters = parts[6].split(';');
+				std::for_each(filters.begin(), filters.end(), [](QByteArray& x) { x = x.trimmed(); });
+
                 //normalize GT
                 QByteArray gt = format_values[0].trimmed();
                 gt = gt.replace('|', '/').replace('.', '0');
                 if (gt=="1/0") gt = "0/1";
-                if (gt=="1") gt = "1/1"; //Clair3 returns only one allele for chrMT
-                if (gt=="0/0" || gt=="0") //WT > variant not in sample
+				if (gt!="0/1" && gt!="1/1" && filters.contains("targeted")) //special handling for DRAGEN targeted calls: all numbers of alleles are possible
+				{
+					int count_1 = gt.count("1");
+					if(count_1==0)
+					{
+						gt = "0/0";
+					}
+					else
+					{
+						int count_0 = gt.count("0");
+						gt = count_0>0 ? "0/1" : "1/1";
+					}
+				}
+				if (gt=="1") gt = "1/1"; //special handling for Clair3: it returns only one allele for chrMT
+				if (gt=="0/0" || gt=="0") //WT > variant not in sample
                 {
                     ++output.c_skipped_wt;
                     continue;
                 }
-                if (gt!="0/1" && gt!="1/1") THROW(FileParseException, "Input file '" + filename + "' has invalid unsupported 'GT' format: " +line);
+				if (gt!="0/1" && gt!="1/1") THROW(FileParseException, "Input file '" + filename + "' has unsupported 'GT' format: " +line);
 
                 //determine variant type
 				const QByteArray& ref = parts[3];
@@ -148,9 +167,7 @@ public:
                     }
                 }
                 if (i_gq!=-1) format.gq = format_values[i_gq];
-                if (i_ps!=-1) format.ps = format_values[i_ps];
-                QByteArrayList filters = parts[6].split(';');
-                std::for_each(filters.begin(), filters.end(), [](QByteArray& x) { x = x.trimmed(); });
+				if (i_ps!=-1) format.ps = format_values[i_ps];
                 if (filters.contains("low_mappability"))
                 {
 					if (no_special_calls)
@@ -250,12 +267,13 @@ public:
         }
         QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
 		OutputData out_data{new QMutex(), QTextStream(out.isEmpty() ? stderr : stdout), false};
-        bool trio = getFlag("trio");
 		bool no_special_calls = getFlag("no_special_calls");
 		double min_qual = getFloat("min_qual");
         QStringList bam_files = getInfileList("bam");
         if (!bam_files.isEmpty() && bam_files.count()!=in_files.count()) THROW(ArgumentException, "Number of 'bam' files has to be the same as the number 'in' files!");
+		int min_mapq = getInt("min_mapq");
 		bool no_genotype_correction = getFlag("no_genotype_correction");
+		bool long_read = getFlag("long_read");
 		QString ref_file = getInfile("ref");
         if (ref_file=="") ref_file = Settings::string("reference_genome", true);
         if (ref_file=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
@@ -293,7 +311,7 @@ public:
 			{
 				foreach(const Chromosome& chr, chrs)
 				{
-					ReCallingWorker* worker = new ReCallingWorker(chr, bam_files[i], ref_file, data[i], var_details, no_genotype_correction, out_data);
+					ReCallingWorker* worker = new ReCallingWorker(chr, bam_files[i], ref_file, data[i], var_details, min_mapq, no_genotype_correction, long_read, out_data);
 					pool.start(worker);
 				}
 			}
@@ -364,47 +382,6 @@ public:
 		int c_snv_out = std::count_if(var_details.begin(), var_details.end(), [](const VariantDefinition &v) { return v.is_snv;});
 		out_data.stream << "    SNVs: " << QByteArray::number(c_snv_out) << "\n";
 		out_data.stream << "    INDELs: " << QByteArray::number(var_details.count()-c_snv_out) << Qt::endl;
-
-        //trio: determine mendelian error rate
-        if (trio)
-        {
-            int c_snv = 0;
-            int c_snv_error = 0;
-            int c_indel = 0;
-            int c_indel_error = 0;
-			for(const VariantDefinition& v: std::as_const(var_details))
-            {
-                if (!v.chr.isAutosome()) continue;
-
-                //check if mendelian error
-                bool is_error = false;
-                QByteArray gt_c = data[0].tag_to_format.value(v.tag).gt;
-                QByteArray gt_f = data[1].tag_to_format.value(v.tag).gt;
-                QByteArray gt_m = data[2].tag_to_format.value(v.tag).gt;
-                //hom, hom => het/wt
-                if (gt_f=="1/1" && gt_m=="1/1" && gt_c!="1/1") is_error = true;
-                //hom, x => wt
-                else if ((gt_f=="1/1" || gt_m=="1/1") && gt_c=="0/0") is_error = true;
-                //wt, x => hom
-                else if ((gt_f=="0/0" || gt_m=="0/0") && gt_c=="1/1") is_error = true;
-                //wt, wt  => het/hom
-                else if (gt_f=="0/0" && gt_m=="0/0" && gt_c!="0/0") is_error = true;
-
-                if (v.is_snv)
-                {
-                    ++c_snv;
-                    if (is_error) ++c_snv_error;
-                }
-                else
-                {
-                    ++c_indel;
-                    if (is_error) ++c_indel_error;
-                }
-            }
-			out_data.stream << "  trio mendelian error rate of SNVs: " << QByteArray::number(100.0 * c_snv_error/c_snv, 'f', 2) << "%\n";
-			out_data.stream << "  trio mendelian error rate of INDELs: " << QByteArray::number(100.0 * c_indel_error/c_indel, 'f', 2) << "%\n";
-        }
-		out_data.stream << Qt::endl;
     }
 };
 

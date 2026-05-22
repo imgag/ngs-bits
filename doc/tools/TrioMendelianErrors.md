@@ -1,5 +1,5 @@
 ### TrioMendelianErrors tool help
-	TrioMendelianErrors (2025_01-25-g1d2b52ea)
+	TrioMendelianErrors (2025_12-266-g396e1fe11)
 	
 	Determines mendelian error rate from a trio VCF.
 	
@@ -16,6 +16,8 @@
 	                    Default value: '0'
 	  -min_qual <float> Minimum QUAL of variants.
 	                    Default value: '0'
+	  -dot_as_wt        Treat '.' in GT field as '0'.
+	                    Default value: 'false'
 	  -debug            Enable debug output
 	                    Default value: 'false'
 	
@@ -27,7 +29,8 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### TrioMendelianErrors changelog
-	TrioMendelianErrors 2025_01-25-g1d2b52ea
+	TrioMendelianErrors 2025_12-266-g396e1fe11
 	
+	2026-04-21 Added parameter 'dot_as_wt'.
 	2025-02-18 Initial version of the tool.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

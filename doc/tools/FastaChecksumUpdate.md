@@ -1,7 +1,7 @@
 ### FastaChecksumUpdate tool help
-	FastaChecksumUpdate (2025_12-175-gc2187ef59)
+	FastaChecksumUpdate (2025_12-266-g396e1fe11)
 	
-	Fix Checksums in a FASTA file.
+	Fixes MD5 checksums in FASTA sequence headers.
 	
 	Mandatory parameters:
 	  -in <file>        Input FASTA file.
@@ -19,7 +19,7 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### FastaChecksumUpdate changelog
-	FastaChecksumUpdate 2025_12-175-gc2187ef59
+	FastaChecksumUpdate 2025_12-266-g396e1fe11
 	
 	2026-03-02 Initial version.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

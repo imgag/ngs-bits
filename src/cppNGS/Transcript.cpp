@@ -1,6 +1,7 @@
 #include "Transcript.h"
 #include "Exceptions.h"
 #include <QRegularExpression>
+#include "NGSHelper.h"
 
 Transcript::Transcript()
 	: version_(-1)
@@ -146,6 +147,23 @@ void Transcript::setRegions(const BedFile& regions, int coding_start, int coding
 	utr_3prime_.merge();
 	utr_5prime_.merge();
 	coding_regions_.merge();
+}
+
+QByteArray Transcript::proteinSequence(const FastaFileIndex& genome_idx, bool use_three_letter_code, bool end_at_stop) const
+{
+	Sequence dna;
+	bool is_mito = false;
+	for(int i=0; i<coding_regions_.count(); ++i)
+	{
+		BedLine line = coding_regions_[i];
+		if (line.chr() == Chromosome("chrMT")) is_mito = true;
+
+		dna += genome_idx.seq(line.chr(), line.start(), line.end()-line.start()+1);
+	}
+
+	if (!isPlusStrand()) dna.reverseComplement();
+
+	return NGSHelper::translateSequence(dna, use_three_letter_code, is_mito, end_at_stop);
 }
 
 int Transcript::exonNumber(int start, int end) const

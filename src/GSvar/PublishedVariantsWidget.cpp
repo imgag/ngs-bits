@@ -20,7 +20,7 @@ const QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/
 PublishedVariantsWidget::PublishedVariantsWidget(QWidget* parent)
 	: QWidget(parent)
 	, ui_(new Ui::PublishedVariantsWidget)
-	, http_handler_(false, this)
+	, http_handler_(this)
 {
 	ui_->setupUi(this);
 	connect(ui_->search_btn, SIGNAL(clicked(bool)), this, SLOT(updateTable()));
@@ -507,7 +507,7 @@ void PublishedVariantsWidget::deleteClinvarSubmission()
 
 
 			// perform upload
-			static HttpHandler http_handler(false); //static to allow caching of credentials
+
 			try
 			{
 				//switch on/off testing
@@ -521,7 +521,7 @@ void PublishedVariantsWidget::deleteClinvarSubmission()
 				add_headers.insert("SP-API-KEY", api_key);
 
 				//post request
-				QByteArray reply = http_handler.post(api_url, QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
+				QByteArray reply = HttpRequestHandler().post(api_url, QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers).body;
 
 				// parse response
 				bool success = false;

@@ -46,6 +46,7 @@ SOURCES += main.cpp\
     NsxSettingsDialog.cpp \
     PathogenicWtDialog.cpp \
     QcRuleMatcher.cpp \
+    Background/PingWorker.cpp \
     ReSearchWidget.cpp \
     RepeatExpansionWidget.cpp \
     ReportDialog.cpp \
@@ -55,7 +56,6 @@ SOURCES += main.cpp\
     TabBaseClass.cpp \
     TransferredVariantDialog.cpp \
     TrioDialog.cpp \
-    HttpHandler.cpp \
     UserPermissionsEditor.cpp \
     ValidationDialog.cpp \
     ClassificationDialog.cpp \
@@ -180,6 +180,7 @@ HEADERS += MainWindow.h \
     NsxSettingsDialog.h \
     PathogenicWtDialog.h \
     QcRuleMatcher.h \
+    Background/PingWorker.h \
     ReSearchWidget.h \
     RepeatExpansionWidget.h \
     ReportDialog.h \
@@ -189,7 +190,6 @@ HEADERS += MainWindow.h \
     TabBaseClass.h \
     TransferredVariantDialog.h \
     TrioDialog.h \
-    HttpHandler.h \
     UserPermissionsEditor.h \
     ValidationDialog.h \
     ClassificationDialog.h \
