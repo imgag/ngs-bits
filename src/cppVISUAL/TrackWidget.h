@@ -55,11 +55,14 @@ protected:
 	virtual void showInfoPopup(QPointF global_pos, QString info);
 	// this is same for all track widgets
 	void drawLabel(QPainter&);
+
+	void handleTrackRename();
+
 	virtual QString getType() = 0;
 
 	QPoint drag_start_pos_;
 	bool is_dragging_;
-	QAction *opts_[2];
+	QAction *opts_[3];
 
 
 	QUuid id_;

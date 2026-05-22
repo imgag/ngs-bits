@@ -36,7 +36,7 @@ TrackGroup::TrackGroup(QWidget* parent)
 
 void TrackGroup::trackDeleted()
 {
-	QWidget* senderWidget = qobject_cast<QWidget*>(sender());
+	TrackWidget* senderWidget = qobject_cast<TrackWidget*>(sender());
 	if (senderWidget) {
 		layout_->removeWidget(senderWidget);
 		senderWidget->deleteLater();
@@ -48,7 +48,7 @@ void TrackGroup::trackDeleted()
 
 void TrackGroup::trackMoved()
 {
-	QWidget* senderWidget = qobject_cast<QWidget*>(sender());
+	TrackWidget* senderWidget = qobject_cast<TrackWidget*>(sender());
 	if (senderWidget){
 		disconnect(senderWidget, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
 		disconnect(senderWidget, SIGNAL(trackMoved()), this, SLOT(trackMoved()));

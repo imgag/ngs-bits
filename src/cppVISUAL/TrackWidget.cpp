@@ -5,6 +5,7 @@
 #include "BamAlignmentTrack.h"
 #include "BamCoverageTrack.h"
 #include "GenomeVisualizationWidget.h"
+#include "QInputDialog"
 
 #include <QApplication>
 #include <QDrag>
@@ -40,6 +41,8 @@ void TrackWidget::populateContextMenu(QMenu& menu)
 	menu.addSeparator();
 
 	opts_[1] = menu.addAction("Remove Track");
+
+	opts_[2] = menu.addAction("Rename Track..");
 }
 
 void TrackWidget::handleContextMenuAction(QAction* action)
@@ -51,6 +54,22 @@ void TrackWidget::handleContextMenuAction(QAction* action)
 	else if (action == opts_[1])
 	{
 		emit trackDeleted();
+	}
+	else if (action == opts_[2]) // rename track
+	{
+		handleTrackRename();
+	}
+}
+
+void TrackWidget::handleTrackRename()
+{
+	bool ok;
+
+	QString new_name = QInputDialog::getText(this, tr("Enter Track Name"), "", QLineEdit::Normal, name_, &ok);
+	if (ok && !new_name.isEmpty()) {
+		// Process the text
+		qDebug() << "NAME: " << new_name << Qt::endl;
+		name_ = new_name;
 	}
 }
 
@@ -84,7 +103,7 @@ void TrackWidget::mouseMoveEvent(QMouseEvent* event)
 	mime_data->setData("application/track-data", id_.toByteArray());
 	drag->setMimeData(mime_data);
 
-
+	//draw the drag block
 	int width = SharedData::settings().label_width;
 	QPixmap pixmap(width, height());
 	pixmap.fill(Qt::transparent);
