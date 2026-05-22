@@ -1,27 +1,27 @@
 #include "RowPacker.h"
 
 
-int RowPacker::insert(int start, int end)
+int RowPacker::insert(int start, int end, int payload)
 {
 	for (int row =0; row < rows_.size(); ++row)
 	{
 		if (fits(row, start, end))
 		{
-			insertIntoRow(row, start, end);
+			insertIntoRow(row, start, end, payload);
 			return row;
 		}
 	}
 
 	rows_.append(QVector<Interval>());
 	int row = rows_.size() - 1;
-	insertIntoRow(row, start, end);
+	insertIntoRow(row, start, end, payload);
 	return row;
 }
 
-void RowPacker::restore(int row, int start, int end)
+void RowPacker::restore(int row, int start, int end, int payload)
 {
 	while (rows_.size() <= row) rows_.append(QVector<Interval>());
-	insertIntoRow(row, start, end);
+	insertIntoRow(row, start, end, payload);
 }
 
 int RowPacker::find(int row, int pos) const
@@ -34,9 +34,10 @@ int RowPacker::find(int row, int pos) const
 	while (lo < hi)
 	{
 		int mid = (lo + hi) / 2;
-		if (pos >= intervals[mid].first && pos <= intervals[mid].second)
-			return mid;        // found the interval
-		if (pos < intervals[mid].first)
+		const auto& it = intervals[mid];
+		if (pos >= it.start && pos <= intervals[mid].end)
+			return it.payload;        // found the interval
+		if (pos < it.start)
 			hi = mid;
 		else
 			lo = mid + 1;
@@ -52,7 +53,7 @@ int RowPacker::insertionPoint(int row, int start) const
 	while (lo < hi)
 	{
 		int mid = (lo + hi) / 2;
-		if (intervals[mid].first < start) lo = mid + 1;
+		if (intervals[mid].start < start) lo = mid + 1;
 		else hi = mid;
 	}
 	return lo;
@@ -63,13 +64,13 @@ bool RowPacker::fits(int row, int start, int end) const
 	int pos = insertionPoint(row, start);
 	const auto& intervals = rows_[row];
 
-	if (pos > 0 && intervals[pos - 1].second > start) return false;
-	if (pos < intervals.size() && end > intervals[pos].first) return false;
+	if (pos > 0 && intervals[pos - 1].end > start) return false;
+	if (pos < intervals.size() && end > intervals[pos].start) return false;
 	return true;
 }
 
-void RowPacker::insertIntoRow(int row, int start, int end)
+void RowPacker::insertIntoRow(int row, int start, int end, int payload)
 {
 	int pos = insertionPoint(row, start);
-	rows_[row].insert(pos, {start, end});
+	rows_[row].insert(pos, {start, end, payload});
 }

@@ -8,6 +8,12 @@
 class RowPacker
 {
 public:
+	struct Interval
+	{
+		int start;
+		int end;
+		int payload;
+	};
 	void clear()
 	{
 		rows_.clear();
@@ -15,22 +21,22 @@ public:
 
 	int rowCount() const {return rows_.size();}
 
-	int insert(int start, int end);
+	int insert(int start, int end, int payload);
 
-	void restore(int row, int start, int end);
+	void restore(int row, int start, int end, int payload);
 
 	int find(int row, int pos) const;
 
 
 private:
-	using Interval = QPair<int, int>;
+	// using Interval = QPair<int, int>;
 	QVector<QVector<Interval>> rows_;
 
 	int insertionPoint(int row, int start) const;
 
 	bool fits(int row, int start, int end) const;
 
-	void insertIntoRow(int row, int start, int end);
+	void insertIntoRow(int row, int start, int end, int payload);
 };
 
 #endif // ROWPACKER_H

@@ -73,25 +73,18 @@ void BamAlignmentTrack::calculateRowsNormalMode()
 	const QVector<BamAlignmentWrapper>& alns = track_data_->getAlignments();
 
 	row_packer_.clear(); // this keeps the row_packer small so insertions don't take a long time in the future
-	normal_row_store_.clear(); // only store rows for alignments that are currently in the visible region (+- padding)
 
-	//TODO: it would be better to make row_idxes an LRU cache instead
-	foreach (const BamAlignmentWrapper& w, alns)
+	for (int i =0; i < alns.size(); ++i)
 	{
-		if (row_idxes_.contains(w)) row_packer_.restore(row_idxes_[w], w.alignment.start(), w.alignment.end());
+		const BamAlignmentWrapper& w = alns[i];
+		if (row_idxes_.contains(w)) row_packer_.restore(row_idxes_[w], w.alignment.start(), w.alignment.end(), i);
 	}
 
 	for (int i =0; i < alns.size(); ++i)
 	{
-		if (row_idxes_.contains(alns[i]))
-		{
-			normal_row_store_[row_idxes_[alns[i]]].append(i);
-			continue;
-		}
-		int row = row_packer_.insert(alns[i].alignment.start(), alns[i].alignment.end());
+		if (row_idxes_.contains(alns[i])) continue;
+		int row = row_packer_.insert(alns[i].alignment.start(), alns[i].alignment.end(), i);
 		row_idxes_[alns[i]] = row;
-
-		normal_row_store_[row].append(i);
 	}
 
 	if (num_rows_ < row_packer_.rowCount()) num_rows_ = row_packer_.rowCount();
@@ -107,16 +100,15 @@ void BamAlignmentTrack::calculateRowsPairMode()
 	const QVector<BamAlignmentWrapper>& alns = track_data_->getAlignments();
 
 	row_packer_.clear();
-	pair_row_store_.clear();
 	// restore the ones we already have (only the pairs)
-	foreach (const ReadPair& read_pair, read_pairs_)
+	for (int i =0; i < read_pairs_.count(); ++i)
 	{
+		const auto& read_pair = read_pairs_[i];
 		const auto& al = alns[read_pair.first].alignment;
-
 		int row = pair_row_idxes_.value(al.name(), -1);
 		if (row != -1 && row_stored_with_pair_.value(al.name(), false))
 		{
-			row_packer_.restore(row, read_pair.start, read_pair.end);
+			row_packer_.restore(row, read_pair.start, read_pair.end, i);
 		}
 	}
 
@@ -127,11 +119,10 @@ void BamAlignmentTrack::calculateRowsPairMode()
 		const auto& al1 = alns[read_pair.first].alignment;
 		if (pair_row_idxes_.contains(al1.name()) && row_stored_with_pair_.contains(al1.name()))
 		{
-			pair_row_store_[pair_row_idxes_[al1.name()]].append(i);
 			continue;
 		}
 
-		int row = row_packer_.insert(read_pair.start, read_pair.end);
+		int row = row_packer_.insert(read_pair.start, read_pair.end, i);
 
 		if (read_pair.first != -1) pair_row_idxes_[al1.name()] = row;
 		if (read_pair.second != -1)
@@ -139,8 +130,6 @@ void BamAlignmentTrack::calculateRowsPairMode()
 			pair_row_idxes_[al1.name()] = row;
 			row_stored_with_pair_[al1.name()] = true;
 		}
-
-		pair_row_store_[row].append(i);
 	}
 	if (num_rows_ < row_packer_.rowCount()) num_rows_ = row_packer_.rowCount();
 }
@@ -199,14 +188,7 @@ void BamAlignmentTrack::drawNormalMode(QPainter& painter, const BedLine&)
 	for (int i =0; i < alns.size(); ++i)
 	{
 		const BamAlignmentWrapper& al_w = alns[i];
-		// const BamAlignment& al = al_w.alignment;
-		// if (al.end() < region.start()) continue;
-		// if (al.start() > region.end()) continue;
-
 		int row_y = row_idxes_[alns[i]] * (ROW_HEIGHT + ROW_PADDING);
-		// drawAlignment(painter, al, row_y, x0, total_width);
-		// drawVariants(painter, al_w, row_y, x0, total_width);
-
 		drawAlignmentAndVariants(painter, al_w, row_y, x0, total_width);
 	}
 }
@@ -225,17 +207,6 @@ void BamAlignmentTrack::drawPairMode(QPainter& painter, const BedLine& region)
 		{
 			const BamAlignmentWrapper& al_w = alns[read_pair.first];
 			int row_y = pair_row_idxes_.value(al_w.alignment.name(), -1) * (ROW_HEIGHT + ROW_PADDING);
-			// const BamAlignment& al = alns[read_pair.first].alignment;
-			// if (al.end() >= region.start() && al.start() <= region.end())
-			// {
-			// 	int row_y = pair_row_idxes_.value(al.name(), -1) * (ROW_HEIGHT + ROW_PADDING);
-			// 	// if (row_y >= 0)
-			// 	// {
-			// 	// 	drawAlignment(painter, al, row_y, x0, total_width);
-			// 	// 	drawVariants(painter, al_w, row_y, x0, total_width);
-			// 	// }
-			// 	drawAlignmentAndVariants(painter, )
-			// }
 			drawAlignmentAndVariants(painter, al_w, row_y, x0, total_width);
 		}
 
@@ -245,12 +216,6 @@ void BamAlignmentTrack::drawPairMode(QPainter& painter, const BedLine& region)
 			const BamAlignment& al = alns[read_pair.second].alignment;
 			int row_y = pair_row_idxes_[al.name()] * (ROW_HEIGHT + ROW_PADDING);
 			drawAlignmentAndVariants(painter, al_w, row_y, x0, total_width);
-			// if (al.end() >= region.start() && al.start() <= region.end() && pair_row_idxes_.contains(al.name()))
-			// {
-			// 	int row_y = pair_row_idxes_[al.name()] * (ROW_HEIGHT + ROW_PADDING);
-			// 	drawAlignment(painter, al, row_y, x0, total_width);
-			// 	drawVariants(painter, al_w, row_y, x0, total_width);
-			// }
 		}
 
 		//draw line
@@ -482,16 +447,15 @@ void BamAlignmentTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 	float p = (float)(x - label_width - 2) / total_width;
 	int genome_pos = region.start() + p * (region.end() - region.start());
 
-	int interval_idx = row_packer_.find(row, genome_pos);
+	int aln_idx = row_packer_.find(row, genome_pos);
 
 	const auto& alns = track_data_->getAlignments();
 
-	if (interval_idx != -1)
+	if (aln_idx != -1)
 	{
-		if (view_as_pairs_ && pair_row_store_.contains(row))
+		if (view_as_pairs_)
 		{
-			int read_pair_idx = pair_row_store_[row][interval_idx];
-			const ReadPair& rp = read_pairs_[read_pair_idx];
+			const ReadPair& rp = read_pairs_[aln_idx];
 
 			QString info;
 
@@ -509,9 +473,8 @@ void BamAlignmentTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 
 			showInfoPopup(global_pos, info);
 		}
-		else if (!view_as_pairs_ && normal_row_store_.contains(row))
+		else if (!view_as_pairs_)
 		{
-			int aln_idx = normal_row_store_[row][interval_idx];
 			const BamAlignment& aln = alns[aln_idx].alignment;
 
 			QString info = QString("Read: %1").arg(getBamAlignmentText(aln));

@@ -2,7 +2,7 @@
 #include "FileLoader.h"
 
 #define OPT
-#undef OPT
+// #undef OPT
 
 void BamTrackData::updateRegion()
 {
@@ -31,10 +31,9 @@ void BamTrackData::updateRegion()
 
 	if (!loaded_region_.isValid() || region.chr() != loaded_region_.chr())
 	{
-		qDebug() << "going into full load" << Qt::endl;
 		fullLoad(region);
 		emit onDataUpdate();
-		qDebug() << "returning from full load" << Qt::endl;
+		// qDebug() << "returning from full load" << Qt::endl;
 		return;
 	}
 
@@ -45,20 +44,20 @@ void BamTrackData::updateRegion()
 
 	if (new_start >= old_start && new_end <= old_end) // already loaded
 	{
-		qDebug() << "Zoomed in giving, pre loaded stuff" << Qt::endl;
+		// qDebug() << "Zoomed in giving, pre loaded stuff" << Qt::endl;
 		emit onDataUpdate();
 		return;
 	}
 
 	if (new_end < old_start || new_start > old_end)
 	{
-		qDebug() << "out of loaded region, reloading everything" << Qt::endl;
+		// qDebug() << "out of loaded region, reloading everything" << Qt::endl;
 		fullLoad(region);
 		emit onDataUpdate();
 		return;
 	}
 
-	qDebug() << "left or right shift" << Qt::endl;
+	// qDebug() << "left or right shift" << Qt::endl;
 
 	is_loading_ = true;
 
