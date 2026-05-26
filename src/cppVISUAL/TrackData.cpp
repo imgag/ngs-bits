@@ -1,7 +1,7 @@
 #include "TrackData.h"
 #include "FileLoader.h"
 
-// #define OPT
+#define OPT
 
 void BamTrackData::updateRegion()
 {
@@ -34,16 +34,19 @@ void BamTrackData::updateRegion()
 	if (!loaded_region_.isValid() || region.chr() != loaded_region_.chr()) // chr mismatch
 	{
 		fullLoad(region);
+		return;
 	}
 
 	else if (new_start >= old_start && new_end <= old_end) // already loaded
 	{
 		emit onDataUpdate();
+		return;
 	}
 
 	else if (new_end < old_start || new_start > old_end) // completely outside of bounds
 	{
 		fullLoad(region);
+		return;
 	}
 	else // left/right shift or size increase
 	{
@@ -65,9 +68,11 @@ void BamTrackData::updateRegion()
 		loaded_region_.setStart(p_start);
 		loaded_region_.setEnd(p_end);
 		is_loading_ = false;
+
+		emit onDataUpdate();
+		return;
 	}
 
-	emit onDataUpdate();
 
 	#else
 	alignments_.clear();
@@ -106,15 +111,12 @@ void BamTrackData::fullLoad(const BedLine& region)
 	loaded_region_.setEnd(p_end);
 
 	is_loading_ = false;
+
+	emit onDataUpdate();
 }
 
 void BamTrackData::fetchRegion(const BedLine& region)
 {
-	QSet<QString> existing;
-	existing.reserve(alignments_.size());
-
-	foreach (const BamAlignmentWrapper& aln, alignments_) existing.insert(aln.id);
-
 	bam_reader_->setRegion(region.chr(), region.start(), region.end());
 
 	BamAlignment al;
@@ -123,20 +125,32 @@ void BamTrackData::fetchRegion(const BedLine& region)
 		if (al.isUnmapped() || al.isDuplicate() || al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 
 		BamAlignmentWrapper wrapped_alignment(al);
-		if (existing.contains(wrapped_alignment.id)) continue;
+		if (loaded_ids_.contains(wrapped_alignment.id)) continue;
+		loaded_ids_.insert(wrapped_alignment.id);
 
 		wrapped_alignment.storeVariants(ref_seq_, ref_start_);
-		alignments_ << wrapped_alignment;
+		alignments_.push_back(std::move(wrapped_alignment));
 	}
 }
 
 void BamTrackData::pruneAlignments(int keep_start, int keep_end)
 {
-	alignments_.erase(
-		std::remove_if(alignments_.begin(), alignments_.end(), [keep_start, keep_end](const BamAlignmentWrapper& al){
-			return (al.alignment.start() > keep_end || al.alignment.end() < keep_start);
-		} ), alignments_.end()
-		);
+	auto it = std::remove_if(
+		alignments_.begin(),
+		alignments_.end(),
+		[&](const BamAlignmentWrapper& al)
+		{
+			bool remove =
+				al.alignment.start() > keep_end ||
+				al.alignment.end() < keep_start;
+
+			// also remove the id from loaded_ids_
+			if (remove) loaded_ids_.remove(al.id);
+
+			return remove;
+		});
+
+	alignments_.erase(it, alignments_.end());
 }
 
 

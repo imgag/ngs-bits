@@ -59,7 +59,7 @@ private:
 	// vector for stroing the coverage everytime the region changes
 	// so that we don't have to recalulate every coverage paintEvent
 	QVector<BaseCoverage> coverage_;
-	long long max_coverage_;
+	int max_coverage_;
 
 	// calculates coverage per base and caches it in coverage_
 	void storeCoverage();

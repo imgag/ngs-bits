@@ -23,6 +23,35 @@ struct BedTrackData : public TrackData
 	QSharedPointer<BedFile> bed_file;
 };
 
+struct AlignmentKey
+{
+	uint64_t a;
+	uint64_t b;
+
+	bool operator==(const AlignmentKey& other) const
+	{
+		return a == other.a && b == other.b;
+	}
+};
+
+inline size_t qHash(const AlignmentKey& k, size_t seed = 0)
+{
+	return qHashMulti(seed, k.a, k.b);
+}
+
+static AlignmentKey makeKey(const BamAlignment& al)
+{
+	QByteArray cigar = al.cigarDataAsString();
+
+	uint64_t h1 = qHash(al.name());
+	h1 ^= ((uint64_t)al.start() << 1);
+	h1 ^= ((uint64_t)al.isReverseStrand() << 32);
+
+	uint64_t h2 = qHashBits(cigar.data(), cigar.size());
+
+	return {h1, h2};
+}
+
 struct BamAlignmentWrapper
 {
 	struct VariantInfo
@@ -32,37 +61,60 @@ struct BamAlignmentWrapper
 		int quality;
 	};
 
-	QString id; // for hashing
+	AlignmentKey id; // for hashing
 	BamAlignment alignment;
 	QVector<VariantInfo> variants;
 
 	BamAlignmentWrapper(BamAlignment aln)
-		: id(makeId(aln)), alignment(aln)
+		: id(makeKey(aln)), alignment(aln)
 	{
 	}
 
 	BamAlignmentWrapper(BamAlignment&& aln)
-		: id(makeId(aln)), alignment(std::move(aln))
+		: id(makeKey(aln)), alignment(std::move(aln))
 	{
 	}
 
 	void storeVariants(const Sequence& ref_seq, int ref_start)
 	{
-		variants.clear();
-		int loop_start = std::max(alignment.start(), ref_start);
-		int loop_end = std::min(alignment.end(), ref_start + (int)ref_seq.length());
+		// variants.clear();
+		// int loop_start = std::max(alignment.start(), ref_start);
+		// int loop_end = std::min(alignment.end(), ref_start + (int)ref_seq.length());
 
-		for (int pos = loop_start; pos < loop_end; ++pos)
-		{
-			int idx = pos - ref_start;
-			char ref_base = ref_seq[idx] | 32;
-			auto [base, qual] = alignment.extractBaseByCIGAR(pos);
-			base |= 32;
-			if (base != ref_base && base != '-')
+		// for (int pos = loop_start; pos < loop_end; ++pos)
+		// {
+		// 	int idx = pos - ref_start;
+		// 	char ref_base = ref_seq[idx] | 32;
+		// 	auto [base, qual] = alignment.extractBaseByCIGAR(pos);
+		// 	base |= 32;
+		// 	if (base != ref_base && base != '-')
+		// 	{
+		// 		variants << VariantInfo{pos, base, qual};
+		// 	}
+		// }
+
+		variants.clear();
+
+		alignment.forEachAlignedBase(
+			[&](int genome_pos, char base, int qual, int)
 			{
-				variants << VariantInfo{pos, base, qual};
-			}
-		}
+				int idx = genome_pos - ref_start;
+
+				if (idx < 0 || idx >= ref_seq.length())
+					return;
+
+				char ref = ref_seq[idx] | 32;
+				base |= 32;
+
+				if (base != ref)
+				{
+					variants.push_back({
+						genome_pos,
+						base,
+						qual
+					});
+				}
+			});
 	}
 
 	const QVector<VariantInfo>& getVariants() const
@@ -120,12 +172,19 @@ public:
 	{
 		bam_reader_ = reader;
 		loaded_region_.setEnd(-1); // invalidate loaded_region
+		alignments_.clear();
+		loaded_ids_.clear();
+
+		alignments_.squeeze();
+		loaded_ids_.squeeze();
+
 		updateRegion();
 	}
 
 	void reload();
 
 signals:
+	// void onDataChange();
 	void onDataUpdate();
 
 public slots:
@@ -137,6 +196,7 @@ private:
 	QVector<BamAlignmentWrapper> dummy_alignments_;
 	Sequence ref_seq_;
 	int ref_start_;
+	QSet<AlignmentKey> loaded_ids_;
 
 	void updateData();
 

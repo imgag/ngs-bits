@@ -14,6 +14,7 @@ static constexpr int SPACING_BELOW = 4;
 BamAlignmentTrack::BamAlignmentTrack(QWidget* parent, QString file_path, QString name)
 	: TrackWidget(parent, file_path, name)
 {
+	updateFontCache();
 }
 
 BamAlignmentTrack* BamAlignmentTrack::createTrack(QWidget* parent, QString file_path, QString name)
@@ -323,6 +324,16 @@ QSize BamAlignmentTrack::characterSize(QFont font)
 	return QSize(w, h);
 }
 
+void BamAlignmentTrack::updateFontCache()
+{
+	QFont font;
+	font.setPointSize(ROW_HEIGHT);
+	font.setBold(true);
+
+	cached_font_ = font;
+	cached_char_size_ = characterSize(font);
+}
+
 void BamAlignmentTrack::drawVariants(QPainter& painter, const BamAlignmentWrapper& al, int row_y, int x0, int total_width)
 {
 	const auto& region = SharedData::region();
@@ -341,14 +352,14 @@ void BamAlignmentTrack::drawVariants(QPainter& painter, const BamAlignmentWrappe
 		int dX = std::max(1, endX - x_start);
 		QColor color = baseColor(variant_data.base);
 		color = QColor(color.red(), color.green(), color.blue(), ((float)variant_data.quality/40)*255);
-		QFont font = painter.font();
-		font.setPointSize(ROW_HEIGHT);
-		font.setBold(true);
-		QSize char_size = characterSize(font);
+		// QFont font = painter.font();
+		// font.setPointSize(ROW_HEIGHT);
+		// font.setBold(true);
+		// QSize char_size = characterSize(font);
 
-		if (pixels_per_base >= char_size.width())
+		if (pixels_per_base >= cached_char_size_.width())
 		{
-			painter.setFont(font);
+			painter.setFont(cached_font_);
 			painter.setPen(color);
 			QRectF text_rect(x_start, row_y - 5, dX, ROW_HEIGHT + 10);
 			painter.drawText(text_rect, Qt::AlignHCenter, QString(variant_data.base).toUpper());

@@ -70,45 +70,43 @@ void BamCoverageTrack::storeCoverage()
 	int ref_start =  track_data_->getRefSeqStart();
 
 	//store coverage
-	for (int i =0; i < aligns.count(); ++i)
+	for (const auto& wrapped : aligns)
 	{
-		const BamAlignment& al = aligns[i].alignment;
+		const BamAlignment& al = wrapped.alignment;
+
 		if (al.end() < region.start()) continue;
 		if (al.start() > region.end()) continue;
 
-		int al_start = std::max(al.start(), region.start());
-		int al_end	 = std::min(al.end(), region.end() + 1);
+		al.forEachAlignedBase(
+			[&](int genome_pos, char base, int /*qual*/, int /*read pos*/)
+			{
+				if (genome_pos < region.start() || genome_pos > region.end()) return;
 
-		for (int pos = al_start; pos <= al_end; ++pos)
-		{
-			int idx = pos - region.start();
-			char base;
-			auto base_info = al.extractBaseByCIGAR(pos);
-			base = base_info.first;
-			if (!al.isReverseStrand())
-			{
-				switch (base)
+				int idx = genome_pos - region.start();
+				BaseCoverage& cov = coverage_[idx];
+				if (!al.isReverseStrand())
 				{
-					case 'A': case 'a':  ++coverage_[idx].forward_a; break;
-					case 'C': case 'c':  ++coverage_[idx].forward_c; break;
-					case 'G': case 'g':  ++coverage_[idx].forward_g; break;
-					case 'T': case 't':  ++coverage_[idx].forward_t; break;
-					default: break;
+					switch (base)
+					{
+					case 'A': ++cov.forward_a; break;
+					case 'C': ++cov.forward_c; break;
+					case 'G': ++cov.forward_g; break;
+					case 'T': ++cov.forward_t; break;
+					}
 				}
-			}
-			else
-			{
-				switch (base)
+				else
 				{
-					case 'A': case 'a':  ++coverage_[idx].reverse_a; break;
-					case 'C': case 'c':  ++coverage_[idx].reverse_c; break;
-					case 'G': case 'g':  ++coverage_[idx].reverse_g; break;
-					case 'T': case 't':  ++coverage_[idx].reverse_t; break;
-					default: break;
+					switch (base)
+					{
+					case 'A': ++cov.reverse_a; break;
+					case 'C': ++cov.reverse_c; break;
+					case 'G': ++cov.reverse_g; break;
+					case 'T': ++cov.reverse_t; break;
+					}
 				}
+				max_coverage_ = std::max(max_coverage_, cov.total());
 			}
-			if (coverage_[idx].total() > max_coverage_) max_coverage_ = coverage_[idx].total();
-		}
+		);
 	}
 
 	const auto& ref_seq = track_data_->getReferenceSeq();

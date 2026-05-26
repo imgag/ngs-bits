@@ -76,6 +76,8 @@ private:
 	// iterates through the alignments and stores pairs as ReadPair in read_pairs_
 	void makePairs();
 
+	void updateFontCache();
+
 	static QColor baseColor(QChar base);
 	static QColor strandColor(bool is_reverse);
 	static QSize characterSize(QFont font);
@@ -97,6 +99,8 @@ private:
 	bool view_as_pairs_ = false;
 	QAction* pairs_action_;
 	QPoint mouse_press_pos_;
+	QSize cached_char_size_;
+	QFont cached_font_;
 
 private slots:
 	void dataReady();

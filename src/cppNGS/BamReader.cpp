@@ -373,6 +373,62 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int* index_in_read) c
 	THROW(Exception, "Could not find position " + QString::number(pos) + " in read " + name() + " with start position " + QString::number(start()) + "!");
 }
 
+void BamAlignment::forEachAlignedBase(const std::function<void(int,char,int,int)>& fn) const
+{
+	int read_pos = 0;
+	int genome_pos = start();
+
+	uint8_t* seq = bam_get_seq(aln_);
+	uint8_t* qual = containsQualities() ? bam_get_qual(aln_) : nullptr;
+
+	CigarData cigar = cigarData();
+
+	for (uint32_t i = 0; i < cigar.size(); ++i)
+	{
+		uint32_t op = cigar.opType(i);
+		uint32_t len = cigar.opLength(i);
+
+		switch (op)
+		{
+		case BAM_CMATCH:
+		case BAM_CEQUAL:
+		case BAM_CDIFF:
+		{
+			for (uint32_t j = 0; j < len; ++j)
+			{
+				char base = seq_nt16_str[bam_seqi(seq, read_pos)];
+
+				int q = qual ? qual[read_pos] : -1;
+
+				fn(genome_pos, base, q, read_pos);
+
+				++genome_pos;
+				++read_pos;
+			}
+
+			break;
+		}
+
+		case BAM_CINS:
+		case BAM_CSOFT_CLIP:
+			read_pos += len;
+			break;
+
+		case BAM_CDEL:
+		case BAM_CREF_SKIP:
+			genome_pos += len;
+			break;
+
+		case BAM_CHARD_CLIP:
+			break;
+
+		default:
+			THROW(Exception, "Unknown CIGAR op!");
+		}
+	}
+}
+
+
 QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window) const
 {
 	//init
@@ -1127,3 +1183,5 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 
 	requested_fields_ = requested_fields_before;
 }
+
+
