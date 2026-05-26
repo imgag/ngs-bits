@@ -88,7 +88,7 @@ TrackGroup* TrackGroup::fromFile()
 
 TrackWidgetList TrackGroup::loadTrackWidgetsFromFile()
 {
-	QString file_path = GenomeVisualizationWidget::getOpenFileName(tr("Open File"), "", tr("Bed Files(*.bed);;Bam Files(*.bam);;Cram Files(*.cram)"));
+	QString file_path = GenomeVisualizationWidget::getOpenFileName(tr("Open File"), "", tr("Bed Files(*.bed);;Bam Files(*.bam);;Cram Files(*.cram);;BAF Files(*.igv)"));
 	if (file_path.isEmpty()) return TrackWidgetList();
 
 	TrackWidgetList widgets = FileLoader::loadTracks(file_path, nullptr);

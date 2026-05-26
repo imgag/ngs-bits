@@ -18,10 +18,14 @@ public:
 	static TrackWidgetList loadBedFileTracks(QString file_path, QWidget* parent = nullptr);
 	// loads Bam File Tracks - emits two tracks
 	static TrackWidgetList loadBamFileTracks(QString file_path, QWidget* parent = nullptr);
+	// loads Baf File Tracks - emits one track
+	static TrackWidgetList loadBafFileTracks(QString file_path, QWidget* parent = nullptr);
 	// loads bed file
 	static QSharedPointer<BedFile> loadBedFile(QString file_path);
 	// loads bam File
 	static QSharedPointer<BamReader> loadBamFile(QString file_path);
+	// loads baf file
+	static QSharedPointer<BedFile> loadBafFile(QString file_path);
 };
 
 #endif // FILELOADER_H

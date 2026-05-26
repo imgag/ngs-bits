@@ -1,4 +1,5 @@
 #include "FileLoader.h"
+#include "BafTrack.h"
 #include "BedTrack.h"
 #include "BamAlignmentTrack.h"
 #include "BamCoverageTrack.h"
@@ -8,6 +9,7 @@ TrackWidgetList FileLoader::loadTracks(QString file_path, QWidget* parent)
 {
 	if (file_path.endsWith(".bed")) return loadBedFileTracks(file_path, parent);
 	if (file_path.endsWith(".bam") || file_path.endsWith(".cram")) return loadBamFileTracks(file_path, parent);
+	if (file_path.endsWith(".baf") || file_path.endsWith(".igv")) return loadBafFileTracks(file_path, parent);
 
 	GenomeVisualizationWidget::displayError(file_path + ": Unsupported file type.");
 	return TrackWidgetList();
@@ -36,6 +38,15 @@ TrackWidgetList FileLoader::loadBamFileTracks(QString file_path, QWidget* parent
 	return out;
 }
 
+TrackWidgetList FileLoader::loadBafFileTracks(QString file_path, QWidget* parent)
+{
+	TrackWidgetList out;
+	QFileInfo info(file_path);
+	BafTrack* baf_track = BafTrack::createTrack(parent, file_path, info.fileName());
+	if (baf_track) out << baf_track;
+	return out;
+}
+
 QSharedPointer<BedFile> FileLoader::loadBedFile(QString file_path)
 {
 	// static QHash<QString, QWeakPointer<BedFile>> cache;
@@ -57,6 +68,45 @@ QSharedPointer<BedFile> FileLoader::loadBedFile(QString file_path)
 		bedfile->load(file_path);
 		bedfile->sort();
 		// cache[abs_path] = bedfile;
+		return bedfile;
+	}
+	catch (const FileParseException& e)
+	{
+		GenomeVisualizationWidget::displayError(e.message());
+		return nullptr;
+	}
+}
+
+QSharedPointer<BedFile> FileLoader::loadBafFile(QString file_path)
+{
+
+	const QFileInfo info(file_path);
+
+	const QString abs_path = info.absoluteFilePath();
+
+	if (!info.isFile())
+	{
+		GenomeVisualizationWidget::displayError(file_path + " not found");
+		return nullptr;
+	}
+	try
+	{
+		QSharedPointer<BedFile> bedfile = QSharedPointer<BedFile>::create();
+		bedfile->load(file_path);
+
+		bool contains_baf_column = false;
+		foreach (const QByteArray& header, bedfile->headers())
+		{
+			contains_baf_column |= (header.contains("BAF") && !header.startsWith('#'));
+		}
+
+		if (!contains_baf_column)
+		{
+			GenomeVisualizationWidget::displayError(file_path + " does not contain BAF column");
+			return nullptr;
+		}
+
+		bedfile->sort();
 		return bedfile;
 	}
 	catch (const FileParseException& e)
