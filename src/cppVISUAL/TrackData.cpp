@@ -1,8 +1,7 @@
 #include "TrackData.h"
 #include "FileLoader.h"
 
-#define OPT
-// #undef OPT
+// #define OPT
 
 void BamTrackData::updateRegion()
 {
@@ -11,8 +10,6 @@ void BamTrackData::updateRegion()
 		qWarning() << "Bam Reader is not set For BamTrackData" << Qt::endl;
 		return;
 	}
-
-	// if (is_loading_) return;
 
 	int max_len = SharedData::settings().bam_max_region_len;
 	const BedLine& region = SharedData::region();
@@ -29,54 +26,47 @@ void BamTrackData::updateRegion()
 
 	#ifdef OPT
 
-	if (!loaded_region_.isValid() || region.chr() != loaded_region_.chr())
-	{
-		fullLoad(region);
-		emit onDataUpdate();
-		// qDebug() << "returning from full load" << Qt::endl;
-		return;
-	}
-
 	int new_start = region.start();
 	int new_end = region.end();
 	int old_start = loaded_region_.start();
 	int old_end = loaded_region_.end();
 
-	if (new_start >= old_start && new_end <= old_end) // already loaded
+	if (!loaded_region_.isValid() || region.chr() != loaded_region_.chr()) // chr mismatch
 	{
-		// qDebug() << "Zoomed in giving, pre loaded stuff" << Qt::endl;
-		emit onDataUpdate();
-		return;
-	}
-
-	if (new_end < old_start || new_start > old_end)
-	{
-		// qDebug() << "out of loaded region, reloading everything" << Qt::endl;
 		fullLoad(region);
-		emit onDataUpdate();
-		return;
 	}
 
-	// qDebug() << "left or right shift" << Qt::endl;
+	else if (new_start >= old_start && new_end <= old_end) // already loaded
+	{
+		emit onDataUpdate();
+	}
 
-	is_loading_ = true;
+	else if (new_end < old_start || new_start > old_end) // completely outside of bounds
+	{
+		fullLoad(region);
+	}
+	else // left/right shift or size increase
+	{
+		is_loading_ = true;
 
-	int padding = region.length() / 3;
+		int padding = region.length() / 3;
 
-	int p_start = std::max(0, new_start - padding);
-	int p_end = new_end + padding;
+		int p_start = std::max(0, new_start - padding);
+		int p_end = new_end + padding;
 
-	ref_seq_ = SharedData::genome().seq(region.chr(), p_start, p_end - p_start + 1);
-	ref_start_ = p_start;
+		pruneAlignments(p_start, p_end); // remove out of bound alignments
 
-	if (new_start < old_start) fetchRegion({loaded_region_.chr(), p_start, old_start}, p_start);
-	if (new_end > old_end) fetchRegion({loaded_region_.chr(), old_end, p_end}, p_start);
+		ref_seq_ = SharedData::genome().seq(region.chr(), p_start, p_end - p_start + 1);
+		ref_start_ = p_start;
 
-	pruneAlignments(p_start, p_end);
+		if (p_start < old_start) fetchRegion({loaded_region_.chr(), p_start, old_start});
+		if (p_end > old_end) fetchRegion({loaded_region_.chr(), old_end, p_end});
 
-	loaded_region_.setStart(p_start);
-	loaded_region_.setEnd(p_end);
-	is_loading_ = false;
+		loaded_region_.setStart(p_start);
+		loaded_region_.setEnd(p_end);
+		is_loading_ = false;
+	}
+
 	emit onDataUpdate();
 
 	#else
@@ -98,7 +88,6 @@ void BamTrackData::updateRegion()
 void BamTrackData::fullLoad(const BedLine& region)
 {
 	is_loading_ = true;
-	qDebug() << "Initiating full load" << Qt::endl;
 	int padding = region.length() / 3;
 	int p_start = std::max(0, region.start() - padding);
 	int p_end = region.end() + padding;
@@ -110,19 +99,17 @@ void BamTrackData::fullLoad(const BedLine& region)
 
 	BedLine region_to_fetch(region.chr(), p_start, p_end);
 
-	fetchRegion(region_to_fetch, p_start);
+	fetchRegion(region_to_fetch);
 
 	loaded_region_.setChr(region.chr());
 	loaded_region_.setStart(p_start);
 	loaded_region_.setEnd(p_end);
 
 	is_loading_ = false;
-	qDebug() << "Finished full load" << Qt::endl;
 }
 
-void BamTrackData::fetchRegion(const BedLine& region, int ref_start)
+void BamTrackData::fetchRegion(const BedLine& region)
 {
-	// qDebug() << "Fetching region: " << region.start() <<' ' << region.end() << Qt::endl;
 	QSet<QString> existing;
 	existing.reserve(alignments_.size());
 
@@ -138,10 +125,9 @@ void BamTrackData::fetchRegion(const BedLine& region, int ref_start)
 		BamAlignmentWrapper wrapped_alignment(al);
 		if (existing.contains(wrapped_alignment.id)) continue;
 
-		wrapped_alignment.storeVariants(ref_seq_, ref_start);
+		wrapped_alignment.storeVariants(ref_seq_, ref_start_);
 		alignments_ << wrapped_alignment;
 	}
-	// qDebug() << "Fetched region: " << region.start() <<' ' << region.end() << Qt::endl;
 }
 
 void BamTrackData::pruneAlignments(int keep_start, int keep_end)

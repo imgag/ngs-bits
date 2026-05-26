@@ -49,18 +49,12 @@ struct BamAlignmentWrapper
 	void storeVariants(const Sequence& ref_seq, int ref_start)
 	{
 		variants.clear();
-		// const auto& region = SharedData::region();
-		for (int pos = alignment.start(); pos < alignment.end(); ++pos)
-		{
-			// int idx = pos - region.start();
-			// if (idx < 0 || idx >= region.length()) continue;
-			int idx = pos - ref_start;
-			if (idx < 0 || idx >= ref_seq.length())
-			{
-				// qDebug() << "Bug: invalid idx encountered in store Variants: " << idx << Qt::endl;;
-				continue;
-			}
+		int loop_start = std::max(alignment.start(), ref_start);
+		int loop_end = std::min(alignment.end(), ref_start + (int)ref_seq.length());
 
+		for (int pos = loop_start; pos < loop_end; ++pos)
+		{
+			int idx = pos - ref_start;
 			char ref_base = ref_seq[idx] | 32;
 			auto [base, qual] = alignment.extractBaseByCIGAR(pos);
 			base |= 32;
@@ -154,11 +148,9 @@ private:
 
 	void fullLoad(const BedLine& region);
 
-	void fetchRegion(const BedLine& region, int ref_start);
+	void fetchRegion(const BedLine& region);
 
 	void pruneAlignments(int keep_start, int keep_end);
-
-	static constexpr int PADDING = 1000;
 };
 
 #endif // TRACKDATA_H
