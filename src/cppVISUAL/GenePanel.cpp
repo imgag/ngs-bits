@@ -75,7 +75,7 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 	painter.drawText(QRect(2,2, label_width-4, label_width-4), Qt::AlignRight|Qt::AlignTop, strand_forward_ ? "→" : "←");
 
 	//paint sequence (only if at lest one pixel per base is available)
-	if (pixels_per_base_ >= 1)
+	if (pixels_per_base_ >= 1 && region.chr() != "")
 	{
 		Sequence seq = SharedData::genome().seq(region.chr(), region.start(), region.length());
 		if (!strand_forward_) seq.complement();
