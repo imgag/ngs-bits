@@ -3,6 +3,7 @@
 #include "GenomeVisualizationWidget.h"
 #include "SharedData.h"
 
+#include <QApplication>
 #include <QPainter>
 #include <QMenu>
 
@@ -304,4 +305,90 @@ void BafTrack::handleContextMenuAction(QAction* action)
 	else if (action == opts[3]) graph_mode_ = LINE_PLOT;
 	else TrackWidget::handleContextMenuAction(action);
 	update();
+}
+
+void BafTrack::mousePressEvent(QMouseEvent* event)
+{
+	mouse_press_pos_ = event->pos();
+}
+
+void BafTrack::mouseReleaseEvent(QMouseEvent* event)
+{
+	QPoint pos = event->pos();
+	if ((pos - mouse_press_pos_).manhattanLength() >= QApplication::startDragDistance()
+		|| event->button() != Qt::LeftButton)
+	{
+		TrackWidget::mousePressEvent(event); return;
+	}
+
+	handlePopupRequest(pos, event->globalPosition());
+}
+
+void BafTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
+{
+	const BedLine& region = SharedData::region();
+	int label_width = SharedData::settings().label_width;
+	int total_width = width() - label_width - 4;
+
+	if (local_pos.x() < label_width + 2 || local_pos.x() > width() - 2) return;
+
+	float p = (float)(local_pos.x() - label_width - 2) / total_width;
+	int click_position = region.start() + (region.length() * p);
+
+	double bp_per_pixel = (double)region.length() / total_width;
+	int padding = std::max(2, static_cast<int>(bp_per_pixel * 2));
+
+	int start = std::max(0, click_position - padding);
+	int end = click_position + padding;
+
+	const QVector<int>& idxes = chr_index_->matchingIndices(region.chr(), start, end);
+	QVector<int> candidates;
+
+	foreach (int idx, idxes)
+	{
+		const BedLine& bd = (*bed_file_)[idx];
+		if (bd.annotations().count() <= baf_idx_) continue;
+
+		bool ok;
+		float baf = bd.annotations()[baf_idx_].toFloat(&ok);
+		if (!ok) continue;
+
+		int py = bafToY(baf, TRACK_HEIGHT);
+
+		if (graph_mode_ == POINTS || graph_mode_ == LINE_PLOT)
+		{
+			// Strict distance check for point structures
+			if (std::abs(py - local_pos.y()) <= 6) candidates.push_back(idx);
+		}
+		else if (graph_mode_ == BAR_CHART)
+		{
+			// For bar charts, anywhere within the bar height counts
+			int p_zero = bafToY(0.0f, TRACK_HEIGHT);
+			if (local_pos.y() >= py && local_pos.y() <= p_zero) candidates.push_back(idx);
+		}
+		else if (graph_mode_ == HEATMAP)
+		{
+			// For heatmaps, the whole vertical span of the track represents the data
+			candidates.push_back(idx);
+		}
+	}
+
+	if (candidates.empty()) return;
+
+	QString info;
+	foreach (int idx, candidates)
+	{
+		const BedLine& bd = (*bed_file_)[idx];
+		info += getBafText(bd);
+	}
+	showInfoPopup(global_pos, info);
+}
+
+QString BafTrack::getBafText(const BedLine& bd)
+{
+	return QString("%1: %2 %3, Value: %4\n")
+		.arg(bd.chr().str())
+		.arg(bd.start())
+		.arg(bd.end())
+		.arg(bd.annotations()[baf_idx_]);
 }

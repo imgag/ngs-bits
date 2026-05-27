@@ -29,8 +29,8 @@ public:
 
 protected:
 	void paintEvent(QPaintEvent*) override;
-// 	void mousePressEvent(QMouseEvent*) override;
-// 	void mouseReleaseEvent(QMouseEvent*) override;
+	void mousePressEvent(QMouseEvent*) override;
+	void mouseReleaseEvent(QMouseEvent*) override;
 	void populateContextMenu(QMenu&) override;
 	void handleContextMenuAction(QAction* action) override;
 
@@ -46,7 +46,11 @@ private:
 	void drawHeatMap(QPainter&, const QVector<int>& idxes);
 	void drawBarChart(QPainter&, const QVector<int>& idxes);
 	void drawReferenceLine(QPainter&, float baf_value, int x0, int total_width, int draw_height);
+
+	void handlePopupRequest(QPoint local_pos, QPointF global_pos);
+
 	inline int bafToY(float baf, int draw_height);
+	QString getBafText(const BedLine& bd);
 
 	enum GraphType
 	{
