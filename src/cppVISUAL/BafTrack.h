@@ -31,6 +31,8 @@ protected:
 	void paintEvent(QPaintEvent*) override;
 // 	void mousePressEvent(QMouseEvent*) override;
 // 	void mouseReleaseEvent(QMouseEvent*) override;
+	void populateContextMenu(QMenu&) override;
+	void handleContextMenuAction(QAction* action) override;
 
 private:
 	QSharedPointer<BedFile> bed_file_;
@@ -39,9 +41,23 @@ private:
 	std::unique_ptr<ChromosomalIndex<BedFile>> chr_index_;
 
 	void drawPlot(QPainter&);
+	void drawPoints(QPainter&, const QVector<int>& idxes);
+	void drawLinePlot(QPainter&, const QVector<int>& idxes);
+	void drawHeatMap(QPainter&, const QVector<int>& idxes);
+	void drawBarChart(QPainter&, const QVector<int>& idxes);
 	void drawReferenceLine(QPainter&, float baf_value, int x0, int total_width, int draw_height);
-	int bafToY(float baf, int draw_height);
+	inline int bafToY(float baf, int draw_height);
 
+	enum GraphType
+	{
+		HEATMAP,
+		BAR_CHART,
+		POINTS,
+		LINE_PLOT
+	};
+
+	GraphType graph_mode_ = POINTS;
+	QAction* opts[4];
 };
 
 
