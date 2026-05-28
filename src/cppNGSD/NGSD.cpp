@@ -7,7 +7,6 @@
 #include "NGSHelper.h"
 #include "FilterCascade.h"
 #include "LoginManager.h"
-#include "UserPermissionList.h"
 #include "VariantImpact.h"
 #include <QFileInfo>
 #include <QPair>
@@ -230,12 +229,52 @@ bool NGSD::userCanAccess(int user_id, int ps_id)
 				case Permission::STUDY:
 					ps_ids << getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id=" + data);
 					break;
+			        case Permission::READ_ONLY:
+			        case Permission::PERFORM_VARIANT_SEARCH:
+			        case Permission::PERFORM_BURDEN_TEST:
+			        case Permission::START_ANALYSIS_JOBS:
+			        case Permission::PERFORM_SAMPLE_SEARCH:
+				        break;
 			}
 		}
 		user_can_access.insert(user_id, Helper::listToSet(ps_ids));
 	}
 
 	return user_can_access.value(user_id).contains(ps_id);
+}
+
+bool NGSD::userCanPerformAction(int user_id, Permission permission)
+{
+	//only 'user_restricted' users get action permissions, other users have no limitations for the actions
+	if (getUserRole(user_id)!="user_restricted") return true;
+
+	QMutexLocker locker(&cache_mutex_user_actions_);
+
+	QMap<int, QSet<Permission>>& user_can_perform_actions = getCache().user_can_perform_actions;
+
+	if (!user_can_perform_actions.contains(user_id))
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT read_only, perform_variant_search, perform_burden_test, start_analysis_jobs, sample_search FROM user_action_permissions WHERE user_id=" + QString::number(user_id));
+
+		// if no action permissions have been assigned, the user is allowed to perform all actions
+		if (query.size()==0) return true;
+
+		// otherwise, we will use only the permissions from the table
+		QSet<Permission> current_permissions;
+		while(query.next())
+		{
+			if (query.value(0).toBool()) current_permissions << Permission::READ_ONLY;
+			if (query.value(1).toBool()) current_permissions << Permission::PERFORM_VARIANT_SEARCH;
+			if (query.value(2).toBool()) current_permissions << Permission::PERFORM_BURDEN_TEST;
+			if (query.value(3).toBool()) current_permissions << Permission::START_ANALYSIS_JOBS;
+			if (query.value(4).toBool()) current_permissions << Permission::PERFORM_SAMPLE_SEARCH;
+		}
+
+		user_can_perform_actions.insert(user_id, current_permissions);
+	}
+
+	return user_can_perform_actions.value(user_id).contains(permission);
 }
 
 DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
@@ -10908,6 +10947,7 @@ void NGSD::clearCache()
 	cache_instance.gene_expression_gene2id.clear();
 
 	clearUserPermissionsCache();
+	clearUserActionPermissionsCache();
 }
 
 void NGSD::clearUserPermissionsCache()
@@ -10915,6 +10955,13 @@ void NGSD::clearUserPermissionsCache()
 	QMutexLocker locker(&cache_mutex_user_access_);
 	Cache& cache_instance = getCache();
 	cache_instance.user_can_access.clear();
+}
+
+void NGSD::clearUserActionPermissionsCache()
+{
+	QMutexLocker locker(&cache_mutex_user_actions_);
+	Cache& cache_instance = getCache();
+	cache_instance.user_can_perform_actions.clear();
 }
 
 NGSD::Cache::Cache()

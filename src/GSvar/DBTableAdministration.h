@@ -19,7 +19,8 @@ protected slots:
 	void add();
 	void edit();
 	void edit(int row);
-	void changeUserPermissions();
+	void changeUserDataAccessPermissions();
+	void changeUserActionPermissions();
 	void remove();
 	void openTabs();
 	void resetUserPassword();

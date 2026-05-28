@@ -7,6 +7,7 @@
 #include "LoginManager.h"
 #include "GUIHelper.h"
 #include <QAction>
+#include <QMessageBox>
 
 SvSearchWidget::SvSearchWidget(QWidget* parent)
 	: QWidget(parent)
@@ -53,8 +54,12 @@ void SvSearchWidget::search()
 
 	try
 	{
-		//not for restricted users
-		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
+		//check if the user can perform this action
+		if (!NGSD().userCanPerformAction(LoginManager::userId(), Permission::PERFORM_VARIANT_SEARCH))
+		{
+			QMessageBox::information(this, "Access denied", "You do not have permissions to perform SV search!");
+			return;
+		}
 
 		// SV type/table
 		StructuralVariantType type = BedpeFile::stringToType(ui_.type->currentText().toUtf8());

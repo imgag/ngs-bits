@@ -1996,5 +1996,6 @@ HttpResponse ServerController::clearPermissionsCache(const HttpRequest &/*reques
 {
 	NGSD db;
 	db.clearUserPermissionsCache();
+	db.clearUserActionPermissionsCache();
 	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "User permissions cache has been cleared");
 }

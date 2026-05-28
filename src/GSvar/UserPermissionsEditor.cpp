@@ -67,6 +67,12 @@ void UserPermissionsEditor::updateTable()
 			case Permission::SAMPLE:
 				human_readable_data = db.sampleName(data_hint);
 				break;
+			case Permission::READ_ONLY:
+			case Permission::PERFORM_VARIANT_SEARCH:
+			case Permission::PERFORM_BURDEN_TEST:
+			case Permission::START_ANALYSIS_JOBS:
+			case Permission::PERFORM_SAMPLE_SEARCH:
+				break;
 		}
 
 		new_row.setId(db_table.row(i).id());
@@ -169,7 +175,9 @@ void UserPermissionsEditor::clearServerCache()
 {
 	try
 	{
-		HttpRequestHandler().post(ClientHelper::serverApiUrl() + "clear_cache?token=" + LoginManager::userToken(), QByteArray{});
+		HttpHeaders add_headers;
+		add_headers.insert("Content-Type", "application/json");
+		HttpRequestHandler().post(ClientHelper::serverApiUrl() + "clear_cache?token=" + LoginManager::userToken(), QByteArray{}, add_headers);
 	}
 	catch (Exception& e)
 	{

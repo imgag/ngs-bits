@@ -660,28 +660,28 @@ void MainWindow::on_actionRegionToGenes_triggered()
 }
 
 void MainWindow::on_actionSearchSNVs_triggered()
-{
+{	
 	SmallVariantSearchWidget* widget = new SmallVariantSearchWidget();
 	auto dlg = GUIHelper::createDialog(widget, "Small variants search");
 	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionSearchCNVs_triggered()
-{
+{	
 	CnvSearchWidget* widget = new CnvSearchWidget();
 	auto dlg = GUIHelper::createDialog(widget, "CNV search");
 	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionSearchSVs_triggered()
-{
+{	
 	SvSearchWidget* widget = new SvSearchWidget();
 	auto dlg = GUIHelper::createDialog(widget, "SV search");
 	addModelessDialog(dlg);
 }
 
 void MainWindow::on_actionSearchREs_triggered()
-{
+{	
 	ReSearchWidget* widget = new ReSearchWidget();
 	auto dlg = GUIHelper::createDialog(widget, "RE search");
 	addModelessDialog(dlg);
@@ -1727,10 +1727,16 @@ void MainWindow::editVariantValidation(int index)
 
 	try
 	{
+		NGSD db;
+		//check user can perform this action
+		if (db.userCanPerformAction(LoginManager::userId(), Permission::READ_ONLY))
+		{
+			QMessageBox::information(this, "Access denied", "You do not have permissions to perform variant validation!");
+			return;
+		}
+
 		QString ps = selectProcessedSample();
 		if (ps.isEmpty()) return;
-
-		NGSD db;
 
 		//get variant ID - add if missing
 		QString variant_id = db.variantId(variant, false);
@@ -1803,8 +1809,15 @@ void MainWindow::editVariantComment(int index)
 
 	try
 	{
-		//add variant if missing
 		NGSD db;
+		//check user can perform this action
+		if (db.userCanPerformAction(LoginManager::userId(), Permission::READ_ONLY))
+		{
+			QMessageBox::information(this, "Access denied", "You do not have permissions to edit a comment!");
+			return;
+		}
+
+		//add variant if missing		
 		if (db.variantId(variant, false)=="")
 		{
 			db.addVariant(variant, variants_);
@@ -2074,6 +2087,13 @@ void MainWindow::openSettingsDialog(QString page_name, QString section)
 
 void MainWindow::on_actionSampleSearch_triggered()
 {
+	//check user can perform this action
+	if (!NGSD().userCanPerformAction(LoginManager::userId(), Permission::PERFORM_SAMPLE_SEARCH))
+	{
+		QMessageBox::information(this, "Access denied", "You do not have permissions to perform Sample search!");
+		return;
+	}
+
 	TabType type = TabType::SAMPLE_SEARCH;
 	QString name = "Sample search";
 	if (focusTab(type, name)) return;
@@ -5736,13 +5756,21 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 	}
 	else if (action==a_delete)
 	{
-		if(germlineReportSupported())
+		try
 		{
-			report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
+			if(germlineReportSupported())
+			{
+				report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
+			}
+			else
+			{
+				somatic_report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
+			}
 		}
-		else
+		catch(AccessDeniedException& e)
 		{
-			somatic_report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
+			QMessageBox::information(this, "Access denied", e.message());
+			return;
 		}
 		updateReportConfigHeaderIcon(index);
 	}
@@ -5824,14 +5852,22 @@ void MainWindow::execContextMenuAction(QAction* action, int index)
 	{
 		if ((!report_settings_.report_config->isFinalized() && report_settings_.report_config->exists(VariantType::SNVS_INDELS, index)) || somatic_report_settings_.report_config->exists(VariantType::SNVS_INDELS, index))
 		{
-			if(germlineReportSupported())
+			try
 			{
-				report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
+				if(germlineReportSupported())
+				{
+					report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
+				}
+				else if(somaticReportSupported())
+				{
+					somatic_report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
+					storeSomaticReportConfig();
+				}
 			}
-			else if(somaticReportSupported())
+			catch(AccessDeniedException& e)
 			{
-				somatic_report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
-				storeSomaticReportConfig();
+				QMessageBox::information(this, "Access denied", e.message());
+				return;
 			}
 
 			updateReportConfigHeaderIcon(index);
@@ -6059,8 +6095,14 @@ void MainWindow::on_actionVirusDetection_triggered()
 
 void MainWindow::on_actionBurdenTest_triggered()
 {
-	BurdenTestWidget* widget = new BurdenTestWidget(this);
+	// check if the user can perform this action
+	if (!NGSD().userCanPerformAction(LoginManager::userId(), Permission::PERFORM_BURDEN_TEST))
+	{
+		QMessageBox::information(this, "Access denied", "You do not have permissions to perform Burden test!");
+		return;
+	}
 
+	BurdenTestWidget* widget = new BurdenTestWidget(this);
 	auto dlg = GUIHelper::createDialog(widget, "Gene-based burden test");
 	addModelessDialog(dlg);
 }
@@ -6091,14 +6133,19 @@ void MainWindow::editVariantClassification(VariantList& variants, int index)
 {
 	try
 	{
+		NGSD db;
+		//check user can perform this action
+		if (db.userCanPerformAction(LoginManager::userId(), Permission::READ_ONLY))
+		{
+			QMessageBox::information(this, "Access denied", "You do not have permissions to edit classification!");
+			return;
+		}
+
 		Variant& variant = variants[index];
 
 		//execute dialog
 		ClassificationDialog dlg(this, variant);
 		if (dlg.exec()!=QDialog::Accepted) return;
-
-		//update NGSD
-		NGSD db;
 
 		ClassificationInfo class_info = dlg.classificationInfo();
 
@@ -6144,6 +6191,13 @@ void MainWindow::editVariantClassification(VariantList& variants, int index)
 
 void MainWindow::editSomaticVariantInterpretation(const VariantList &vl, int index)
 {
+	//check user can perform this action
+	if (NGSD().userCanPerformAction(LoginManager::userId(), Permission::READ_ONLY))
+	{
+		QMessageBox::information(this, "Access denied", "You do not have permissions to VICC interpretation!");
+		return;
+	}
+
 	SomaticVariantInterpreterWidget* interpreter = new SomaticVariantInterpreterWidget(this, index, vl);
 	auto dlg = GUIHelper::createDialog(interpreter, "Somatic Variant Interpretation");
 	connect(interpreter, SIGNAL(stored(int, QString, QString)), this, SLOT(updateSomaticVariantInterpretationAnno(int, QString, QString)) );
@@ -6340,6 +6394,12 @@ void MainWindow::editVariantReportConfiguration(int index)
 	}
 
 	NGSD db;
+	//check user can perform this action
+	if (db.userCanPerformAction(LoginManager::userId(), Permission::READ_ONLY))
+	{
+		QMessageBox::information(this, "Access denied", "You do not have permissions to add/edit a report configuration!");
+		return;
+	}
 
 	if(germlineReportSupported()) //germline report configuration
 	{
