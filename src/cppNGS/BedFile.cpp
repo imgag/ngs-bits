@@ -384,7 +384,7 @@ void BedFile::subtract(const BedFile& file2)
 	clearAnnotations();
 
 	//subtract
-	int removed_lines = 0;
+	long long removed_lines = 0;
 	for (long long i=0; i<lines_.count(); ++i)
 	{
 		QVector<long long> matches = file2_idx.matchingIndicesLong(lines_[i].chr(), lines_[i].start(), lines_[i].end());
