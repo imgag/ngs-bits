@@ -8,7 +8,6 @@
 #include <QMessageBox>
 #include <QBuffer>
 #include <QDir>
-#include "HttpHandler.h"
 #include "LoginManager.h"
 
 //struct holding reference data for tumor mutation burden (DOI:10.1186/s13073-017-0424-2)
@@ -129,7 +128,7 @@ SomaticReportDialog::SomaticReportDialog(QString project_filename, SomaticReport
 		if( !hpos_ngsd.contains(hpo_tmb.hpoterm) ) continue;
 
 		QTableWidgetItem* disease = new QTableWidgetItem(QString(hpo_tmb.tumor_entity));
-		QTableWidgetItem* tmb_text = new QTableWidgetItem("Median: " + QString::number(hpo_tmb.tmb_median,'f', 2).replace(".",",") + " Var/Mbp, Maximum: " + QString::number(hpo_tmb.tmb_max,'f',2).replace(".",",") + " Var/Mbp");
+		QTableWidgetItem* tmb_text = new QTableWidgetItem("Median: " + QString::number(hpo_tmb.tmb_median,'f', 2) + " Var/Mbp, Maximum: " + QString::number(hpo_tmb.tmb_max,'f',2) + " Var/Mbp");
 
 		ui_.tmb_reference->insertRow(ui_.tmb_reference->rowCount());
 		ui_.tmb_reference->setItem(ui_.tmb_reference->rowCount()-1, 0, disease);
@@ -500,7 +499,7 @@ void SomaticReportDialog::writeBackSettings()
 		{
 			try
 			{
-				QByteArray response = HttpHandler(true).get(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
+				QByteArray response = HttpRequestHandler().get(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename).body;
 				if (!response.isEmpty()) picture.loadFromData(response);
 			}
 			catch (Exception& e)
@@ -682,7 +681,7 @@ void SomaticReportDialog::createIgvScreenshot()
 
 		try
         {
-            HttpHandler(true).post(ClientHelper::serverApiUrl() + "upload?ps_url_id=" + QUrl(filename_parts[filename_parts.size()-2].toUtf8()).toEncoded() + "&token=" + LoginManager::userToken(), multipart_form);
+			HttpRequestHandler().post(ClientHelper::serverApiUrl() + "upload?ps_url_id=" + QUrl(filename_parts[filename_parts.size()-2].toUtf8()).toEncoded() + "&token=" + LoginManager::userToken(), multipart_form);
 		}
 		catch (Exception& e)
 		{

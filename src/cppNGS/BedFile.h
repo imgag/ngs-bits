@@ -168,7 +168,7 @@ public:
         return lines_[index];
     }
     ///Returns the line count.
-    int count() const
+    long long count() const
     {
         return lines_.count();
 	}
@@ -231,7 +231,7 @@ public:
     ///Subtracts the regions in the given file.
     void subtract(const BedFile& file2);
     ///Removed all parts of regions that do not overlap with the given file.
-    void intersect(const BedFile& file2);
+	void intersect(const BedFile& file2, bool keep_anno=false);
 	///Removes all regions that do not overlap with the given file.
     void overlapping(const BedFile& file2);
 	///Removes all regions that do not overlap with the given region.

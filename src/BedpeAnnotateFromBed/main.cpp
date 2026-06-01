@@ -23,7 +23,7 @@ public:
 		//optional
 		addInfile("in", "Input BEDPE file. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output BEDPE file. If unset, writes to STDOUT.", true);
-		addInt("col", "Annotation source column (default: 4).", true, 4);
+		addInt("col", "Annotation source column.", true, 4);
 		addString("col_name", "Name of the annotated column", true, "ANNOTATION");
 		addFlag("no_duplicates", "Remove duplicate annotations if several intervals from 'bed' overlap.");
 		addFlag("url_decode", "Decode URL encoded characters.");

@@ -41,7 +41,7 @@ ServerInfo ClientHelper::getServerInfo(int& status_code)
     add_headers.insert("Content-type", "application/json");
 	try
 	{
-        reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(serverApiUrl()+ "info", add_headers);
+		reply = HttpRequestHandler().get(serverApiUrl()+ "info", add_headers);
         status_code = reply.status_code;
 	}
     catch (HttpException& e)
@@ -79,7 +79,7 @@ ClientInfo ClientHelper::getClientInfo()
     add_headers.insert("Content-type", "application/json");
 	try
 	{
-        reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(serverApiUrl()+ "current_client", add_headers);
+		reply = HttpRequestHandler().get(serverApiUrl()+ "current_client", add_headers);
 	}
     catch (HttpException& e)
 	{
@@ -112,7 +112,7 @@ UserNotification ClientHelper::getUserNotification()
     add_headers.insert("Content-type", "application/json");
 	try
 	{
-        reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(serverApiUrl()+ "notification", add_headers);
+		reply = HttpRequestHandler().get(serverApiUrl()+ "notification", add_headers);
 	}
     catch (HttpException& e)
 	{

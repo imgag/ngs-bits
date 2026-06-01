@@ -8,4 +8,5 @@ SOURCES += \
         Settings_Test.cpp \
         VersatileFile_Test.cpp \
         VersatileTextStream_Test.cpp \
+        HttpRequestHandler_Test.cpp \
         main.cpp

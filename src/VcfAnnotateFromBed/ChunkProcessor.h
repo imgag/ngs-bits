@@ -3,7 +3,7 @@
 
 #include <QRunnable>
 #include <QByteArray>
-#include <iostream>
+//#include <iostream>
 #include "ChromosomalIndex.h"
 #include "Auxilary.h"
 #include "BedFile.h"
@@ -12,7 +12,7 @@ class ChunkProcessor
 		:public QRunnable
 {
 public:
-	ChunkProcessor(AnalysisJob &job_, QByteArray name_, const BedFile& bed_file_, const ChromosomalIndex<BedFile>& bed_index_, QByteArray bed_file_path_, QByteArray sep_);
+	ChunkProcessor(AnalysisJob &job_, QByteArray name_, const BedFile& bed_file_, const ChromosomalIndex<BedFile>& bed_index_, QByteArray bed_file_path_, QByteArray sep_, QByteArray desc_);
 	void run();
 
 	void terminate()
@@ -28,6 +28,7 @@ private:
 	const ChromosomalIndex<BedFile>& bed_index;
 	QByteArray bed_file_path;
 	QByteArray sep;
+	QByteArray desc;
 };
 
 #endif // CHUNKPROCESSOR_H

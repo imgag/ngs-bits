@@ -99,7 +99,7 @@ void BedFile::append(const BedLine& line)
 long long BedFile::baseCount() const
 {
     long long output = 0;
-	for (int i=0; i<lines_.count(); ++i)
+	for (long long i=0; i<lines_.count(); ++i)
     {
         output += lines_[i].length();
 	}
@@ -109,7 +109,7 @@ long long BedFile::baseCount() const
 QSet<Chromosome> BedFile::chromosomes() const
 {
 	QSet<Chromosome> output;
-	for (int i=0; i<lines_.count(); ++i)
+	for (long long i=0; i<lines_.count(); ++i)
 	{
 		output.insert(lines_[i].chr());
 	}
@@ -124,7 +124,6 @@ void BedFile::load(QString filename, bool stdin_if_empty, bool read_annotations)
 	QHash<QByteArray, QByteArray> str_cache;
 
 	//parse from stream
-
 	VersatileFile file(filename, stdin_if_empty);
 	file.open(QFile::ReadOnly | QIODevice::Text);
 	while(!file.atEnd())
@@ -221,7 +220,7 @@ QString BedFile::toText() const
 
 void BedFile::clearAnnotations()
 {
-	for(int i=0; i<lines_.count(); ++i)
+	for(long long i=0; i<lines_.count(); ++i)
 	{
 		lines_[i].annotations().clear();
 	}
@@ -259,7 +258,7 @@ void BedFile::merge(bool merge_back_to_back, bool merge_names, bool merged_names
 	if (!merge_names) clearAnnotations();
 
 	//remove annotations data
-	for(int i=0; i<lines_.count(); ++i)
+	for(long long i=0; i<lines_.count(); ++i)
 	{
 		if (merge_names)
 		{
@@ -275,7 +274,7 @@ void BedFile::merge(bool merge_back_to_back, bool merge_names, bool merged_names
 	//merge lines
 	BedLine next_output_line = lines_.first();
 	int next_output_index = 0;
-	for (int i=1; i<lines_.count(); ++i)
+	for (long long i=1; i<lines_.count(); ++i)
 	{
 		const BedLine& line = lines_[i];
 
@@ -332,7 +331,7 @@ void BedFile::extend(int n)
 		THROW(ArgumentException, "Cannot extend BED file by '" + QString::number(n) + "' bases!");
 	}
 
-	for (int i=0; i<lines_.count(); ++i)
+	for (long long i=0; i<lines_.count(); ++i)
 	{
 		BedLine& line = lines_[i];
 
@@ -354,7 +353,7 @@ void BedFile::shrink(int n)
 		THROW(ArgumentException, "Cannot shrink BED file by '" + QString::number(n) + "' bases!");
 	}
 
-	for (int i=0; i<lines_.count(); ++i)
+	for (long long i=0; i<lines_.count(); ++i)
 	{
 		BedLine& line = lines_[i];
 		line.setStart(line.start() + n);
@@ -366,7 +365,7 @@ void BedFile::shrink(int n)
 
 void BedFile::add(const BedFile& file2)
 {
-	for (int i=0; i<file2.count(); ++i)
+	for (long long i=0; i<file2.count(); ++i)
 	{
 		append(file2[i]);
 	}
@@ -385,11 +384,11 @@ void BedFile::subtract(const BedFile& file2)
 	clearAnnotations();
 
 	//subtract
-	int removed_lines = 0;
-	for (int i=0; i<lines_.count(); ++i)
+	long long removed_lines = 0;
+	for (long long i=0; i<lines_.count(); ++i)
 	{
-		QVector<int> matches = file2_idx.matchingIndices(lines_[i].chr(), lines_[i].start(), lines_[i].end());
-		foreach(int index, matches)
+		QVector<long long> matches = file2_idx.matchingIndicesLong(lines_[i].chr(), lines_[i].start(), lines_[i].end());
+		foreach(long long index, matches)
 		{
 			const BedLine& line2 = file2[index];
 
@@ -428,7 +427,7 @@ void BedFile::subtract(const BedFile& file2)
 	if (removed_lines!=0) removeInvalidLines();
 }
 
-void BedFile::intersect(const BedFile& file2)
+void BedFile::intersect(const BedFile& file2, bool keep_anno)
 {
 	//check target region is merged/sorted and create index
 	if (!file2.isMergedAndSorted())
@@ -438,14 +437,13 @@ void BedFile::intersect(const BedFile& file2)
 	ChromosomalIndex<BedFile> file2_idx(file2);
 
 	//remove annotations and headers
-	clearAnnotations();
-
+	if (! keep_anno) clearAnnotations();
 	//intersect
-	int lines_original = lines_.count();
-	for (int i=0; i<lines_original; ++i)
+	long long lines_original = lines_.count();
+	for (long long i=0; i<lines_original; ++i)
 	{
 		const BedLine& line = lines_[i];
-		QVector<int> matches = file2_idx.matchingIndices(line.chr(), line.start(), line.end());
+		QVector<long long> matches = file2_idx.matchingIndicesLong(line.chr(), line.start(), line.end());
 		//not match => not intersect => remove
 		if (matches.count()==0)
 		{
@@ -462,9 +460,14 @@ void BedFile::intersect(const BedFile& file2)
 
 		//intersect with more regions (insert new lines => we must not use the 'line' variable inside the loop because the vector can be reallocated!)
 		Chromosome chr_original = line.chr();
-		for (int j=1; j<matches.count(); ++j)
+		QByteArrayList anno;
+		if (keep_anno)
 		{
-			lines_.append(BedLine(chr_original, std::max(start_original, file2[matches[j]].start()), std::min(end_original, file2[matches[j]].end()) ));
+			anno = line.annotations();
+		}
+		for (long long j=1; j<matches.count(); ++j)
+		{
+			lines_.append(BedLine(chr_original, std::max(start_original, file2[matches[j]].start()), std::min(end_original, file2[matches[j]].end()), anno));
 		}
 	}
 
@@ -481,9 +484,9 @@ void BedFile::overlapping(const BedFile& file2)
 	ChromosomalIndex<BedFile> file2_idx(file2);
 
 	//overlapping
-	for (int i=0; i<lines_.count(); ++i)
+	for (long long i=0; i<lines_.count(); ++i)
 	{
-		if (file2_idx.matchingIndex(lines_[i].chr(), lines_[i].start(), lines_[i].end())==-1)
+		if (file2_idx.matchingIndexLong(lines_[i].chr(), lines_[i].start(), lines_[i].end())==-1)
 		{
 			lines_[i].setStart(0);
 			lines_[i].setEnd(0);
@@ -501,7 +504,7 @@ void BedFile::overlapping(const BedLine& region)
 void BedFile::overlapping(const Chromosome& chr, int start, int end)
 {
 	//overlapping
-	for (int i=0; i<lines_.count(); ++i)
+	for (long long i=0; i<lines_.count(); ++i)
 	{
 		if (!lines_[i].overlapsWith(chr, start, end))
 		{
@@ -518,7 +521,7 @@ void BedFile::chunk(int chunk_size)
 	QVector<BedLine> new_lines;
 	new_lines.reserve(lines_.count());
 
-	for (int i=0; i<lines_.count(); ++i)
+	for (long long i=0; i<lines_.count(); ++i)
 	{
 		const BedLine& line = lines_[i];
 		if (line.length()>chunk_size)
@@ -566,8 +569,8 @@ void BedFile::chunk(int chunk_size)
 void BedFile::removeInvalidLines()
 {
 	//shift valid lines to the front
-	int o=0;
-	for (int i=0; i<lines_.count(); ++i)
+	long long o=0;
+	for (long long i=0; i<lines_.count(); ++i)
 	{
 		const BedLine& line = lines_[i];
 		if (line.start()>0 && line.start()<=line.end())
@@ -583,7 +586,7 @@ void BedFile::removeInvalidLines()
 
 bool BedFile::isSorted() const
 {
-	for (int i=1; i<lines_.count(); ++i)
+	for (long long i=1; i<lines_.count(); ++i)
 	{
 		if (lines_[i]<lines_[i-1]) return false;
 	}
@@ -595,7 +598,7 @@ bool BedFile::isMerged() const
 {
 	if (isSorted())
 	{
-		for (int i=1; i<lines_.count(); ++i)
+		for (long long i=1; i<lines_.count(); ++i)
 		{
 			const BedLine& line = lines_[i];
 			if (lines_[i-1].overlapsWith(line.chr(), line.start(), line.end()))
@@ -608,7 +611,7 @@ bool BedFile::isMerged() const
 	{
 		BedFile tmp = *this;
 		tmp.sort();
-		for (int i=1; i<tmp.count(); ++i)
+		for (long long i=1; i<tmp.count(); ++i)
 		{
 			const BedLine& line = tmp[i];
 			if (tmp[i-1].overlapsWith(line.chr(), line.start(), line.end()))
@@ -624,7 +627,7 @@ bool BedFile::isMerged() const
 
 bool BedFile::isMergedAndSorted() const
 {
-	for (int i=1; i<lines_.count(); ++i)
+	for (long long i=1; i<lines_.count(); ++i)
 	{
 		const BedLine& line = lines_[i];
 		if (line<lines_[i-1])
@@ -642,7 +645,7 @@ bool BedFile::isMergedAndSorted() const
 
 bool BedFile::overlapsWith(const Chromosome& chr, int start, int end) const
 {
-	for (int i=0; i<lines_.count(); ++i)
+	for (long long i=0; i<lines_.count(); ++i)
 	{
 		if (lines_[i].overlapsWith(chr, start, end))
 		{
@@ -655,7 +658,7 @@ bool BedFile::overlapsWith(const Chromosome& chr, int start, int end) const
 
 bool BedFile::overlapsWith(const BedLine& line) const
 {
-	for (int i=0; i<lines_.count(); ++i)
+	for (long long i=0; i<lines_.count(); ++i)
 	{
 		if (lines_[i].overlapsWith(line))
 		{
@@ -668,9 +671,9 @@ bool BedFile::overlapsWith(const BedLine& line) const
 
 bool BedFile::overlapsWith(const BedFile& file) const
 {
-	for (int i=0; i<lines_.count(); ++i)
+	for (long long i=0; i<lines_.count(); ++i)
 	{
-		for (int j=0; j<file.count(); ++j)
+		for (long long j=0; j<file.count(); ++j)
 		{
 			if (lines_[i].overlapsWith(file[j]))
 			{

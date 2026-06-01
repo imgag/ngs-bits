@@ -36,7 +36,7 @@ public:
 		addInfile("splicing", "TSV file containing spliced reads by gene.", true, true);
 		addInfile("expression", "TSV file containing RNA expression.", true, true);
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
-		addInt("min_mapq", "Set minimal mapping quality (default:1)", true, 1);
+		addInt("min_mapq", "Set minimal mapping quality.", true, 1);
 		addFlag("txt", "Writes TXT format instead of qcML.");
 
 

@@ -555,9 +555,13 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
         QString max_normal = getRepeatExpansionFieldById(re_table, "max_normal", id);
         setCell(row, "max. normal", max_normal);
 
-        //min_pathogenic
-        QString min_pathogenic = getRepeatExpansionFieldById(re_table, "min_pathogenic", id);
-        setCell(row, "min. pathogenic", min_pathogenic);
+		//min_pathogenic
+		QString min_pathogenic = getRepeatExpansionFieldById(re_table, "min_pathogenic", id);
+		setCell(row, "min. pathogenic", min_pathogenic);
+
+		//min_pathogenic (hom)
+		QString min_pathogenic_hom = getRepeatExpansionFieldById(re_table, "min_pathogenic_hom", id);
+		setCell(row, "min. pathogenic (hom)", min_pathogenic_hom);
 
         //inheritance
         QString inheritance = getRepeatExpansionFieldById(re_table, "inheritance", id);
@@ -687,27 +691,35 @@ void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
 		int min_pathogenic = -1;
 		tmp = getCell(row, "min. pathogenic").toInt(&ok);
 		if(ok) min_pathogenic = tmp;
+		int min_pathogenic_hom = -1;
+		tmp = getCell(row, "min. pathogenic (hom)").toInt(&ok);
+		if(ok) min_pathogenic_hom = tmp;
 		double statistical_cutoff = -1.0;
 		double tmp2 = getCell(row, "statistical cutoff").toDouble(&ok);
 		if(ok) statistical_cutoff = tmp2;
 		if (max_normal==-1 && min_pathogenic==-1 && statistical_cutoff==-1) continue;
 
-		//determine maximum repeat count of alleles
+		//determine min/max repeat count
 		QStringList genotypes = getCell(row, "genotype").split("/");
 		int max = -1;
+		int min = -1;
 		foreach(QString geno, genotypes)
 		{
 			bool ok = false;
 			int repeat_count = std::round(geno.trimmed().toFloat(&ok));
-			if (ok)
-			{
-				max = std::max(max, repeat_count);
-			}
+			if (!ok) continue;
+
+			max = max==-1 ? repeat_count : std::max(max, repeat_count);
+			min = min==-1 ? repeat_count : std::min(min, repeat_count);
 		}
 		if (max==-1) continue;
 
 		//color
 		if (min_pathogenic!=-1 && max>=min_pathogenic)
+		{
+			setCellDecoration(row, "genotype", "Above min. pathogenic cutoff!", red_);
+		}
+		if (min_pathogenic_hom!=-1 && min>=min_pathogenic_hom)
 		{
 			setCellDecoration(row, "genotype", "Above min. pathogenic cutoff!", red_);
 		}
@@ -731,23 +743,33 @@ void RepeatExpansionWidget::colorRepeatCountConfidenceInterval()
 		int min_pathogenic = getCell(row, "min. pathogenic").toInt(&ok);
 		if (!ok) continue;
 
-		//determine max CI
+		int min_pathogenic_hom = -1;
+		int tmp = getCell(row, "min. pathogenic (hom)").toInt(&ok);
+		if(ok) min_pathogenic_hom = tmp;
+
+		//determine min/max CI
 		int max_ci = -1;
+		int min_ci = -1;
 		QStringList ci_values = getCell(row, "genotype CI").replace("-", " ").replace("/", " ").split(" ");
 		foreach(QString ci_value, ci_values)
 		{
 			bool ok = false;
 			int value = ci_value.toInt(&ok);
-			if (ok && value>=0)
-			{
-				max_ci = value;
-			}
-		}
+			if (!ok) continue;
 
-		//color max CI
+			max_ci = max_ci==-1 ? value : std::max(max_ci, value);
+			min_ci = min_ci==-1 ? value : std::min(min_ci, value);
+		}
+		if (max_ci==-1) continue;
+
+		//color
 		if (max_ci>min_pathogenic)
 		{
 			setCellDecoration(row, "genotype CI", "Above min. pathogenic cutoff!", yellow_);
+		}
+		else if (min_pathogenic_hom!=-1 && min_ci>=min_pathogenic_hom)
+		{
+			setCellDecoration(row, "genotype", "Above min. pathogenic cutoff!", red_);
 		}
 	}
 }

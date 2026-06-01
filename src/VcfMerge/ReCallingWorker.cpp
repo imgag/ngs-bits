@@ -3,13 +3,14 @@
 #include "BamReader.h"
 #include <QMutexLocker>
 
-ReCallingWorker::ReCallingWorker(const Chromosome &chr, QString bam, QString ref_file, VcfData& data, const QList<VariantDefinition>& var_defs, bool no_genotype_correction, bool long_read, OutputData& out_data)
+ReCallingWorker::ReCallingWorker(const Chromosome &chr, QString bam, QString ref_file, VcfData& data, const QList<VariantDefinition>& var_defs, int min_mapq, bool no_genotype_correction, bool long_read, OutputData& out_data)
 	: QRunnable()
 	, chr_(chr)
 	, bam_(bam)
 	, ref_file_(ref_file)
 	, data_(data)
 	, var_defs_(var_defs)
+	, min_mapq_(min_mapq)
 	, no_genotype_correction_(no_genotype_correction)
 	, long_read_(long_read)
 	, out_data_(out_data)
@@ -45,7 +46,7 @@ void ReCallingWorker::run()
 			//skip called variants
 			if (called_vars.contains(var.tag)) continue;
 
-			Pileup pileup = reader.getPileup(var.chr, var.pos, (var.is_snv ? -1 : 1), -1, long_read_, -1);
+			Pileup pileup = reader.getPileup(var.chr, var.pos, (var.is_snv ? -1 : 1), min_mapq_, long_read_, -1);
 			int depth = pileup.depth(false);
 			QByteArray gt = "0/0";
 			QByteArray dp = QByteArray::number(depth);

@@ -948,7 +948,7 @@ void BurdenTestWidget::performBurdenTest()
 
 	// get genes
 	QList<int> gene_ids;
-	for (const QByteArray& gene : selected_genes_)
+	for (const QByteArray& gene : std::as_const(selected_genes_))
 	{
 		gene_ids << db_.geneId(gene);
 	}
@@ -962,7 +962,7 @@ void BurdenTestWidget::performBurdenTest()
 		//get callset ids for each processed sample
 		SqlQuery cnv_callset_query = db_.getQuery();
 		cnv_callset_query.prepare("SELECT id, quality_metrics FROM cnv_callset WHERE processed_sample_id=:0");
-        for (int ps_id : case_samples_)
+		for (int ps_id : std::as_const(case_samples_))
 		{
 			//get sample type
 			QString processing_system_type = db_.getProcessedSampleData(QString::number(ps_id)).processing_system_type;
@@ -999,16 +999,11 @@ void BurdenTestWidget::performBurdenTest()
 		}
 
 		//read polymorphism region
-		QStringList igv_tracks = Settings::stringList("igv_menu"); //TODO Leon: seperate entry!
-		foreach (const QString& track, igv_tracks)
-		{
-			QStringList columns = track.split('\t');
-			if (columns.at(0).startsWith("Copy-number polymorphism regions"))
-			{
-				cnv_polymorphism_region.load(columns.at(2).trimmed());
-			}
-		}
-
+		cnv_polymorphism_region.load(Settings::string("burden_test_cnp_regions"));
+		cnv_polymorphism_region.sort();
+		qDebug() << "path:" << Settings::string("burden_test_cnp_regions");
+		qDebug() << "Base count:" << cnv_polymorphism_region.baseCount();
+		qDebug() << "is sorted:" << cnv_polymorphism_region.isMergedAndSorted();
 	}
 	ChromosomalIndex<BedFile> cnv_polymorphism_region_index(cnv_polymorphism_region);
 
@@ -1250,7 +1245,7 @@ void BurdenTestWidget::validateCCRGenes()
 	if(!ui_->cb_only_ccr->isChecked()) return;
 
 	GeneSet unsupported_genes;
-    for (const QByteArray& gene : selected_genes_)
+	for (const QByteArray& gene : std::as_const(selected_genes_))
 	{
 		if(!ccr_genes_.contains(gene))
 		{

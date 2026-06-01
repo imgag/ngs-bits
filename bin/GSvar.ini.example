@@ -33,12 +33,6 @@ alamut_institution = ""
 alamut_apikey = ""
 HerediVar = ""
 
-#proxy settings for GSvar
-proxy_host = ""
-proxy_port = 
-proxy_user = ""
-proxy_password = ""
-
 #special folders for GSvar
 gsvar_report_folder = ""
 gsvar_report_archive = ""
@@ -64,10 +58,10 @@ allow_report_with_all_types = false
 gsvar_file_outdated_before = 2021-12-01
 interpretability_regions = 
 text_editor = 
+burden_test_cnp_regions = 
 
 #GSVar server settings
 server_host = ""
 server_port = 8443
 curl_ca_bundle = ""
 display_user_notifications = true
-use_proxy_for_gsvar_server = false
