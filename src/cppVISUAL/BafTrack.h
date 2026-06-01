@@ -26,6 +26,8 @@ public:
 	static BafTrack* createTrack(QWidget* parent, QString file_path, QString name);
 
 	static int findBafIdx(QSharedPointer<BedFile> bed_file);
+	QMap<QString, QVariant> getSettings() override;
+	void loadKeyValueFromXml(QString key, const QDomElement& item) override;
 
 protected:
 	void paintEvent(QPaintEvent*) override;

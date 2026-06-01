@@ -176,7 +176,8 @@ void BamAlignmentTrack::drawAlignmentAndVariants(QPainter& painter, const BamAli
 		al.alignment.start() > region.end()) return;
 
 	drawAlignment(painter, al.alignment, row_y, x0, total_width);
-	drawVariants(painter, al, row_y, x0, total_width);
+	if (!show_all_bases_) drawVariants(painter, al, row_y, x0, total_width);
+	else drawAllBases(painter, al, row_y, x0, total_width);
 }
 
 void BamAlignmentTrack::drawNormalMode(QPainter& painter, const BedLine&)
@@ -225,7 +226,7 @@ void BamAlignmentTrack::drawPairMode(QPainter& painter, const BedLine& region)
 			const BamAlignment& al1 = alns[read_pair.first].alignment;
 			const BamAlignment& al2 = alns[read_pair.second].alignment;
 
-			int st = std::clamp(al1.end(), region.start(), region.end() + 1);
+			int st = std::clamp(al1.end() + 1, region.start(), region.end() + 1);
 			int en = std::clamp(al2.start(), region.start(), region.end() + 1);
 
 			float p0 = ((float)(st - region.start()))/(region.length()) * total_width + x0;
@@ -238,8 +239,6 @@ void BamAlignmentTrack::drawPairMode(QPainter& painter, const BedLine& region)
 			painter.drawLine(p0, row_y + ROW_HEIGHT / 2.0f, p1, row_y + ROW_HEIGHT / 2.0f);
 		}
 	}
-
-
 }
 
 void BamAlignmentTrack::drawZoomInText(QPainter& painter)
@@ -267,7 +266,7 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignment& al,
 	int en = std::min(al.end(), region.end() + 1);
 
 	float x_start = ((float)(st - region.start()))/region.length() * total_width + x0;
-	float width = ((float)(en - st))/region.length() * total_width;
+	float width = ((float)(en - st + 1))/region.length() * total_width;
 
 	painter.setBrush(strandColor(al.isReverseStrand()));
 	painter.setPen(Qt::NoPen);
@@ -341,6 +340,7 @@ void BamAlignmentTrack::drawVariants(QPainter& painter, const BamAlignmentWrappe
 	double pixels_per_base = (double)(total_width) / (double)region.length();
 
 	const auto& variants = al.getVariants();
+	// qDebug() << "Drawing variants, size: " << variants.size() << Qt::endl;
 	foreach (const auto& variant_data, variants)
 	{
 		int idx = variant_data.genomic_pos - region.start();
@@ -351,11 +351,7 @@ void BamAlignmentTrack::drawVariants(QPainter& painter, const BamAlignmentWrappe
 
 		int dX = std::max(1, endX - x_start);
 		QColor color = baseColor(variant_data.base);
-		color = QColor(color.red(), color.green(), color.blue(), ((float)variant_data.quality/40)*255);
-		// QFont font = painter.font();
-		// font.setPointSize(ROW_HEIGHT);
-		// font.setBold(true);
-		// QSize char_size = characterSize(font);
+		color = QColor(color.red(), color.green(), color.blue(), ((float)variant_data.quality/41)*255);
 
 		if (pixels_per_base >= cached_char_size_.width())
 		{
@@ -371,6 +367,45 @@ void BamAlignmentTrack::drawVariants(QPainter& painter, const BamAlignmentWrappe
 			painter.drawRect(rect);
 		}
 	}
+}
+
+void BamAlignmentTrack::drawAllBases(QPainter& painter, const BamAlignmentWrapper& al, int row_y, int x0, int total_width)
+{
+	const auto& region = SharedData::region();
+	float scale = (float)region.length() / total_width;
+	double pixels_per_base = (double)(total_width) / (double)region.length();
+
+	// const auto& variants = al.getVariants();
+	// qDebug() << "Drawing variants, size: " << variants.size() << Qt::endl;
+	// foreach (const auto& variant_data, variants)
+	const BamAlignment& aln = al.alignment;
+	aln.forEachAlignedBase([&](int genome_pos, char base, int qual, int)
+		{
+			int idx = genome_pos - region.start();
+			int x_start = x0 + (int)((float)idx / scale);
+			int endX = x0 + (int)((float)(idx + 1) / scale);
+
+			if (x_start < x0 || endX > x0 + total_width) return;
+
+			int dX = std::max(1, endX - x_start);
+			QColor color = baseColor(base);
+			color = QColor(color.red(), color.green(), color.blue(), ((float)qual/41)*255);
+
+			if (pixels_per_base >= cached_char_size_.width())
+			{
+				painter.setFont(cached_font_);
+				painter.setPen(color);
+				QRectF text_rect(x_start, row_y - 5, dX, ROW_HEIGHT + 10);
+				painter.drawText(text_rect, Qt::AlignHCenter, QString(base).toUpper());
+			}
+			else
+			{
+				painter.setBrush(color);
+				QRectF rect(x_start, row_y, dX, ROW_HEIGHT);
+				painter.drawRect(rect);
+			}
+		}
+	);
 }
 
 void BamAlignmentTrack::makePairs()
@@ -411,6 +446,10 @@ void BamAlignmentTrack::populateContextMenu(QMenu& menu)
 	pairs_action_ = menu.addAction("View As Pairs");
 	pairs_action_->setCheckable(true);
 	pairs_action_->setChecked(view_as_pairs_);
+
+	all_bases_action_ = menu.addAction("Show all bases");
+	all_bases_action_->setCheckable(true);
+	all_bases_action_->setChecked(show_all_bases_);
 	TrackWidget::populateContextMenu(menu);
 }
 
@@ -422,6 +461,11 @@ void BamAlignmentTrack::handleContextMenuAction(QAction* action)
 		// trigger update
 		calculateRows();
 		updateGeometry();
+		update();
+	}
+	else if (action == all_bases_action_)
+	{
+		show_all_bases_ = !show_all_bases_;
 		update();
 	}
 	else TrackWidget::handleContextMenuAction(action);

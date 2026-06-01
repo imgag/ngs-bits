@@ -77,22 +77,6 @@ struct BamAlignmentWrapper
 
 	void storeVariants(const Sequence& ref_seq, int ref_start)
 	{
-		// variants.clear();
-		// int loop_start = std::max(alignment.start(), ref_start);
-		// int loop_end = std::min(alignment.end(), ref_start + (int)ref_seq.length());
-
-		// for (int pos = loop_start; pos < loop_end; ++pos)
-		// {
-		// 	int idx = pos - ref_start;
-		// 	char ref_base = ref_seq[idx] | 32;
-		// 	auto [base, qual] = alignment.extractBaseByCIGAR(pos);
-		// 	base |= 32;
-		// 	if (base != ref_base && base != '-')
-		// 	{
-		// 		variants << VariantInfo{pos, base, qual};
-		// 	}
-		// }
-
 		variants.clear();
 
 		alignment.forEachAlignedBase(
@@ -111,7 +95,7 @@ struct BamAlignmentWrapper
 					variants.push_back({
 						genome_pos,
 						base,
-						qual
+						(false) ? qual : 41
 					});
 				}
 			});

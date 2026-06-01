@@ -72,6 +72,9 @@ private:
 	// which are pre calculated in the AlignmentWrapper
 	void drawVariants(QPainter&, const BamAlignmentWrapper& al, int row_y,
 					  int x0, int total_width);
+	void drawAllBases(QPainter&, const BamAlignmentWrapper& al, int row_y,
+					  int x0, int total_width);
+
 	QString getBamAlignmentText(const BamAlignment& al);
 	// iterates through the alignments and stores pairs as ReadPair in read_pairs_
 	void makePairs();
@@ -97,7 +100,11 @@ private:
 
 	int num_rows_ = 1;
 	bool view_as_pairs_ = false;
+	bool show_all_bases_ = false;
+
 	QAction* pairs_action_;
+	QAction* all_bases_action_;
+
 	QPoint mouse_press_pos_;
 	QSize cached_char_size_;
 	QFont cached_font_;

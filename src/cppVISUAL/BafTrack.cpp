@@ -112,6 +112,7 @@ void BafTrack::drawPoints(QPainter& painter, const QVector<int>& idxes)
 	int label_width = SharedData::settings().label_width;
 	int total_width = width() - label_width - 4;
 	int x0 = label_width + 2;
+	float scale = (float)region.length() / total_width;
 
 	foreach (int idx, idxes)
 	{
@@ -125,8 +126,13 @@ void BafTrack::drawPoints(QPainter& painter, const QVector<int>& idxes)
 
 		if (pos < region.start()) continue;
 
-		float norm = (float) (pos - region.start())/(region.end() - region.start());
-		int px = x0 + (int)(norm * total_width);
+		// float norm = (float) (pos - region.start())/(region.end() - region.start());
+		// int px = x0 + (int)(norm * total_width);
+		int id = pos - region.start();
+		float p1 = x0 + (float)((float)id / scale);
+		float p2 = x0 + (float)((float)(id + 1) / scale);
+		float px = (p1 + p2) / 2.f;
+
 		int py = bafToY(baf, TRACK_HEIGHT);
 
 		painter.setBrush(Qt::blue);
@@ -391,4 +397,20 @@ QString BafTrack::getBafText(const BedLine& bd)
 		.arg(bd.start())
 		.arg(bd.end())
 		.arg(bd.annotations()[baf_idx_]);
+}
+
+QMap<QString, QVariant> BafTrack::getSettings()
+{
+	auto settings = TrackWidget::getSettings();
+	settings["graph_mode"] = graph_mode_;
+	return settings;
+}
+
+void BafTrack::loadKeyValueFromXml(QString key, const QDomElement& item)
+{
+	if (key == "graph_mode")
+	{
+		int value = item.attribute("value").toInt();
+		if (value != -1) graph_mode_ = static_cast<GraphType>(value);
+	}
 }

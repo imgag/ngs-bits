@@ -1,6 +1,7 @@
 #include "TrackWidget.h"
 #include "SharedData.h"
 #include "TrackManager.h"
+#include "BafTrack.h"
 #include "BedTrack.h"
 #include "BamAlignmentTrack.h"
 #include "BamCoverageTrack.h"
@@ -189,6 +190,7 @@ TrackWidget* TrackWidget::fromType(QString type, QWidget* parent, QString file_p
 	if (type == BedTrack::staticType()) return BedTrack::createTrack(parent, file_path, display_name);
 	if (type == BamAlignmentTrack::staticType()) return BamAlignmentTrack::createTrack(parent, file_path, display_name);
 	if (type == BamCoverageTrack::staticType()) return BamCoverageTrack::createTrack(parent, file_path, display_name);
+	if (type == BafTrack::staticType()) return BafTrack::createTrack(parent, file_path, display_name);
 
 	GenomeVisualizationWidget::displayError("Track type: " + type + " not supported.");
 	return nullptr;

@@ -1,7 +1,7 @@
 #include "TrackData.h"
 #include "FileLoader.h"
 
-#define OPT
+#define BAM_OPTIMIZATION
 
 void BamTrackData::updateRegion()
 {
@@ -24,7 +24,7 @@ void BamTrackData::updateRegion()
 
 	return_empty_ = false;
 
-	#ifdef OPT
+	#ifdef BAM_OPTIMIZATION
 
 	int new_start = region.start();
 	int new_end = region.end();
