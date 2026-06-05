@@ -57,7 +57,7 @@ void ExportHistoryDialog::addTableRow(QString data_center, QDate date, QString t
 		{
 			line = "<font color='orange'>"+line+"</font>";
 		}
-		if (line.contains("error", Qt::CaseInsensitive))
+		if (line.contains("error", Qt::CaseInsensitive) || line.contains("fatal", Qt::CaseInsensitive))
 		{
 			line = "<font color='red'>"+line+"</font>";
 		}
