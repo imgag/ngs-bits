@@ -49,9 +49,6 @@ data_folder = ""
 #setting for variant scoring/ranking
 ranking_variant_blacklist=
 
-#python executable for plotting (set if the python exe is not in the PATH)
-python_exe = ""
-
 #NovaSeqX
 sample_sheet_path = 
 nova_seq_x_sw_version = "4.3.16"
