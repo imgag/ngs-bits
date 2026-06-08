@@ -168,7 +168,7 @@ public:
         return lines_[index];
     }
     ///Returns the line count.
-    int count() const
+    long long count() const
     {
         return lines_.count();
 	}

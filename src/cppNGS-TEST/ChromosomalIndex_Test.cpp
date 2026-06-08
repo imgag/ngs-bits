@@ -58,7 +58,6 @@ private:
 		I_EQUAL(elements.count(), 0);
 	}
 
-
 	TEST_METHOD(matchingIndex_BedFile)
 	{
 		BedFile bed_file;
@@ -110,6 +109,111 @@ private:
 
 		//no overlap
 		index = bed_index.matchingIndex("chr2", 500, 505);
+		I_EQUAL(index, -1);
+	}
+	
+	TEST_METHOD(matchingIndicesLong_BedFile)
+	{
+		BedFile bed_file;
+		for (int c=1; c<=22; ++c)
+		{
+			for (int p=1; p<=100*c; ++p)
+			{
+				BedLine line ("chr" + QString::number(c), p, p);
+				if (p%10==0) line.setEnd(p + 10);
+				bed_file.append(line);
+			}
+		}
+		ChromosomalIndex<BedFile> bed_index(bed_file);
+
+		//chromosome not found
+		QVector<long long> elements = bed_index.matchingIndicesLong("chrX", 5, 15);
+		I_EQUAL(elements.count(), 0);
+
+		//whole chr1
+		elements = bed_index.matchingIndicesLong("chr1", 0, 100000);
+		I_EQUAL(elements.count(), 100);
+
+		//3 elements
+		elements = bed_index.matchingIndicesLong("chr1", 5, 7);
+		I_EQUAL(elements.count(), 3);
+
+		//1 element
+		elements = bed_index.matchingIndicesLong("chr1", 5, 5);
+		I_EQUAL(elements.count(), 1);
+
+		//whole chr2
+		elements = bed_index.matchingIndicesLong("chr2", 0, 100000);
+		I_EQUAL(elements.count(), 200);
+
+		//5 elements
+		elements = bed_index.matchingIndicesLong("chr2", 1, 5);
+		I_EQUAL(elements.count(), 5);
+
+		//overlap with beginning
+		elements = bed_index.matchingIndicesLong("chr2", -10, 5);
+		I_EQUAL(elements.count(), 5);
+
+		//overlap with end
+		elements = bed_index.matchingIndicesLong("chr2", 200, 205);
+		I_EQUAL(elements.count(), 2);
+
+		//no overlap
+		elements = bed_index.matchingIndicesLong("chr2", 500, 505);
+		I_EQUAL(elements.count(), 0);
+	}
+
+	TEST_METHOD(matchingIndexLong_BedFile)
+	{
+		BedFile bed_file;
+		for (int c=1; c<=22; ++c)
+		{
+			for (int p=1; p<=100*c; ++p)
+			{
+				BedLine line ("chr" + QString::number(c), p, p);
+				if (p%10==0) line.setEnd(p + 10);
+				bed_file.append(line);
+			}
+		}
+		ChromosomalIndex<BedFile> bed_index(bed_file);
+
+		//chromosome not found
+		long long index = bed_index.matchingIndexLong("chrX", 5, 15);
+		I_EQUAL(index, -1);
+
+		//whole chr1
+		index = bed_index.matchingIndexLong("chr1", 0, 100000);
+		I_EQUAL(index, 0);
+
+		//3 elements
+		index = bed_index.matchingIndexLong("chr1", 5, 7);
+		I_EQUAL(index, 4);
+
+		//1 element
+		index = bed_index.matchingIndexLong("chr1", 5, 5);
+		I_EQUAL(index, 4);
+
+		//whole chr2
+		index = bed_index.matchingIndexLong("chr2", 0, 100000);
+		I_EQUAL(index, 100);
+
+		//5 elements
+		index = bed_index.matchingIndexLong("chr2", 1, 5);
+		I_EQUAL(index, 100);
+
+		//overlap with beginning
+		index = bed_index.matchingIndexLong("chr2", -10, 5);
+		I_EQUAL(index, 100);
+
+		//overlap with end
+		index = bed_index.matchingIndexLong("chr2", 200, 205);
+		I_EQUAL(index, 289);
+		X_EQUAL(bed_file[index].chr(), Chromosome("chr2"));
+		I_EQUAL(bed_file[index].start(), 190);
+		I_EQUAL(bed_file[index].end(), 200);
+
+		//no overlap
+		index = bed_index.matchingIndexLong("chr2", 500, 505);
 		I_EQUAL(index, -1);
 	}
 

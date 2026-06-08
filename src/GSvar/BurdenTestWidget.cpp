@@ -940,7 +940,7 @@ void BurdenTestWidget::performBurdenTest()
 	qDebug() << "control samples: " << control_samples_.size();
 
 
-	GeneBurdenTest burden_test(case_samples_, control_samples_, selected_genes_, parameters, Settings::integer("threads"), false, false);
+GeneBurdenTest burden_test(case_samples_, control_samples_, selected_genes_, parameters, Settings::integer("threads"), false, false);
 	qDebug() << "init burden test: " << Helper::elapsedTime(timer);
 
 	QList<BurdenTestResult> results = burden_test.run_burden_test();

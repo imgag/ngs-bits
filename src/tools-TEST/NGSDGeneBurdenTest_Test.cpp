@@ -1,14 +1,25 @@
 #include "TestFrameworkNGS.h"
 #include "Settings.h"
+#include "NGSD.h"
 
 
-TEST_CLASS(VcfAnnotateConsequence_Test)
+TEST_CLASS(NGSDGeneBurdenTest_Test)
 {
 private:
 
     //test with default parameters
     TEST_METHOD(default_params)
-    {
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDGeneBurdenTest_init.sql"));
+		//import transcripts
+		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDGeneBurdenTest_in.gff3"));
+
+
 		SKIP_IF_NO_HG38_GENOME();
 
 		EXECUTE("VcfAnnotateConsequence", "-in " + TESTDATA("data_in/VcfAnnotateConsequence_in1.vcf") + " -gff " + TESTDATA("data_in/VcfAnnotateConsequence_transcripts.gff3") + " -out out/VcfAnnotateConsequence_out1.vcf -splice_region_in5 8 -splice_region_in3 8");

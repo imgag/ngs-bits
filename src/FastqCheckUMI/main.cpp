@@ -1,7 +1,6 @@
 #include "ToolBase.h"
 #include "Helper.h"
 #include "FastqFileStream.h"
-#include "Log.h"
 #include <QRegularExpression>
 
 class ConcreteTool
@@ -79,7 +78,7 @@ public:
 		//output
 		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream out(outfile.data());
-        out << barcode_info.values().first() << Qt::endl;
+		out << Helper::setToList(barcode_info).at(0) << Qt::endl;
 	}
 
 	bool isValidSequence(QByteArray barcode, int& length)

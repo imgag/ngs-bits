@@ -24,8 +24,6 @@
 #include "Background/ReportWorker.h"
 #include "ScrollableTextDialog.h"
 #include "AnalysisStatusWidget.h"
-#include "HttpHandler.h"
-#include "TransferredVariantDialog.h"
 #include "ValidationDialog.h"
 #include "ClassificationDialog.h"
 #include "BasicStatistics.h"
@@ -122,7 +120,6 @@
 #include "Background/NGSDCacheInitializer.h"
 #include "RepeatExpansionWidget.h"
 #include "ReSearchWidget.h"
-#include "CustomProxyService.h"
 #include "GeneInterpretabilityDialog.h"
 #include "HerediVarImportDialog.h"
 #include "SampleCountWidget.h"
@@ -174,18 +171,6 @@ MainWindow::MainWindow(QWidget *parent)
             }
             settings_generated->sync();
         }
-    }
-
-    // Use a proxy server for all connections to the GSvar server
-    if (Settings::boolean("use_proxy_for_gsvar_server", true))
-    {
-        QNetworkProxy proxy;
-        proxy.setType(QNetworkProxy::HttpProxy);
-        proxy.setHostName(Settings::string("proxy_host"));
-        proxy.setPort(Settings::integer("proxy_port"));
-        proxy.setUser(Settings::string("proxy_user"));
-        proxy.setPassword(Settings::string("proxy_password"));
-        CustomProxyService::setProxy(proxy);
     }
 
 	//set style
@@ -406,19 +391,6 @@ MainWindow::MainWindow(QWidget *parent)
 		if (!qputenv("CURL_CA_BUNDLE", curl_ca_bundle.toUtf8()))
 		{
 			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM/CRAM files over HTTPS may not be possible");
-		}
-	}
-
-	if (Settings::boolean("use_proxy_for_gsvar_server", true))
-	{
-		QString proxy_params = "http://" + Settings::string("proxy_user") + ":" + Settings::string("proxy_password") + "@" + Settings::string("proxy_host") + ":" + QString::number(Settings::integer("proxy_port"));
-		if (!qputenv("HTTPS_PROXY", proxy_params.toUtf8()))
-		{
-			Log::error("Could not set HTTPS_PROXY variable, access to BAM/CRAM files over HTTPS may not be possible");
-		}
-		if (!qputenv("HTTP_PROXY", proxy_params.toUtf8()))
-		{
-			Log::error("Could not set HTTP_PROXY variable, access to BAM/CRAM files over HTTP may not be possible");
 		}
 	}
 }
@@ -1701,9 +1673,11 @@ void MainWindow::delayedInitialization()
 		}
 		else if (i==1) //first argument: sample to open
 		{
+			bool opened = false;
 			if (QFile::exists(arg)) //file path
 			{
 				loadFile(arg);
+				opened = true;
 			}
 			else if (LoginManager::active()) //processed sample name (via NGSD)
 			{
@@ -1711,17 +1685,17 @@ void MainWindow::delayedInitialization()
 				if (db.processedSampleId(arg, false)!="")
 				{
 					openProcessedSampleFromNGSD(arg, false);
+					opened = true;
 				}
 				else if (db.sampleId(arg, false)!="")
 				{
 					openSampleFromNGSD(arg);
+					opened = true;
 				}
-            }
+			}
+			if (!opened) qDebug() << "Could not open sample: " << arg;
 		}
-		else
-		{
-			qDebug() << "Unprocessed argument: " << arg;
-		}
+		else qDebug() << "Unprocessed command-line argument: " << arg;
 	}
 }
 
@@ -3182,7 +3156,7 @@ void MainWindow::on_actionAbout_triggered()
 	QString add_info = "Mode: stand-alone (no server)";
 	if (ClientHelper::isClientServerMode())
 	{
-		add_info = "Server information:";
+		add_info = "GSvarServer information:";
 		int status_code = -1;
 		ServerInfo server_info = ClientHelper::getServerInfo(status_code);
 		if (status_code!=200)
@@ -3732,7 +3706,7 @@ QList<RtfPicture> pngsFromFiles(QStringList files)
 		QImage pic;
 		if (path.startsWith("http", Qt::CaseInsensitive))
 		{
-			QByteArray response = HttpHandler(true).get(path);
+			QByteArray response = HttpRequestHandler().get(path).body;
 			if (!response.isEmpty()) pic.loadFromData(response);
 		}
 		else
@@ -5907,7 +5881,7 @@ void MainWindow::openAlamut(QAction* action)
 			QString host = Settings::string("alamut_host");
 			QString institution = Settings::string("alamut_institution");
 			QString apikey = Settings::string("alamut_apikey");
-			HttpHandler(true).get(host+"/search?institution="+institution+"&apikey="+apikey+"&request="+value);
+			HttpRequestHandler().get(host+"/search?institution="+institution+"&apikey="+apikey+"&request="+value);
 		}
 		catch (Exception& e)
 		{
@@ -6546,11 +6520,11 @@ void MainWindow::storeCurrentVariantList()
 			add_headers.insert("Content-Type", "application/json");
             add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().size()));
 
-			QString reply = HttpHandler(true).put(
+	                QString reply = HttpRequestHandler().put(
 						ClientHelper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id + "&token=" + LoginManager::userToken(),
 						json_doc.toJson(),
 						add_headers
-					);
+			                ).body;
 		}
 		catch (Exception& e)
 		{

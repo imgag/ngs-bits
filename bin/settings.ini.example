@@ -10,7 +10,7 @@ reference_genome_hg19 = ""
 liftover_hg19_hg38 = ""
 liftover_hg38_hg19 = ""
 
-#proxy credentials (if a authenticating proxy is used to access non-local files)
+#proxy credentials (needed if a authenticating proxy is used to access non-local files). The proxy host and port are determined automatically via the operating system.
 proxy_user = ""
 proxy_password = ""
 
