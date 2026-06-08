@@ -351,7 +351,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 
 				if (part.startsWith("QUAL="))
 				{
-					if (part.mid(5).toInt()<20)
+					if (part.mid(5).toDouble()<20)
 					{
 						part = formatText(part, YELLOW);
 					}
