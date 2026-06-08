@@ -5,7 +5,7 @@
 #include "LoginManager.h"
 #include "EmailDialog.h"
 #include "GlobalServiceProvider.h"
-#include "UserPermissionsEditor.h"
+#include "UserAccessPermissionsEditor.h"
 #include "UserActionPermissionsEditor.h"
 #include "GenLabDB.h"
 #include "ScrollableTextDialog.h"
@@ -243,7 +243,7 @@ void DBTableAdministration::changeUserDataAccessPermissions()
 		}
 
 		//show dialog
-		UserPermissionsEditor* widget = new UserPermissionsEditor("user_permissions", ui_.table->getId(row), this);
+		UserAccessPermissionsEditor* widget = new UserAccessPermissionsEditor("user_permissions", ui_.table->getId(row), this);
 		auto dlg = GUIHelper::createDialog(widget, "User permissions", "", false);
 		dlg->exec();
 	}

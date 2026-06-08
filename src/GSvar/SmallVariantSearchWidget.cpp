@@ -56,13 +56,6 @@ void SmallVariantSearchWidget::updateVariants()
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 
-		//check if the user can perform this action
-		if (!NGSD().userCanPerformAction(LoginManager::userId(), Permission::PERFORM_VARIANT_SEARCH))
-		{
-			QMessageBox::information(this, "Access denied", "You do not have permissions to perform Small variants search!");
-			return;
-		}
-
 		//process genes/region
 		QStringList comments;
 		QList<QList<QVariant>> output;

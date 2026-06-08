@@ -54,13 +54,6 @@ void SvSearchWidget::search()
 
 	try
 	{
-		//check if the user can perform this action
-		if (!NGSD().userCanPerformAction(LoginManager::userId(), Permission::PERFORM_VARIANT_SEARCH))
-		{
-			QMessageBox::information(this, "Access denied", "You do not have permissions to perform SV search!");
-			return;
-		}
-
 		// SV type/table
 		StructuralVariantType type = BedpeFile::stringToType(ui_.type->currentText().toUtf8());
 		QString sv_table = db_.svTableName(type);

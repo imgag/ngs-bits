@@ -39,14 +39,7 @@ void ReSearchWidget::search()
 
 	try
 	{
-		QApplication::setOverrideCursor(Qt::BusyCursor);
-
-		//check if the user can perform this action
-		if (!NGSD().userCanPerformAction(LoginManager::userId(), Permission::PERFORM_VARIANT_SEARCH))
-		{
-			QMessageBox::information(this, "Access denied", "You do not have permissions to perform RE search!");
-			return;
-		}
+		QApplication::setOverrideCursor(Qt::BusyCursor);		
 
 		//prepared SQL query
 		QString query_str = "SELECT reg.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample, ps.quality as quality_sample, sys.name_manufacturer as system_name, sys.type as 'system type', s.gender, s.year_of_birth as 'year of birth', YEAR(s.order_date) as 'year of order', s.patient_identifier, s.disease_group, s.disease_status, s.id as 'HPO terms', ds.outcome, reg.filter, reg.allele1, reg.allele2, rc.causal, CONCAT(rc.comments, ' // ', rc.comments2) as report_config_comments, CONCAT(rec.caller,' ',rec.caller_version) as caller"

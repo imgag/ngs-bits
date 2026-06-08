@@ -52,14 +52,7 @@ void CnvSearchWidget::search()
 	ui_.table->setColumnCount(0);
 
 	try
-	{
-		//check if the user can perform this action
-		if (!NGSD().userCanPerformAction(LoginManager::userId(), Permission::PERFORM_VARIANT_SEARCH))
-		{
-			QMessageBox::information(this, "Access denied", "You do not have permissions to perform CNV search!");
-			return;
-		}
-
+	{		
 		//prepared SQL query
 		QString query_str = "SELECT c.id, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as sample, ps.quality as quality_sample, sys.name_manufacturer as system_name, s.disease_group, s.disease_status, s.id as 'HPO terms', ds.outcome, cs.caller, cs.quality as quality_callset, cs.quality_metrics as callset_metrics, c.chr, c.start, c.end, c.cn, (c.end-c.start)/1000.0 as size_kb, c.quality_metrics as cnv_metrics, rc.class, CONCAT(rc.comments, ' // ', rc.comments2) as report_config_comments"
 							" FROM cnv_callset cs, processed_sample ps LEFT JOIN diag_status ds ON ds.processed_sample_id=ps.id, processing_system sys, sample s, cnv c LEFT JOIN report_configuration_cnv rc ON rc.cnv_id=c.id, project p"

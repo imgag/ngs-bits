@@ -1,21 +1,21 @@
-#ifndef USERPERMISSIONSEDITOR_H
-#define USERPERMISSIONSEDITOR_H
+#ifndef USERACCESSPERMISSIONSEDITOR_H
+#define USERACCESSPERMISSIONSEDITOR_H
 
 #include <QWidget>
 #include "DelayedInitializationTimer.h"
 #include "NGSD.h"
-#include "ui_UserPermissionsEditor.h"
+#include "ui_UserAccessPermissionsEditor.h"
 
 // This class implements a user interface for changing user permissions: i.e. access to a specific project, project type, study, or sample.
 // Setting such permissions is only available for the users with the role 'user_restricted'.
 // User permissions are necessary to restirct the access while working in a client-server mode.
-class UserPermissionsEditor
+class UserAccessPermissionsEditor
 	: public QWidget
 {
 	Q_OBJECT
 
 public:
-	UserPermissionsEditor(QString table, QString user_id, QWidget* parent = 0);
+	UserAccessPermissionsEditor(QString table, QString user_id, QWidget* parent = 0);
 
 protected slots:
 	void delayedInitialization();
@@ -38,4 +38,4 @@ private:
 	DelayedInitializationTimer init_timer_;
 };
 
-#endif // USERPERMISSIONSEDITOR_H
+#endif // USERACCESSPERMISSIONSEDITOR_H

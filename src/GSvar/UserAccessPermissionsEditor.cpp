@@ -1,5 +1,5 @@
-#include "UserPermissionsEditor.h"
-#include "UserPermissionList.h"
+#include "UserAccessPermissionsEditor.h"
+#include "UserAccessPermissionList.h"
 #include "GUIHelper.h"
 #include <QMessageBox>
 #include <QMenu>
@@ -7,7 +7,7 @@
 #include "LoginManager.h"
 #include "ClientHelper.h"
 
-UserPermissionsEditor::UserPermissionsEditor(QString table, QString user_id, QWidget* parent) :
+UserAccessPermissionsEditor::UserAccessPermissionsEditor(QString table, QString user_id, QWidget* parent) :
 	QWidget(parent)
 	, ui_()
 	, table_(table)
@@ -29,12 +29,12 @@ UserPermissionsEditor::UserPermissionsEditor(QString table, QString user_id, QWi
 	connect(ui_.delete_btn, SIGNAL(clicked(bool)), this, SLOT(remove()));
 }
 
-void UserPermissionsEditor::delayedInitialization()
+void UserAccessPermissionsEditor::delayedInitialization()
 {
 	updateTable();
 }
 
-void UserPermissionsEditor::updateTable()
+void UserAccessPermissionsEditor::updateTable()
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
@@ -55,24 +55,18 @@ void UserPermissionsEditor::updateTable()
 
 		switch(UserPermissionList::stringToType(permission_str))
 		{
-			case Permission::PROJECT:
+			case AccessPermission::PROJECT:
 				human_readable_data = db.getValue("SELECT name FROM project WHERE id='"+ data_hint +"'").toString();				
 				break;
-			case Permission::PROJECT_TYPE:
+			case AccessPermission::PROJECT_TYPE:
 				human_readable_data = data_hint;
 				break;
-			case Permission::STUDY:
+			case AccessPermission::STUDY:
 				human_readable_data = db.getValue("SELECT name FROM study WHERE id='"+ data_hint +"'").toString();
 				break;
-			case Permission::SAMPLE:
+			case AccessPermission::SAMPLE:
 				human_readable_data = db.sampleName(data_hint);
-				break;
-			case Permission::READ_ONLY:
-			case Permission::PERFORM_VARIANT_SEARCH:
-			case Permission::PERFORM_BURDEN_TEST:
-			case Permission::START_ANALYSIS_JOBS:
-			case Permission::PERFORM_SAMPLE_SEARCH:
-				break;
+				break;			
 		}
 
 		new_row.setId(db_table.row(i).id());
@@ -85,12 +79,12 @@ void UserPermissionsEditor::updateTable()
 	QApplication::restoreOverrideCursor();
 }
 
-void UserPermissionsEditor::addProjectPermission()
+void UserAccessPermissionsEditor::addProjectPermission()
 {	
 	createAddPermissionDialog("project");
 }
 
-void UserPermissionsEditor::addProjectTypePermission()
+void UserAccessPermissionsEditor::addProjectTypePermission()
 {
 	QStringList enum_project_types;
 	const TableInfo& table_info = db_.tableInfo("project");
@@ -127,17 +121,17 @@ void UserPermissionsEditor::addProjectTypePermission()
 	}
 }
 
-void UserPermissionsEditor::addStudyPermission()
+void UserAccessPermissionsEditor::addStudyPermission()
 {
 	createAddPermissionDialog("study");
 }
 
-void UserPermissionsEditor::addSamplePermission()
+void UserAccessPermissionsEditor::addSamplePermission()
 {
 	createAddPermissionDialog("sample");
 }
 
-void UserPermissionsEditor::remove()
+void UserAccessPermissionsEditor::remove()
 {
 	//check
 	QSet<int> rows = ui_.table->selectedRows();
@@ -171,7 +165,7 @@ void UserPermissionsEditor::remove()
 	clearServerCache();
 }
 
-void UserPermissionsEditor::clearServerCache()
+void UserAccessPermissionsEditor::clearServerCache()
 {
 	try
 	{
@@ -185,7 +179,7 @@ void UserPermissionsEditor::clearServerCache()
 	}
 }
 
-void UserPermissionsEditor::createAddPermissionDialog(QString table_name)
+void UserAccessPermissionsEditor::createAddPermissionDialog(QString table_name)
 {
 	QString entity_name = table_name;
 	entity_name =  entity_name.replace(0, 1, entity_name[0].toUpper());
@@ -199,7 +193,7 @@ void UserPermissionsEditor::createAddPermissionDialog(QString table_name)
 	}
 }
 
-void UserPermissionsEditor::addPermissionToDatabase(QString permission, QString data, QString display_text)
+void UserAccessPermissionsEditor::addPermissionToDatabase(QString permission, QString data, QString display_text)
 {
 	try
 	{

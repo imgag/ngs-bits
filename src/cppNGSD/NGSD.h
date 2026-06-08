@@ -25,7 +25,8 @@
 #include "FileLocation.h"
 #include "FileInfo.h"
 #include "TsvFile.h"
-#include "UserPermissionList.h"
+#include "UserAccessPermissionList.h"
+#include "UserActionPermissionList.h"
 
 const int MAX_VARIANT_SIZE = 500;
 
@@ -1004,7 +1005,7 @@ public:
 	///Checks if the user can access the processed sample. Use for users with role 'restricted_user' only, or it will be slow because the user role has to be checked every time. Uses caching for massive speed-up.
 	bool userCanAccess(int user_id, int ps_id);
 	///Checks if the user can perform certain actions inside GSvar. Used for 'restricted_user' only.
-	bool userCanPerformAction(int user_id, Permission permission);
+	bool userCanPerformAction(int user_id, ActionPermission permission);
 
 	/*** Main NGSD functions ***/
 	///Search for processed samples
@@ -1259,7 +1260,7 @@ public:
 	void clearCache();
 
 	///Clears only the user permissions part of the cache
-	void clearUserPermissionsCache();
+	void clearUserAccessPermissionsCache();
 	///Clears only the user action permissions part of the cache
 	void clearUserActionPermissionsCache();
 
@@ -1318,7 +1319,7 @@ protected:
 		QMap<QByteArray, int> gene_expression_gene2id;
 
         QMap<int, QSet<int>> user_can_access;
-		QMap<int, QSet<Permission>> user_can_perform_actions;
+		QMap<int, QSet<ActionPermission>> user_can_perform_actions;
 	};
 	static Cache& getCache();
 	void initTranscriptCache();

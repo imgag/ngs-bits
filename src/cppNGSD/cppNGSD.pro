@@ -79,7 +79,8 @@ HEADERS += \
     SomaticReportHelper.h \
     SomaticRnaReport.h \
     SomaticcfDNAReport.h \
-    UserPermissionList.h
+    UserAccessPermissionList.h \
+    UserActionPermissionList.h
 
 RESOURCES += \
     cppNGSD.qrc

@@ -410,11 +410,10 @@ CREATE TABLE IF NOT EXISTS `user_action_permissions`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `user_id` INT(11) NOT NULL,
-  `read_only` BOOLEAN NOT NULL DEFAULT FALSE,
-  `perform_variant_search` BOOLEAN NOT NULL DEFAULT FALSE,
-  `perform_burden_test` BOOLEAN NOT NULL DEFAULT FALSE,
-  `start_analysis_jobs` BOOLEAN NOT NULL DEFAULT FALSE,
-  `sample_search` BOOLEAN NOT NULL DEFAULT FALSE,
+  `read_only` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Disables changes to the database for user_restricted: report config, classification, VICC, comments, variant validation',
+  `perform_variant_search` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Allows user_restricted running search for small variants, CNVs, REs ,SVs',
+  `perform_burden_test` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Allows user_restricted running burden test',
+  `start_analysis_jobs` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Allows user_restricted starting sample analyisis jobs',
   PRIMARY KEY (`id`),
   INDEX `idx_user_id` (`user_id`),
   CONSTRAINT `fk_user_action_permissions_user`
