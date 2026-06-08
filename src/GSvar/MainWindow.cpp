@@ -3955,13 +3955,6 @@ void MainWindow::generateReportSomaticRTF()
 			Helper::moveFile(temp_filename, file_rep);
 			Log::perf("Generating somatic report RTF took ", timer);
 
-			//Generate files for QBIC upload
-			timer.start();
-			QString path = ps_tumor + "-" + ps_normal;
-			if (GlobalServiceProvider::fileLocationProvider().isLocal()) path = Settings::string("qbic_data_path") + "/" + path;
-			report.storeQbicData(path);
-			Log::perf("Generating somatic report QBIC data took ", timer);
-
 			QApplication::restoreOverrideCursor();
 		}
 		catch(Exception& error)
