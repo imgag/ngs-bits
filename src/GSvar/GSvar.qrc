@@ -131,7 +131,5 @@
         <file>Icons/Methylation.png</file>
         <file>Icons/strchive.png</file>
         <file>Icons/LitVar2.png</file>
-        <file>Icons/ActionLock.png</file>
-        <file>Icons/DatabaseLock.png</file>
     </qresource>
 </RCC>

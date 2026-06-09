@@ -6,7 +6,6 @@
 #include "GlobalServiceProvider.h"
 #include <QDesktopServices>
 #include <QAction>
-#include <QMessageBox>
 
 ReSearchWidget::ReSearchWidget(QWidget* parent)
 	: QWidget(parent)

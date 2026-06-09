@@ -7,7 +7,6 @@
 #include "LoginManager.h"
 #include "GUIHelper.h"
 #include <QAction>
-#include <QMessageBox>
 
 SvSearchWidget::SvSearchWidget(QWidget* parent)
 	: QWidget(parent)
