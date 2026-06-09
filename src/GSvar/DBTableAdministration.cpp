@@ -5,8 +5,7 @@
 #include "LoginManager.h"
 #include "EmailDialog.h"
 #include "GlobalServiceProvider.h"
-#include "UserAccessPermissionsEditor.h"
-#include "UserActionPermissionsEditor.h"
+#include "UserPermissionsEditor.h"
 #include "GenLabDB.h"
 #include "ScrollableTextDialog.h"
 #include "ClientHelper.h"
@@ -37,13 +36,9 @@ DBTableAdministration::DBTableAdministration(QString table, QWidget* parent)
 
 	if (table_=="user")
 	{
-		action = new QAction(QIcon(":/Icons/DatabaseLock.png"), "Edit data access permissions", this);
+		action = new QAction(QIcon(":/Icons/Lock.png"), "Edit permissions", this);
 		ui_.table->addAction(action);
-		connect(action, SIGNAL(triggered(bool)), this, SLOT(changeUserDataAccessPermissions()));
-
-		action = new QAction(QIcon(":/Icons/ActionLock.png"), "Edit action permissions", this);
-		ui_.table->addAction(action);
-		connect(action, SIGNAL(triggered(bool)), this, SLOT(changeUserActionPermissions()));
+		connect(action, SIGNAL(triggered(bool)), this, SLOT(changeUserPermissions()));
 	}
 
 	action = new QAction(QIcon(":/Icons/Remove.png"), "Delete", this);
@@ -220,7 +215,7 @@ void DBTableAdministration::edit(int row)
 	}
 }
 
-void DBTableAdministration::changeUserDataAccessPermissions()
+void DBTableAdministration::changeUserPermissions()
 {
 	//check
 	try
@@ -239,37 +234,17 @@ void DBTableAdministration::changeUserDataAccessPermissions()
 		// Only restricted users have editable permissions (regular users and admins have "hard-coded" permissions)
 		if (user_role!="user_restricted")
 		{
-			INFO(ArgumentException, "Setting permissions is availabe for the users with role 'user_restricted' only!");
+			INFO(ArgumentException, "Setting access and action permissions is availabe for the users with role 'user_restricted' only!");
 		}
 
 		//show dialog
-		UserAccessPermissionsEditor* widget = new UserAccessPermissionsEditor("user_permissions", ui_.table->getId(row), this);
+		UserPermissionsEditor* widget = new UserPermissionsEditor("user_permissions", ui_.table->getId(row), this);
 		auto dlg = GUIHelper::createDialog(widget, "User permissions", "", false);
 		dlg->exec();
 	}
 	catch (Exception& e)
 	{
 		GUIHelper::showException(this, e, "Changing user permissions error");
-	}
-}
-
-void DBTableAdministration::changeUserActionPermissions()
-{
-	try
-	{
-		QSet<int> rows = ui_.table->selectedRows();
-		if (rows.count()!=1)
-		{
-			INFO(ArgumentException, "Please select exactly one user!");
-		}
-		int row =Helper::setToList(rows).at(0);
-		UserActionPermissionsEditor* widget = new UserActionPermissionsEditor("user_action_permissions", ui_.table->getId(row), this);
-		auto dlg = GUIHelper::createDialog(widget, "User action permissions", "", false);
-		dlg->exec();
-	}
-	catch (Exception& e)
-	{
-		GUIHelper::showException(this, e, "Changing user action permissions error");
 	}
 }
 

@@ -55,8 +55,7 @@ SOURCES += main.cpp\
     TabBaseClass.cpp \
     TransferredVariantDialog.cpp \
     TrioDialog.cpp \
-    UserAccessPermissionsEditor.cpp \
-    UserActionPermissionsEditor.cpp \
+    UserPermissionsEditor.cpp \
     ValidationDialog.cpp \
     ClassificationDialog.cpp \
     ApprovedGenesDialog.cpp \
@@ -189,8 +188,7 @@ HEADERS += MainWindow.h \
     TabBaseClass.h \
     TransferredVariantDialog.h \
     TrioDialog.h \
-    UserAccessPermissionsEditor.h \
-    UserActionPermissionsEditor.h \
+    UserPermissionsEditor.h \
     ValidationDialog.h \
     ClassificationDialog.h \
     ApprovedGenesDialog.h \
@@ -312,8 +310,7 @@ FORMS    += MainWindow.ui \
     TransferredVariantDialog.ui \
     TrioDialog.ui \
     ClassificationDialog.ui \
-    UserAccessPermissionsEditor.ui \
-    UserActionPermissionsEditor.ui \
+    UserPermissionsEditor.ui \
     ValidationDialog.ui \
     ApprovedGenesDialog.ui \
     GeneWidget.ui \

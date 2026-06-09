@@ -1,4 +1,4 @@
-#include "UserAccessPermissionsEditor.h"
+#include "UserPermissionsEditor.h"
 #include "UserAccessPermissionList.h"
 #include "GUIHelper.h"
 #include <QMessageBox>
@@ -7,7 +7,7 @@
 #include "LoginManager.h"
 #include "ClientHelper.h"
 
-UserAccessPermissionsEditor::UserAccessPermissionsEditor(QString table, QString user_id, QWidget* parent) :
+UserPermissionsEditor::UserPermissionsEditor(QString table, QString user_id, QWidget* parent) :
 	QWidget(parent)
 	, ui_()
 	, table_(table)
@@ -17,24 +17,42 @@ UserAccessPermissionsEditor::UserAccessPermissionsEditor(QString table, QString 
 {
 	ui_.setupUi(this);
 
+	// initialize access permissions
 	ui_.add_btn->setToolTip("Add a new user permission");
 	ui_.add_btn->setMenu(new QMenu());
 	ui_.add_btn->menu()->addSeparator();
-	ui_.add_btn->menu()->addAction("Add project permission", this, SLOT(addProjectPermission()));
-	ui_.add_btn->menu()->addAction("Add project type permission", this, SLOT(addProjectTypePermission()));
-	ui_.add_btn->menu()->addAction("Add study permission", this, SLOT(addStudyPermission()));
-	ui_.add_btn->menu()->addAction("Add sample permission", this, SLOT(addSamplePermission()));
+	ui_.add_btn->menu()->addAction("Add project permission", this, SLOT(addProjectAccessPermission()));
+	ui_.add_btn->menu()->addAction("Add project type permission", this, SLOT(addProjectTypeAccessPermission()));
+	ui_.add_btn->menu()->addAction("Add study permission", this, SLOT(addStudyAccessPermission()));
+	ui_.add_btn->menu()->addAction("Add sample permission", this, SLOT(addSampleAccessPermission()));
 	ui_.add_btn->setPopupMode(QToolButton::InstantPopup);
 
-	connect(ui_.delete_btn, SIGNAL(clicked(bool)), this, SLOT(remove()));
+	connect(ui_.delete_btn, SIGNAL(clicked(bool)), this, SLOT(removeAccessPermission()));
+
+	// initialize action permissions
+	connect(ui_.cb_read_only, SIGNAL(stateChanged(int)), this, SLOT(updateActionPermissions()));
+	connect(ui_.cb_variant_search, SIGNAL(stateChanged(int)), this, SLOT(updateActionPermissions()));
+	connect(ui_.cb_burden_test, SIGNAL(stateChanged(int)), this, SLOT(updateActionPermissions()));
+	connect(ui_.cb_start_job, SIGNAL(stateChanged(int)), this, SLOT(updateActionPermissions()));
+
+	NGSD db;
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT read_only, perform_variant_search, perform_burden_test, start_analysis_jobs FROM user_action_permissions WHERE user_id='" + user_id_ + "'");
+	while(query.next())
+	{
+		if (query.value(0).toBool()) ui_.cb_read_only->setChecked(true);
+		if (query.value(1).toBool()) ui_.cb_variant_search->setChecked(true);
+		if (query.value(2).toBool()) ui_.cb_burden_test->setChecked(true);
+		if (query.value(3).toBool()) ui_.cb_start_job->setChecked(true);
+	}
 }
 
-void UserAccessPermissionsEditor::delayedInitialization()
+void UserPermissionsEditor::delayedInitialization()
 {
-	updateTable();
+	updateAccessPermissions();
 }
 
-void UserAccessPermissionsEditor::updateTable()
+void UserPermissionsEditor::updateAccessPermissions()
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
@@ -79,12 +97,12 @@ void UserAccessPermissionsEditor::updateTable()
 	QApplication::restoreOverrideCursor();
 }
 
-void UserAccessPermissionsEditor::addProjectPermission()
+void UserPermissionsEditor::addProjectAccessPermission()
 {	
-	createAddPermissionDialog("project");
+	createAddAccessPermissionDialog("project");
 }
 
-void UserAccessPermissionsEditor::addProjectTypePermission()
+void UserPermissionsEditor::addProjectTypeAccessPermission()
 {
 	QStringList enum_project_types;
 	const TableInfo& table_info = db_.tableInfo("project");
@@ -117,21 +135,21 @@ void UserAccessPermissionsEditor::addProjectTypePermission()
 	QSharedPointer<QDialog> dialog = GUIHelper::createDialog(selector, "Select a project type", "Project type:", true);
 	if (dialog->exec()==QDialog::Accepted && selector->isValidSelection())
 	{
-		addPermissionToDatabase("project_type", selector->getId(), selector->text());		
+		addAccessPermissionToDatabase("project_type", selector->getId(), selector->text());
 	}
 }
 
-void UserAccessPermissionsEditor::addStudyPermission()
+void UserPermissionsEditor::addStudyAccessPermission()
 {
-	createAddPermissionDialog("study");
+	createAddAccessPermissionDialog("study");
 }
 
-void UserAccessPermissionsEditor::addSamplePermission()
+void UserPermissionsEditor::addSampleAccessPermission()
 {
-	createAddPermissionDialog("sample");
+	createAddAccessPermissionDialog("sample");
 }
 
-void UserAccessPermissionsEditor::remove()
+void UserPermissionsEditor::removeAccessPermission()
 {
 	//check
 	QSet<int> rows = ui_.table->selectedRows();
@@ -161,11 +179,40 @@ void UserAccessPermissionsEditor::remove()
 														  "\n\nDatabase error:\n" + e.message());
 	}
 
-	updateTable();
+	updateAccessPermissions();
 	clearServerCache();
 }
 
-void UserAccessPermissionsEditor::clearServerCache()
+void UserPermissionsEditor::updateActionPermissions()
+{
+	NGSD db;
+
+	try
+	{
+		// remove the record, if none of the checkboxes is unchecked
+		if (!ui_.cb_read_only->isChecked() && !ui_.cb_variant_search->isChecked() && !ui_.cb_burden_test->isChecked() && !ui_.cb_start_job->isChecked())
+		{
+			db.getQuery().exec("DELETE FROM user_action_permissions WHERE user_id=" + user_id_);
+			return;
+		}
+
+		if (db.getValue("SELECT count(id) FROM user_action_permissions WHERE user_id='" + user_id_ + "'").toInt()==0)
+		{
+			db.getQuery().exec("INSERT INTO user_action_permissions (user_id, read_only, perform_variant_search, perform_burden_test, start_analysis_jobs) VALUES ('" + user_id_ + "','"+QString::number(ui_.cb_read_only->isChecked()) + "','"+QString::number(ui_.cb_variant_search->isChecked())+"', '"+QString::number(ui_.cb_burden_test->isChecked())+"', '"+QString::number(ui_.cb_start_job->isChecked())+"')");
+		}
+		else
+		{
+			db.getQuery().exec("UPDATE user_action_permissions SET read_only='"+QString::number(ui_.cb_read_only->isChecked())+"', perform_variant_search='"+QString::number(ui_.cb_variant_search->isChecked())+"', perform_burden_test='"+QString::number(ui_.cb_burden_test->isChecked())+"', start_analysis_jobs='"+QString::number(ui_.cb_start_job->isChecked())+"' WHERE user_id='"+user_id_+ "'");
+		}
+	}
+	catch (DatabaseException e)
+	{
+		QMessageBox::warning(this, "Error while changing permissions", "Could not save action permissions for the selected user: " + e.message());
+	}
+	clearServerCache();
+}
+
+void UserPermissionsEditor::clearServerCache()
 {
 	try
 	{
@@ -179,7 +226,7 @@ void UserAccessPermissionsEditor::clearServerCache()
 	}
 }
 
-void UserAccessPermissionsEditor::createAddPermissionDialog(QString table_name)
+void UserPermissionsEditor::createAddAccessPermissionDialog(QString table_name)
 {
 	QString entity_name = table_name;
 	entity_name =  entity_name.replace(0, 1, entity_name[0].toUpper());
@@ -189,11 +236,11 @@ void UserAccessPermissionsEditor::createAddPermissionDialog(QString table_name)
 	QSharedPointer<QDialog> dialog = GUIHelper::createDialog(selector, "Select a " + entity_name.toLower(), entity_name + " name:", true);
 	if (dialog->exec()==QDialog::Accepted && selector->isValidSelection())
 	{
-		addPermissionToDatabase(table_name, selector->getId(), selector->text());
+		addAccessPermissionToDatabase(table_name, selector->getId(), selector->text());
 	}
 }
 
-void UserAccessPermissionsEditor::addPermissionToDatabase(QString permission, QString data, QString display_text)
+void UserPermissionsEditor::addAccessPermissionToDatabase(QString permission, QString data, QString display_text)
 {
 	try
 	{
@@ -209,6 +256,6 @@ void UserAccessPermissionsEditor::addPermissionToDatabase(QString permission, QS
 	{
 		QMessageBox::warning(this, "Adding new permission", "Error while adding a new permission to the database: " + e.message());
 	}
-	updateTable();
+	updateAccessPermissions();
 	clearServerCache();
 }
