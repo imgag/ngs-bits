@@ -1,7 +1,21 @@
-#include "TrackData.h"
+#include "BamTrackData.h"
 #include "FileLoader.h"
 
 #define BAM_OPTIMIZATION
+
+AlignmentKey AlignmentKey::makeKey(const BamAlignment& al)
+{
+	QByteArray cigar = al.cigarDataAsString();
+
+	uint64_t h1 = qHash(al.name());
+	h1 ^= ((uint64_t)al.start() << 1);
+	h1 ^= ((uint64_t)al.isReverseStrand() << 32);
+
+	uint64_t h2 = qHashBits(cigar.data(), cigar.size());
+
+	return {h1, h2};
+}
+
 
 void BamTrackData::updateRegion()
 {
@@ -128,7 +142,8 @@ void BamTrackData::fetchRegion(const BedLine& region)
 		if (loaded_ids_.contains(wrapped_alignment.id)) continue;
 		loaded_ids_.insert(wrapped_alignment.id);
 
-		wrapped_alignment.storeVariants(ref_seq_, ref_start_);
+		// wrapped_alignment.storeMismatches(ref_seq_, ref_start_);
+		wrapped_alignment.storeCigarData(ref_seq_, ref_start_);
 		alignments_.push_back(std::move(wrapped_alignment));
 	}
 }
@@ -153,6 +168,86 @@ void BamTrackData::pruneAlignments(int keep_start, int keep_end)
 	alignments_.erase(it, alignments_.end());
 }
 
+void BamAlignmentWrapper::storeCigarData(const Sequence& ref_seq, int ref_start)
+{
+	events.clear();
+	mismatches.clear();
+
+	int read_pos =0;
+	int genome_pos = alignment.start();
+
+	CigarData cigar = alignment.cigarData();
+
+	events.reserve(cigar.size());
+
+	for (uint32_t i =0; i < cigar.size(); ++i)
+	{
+		EventData c_data;
+		uint32_t op = cigar.opType(i);
+		uint32_t len = cigar.opLength(i);
+
+		c_data.length = len;
+		c_data.genome_pos = genome_pos;
+
+		switch (op)
+		{
+			case BAM_CMATCH:
+			case BAM_CEQUAL:
+			case BAM_CDIFF:
+				c_data.event = MATCH;
+				break;
+			case BAM_CINS:
+				c_data.event = INSERTION;
+				break;
+			case BAM_CDEL:
+				c_data.event = DELETION;
+				genome_pos += len;
+				break;
+			case BAM_CSOFT_CLIP:
+				read_pos += len;
+				continue;
+			case BAM_CREF_SKIP:
+				genome_pos += len;
+				continue;
+			case BAM_CHARD_CLIP:
+				continue;
+			default: // TODO: handle exception (invalid cigar op)
+				continue;
+		}
+		if (c_data.event == MATCH)
+		{
+			for (uint32_t j =0; j < len; ++j)
+			{
+				char base = alignment.base(read_pos) | 32;
+				int qual = alignment.quality(read_pos);
+				c_data.bases.push_back(base);
+				c_data.qualities << qual;
+				int idx = genome_pos - ref_start;
+				if (idx >= 0 && idx < ref_seq.length())
+				{
+					char ref = ref_seq[idx] | 32;
+					// mismatches are stored seperatly so the draw function is more optimized
+					// otherwise for each draw all bases would need to be checked
+					if (ref != base) mismatches.push_back({genome_pos, base, qual});
+				}
+				++genome_pos;
+				++read_pos;
+			}
+		}
+		else if (c_data.event == INSERTION)
+		{
+			for (uint32_t j =0; j < len; ++j)
+			{
+				char base = alignment.base(read_pos) | 32;
+				int qual = alignment.quality(read_pos);
+				c_data.bases.append(base);
+				c_data.qualities << qual;
+				++read_pos;
+			}
+		}
+		events << c_data;
+	}
+}
 
 void BamTrackData::updateData()
 {
@@ -165,7 +260,7 @@ void BamTrackData::updateData()
 	{
 		if (al.isUnmapped() || al.isDuplicate() || al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		BamAlignmentWrapper wrapped_alignment(al);
-		wrapped_alignment.storeVariants(ref_seq_, region.start());
+		wrapped_alignment.storeCigarData(ref_seq_, region.start());
 		alignments_ << wrapped_alignment;
 	}
 	emit onDataUpdate();
@@ -176,7 +271,7 @@ void BamTrackData::reload()
 	if (is_loading_) return;
 	is_loading_ = true;
 
-	QSharedPointer<BamReader> reader = FileLoader::loadBamFile(file_path);
+	QSharedPointer<BamReader> reader = FileLoader::loadBamFile(file_path_);
 	if (reader) setBamReader(reader);
 
 	is_loading_ = false;

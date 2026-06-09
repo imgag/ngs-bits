@@ -161,7 +161,7 @@ void BamAlignmentTrack::paintEvent(QPaintEvent*)
 	}
 }
 
-void BamAlignmentTrack::drawAlignmentAndVariants(QPainter& painter, const BamAlignmentWrapper& al,
+void BamAlignmentTrack::drawAlignmentAndMismatches(QPainter& painter, const BamAlignmentWrapper& al,
 												 int row_y, int x0, int total_width)
 {
 	if (row_y < 0)
@@ -175,8 +175,8 @@ void BamAlignmentTrack::drawAlignmentAndVariants(QPainter& painter, const BamAli
 	if (al.alignment.end() < region.start() ||
 		al.alignment.start() > region.end()) return;
 
-	drawAlignment(painter, al.alignment, row_y, x0, total_width);
-	if (!show_all_bases_) drawVariants(painter, al, row_y, x0, total_width);
+	drawAlignment(painter, al, row_y, x0, total_width);
+	if (!show_all_bases_) drawMismatches(painter, al, row_y, x0, total_width);
 	else drawAllBases(painter, al, row_y, x0, total_width);
 }
 
@@ -191,7 +191,7 @@ void BamAlignmentTrack::drawNormalMode(QPainter& painter, const BedLine&)
 	{
 		const BamAlignmentWrapper& al_w = alns[i];
 		int row_y = row_idxes_[alns[i]] * (ROW_HEIGHT + ROW_PADDING);
-		drawAlignmentAndVariants(painter, al_w, row_y, x0, total_width);
+		drawAlignmentAndMismatches(painter, al_w, row_y, x0, total_width);
 	}
 }
 
@@ -209,7 +209,7 @@ void BamAlignmentTrack::drawPairMode(QPainter& painter, const BedLine& region)
 		{
 			const BamAlignmentWrapper& al_w = alns[read_pair.first];
 			int row_y = pair_row_idxes_.value(al_w.alignment.name(), -1) * (ROW_HEIGHT + ROW_PADDING);
-			drawAlignmentAndVariants(painter, al_w, row_y, x0, total_width);
+			drawAlignmentAndMismatches(painter, al_w, row_y, x0, total_width);
 		}
 
 		if (read_pair.second != -1)
@@ -217,7 +217,7 @@ void BamAlignmentTrack::drawPairMode(QPainter& painter, const BedLine& region)
 			const BamAlignmentWrapper& al_w = alns[read_pair.second];
 			const BamAlignment& al = alns[read_pair.second].alignment;
 			int row_y = pair_row_idxes_[al.name()] * (ROW_HEIGHT + ROW_PADDING);
-			drawAlignmentAndVariants(painter, al_w, row_y, x0, total_width);
+			drawAlignmentAndMismatches(painter, al_w, row_y, x0, total_width);
 		}
 
 		//draw line
@@ -258,9 +258,47 @@ QColor BamAlignmentTrack::strandColor(bool is_reversed)
 	return is_reversed ? QColor(175, 175, 235, 200) : QColor(235, 175, 175, 200);
 }
 
-void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignment& al, int row_y, int x0, int total_width)
+void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapper& al_w, int row_y, int x0, int total_width)
 {
 	const BedLine& region = SharedData::region();
+	const BamAlignment& al = al_w.alignment;
+
+	foreach (const auto& data, al_w.getEvents())
+	{
+		int st = std::max(data.genome_pos, region.start());
+		int en = std::min(data.genome_pos + data.length - 1 , region.end() + 1);
+
+		if (en <= region.start()) continue;
+
+		float x_start = ((float)(st - region.start()) )/region.length() * total_width  + x0;
+		float width = (float)(en - st + 1)/region.length() * total_width;
+
+		if (width < 0) continue;
+
+		if (data.event == BamAlignmentWrapper::MATCH)
+		{
+			painter.setPen(Qt::NoPen);
+			painter.setBrush(strandColor(al.isReverseStrand()));
+			painter.drawRect(x_start, row_y, width, ROW_HEIGHT);
+		}
+
+		else if (data.event == BamAlignmentWrapper::DELETION)
+		{
+			painter.setPen(Qt::blue);
+			int mid = row_y + ROW_HEIGHT / 2;
+			painter.drawLine(x_start, mid, x_start + width, mid);
+		}
+
+		else if (data.event == BamAlignmentWrapper::INSERTION)
+		{
+			painter.setPen(Qt::blue);
+			painter.setBrush(Qt::blue);
+			painter.setFont(cached_font_);
+			QRectF text_rect(x_start, row_y - 5, 4, ROW_HEIGHT + 10);
+			painter.drawText(text_rect, Qt::AlignHCenter, "I");
+			// painter.drawRect(x_start, row_y, 2, ROW_HEIGHT);
+		}
+	}
 
 	int st = std::max(al.start(), region.start());
 	int en = std::min(al.end(), region.end() + 1);
@@ -268,9 +306,11 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignment& al,
 	float x_start = ((float)(st - region.start()))/region.length() * total_width + x0;
 	float width = ((float)(en - st + 1))/region.length() * total_width;
 
-	painter.setBrush(strandColor(al.isReverseStrand()));
-	painter.setPen(Qt::NoPen);
-	painter.drawRect(x_start, row_y, width, ROW_HEIGHT);
+	// painter.setBrush(strandColor(al.isReverseStrand()));
+	// painter.setPen(Qt::NoPen);
+	// painter.drawRect(x_start, row_y, width, ROW_HEIGHT);
+
+
 	float tri_w = std::min(6.f, width / 3);
 	QColor body = strandColor(al.isReverseStrand());
 	painter.setBrush(body.darker(130));
@@ -333,15 +373,14 @@ void BamAlignmentTrack::updateFontCache()
 	cached_char_size_ = characterSize(font);
 }
 
-void BamAlignmentTrack::drawVariants(QPainter& painter, const BamAlignmentWrapper& al, int row_y, int x0, int total_width)
+void BamAlignmentTrack::drawMismatches(QPainter& painter, const BamAlignmentWrapper& al, int row_y, int x0, int total_width)
 {
 	const auto& region = SharedData::region();
 	float scale = (float)region.length() / total_width;
 	double pixels_per_base = (double)(total_width) / (double)region.length();
 
-	const auto& variants = al.getVariants();
-	// qDebug() << "Drawing variants, size: " << variants.size() << Qt::endl;
-	foreach (const auto& variant_data, variants)
+	const auto& mismatches = al.getMismatches();
+	foreach (const auto& variant_data, mismatches)
 	{
 		int idx = variant_data.genomic_pos - region.start();
 		int x_start = x0 + (int)((float)idx / scale);
@@ -375,37 +414,42 @@ void BamAlignmentTrack::drawAllBases(QPainter& painter, const BamAlignmentWrappe
 	float scale = (float)region.length() / total_width;
 	double pixels_per_base = (double)(total_width) / (double)region.length();
 
-	// const auto& variants = al.getVariants();
-	// qDebug() << "Drawing variants, size: " << variants.size() << Qt::endl;
-	// foreach (const auto& variant_data, variants)
-	const BamAlignment& aln = al.alignment;
-	aln.forEachAlignedBase([&](int genome_pos, char base, int qual, int)
+	foreach (const auto& event_data, al.getEvents())
+	{
+		if (event_data.event == BamAlignmentWrapper::MATCH)
 		{
-			int idx = genome_pos - region.start();
-			int x_start = x0 + (int)((float)idx / scale);
-			int endX = x0 + (int)((float)(idx + 1) / scale);
-
-			if (x_start < x0 || endX > x0 + total_width) return;
-
-			int dX = std::max(1, endX - x_start);
-			QColor color = baseColor(base);
-			color = QColor(color.red(), color.green(), color.blue(), ((float)qual/41)*255);
-
-			if (pixels_per_base >= cached_char_size_.width())
+			for (int i =0; i < event_data.length; ++i)
 			{
-				painter.setFont(cached_font_);
-				painter.setPen(color);
-				QRectF text_rect(x_start, row_y - 5, dX, ROW_HEIGHT + 10);
-				painter.drawText(text_rect, Qt::AlignHCenter, QString(base).toUpper());
-			}
-			else
-			{
-				painter.setBrush(color);
-				QRectF rect(x_start, row_y, dX, ROW_HEIGHT);
-				painter.drawRect(rect);
+				int idx = event_data.genome_pos - region.start() + i;
+				int x_start = x0 + (int)((float)idx / scale);
+				int endX = x0 + (int)((float)(idx + 1) / scale);
+
+				if (x_start < x0 || endX > x0 + total_width) continue;
+
+				int dX = std::max(1, endX - x_start);
+
+				char base = event_data.bases[i];
+				int qual = event_data.qualities[i];
+				if (i >= event_data.bases.length()) qDebug("i > length of bases, bug.");
+				QColor color = baseColor(base);
+				color = QColor(color.red(), color.green(), color.blue(), ((float)qual/41)*255);
+
+				if (pixels_per_base >= cached_char_size_.width())
+				{
+					painter.setFont(cached_font_);
+					painter.setPen(color);
+					QRectF text_rect(x_start, row_y - 5, dX, ROW_HEIGHT + 10);
+					painter.drawText(text_rect, Qt::AlignHCenter, QString(base).toUpper());
+				}
+				else
+				{
+					painter.setBrush(color);
+					QRectF rect(x_start, row_y, dX, ROW_HEIGHT);
+					painter.drawRect(rect);
+				}
 			}
 		}
-	);
+	}
 }
 
 void BamAlignmentTrack::makePairs()

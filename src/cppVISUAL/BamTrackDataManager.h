@@ -1,9 +1,16 @@
 #ifndef BAMTRACKDATAMANAGER_H
 #define BAMTRACKDATAMANAGER_H
 
-#include "TrackData.h"
+#include "BamTrackData.h"
 
-// enusres that one file_path only has one TrackData instance
+/* enusres that one file_path only has one BamTrackData instance
+ * this class is a necessity at the moment, since BamTrackData is shared b/w coverage and alignment track
+ *
+ * TODO: In the future it might be better to have a generic TrackData
+ * and ensure one file -> one TrackData for all tracks, this would change to TrackDataManager
+ * store format: (file_path -> QWeakPtr<TrackData>)
+ * even though it stores only weak ptr, it's necessary to switch to LRUCache for a lower memory hog
+ */
 class BamTrackDataManager
 {
 public:

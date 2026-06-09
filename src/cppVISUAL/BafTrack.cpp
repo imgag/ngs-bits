@@ -300,6 +300,9 @@ void BafTrack::populateContextMenu(QMenu& menu)
 	opts[1] = sub_menu->addAction("Bar Chart");
 	opts[2] = sub_menu->addAction("Points");
 	opts[3] = sub_menu->addAction("Line Plot");
+
+	for (int i =0; i < 4; ++i) opts[i]->setCheckable(true);
+	opts[static_cast<int>(graph_mode_)]->setChecked(true);
 	TrackWidget::populateContextMenu(menu);
 }
 
@@ -316,6 +319,7 @@ void BafTrack::handleContextMenuAction(QAction* action)
 void BafTrack::mousePressEvent(QMouseEvent* event)
 {
 	mouse_press_pos_ = event->pos();
+	TrackWidget::mousePressEvent(event);
 }
 
 void BafTrack::mouseReleaseEvent(QMouseEvent* event)

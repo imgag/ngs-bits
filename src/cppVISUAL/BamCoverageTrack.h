@@ -3,7 +3,7 @@
 
 #include "cppVISUAL_global.h"
 #include "TrackWidget.h"
-#include "TrackData.h"
+#include "BamTrackData.h"
 
 #include <QSharedPointer>
 
@@ -18,6 +18,9 @@ struct BaseCoverage
 	int reverse_c =0;
 	int reverse_g =0;
 	int reverse_t =0;
+
+	int insertions =0;
+	int deletions =0;
 
 	int a() const {return forward_a + reverse_a;}
 	int c() const {return forward_c + reverse_c;}

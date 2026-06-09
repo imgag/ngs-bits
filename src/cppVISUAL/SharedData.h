@@ -24,6 +24,8 @@ struct CPPVISUALSHARED_EXPORT GlobalSettings
 	int transcript_padding = 2000;
 	//Max region length for bam tracks
 	int bam_max_region_len = 30000;
+	// Threshold for mismatch thresohld in coverage track s.t. the bar is not drawn gray
+	float coverage_mismatch_threshold = .2f; // if > threshold % are mismatched, the bar is colored
 };
 
 //Singleton for data shared by all widgets for visualization.

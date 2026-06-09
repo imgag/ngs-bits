@@ -35,6 +35,7 @@ SOURCES += \
     BafTrack.cpp \
     BamAlignmentTrack.cpp \
     BamCoverageTrack.cpp \
+    BamTrackData.cpp \
     BamTrackDataManager.cpp \
     BedTrack.cpp \
     ChromosomeContextPanel.cpp \
@@ -45,7 +46,6 @@ SOURCES += \
     PanelManager.cpp \
     RowPacker.cpp \
     SharedData.cpp \
-    TrackData.cpp \
     TrackGroup.cpp \
     TrackManager.cpp \
     TrackWidget.cpp
@@ -54,6 +54,7 @@ HEADERS += \
     BafTrack.h \
     BamAlignmentTrack.h \
     BamCoverageTrack.h \
+    BamTrackData.h \
     BamTrackDataManager.h \
     BedTrack.h \
     ChromosomeContextPanel.h \
@@ -64,7 +65,6 @@ HEADERS += \
     PanelManager.h \
     RowPacker.h \
     SharedData.h \
-    TrackData.h \
     TrackGroup.h \
     TrackManager.h \
     TrackWidget.h

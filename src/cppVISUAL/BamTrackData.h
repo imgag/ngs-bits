@@ -1,27 +1,11 @@
-#ifndef TRACKDATA_H
-#define TRACKDATA_H
+#ifndef BAMTRACKDATA_H
+#define BAMTRACKDATA_H
 
 #include "SharedData.h"
 #include "BamReader.h"
 
 #include <QObject>
 #include <QString>
-
-struct TrackData
-{
-	QString file_path;
-	QString name;
-
-	TrackData(QString file_path, QString name)
-		: file_path(file_path), name(name)
-	{
-	}
-};
-
-struct BedTrackData : public TrackData
-{
-	QSharedPointer<BedFile> bed_file;
-};
 
 struct AlignmentKey
 {
@@ -32,6 +16,8 @@ struct AlignmentKey
 	{
 		return a == other.a && b == other.b;
 	}
+
+	static AlignmentKey makeKey(const BamAlignment& al);
 };
 
 inline size_t qHash(const AlignmentKey& k, size_t seed = 0)
@@ -39,85 +25,61 @@ inline size_t qHash(const AlignmentKey& k, size_t seed = 0)
 	return qHashMulti(seed, k.a, k.b);
 }
 
-static AlignmentKey makeKey(const BamAlignment& al)
-{
-	QByteArray cigar = al.cigarDataAsString();
-
-	uint64_t h1 = qHash(al.name());
-	h1 ^= ((uint64_t)al.start() << 1);
-	h1 ^= ((uint64_t)al.isReverseStrand() << 32);
-
-	uint64_t h2 = qHashBits(cigar.data(), cigar.size());
-
-	return {h1, h2};
-}
-
 struct BamAlignmentWrapper
 {
-	struct VariantInfo
+	enum Event
+	{
+		MATCH,
+		INSERTION,
+		DELETION
+	};
+
+	struct EventData // event data from cigar
+	{
+		Event event;
+		int length;
+		int genome_pos; //genome start position
+		QByteArray bases; // all the bases of the event, empty in case of deletion
+		QVector<int> qualities; // all qualities of the event, empty in case of deletion
+	};
+
+	struct MismatchInfo
 	{
 		int genomic_pos;
-		char base;
+		char base; // base at genomic pos
 		int quality;
 	};
 
 	AlignmentKey id; // for hashing
 	BamAlignment alignment;
-	QVector<VariantInfo> variants;
+	QVector<MismatchInfo> mismatches; // cached mismatches
+	QVector<EventData> events;
 
 	BamAlignmentWrapper(BamAlignment aln)
-		: id(makeKey(aln)), alignment(aln)
+		: id(AlignmentKey::makeKey(aln)), alignment(aln)
 	{
 	}
 
 	BamAlignmentWrapper(BamAlignment&& aln)
-		: id(makeKey(aln)), alignment(std::move(aln))
+		: id(AlignmentKey::makeKey(aln)), alignment(std::move(aln))
 	{
 	}
 
-	void storeVariants(const Sequence& ref_seq, int ref_start)
+	void storeCigarData(const Sequence& ref_seq, int ref_start);
+
+	const QVector<MismatchInfo>& getMismatches() const
 	{
-		variants.clear();
-
-		alignment.forEachAlignedBase(
-			[&](int genome_pos, char base, int qual, int)
-			{
-				int idx = genome_pos - ref_start;
-
-				if (idx < 0 || idx >= ref_seq.length())
-					return;
-
-				char ref = ref_seq[idx] | 32;
-				base |= 32;
-
-				if (base != ref)
-				{
-					variants.push_back({
-						genome_pos,
-						base,
-						(false) ? qual : 41
-					});
-				}
-			});
+		return mismatches;
 	}
 
-	const QVector<VariantInfo>& getVariants() const
+	const QVector<EventData>& getEvents() const
 	{
-		return variants;
+		return events;
 	}
 
 	bool operator==(const BamAlignmentWrapper& other) const
 	{
 		return id == other.id;
-	}
-
-	QString makeId(const BamAlignment& al)
-	{
-		return QString("%1_%2_%3_%4")
-			.arg(al.name())
-			.arg(al.start())
-			.arg(al.isReverseStrand())
-			.arg(al.cigarDataAsString());
 	}
 };
 
@@ -126,13 +88,13 @@ inline size_t qHash(const BamAlignmentWrapper& key, size_t seed = 0)
 	return qHash(key.id, seed);
 }
 
-/*this is used for connected BamAlignemnt and BamCoverage tracks*/
-class BamTrackData : public QObject, public TrackData
+/*this is used for connecting BamAlignemnt and BamCoverage tracks*/
+class BamTrackData : public QObject
 {
 	Q_OBJECT
 public:
-	BamTrackData(QString file_path, QString name)
-		: TrackData(file_path, name)
+	BamTrackData(QString file_path)
+		: file_path_(file_path)
 	{
 		connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
 	}
@@ -175,6 +137,7 @@ public slots:
 	void updateRegion();
 
 private:
+	QString file_path_;
 	QSharedPointer<BamReader> bam_reader_;
 	QVector<BamAlignmentWrapper> alignments_;
 	QVector<BamAlignmentWrapper> dummy_alignments_;
@@ -197,4 +160,4 @@ private:
 	void pruneAlignments(int keep_start, int keep_end);
 };
 
-#endif // TRACKDATA_H
+#endif // BAMTRACKDATA_H

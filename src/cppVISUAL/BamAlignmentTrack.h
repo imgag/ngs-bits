@@ -2,7 +2,7 @@
 #define BAMALIGNMENTTRACK_H
 
 // #include "BamReader.h"
-#include "TrackData.h"
+#include "BamTrackData.h"
 #include "cppVISUAL_global.h"
 #include "TrackWidget.h"
 #include "RowPacker.h"
@@ -63,14 +63,14 @@ private:
 	void drawNormalMode(QPainter& painter, const BedLine&);
 	void drawPairMode(QPainter& painter, const BedLine& region);
 
-	void drawAlignmentAndVariants(QPainter&, const BamAlignmentWrapper& al, int row_y,
+	void drawAlignmentAndMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y,
 								  int x0, int total_width);
 
-	void drawAlignment(QPainter&, const BamAlignment& al, int row_y,
+	void drawAlignment(QPainter&, const BamAlignmentWrapper& al, int row_y,
 					   int x0, int total_width);
 	// draws bases in BamAlignment that do not match the reference base
 	// which are pre calculated in the AlignmentWrapper
-	void drawVariants(QPainter&, const BamAlignmentWrapper& al, int row_y,
+	void drawMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y,
 					  int x0, int total_width);
 	void drawAllBases(QPainter&, const BamAlignmentWrapper& al, int row_y,
 					  int x0, int total_width);

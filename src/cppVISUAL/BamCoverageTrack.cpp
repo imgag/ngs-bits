@@ -25,7 +25,6 @@ BamCoverageTrack* BamCoverageTrack::createTrack(QWidget* parent, QString file_pa
 		track->setTrackData(data);
 		return track;
 	}
-
 	return nullptr;
 }
 
@@ -77,36 +76,55 @@ void BamCoverageTrack::storeCoverage()
 		if (al.end() < region.start()) continue;
 		if (al.start() > region.end()) continue;
 
-		al.forEachAlignedBase(
-			[&](int genome_pos, char base, int /*qual*/, int /*read pos*/)
+		foreach (const auto& data, wrapped.getEvents())
+		{
+			int base_idx = data.genome_pos - region.start();
+			if (data.event == BamAlignmentWrapper::MATCH)
 			{
-				if (genome_pos < region.start() || genome_pos > region.end()) return;
-
-				int idx = genome_pos - region.start();
-				BaseCoverage& cov = coverage_[idx];
-				if (!al.isReverseStrand())
+				for (int i =0; i < data.length; ++i)
 				{
-					switch (base)
+					int idx = base_idx + i;
+					if (idx < 0 || idx >= coverage_.length()) continue;
+					BaseCoverage& cov = coverage_[idx];
+					char base = data.bases[i] | 32;
+					if (!al.isReverseStrand())
 					{
-					case 'A': ++cov.forward_a; break;
-					case 'C': ++cov.forward_c; break;
-					case 'G': ++cov.forward_g; break;
-					case 'T': ++cov.forward_t; break;
+						switch (base)
+						{
+						case 'A': case 'a': ++cov.forward_a; break;
+						case 'C': case 'c': ++cov.forward_c; break;
+						case 'G': case 'g': ++cov.forward_g; break;
+						case 'T': case 't': ++cov.forward_t; break;
+						}
 					}
-				}
-				else
-				{
-					switch (base)
+					else
 					{
-					case 'A': ++cov.reverse_a; break;
-					case 'C': ++cov.reverse_c; break;
-					case 'G': ++cov.reverse_g; break;
-					case 'T': ++cov.reverse_t; break;
+						switch (base)
+						{
+						case 'A': case 'a': ++cov.reverse_a; break;
+						case 'C': case 'c': ++cov.reverse_c; break;
+						case 'G': case 'g': ++cov.reverse_g; break;
+						case 'T': case 't': ++cov.reverse_t; break;
+						}
 					}
+					max_coverage_ = std::max(max_coverage_, cov.total());
 				}
-				max_coverage_ = std::max(max_coverage_, cov.total());
 			}
-		);
+			else if (data.event == BamAlignmentWrapper::INSERTION)
+			{
+				if (base_idx >= 0 && base_idx < coverage_.length()) coverage_[base_idx].insertions += data.length;
+			}
+			else if (data.event == BamAlignmentWrapper::DELETION)
+			{
+				for (int i =0; i < data.length; ++i)
+				{
+					int idx = base_idx + i;
+					if (idx < 0 || idx >= coverage_.length()) continue;
+					BaseCoverage& cov = coverage_[idx];
+					cov.deletions++;
+				}
+			}
+		}
 	}
 
 	const auto& ref_seq = track_data_->getReferenceSeq();
@@ -124,7 +142,7 @@ void BamCoverageTrack::storeCoverage()
 			case 'G': case 'g': base_count = cov.g(); break;
 			case 'T': case 't': base_count = cov.t(); break;
 		}
-		cov.is_variant = (((double)base_count / total_count) < 0.8);
+		cov.is_variant = (((double)base_count / total_count) < (1.f - SharedData::settings().coverage_mismatch_threshold));
 	}
 }
 
@@ -243,6 +261,13 @@ QString BamCoverageTrack::getCoverageText(const BaseCoverage& cov, int coverage_
 					.arg(percent)
 					.arg(b.fwd)
 					.arg(b.rev);
+	}
+
+	if (cov.insertions != 0 || cov.deletions != 0)
+	{
+		info += QString("Insertions: %1\nDeletions: %2\n")
+					.arg(cov.insertions)
+					.arg(cov.deletions);
 	}
 
 	return info;

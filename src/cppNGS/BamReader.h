@@ -306,10 +306,6 @@ class CPPNGSSHARED_EXPORT BamAlignment
 			return loaded_fields_ & SAM_AUX;
 		}
 
-		// calls the given function for each aligned base
-		// given function must take the following args: (genome_pos, base, quality, read_pos)
-		void forEachAlignedBase(const std::function<void(int,char,int,int)>& fn) const;
-
 	protected:
 		bam1_t* aln_;
 		mutable int length_ = -1;
