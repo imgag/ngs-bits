@@ -3170,6 +3170,8 @@ void MainWindow::on_actionAbout_triggered()
 			add_info += "<br>&nbsp;&nbsp;API URL: " + server_info.server_url;
 			add_info += "<br>&nbsp;&nbsp;API version: " + server_info.api_version;
 			add_info += "<br>&nbsp;&nbsp;htslib version: " + server_info.htslib_version;
+			add_info += "<br>&nbsp;&nbsp;operating system: " + server_info.operating_system;
+			add_info += "<br>&nbsp;&nbsp;architecture: " + server_info.architecture;
 			add_info += "<br>&nbsp;&nbsp;Qt version: " + server_info.qt_version;
 		}
 	}

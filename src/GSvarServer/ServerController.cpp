@@ -231,6 +231,8 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 		json_object.insert("start_time", ServerHelper::getServerStartDateTime().toSecsSinceEpoch());
         json_object.insert("server_url", Settings::string("server_host", true));
 		json_object.insert("htslib_version", hts_version());
+		json_object.insert("operating_system", QSysInfo::prettyProductName());
+		json_object.insert("architecture",  QSysInfo::buildCpuArchitecture());
         json_object.insert("qt_version", QLibraryInfo::version().toString());
         json_doc.setObject(json_object);
 
