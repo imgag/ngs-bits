@@ -72,7 +72,7 @@ HttpResponse ServerController::createStaticFileRangeResponse(const QString& file
 		total_length = total_length + byte_ranges[i].length;
 	}
 
-    FastFileInfo *info = new FastFileInfo(filename);
+	QSharedPointer<FastFileInfo> info = QSharedPointer<FastFileInfo>(new FastFileInfo(filename));
 
 	BasicResponseData response_data;
 	response_data.filename = filename;
@@ -89,7 +89,7 @@ HttpResponse ServerController::createStaticFileRangeResponse(const QString& file
 
 HttpResponse ServerController::createStaticStreamResponse(const QString& filename, bool is_downloadable)
 {
-    FastFileInfo *info = new FastFileInfo(filename);
+	QSharedPointer<FastFileInfo> info = QSharedPointer<FastFileInfo>(new FastFileInfo(filename));
 
     BasicResponseData response_data;
     response_data.length = info->size();
@@ -104,7 +104,7 @@ HttpResponse ServerController::createStaticStreamResponse(const QString& filenam
 
 HttpResponse ServerController::createStaticFileResponse(const QString& filename, const HttpRequest& request)
 {
-	FastFileInfo* info = new FastFileInfo(filename);
+	QSharedPointer<FastFileInfo> info = QSharedPointer<FastFileInfo>(new FastFileInfo(filename));
     if ((filename.isEmpty()) || ((!filename.isEmpty()) && (!info->exists())))
     {
         Log::error(EndpointManager::formatResponseMessage(request, "Requested file does not exist: " + filename));
@@ -231,6 +231,8 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 		json_object.insert("start_time", ServerHelper::getServerStartDateTime().toSecsSinceEpoch());
         json_object.insert("server_url", Settings::string("server_host", true));
 		json_object.insert("htslib_version", hts_version());
+		json_object.insert("operating_system", QSysInfo::prettyProductName());
+		json_object.insert("architecture",  QSysInfo::buildCpuArchitecture());
         json_object.insert("qt_version", QLibraryInfo::version().toString());
         json_doc.setObject(json_object);
 
@@ -349,7 +351,7 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 	{
 		VariantList variants;
 		variants.loadHeaderOnly(found_file);
-		FileLocationProviderLocal* file_locator = new FileLocationProviderLocal(found_file, variants.getSampleHeader(), variants.type());
+		QSharedPointer<FileLocationProvider> file_locator = QSharedPointer<FileLocationProviderLocal>(new FileLocationProviderLocal(found_file, variants.getSampleHeader(), variants.type()));
 
 		switch(requested_type)
 		{
@@ -1079,7 +1081,7 @@ HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
 		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
 	}
 
-    FastFileInfo *info = new FastFileInfo(bam_file_name);
+	QSharedPointer<FastFileInfo> info = QSharedPointer<FastFileInfo>(new FastFileInfo(bam_file_name));
     if (!info->exists())
     {
         return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "BAM file does not exist: " + bam_file_name));
@@ -1116,7 +1118,7 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
 	}
 
-    FastFileInfo *info = new FastFileInfo(bam_file_name);
+	QSharedPointer<FastFileInfo> info = QSharedPointer<FastFileInfo>(new FastFileInfo(bam_file_name));
     if (!info->exists())
     {
         return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "BAM file does not exist: " + bam_file_name));
@@ -1149,7 +1151,7 @@ HttpResponse ServerController::calculateTargetRegionReadDepth(const HttpRequest&
 		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
 	}
 
-    FastFileInfo *info = new FastFileInfo(bam_file_name);
+	QSharedPointer<FastFileInfo> info = QSharedPointer<FastFileInfo>(new FastFileInfo(bam_file_name));
     if (!info->exists())
     {
         return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "BAM file does not exist: " + bam_file_name));
@@ -1559,7 +1561,7 @@ HttpResponse ServerController::getSecondaryAnalyses(const HttpRequest& request)
 		QStringList analyses = NGSD().secondaryAnalyses(processed_sample_name, type);
 		foreach(QString file, analyses)
 		{
-            FastFileInfo *info = new FastFileInfo(file);
+			QSharedPointer<FastFileInfo> info = QSharedPointer<FastFileInfo>(new FastFileInfo(file));
             if (info->exists())
 			{
 				secondary_analyses << file;
@@ -1832,7 +1834,7 @@ QString ServerController::getProcessedSampleFile(int ps_id, const PathType& type
 QString ServerController::createTempUrl(const QString& file, const QString& token)
 {
     QString id = ServerHelper::generateUniqueStr();
-    FastFileInfo *info = new FastFileInfo(file);
+	QSharedPointer<FastFileInfo> info = QSharedPointer<FastFileInfo>(new FastFileInfo(file));
     UrlManager::addNewUrl(UrlEntity(id, info->fileName(), info->absolutePath(), file, id, info->size(), info->exists(), QDateTime::currentDateTime()));
     return ClientHelper::serverApiUrl() + "temp/" + id + "/" + info->fileName() + "?token=" + token;
 }

@@ -16,7 +16,7 @@ RequestWorker::RequestWorker(QSslConfiguration ssl_configuration, qintptr socket
 
 void RequestWorker::run()
 {
-    QSslSocket *ssl_socket = new QSslSocket();
+	QSharedPointer<QSslSocket> ssl_socket = QSharedPointer<QSslSocket>(new QSslSocket());
     QTemporaryFile temp_bed_file;
 
     try
@@ -104,7 +104,7 @@ void RequestWorker::run()
 		}
 
 		HttpRequest parsed_request;
-		RequestParser *parser = new RequestParser();
+		QSharedPointer<RequestParser> parser = QSharedPointer<RequestParser>(new RequestParser());
 		try
 		{
 			parsed_request = parser->parse(&all_request_parts);
@@ -404,7 +404,7 @@ QString RequestWorker::intToHex(int input)
 	return QString("%1").arg(input, 10, 16, QLatin1Char('0')).toUpper();
 }
 
-void RequestWorker::closeConnection(QSslSocket* socket)
+void RequestWorker::closeConnection(QSharedPointer<QSslSocket> socket)
 {
 	is_terminated_ = true;
 
@@ -417,7 +417,7 @@ void RequestWorker::closeConnection(QSslSocket* socket)
     socket->abort();
 }
 
-void RequestWorker::sendResponseDataPart(QSslSocket* socket, const QByteArray& data)
+void RequestWorker::sendResponseDataPart(QSharedPointer<QSslSocket> socket, const QByteArray& data)
 {
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)
 	{
@@ -426,7 +426,7 @@ void RequestWorker::sendResponseDataPart(QSslSocket* socket, const QByteArray& d
 	}
 }
 
-void RequestWorker::sendEntireResponse(QSslSocket* socket, const HttpResponse& response)
+void RequestWorker::sendEntireResponse(QSharedPointer<QSslSocket> socket, const HttpResponse& response)
 {
 	if (response.getStatusCode() > 200) Log::warn("The server returned " + QString::number(response.getStatusCode()) + " - " + HttpUtils::convertResponseStatusToReasonPhrase(response.getStatus()));
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)

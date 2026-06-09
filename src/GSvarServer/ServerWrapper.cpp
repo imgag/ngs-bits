@@ -1,27 +1,30 @@
+#include <QStandardPaths>
+#include <QDir>
 #include "ServerWrapper.h"
 #include "SessionAndUrlBackupWorker.h"
 #include "QueuingEngineController.h"
-#include <QStandardPaths>
-#include <QTimer>
 #include "SessionManager.h"
 #include "UrlManager.h"
-#include <QDir>
-#include <QFileSystemWatcher>
 #include "FileMetaCache.h"
 #include "PipelineSettings.h"
 #include "ScheduledCacheCleaner.h"
 
 ServerWrapper::ServerWrapper(const quint16& port)
 	: is_running_(false)
-    , background_task_pool_()
-    , cleanup_pool_()
-    , qe_status_pool_()
+	, background_task_pool_()
+	, cleanup_pool_()
+	, qe_status_pool_()
+	, session_timer_()
+	, qe_status_update_timer_()
+	, clinvar_timer_()
+	, log_check_timer_()
+	, watcher_()
 {
-    background_task_pool_.setMaxThreadCount(1);
-    cleanup_pool_.setMaxThreadCount(1);
-    qe_status_pool_.setMaxThreadCount(1);
+	background_task_pool_.setMaxThreadCount(1);
+	cleanup_pool_.setMaxThreadCount(1);
+	qe_status_pool_.setMaxThreadCount(1);
 
-    QString ssl_certificate = Settings::string("ssl_certificate", true);
+	QString ssl_certificate = Settings::string("ssl_certificate", true);
 	if (ssl_certificate.isEmpty())
 	{
 		ssl_certificate = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + QDir::separator() + "test-cert.crt";
@@ -35,14 +38,14 @@ ServerWrapper::ServerWrapper(const quint16& port)
 		return;
 	}
 
-    QString ssl_key = Settings::string("ssl_key", true);
+	QString ssl_key = Settings::string("ssl_key", true);
 	if (ssl_key.isEmpty())
 	{
 		ssl_key = QStandardPaths::writableLocation(QStandardPaths::HomeLocation) + QDir::separator() + "test-key.key";
 		Log::warn("SSL key has not been specified in the config. Using a test key: " + ssl_key);
 	}
 
-    QString ssl_chain = Settings::string("ssl_certificate_chain", true);
+	QString ssl_chain = Settings::string("ssl_certificate_chain", true);
 	QList<QSslCertificate> ca_certificates;
 	if (!ssl_chain.isEmpty())
 	{
@@ -51,14 +54,14 @@ ServerWrapper::ServerWrapper(const quint16& port)
 	}
 
 	QSslCertificate cert(&certFile);
-    QSslKey key = readPrivateKey(ssl_key);
-    if (key.isNull())
-    {
-        Log::error("SSL private key is not set");
-        return;
-    }
+	QSslKey key = readPrivateKey(ssl_key);
+	if (key.isNull())
+	{
+		Log::error("SSL private key is not set");
+		return;
+	}
 
-	server_ = new SslServer(this);
+	server_ = QSharedPointer<SslServer>(new SslServer(this));
 
 	QSslConfiguration config = server_->getSslConfiguration();
 	config.setLocalCertificate(cert);
@@ -72,59 +75,53 @@ ServerWrapper::ServerWrapper(const quint16& port)
 	}
 	server_->setSslConfiguration(config);
 
-    try
-    {
-        if (server_->listen(QHostAddress::Any, port))
-        {
-            is_running_ = true;
-            Log::info("GSvar server is running on port #" + QString::number(port));
-
+	try
+	{
+		if (server_->listen(QHostAddress::Any, port))
+		{
+			is_running_ = true;
+			Log::info("GSvar server is running on port #" + QString::number(port));
 
 			// Permissions cache cleaner task that runs on schedule
-			new ScheduledCacheCleaner(this);
+			QSharedPointer<ScheduledCacheCleaner>(new ScheduledCacheCleaner(this));
 
-            // Remove expired sessions and URLs on schedule
-            QTimer *session_timer = new QTimer(this);
-            connect(session_timer, SIGNAL(timeout()), this, SLOT(cleanupSessionsAndUrls()));
-            session_timer->start(60 * 5 * 1000); // every 5 minutes
+			// Remove expired sessions and URLs on schedule
+			connect(&session_timer_, SIGNAL(timeout()), this, SLOT(cleanupSessionsAndUrls()));
+			session_timer_.start(60 * 5 * 1000); // every 5 minutes
 
-            // Update queing engine status
-            QTimer *qe_status_update_timer = new QTimer(this);
-            connect(qe_status_update_timer, SIGNAL(timeout()), this, SLOT(updateQueingEngineStatus()));
-            qe_status_update_timer->start(15 * 1000); // every 15 sec
+			// Update queing engine status
+			connect(&qe_status_update_timer_, SIGNAL(timeout()), this, SLOT(updateQueingEngineStatus()));
+			qe_status_update_timer_.start(15 * 1000); // every 15 sec
 
-            // ClinVar submission status automatic update on schedule
-            QTimer *clinvar_timer = new QTimer(this);
-            connect(clinvar_timer, SIGNAL(timeout()), this, SLOT(updateClinVarSubmissionStatus()));
-            clinvar_timer->start(60 * 60 * 1000); // every 60 minutes
+			// ClinVar submission status automatic update on schedule
+			connect(&clinvar_timer_, SIGNAL(timeout()), this, SLOT(updateClinVarSubmissionStatus()));
+			clinvar_timer_.start(60 * 60 * 1000); // every 60 minutes
 
-            // Switch to a new log file on schedule (to avoid using large files)
-            QTimer *log_check_timer = new QTimer(this);
-            connect(log_check_timer, SIGNAL(timeout()), this, SLOT(switchLogFile()));
-            log_check_timer->start(60 * 60 * 1000); // every 60 minutes
+			// Switch to a new log file on schedule (to avoid using large files)
+			connect(&log_check_timer_, SIGNAL(timeout()), this, SLOT(switchLogFile()));
+			log_check_timer_.start(60 * 60 * 1000); // every 60 minutes
 
-            // Enables watching files with information for users
-            bool allow_notifying_users = Settings::boolean("allow_notifying_users", true);
-            if (allow_notifying_users)
-            {
-                QFileSystemWatcher *watcher = new QFileSystemWatcher();
-                watcher->addPath(QCoreApplication::applicationDirPath());
-                connect(watcher, SIGNAL(directoryChanged(QString)), this, SLOT(updateInfoForUsers(QString)));
-            }
+			// Enables watching files with information for users
+			bool allow_notifying_users = Settings::boolean("allow_notifying_users", true);
+			if (allow_notifying_users)
+			{
+				watcher_.addPath(QCoreApplication::applicationDirPath());
+				connect(&watcher_, SIGNAL(directoryChanged(QString)), this, SLOT(updateInfoForUsers(QString)));
+			}
 
-            // Read the client version and notification information during the initialization
-            SessionManager::setCurrentClientInfo(readClientInfoFromFile());
-            SessionManager::setCurrentNotification(readUserNotificationFromFile());
-        }
-        else
-        {
-            Log::error("Could not start GSvar server on port #" + QString::number(port) + ": " + server_->errorString());
-        }
-    }
-    catch (Exception& e)
-    {
-        Log::error("Failed to start the server: " + e.message());
-    }
+			// Read the client version and notification information during the initialization
+			SessionManager::setCurrentClientInfo(readClientInfoFromFile());
+			SessionManager::setCurrentNotification(readUserNotificationFromFile());
+		}
+		else
+		{
+			Log::error("Could not start GSvar server on port #" + QString::number(port) + ": " + server_->errorString());
+		}
+	}
+	catch (Exception& e)
+	{
+		Log::error("Failed to start the server: " + e.message());
+	}
 }
 
 bool ServerWrapper::isRunning() const
@@ -134,19 +131,19 @@ bool ServerWrapper::isRunning() const
 
 void ServerWrapper::updateClinVarSubmissionStatus()
 {
-    try
-    {
-        QPair<int,int> var_counts = NGSD().updateClinvarSubmissionStatus(false);
-        Log::info("The submission status of " + QString::number(var_counts.first) + " published varaints has been checked, " + QString::number(var_counts.second) + " NGSD entries were updated." );
-    }
-    catch (DatabaseException& e)
-    {
-        Log::error("A database error has been detected while updating a ClinVar submission status: " + e.message());
-    }
-    catch (Exception& e)
-    {
-        Log::error("An error has been detected while updating a ClinVar submission status: " + e.message());
-    }
+	try
+	{
+		QPair<int,int> var_counts = NGSD().updateClinvarSubmissionStatus(false);
+		Log::info("The submission status of " + QString::number(var_counts.first) + " published varaints has been checked, " + QString::number(var_counts.second) + " NGSD entries were updated." );
+	}
+	catch (DatabaseException& e)
+	{
+		Log::error("A database error has been detected while updating a ClinVar submission status: " + e.message());
+	}
+	catch (Exception& e)
+	{
+		Log::error("An error has been detected while updating a ClinVar submission status: " + e.message());
+	}
 }
 
 void ServerWrapper::updateInfoForUsers(QString str)
@@ -166,18 +163,18 @@ void ServerWrapper::updateInfoForUsers(QString str)
 	if (list.first().fileName() == NOTIFICATION_FILE)
 	{
 		SessionManager::setCurrentNotification(readUserNotificationFromFile());
-        Log::info("A new notification for the users has been providied");
-    }
+		Log::info("A new notification for the users has been providied");
+	}
 }
 
 void ServerWrapper::switchLogFile()
 {
-    QString new_log_file = ServerHelper::getCurrentServerLogFile();
-    if (Log::fileName()!=new_log_file)
-    {
-        Log::setFileName(new_log_file);
-        Log::info("Started a new log file: " + new_log_file);
-    }
+	QString new_log_file = ServerHelper::getCurrentServerLogFile();
+	if (Log::fileName()!=new_log_file)
+	{
+		Log::setFileName(new_log_file);
+		Log::info("Started a new log file: " + new_log_file);
+	}
 }
 
 ClientInfo ServerWrapper::readClientInfoFromFile()
@@ -197,7 +194,7 @@ ClientInfo ServerWrapper::readClientInfoFromFile()
 		while(!client_info_file->atEnd())
 		{
 			QString line = client_info_file->readLine().trimmed();
-            content.append(line.toUtf8());
+			content.append(line.toUtf8());
 		}
 		QJsonDocument json_input = QJsonDocument::fromJson(content);
 
@@ -219,30 +216,32 @@ ClientInfo ServerWrapper::readClientInfoFromFile()
 
 QSslKey ServerWrapper::readPrivateKey(const QString& filePath, const QByteArray& passPhrase)
 {
-    QFile keyFile(filePath);
-    if (!keyFile.open(QIODevice::ReadOnly)) {
-        Log::error("Unable to open key file: " + filePath);
-        return QSslKey();
-    }
+	QFile keyFile(filePath);
+	if (!keyFile.open(QIODevice::ReadOnly))
+	{
+		Log::error("Unable to open key file: " + filePath);
+		return QSslKey();
+	}
 
-    QByteArray keyData = keyFile.readAll();
-    keyFile.close();
+	QByteArray keyData = keyFile.readAll();
+	keyFile.close();
 
-    Log::info(filePath);
-    if (filePath.endsWith(".key", Qt::CaseInsensitive))
-    {
-        Log::info("RSA encryption detected");
-        QSslKey privateKey(keyData, QSsl::Rsa);
-        return privateKey;
-    }
+	Log::info(filePath);
+	if (filePath.endsWith(".key", Qt::CaseInsensitive))
+	{
+		Log::info("RSA encryption detected");
+		QSslKey privateKey(keyData, QSsl::Rsa);
+		return privateKey;
+	}
 
-    Log::info("ECDSA encryption detected");
-    QSslKey privateKey(keyData, QSsl::Ec, QSsl::Pem, QSsl::PrivateKey, passPhrase);
-    if (privateKey.isNull()) {
-        Log::error("Failed to parse private key");
-    }
+	Log::info("ECDSA encryption detected");
+	QSslKey privateKey(keyData, QSsl::Ec, QSsl::Pem, QSsl::PrivateKey, passPhrase);
+	if (privateKey.isNull())
+	{
+		Log::error("Failed to parse private key");
+	}
 
-    return privateKey;
+	return privateKey;
 }
 
 QByteArray ServerWrapper::readUserNotificationFromFile()
@@ -260,7 +259,7 @@ QByteArray ServerWrapper::readUserNotificationFromFile()
 		while(!notification_file->atEnd())
 		{
 			QString line = notification_file->readLine().trimmed();
-            content.append(line.toUtf8());
+			content.append(line.toUtf8());
 		}
 	}
 	catch (Exception& e)
@@ -273,31 +272,31 @@ QByteArray ServerWrapper::readUserNotificationFromFile()
 
 void ServerWrapper::cleanupSessionsAndUrls()
 {
-    Log::info("Removing expired sessions, URLs, and cache on timer");
-    try
-    {
-        SessionManager::removeExpiredSessions();
-        UrlManager::removeExpiredUrls();
-        FileMetaCache::removeExpiredMetadata();
+	Log::info("Removing expired sessions, URLs, and cache on timer");
+	try
+	{
+		SessionManager::removeExpiredSessions();
+		UrlManager::removeExpiredUrls();
+		FileMetaCache::removeExpiredMetadata();
 
-        SessionAndUrlBackupWorker *backup_worker = new SessionAndUrlBackupWorker(SessionManager::getAllSessions(), UrlManager::getAllUrls());
-        cleanup_pool_.start(backup_worker);
-    }
-    catch(DatabaseException& e)
-    {
-        Log::error("Database error: " + e.message());
-    }
-    catch (...)
-    {
-        Log::error("Unexpected error while trying to cleanup and backup sessions and URLs");
-    }
+		SessionAndUrlBackupWorker *backup_worker = new SessionAndUrlBackupWorker(SessionManager::getAllSessions(), UrlManager::getAllUrls());
+		cleanup_pool_.start(backup_worker);
+	}
+	catch(DatabaseException& e)
+	{
+		Log::error("Database error: " + e.message());
+	}
+	catch (...)
+	{
+		Log::error("Unexpected error while trying to cleanup and backup sessions and URLs");
+	}
 }
 
 void ServerWrapper::updateQueingEngineStatus()
 {
 	if (!Settings::boolean("queue_update_enabled", true)) return;
 
-    if (qe_status_pool_.activeThreadCount() > 0) return;
+	if (qe_status_pool_.activeThreadCount() > 0) return;
 
 	try
 	{

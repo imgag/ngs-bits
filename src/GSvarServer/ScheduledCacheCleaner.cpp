@@ -5,10 +5,8 @@ ScheduledCacheCleaner::ScheduledCacheCleaner(QObject *parent)
 	: QObject(parent)
 	, db_(NGSD())
 {
-	timer_ = new QTimer(this);
-	timer_->setSingleShot(true);
-
-	connect(timer_, &QTimer::timeout, this, &ScheduledCacheCleaner::scheduleNextRun);
+	timer_.setSingleShot(true);
+	connect(&timer_, &QTimer::timeout, this, &ScheduledCacheCleaner::scheduleNextRun);
 
 	// Initial scheduling
 	Log::info("Initial start of the scheduled permissions cache cleanup");
@@ -31,5 +29,5 @@ void ScheduledCacheCleaner::scheduleNextRun()
 	Log::info("Next run at: " + next.toString());
 	Log::info("Delay (seconds): " + QString::number(delay/1000));
 
-	timer_->start(delay);
+	timer_.start(delay);
 }
