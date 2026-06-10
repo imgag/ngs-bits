@@ -1,0 +1,25 @@
+##cases=case00_02,case01_02,case02_02,case03_02,case04_02,case05_02,case06_02,case07_02,case08_02,case09_02
+##controls=control00_02,control01_02,control02_02,control03_02,control04_02,control05_02,control06_02,control07_02,control08_02,control09_02
+##genes=ASPN,DNLZ,KIAA1143,KIR2DL4,LINC01036,MROH6,PRDM2,SEC22B,SEC22B4P,SHROOM3,SUGP2,UBXN11
+##max_ngsd_count=20
+##max_gnomad_af=0.001
+##impacts=HIGH,MODERATE
+##inheritance=dominant
+##include_mosaic=0
+##predict_pathogenic=0
+##include_cnvs=0
+##ccr_only=0
+##splice_region_size=20
+#gene	p-value	n_hits_cases	hits_cases	n_hits_controls	hits_controls
+KIR2DL4	0.0162539	10	case00_02: chr19:54813219 C>CA; case01_02: chr19:54813219 C>CA; case02_02: chr19:54813219 C>CA; case03_02: chr19:54813219 C>CA; case04_02: chr19:54813219 C>CA; case05_02: chr19:54813219 C>CA; case06_02: chr19:54813219 C>CA; case07_02: chr19:54813219 C>CA; case08_02: chr19:54813219 C>CA; case09_02: chr19:54813219 C>CA	5	control00_02: chr19:54813219 C>CA; control01_02: chr19:54813219 C>CA; control02_02: chr19:54813219 C>CA; control03_02: chr19:54813219 C>CA; control04_02: chr19:54813219 C>CA
+PRDM2	0.105263	3	case00_02: chr1:13778644 T>A; case01_02: chr1:13779899 A>ACTC; case09_02: chr1:13779899 A>ACTC	0	
+ASPN	0.324958	5	case00_02: chr9:92474742 C>CTCA; case01_02: chr9:92474742 C>CTCA; case02_02: chr9:92474742 C>CTCA; case03_02: chr9:92474742 C>CTCA; case04_02: chr9:92474742 C>CTCA	3	control00_02: chr9:92474742 C>CTCA; control01_02: chr9:92474742 C>CTCA; control02_02: chr9:92474742 C>CTCA
+SEC22B	0.5	1	case00_02: chr1:120157112 T>G	0	
+MROH6	0.708978	2	case01_02: chr8:143567798 C>T;chr8:143572079 G>A; case08_02: chr8:143567798 C>T	2	control00_02: chr8:143567798 C>T; control03_02: chr8:143572079 G>A
+DNLZ	1	0		0	
+KIAA1143	1	0		0	
+LINC01036	1	0		0	
+SEC22B4P	1	0		0	
+SHROOM3	1	0		0	
+SUGP2	1	0		0	
+UBXN11	1	0		0	

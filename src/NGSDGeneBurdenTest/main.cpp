@@ -123,6 +123,7 @@ public:
 			{
 				hits << iter.key() + ": " + iter.value();
 			}
+			std::sort(hits.begin(), hits.end());
 			line << hits.join("; ");
 
 			line << QByteArray::number(gene_result.hits_controls.size());
@@ -132,6 +133,7 @@ public:
 			{
 				hits << iter.key() + ": " + iter.value();
 			}
+			std::sort(hits.begin(), hits.end());
 			line << hits.join("; ");
 
 			if (parameters.include_cnvs)
@@ -143,6 +145,7 @@ public:
 				{
 					hits << iter.key() + ": " + iter.value();
 				}
+				std::sort(hits.begin(), hits.end());
 				line << hits.join("; ");
 
 				line << QByteArray::number(gene_result.hits_controls_cnv.size());
@@ -152,6 +155,7 @@ public:
 				{
 					hits << iter.key() + ": " + iter.value();
 				}
+				std::sort(hits.begin(), hits.end());
 				line << hits.join("; ");
 			}
 

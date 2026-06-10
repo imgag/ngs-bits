@@ -1,5 +1,4 @@
 #include "TestFrameworkNGS.h"
-#include "Settings.h"
 #include "NGSD.h"
 
 
@@ -15,17 +14,129 @@ private:
 		//init
 		NGSD db(true);
 		db.init();
-		db.executeQueriesFromFile(TESTDATA("data_in/NGSDGeneBurdenTest_init.sql"));
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDGeneBurdenTest_in.sql"));
 		//import transcripts
 		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDGeneBurdenTest_in.gff3"));
 
 
-		SKIP_IF_NO_HG38_GENOME();
+		EXECUTE("NGSDGeneBurdenTest", " -cases " + TESTDATA("data_in/NGSDGeneBurdenTest_in_cases.txt") + " -controls " + TESTDATA("data_in/NGSDGeneBurdenTest_in_controls.txt")
+										  + " -genes " + TESTDATA("data_in/NGSDGeneBurdenTest_in_genes.txt") + " -out out/NGSDGeneBurdenTest_out1.tsv -debug -test");
 
-		EXECUTE("VcfAnnotateConsequence", "-in " + TESTDATA("data_in/VcfAnnotateConsequence_in1.vcf") + " -gff " + TESTDATA("data_in/VcfAnnotateConsequence_transcripts.gff3") + " -out out/VcfAnnotateConsequence_out1.vcf -splice_region_in5 8 -splice_region_in3 8");
-
-        COMPARE_FILES("out/VcfAnnotateConsequence_out1.vcf", TESTDATA("data_out/VcfAnnotateConsequence_out1.vcf"));
+		COMPARE_FILES("out/NGSDGeneBurdenTest_out1.tsv", TESTDATA("data_out/NGSDGeneBurdenTest_out1.tsv"));
     }
+
+	TEST_METHOD(singlethread)
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDGeneBurdenTest_in.sql"));
+		//import transcripts
+		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDGeneBurdenTest_in.gff3"));
+
+
+		EXECUTE("NGSDGeneBurdenTest", " -cases " + TESTDATA("data_in/NGSDGeneBurdenTest_in_cases.txt") + " -controls " + TESTDATA("data_in/NGSDGeneBurdenTest_in_controls.txt")
+										  + " -genes " + TESTDATA("data_in/NGSDGeneBurdenTest_in_genes.txt") + " -out out/NGSDGeneBurdenTest_out1.tsv -debug -test -threads 1");
+
+		COMPARE_FILES("out/NGSDGeneBurdenTest_out1.tsv", TESTDATA("data_out/NGSDGeneBurdenTest_out1.tsv"));
+	}
+
+	//test with default parameters
+	TEST_METHOD(low_impact_modifier)
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDGeneBurdenTest_in.sql"));
+		//import transcripts
+		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDGeneBurdenTest_in.gff3"));
+
+
+		EXECUTE("NGSDGeneBurdenTest", " -cases " + TESTDATA("data_in/NGSDGeneBurdenTest_in_cases.txt") + " -controls " + TESTDATA("data_in/NGSDGeneBurdenTest_in_controls.txt")
+										  + " -genes " + TESTDATA("data_in/NGSDGeneBurdenTest_in_genes.txt") + " -debug -test -impacts HIGH,MODERATE,LOW"
+										  + " -out out/NGSDGeneBurdenTest_out2.tsv ");
+
+		COMPARE_FILES("out/NGSDGeneBurdenTest_out2.tsv", TESTDATA("data_out/NGSDGeneBurdenTest_out2.tsv"));
+	}
+
+	//test with default parameters
+	TEST_METHOD(predict_pathogenic)
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDGeneBurdenTest_in.sql"));
+		//import transcripts
+		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDGeneBurdenTest_in.gff3"));
+
+
+		EXECUTE("NGSDGeneBurdenTest", " -cases " + TESTDATA("data_in/NGSDGeneBurdenTest_in_cases.txt") + " -controls " + TESTDATA("data_in/NGSDGeneBurdenTest_in_controls.txt")
+										  + " -genes " + TESTDATA("data_in/NGSDGeneBurdenTest_in_genes.txt") + " -debug -test -predict_pathogenic"
+										  + " -out out/NGSDGeneBurdenTest_out3.tsv ");
+
+		COMPARE_FILES("out/NGSDGeneBurdenTest_out3.tsv", TESTDATA("data_out/NGSDGeneBurdenTest_out3.tsv"));
+	}
+
+	TEST_METHOD(recessive)
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDGeneBurdenTest_in.sql"));
+		//import transcripts
+		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDGeneBurdenTest_in.gff3"));
+
+
+		EXECUTE("NGSDGeneBurdenTest", " -cases " + TESTDATA("data_in/NGSDGeneBurdenTest_in_cases.txt") + " -controls " + TESTDATA("data_in/NGSDGeneBurdenTest_in_controls.txt")
+										  + " -genes " + TESTDATA("data_in/NGSDGeneBurdenTest_in_genes.txt") + " -out out/NGSDGeneBurdenTest_out4.tsv -debug -test -inheritance recessive");
+
+		COMPARE_FILES("out/NGSDGeneBurdenTest_out4.tsv", TESTDATA("data_out/NGSDGeneBurdenTest_out4.tsv"));
+	}
+
+	TEST_METHOD(ccr_region)
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDGeneBurdenTest_in.sql"));
+		//import transcripts
+		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDGeneBurdenTest_in.gff3"));
+
+
+		EXECUTE("NGSDGeneBurdenTest", " -cases " + TESTDATA("data_in/NGSDGeneBurdenTest_in_cases.txt") + " -controls " + TESTDATA("data_in/NGSDGeneBurdenTest_in_controls.txt")
+										  + " -genes " + TESTDATA("data_in/NGSDGeneBurdenTest_in_genes.txt") + " -out out/NGSDGeneBurdenTest_out5.tsv -ccr_only -debug -test");
+
+		COMPARE_FILES("out/NGSDGeneBurdenTest_out5.tsv", TESTDATA("data_out/NGSDGeneBurdenTest_out5.tsv"));
+	}
+
+	TEST_METHOD(ngsd_count)
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		//init
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSDGeneBurdenTest_in.sql"));
+		//import transcripts
+		EXECUTE("NGSDImportEnsembl", "-test -in " + TESTDATA("data_in/NGSDGeneBurdenTest_in.gff3"));
+
+
+		EXECUTE("NGSDGeneBurdenTest", " -cases " + TESTDATA("data_in/NGSDGeneBurdenTest_in_cases.txt") + " -controls " + TESTDATA("data_in/NGSDGeneBurdenTest_in_controls.txt")
+										  + " -genes " + TESTDATA("data_in/NGSDGeneBurdenTest_in_genes.txt") + " -out out/NGSDGeneBurdenTest_out6.tsv -debug -test -max_ngsd_count 15");
+
+		COMPARE_FILES("out/NGSDGeneBurdenTest_out6.tsv", TESTDATA("data_out/NGSDGeneBurdenTest_out6.tsv"));
+	}
+	/*
 
     //use a different tag (with CSQ already present)
     TEST_METHOD(different_tag)
@@ -99,4 +210,5 @@ private:
 		}
 	}
 
+	*/
 };

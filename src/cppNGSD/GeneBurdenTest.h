@@ -56,6 +56,7 @@ struct CPPNGSDSHARED_EXPORT BurdenTestParameters
 		{
 			impact_str << variantImpactToString(impact);
 		}
+		std::sort(impact_str.begin(), impact_str.end());
 		text <<  "impacts=" + impact_str.join(",");
 		if (inheritance == Inheritance::dominant) text << "inheritance=dominant";
 		else if (inheritance == Inheritance::de_novo) text << "inheritance=de-novo";

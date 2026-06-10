@@ -404,6 +404,7 @@ QMap<QByteArray, QByteArray> WorkerGeneBurdenTest::getOccurences(const QSet<int>
 		{
 			variants_per_sample << db.variant(QString::number(var_id)).toVCF(genome_reference).toString();
 		}
+		std::sort(variants_per_sample.begin(), variants_per_sample.end());
 		hits[ps_name] = variants_per_sample.join(';');
 	}
 
@@ -479,6 +480,11 @@ QMap<QByteArray, QByteArray> WorkerGeneBurdenTest::getOccurencesCNV(const QSet<i
 		{
 			ps_names[ps_name] = cnv.toString().toUtf8();
 		}
+
+		//sort results
+		QByteArrayList tmp = ps_names[ps_name].split(';');
+		std::sort(tmp.begin(), tmp.end());
+		ps_names[ps_name] = tmp.join(';');
 	}
 
 	//report results
