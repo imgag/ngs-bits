@@ -212,7 +212,7 @@ bool NGSD::userCanAccess(int user_id, int ps_id)
 		query.exec("SELECT * FROM user_permissions WHERE user_id=" + QString::number(user_id));
 		while(query.next())
 		{
-			AccessPermission permission = UserPermissionList::stringToType(query.value("permission").toString());
+			AccessPermission permission = stringToAccessPermission(query.value("permission").toString());
 			QString data = query.value("data").toString();
 
 			switch(permission)

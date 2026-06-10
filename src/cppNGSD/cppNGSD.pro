@@ -78,9 +78,7 @@ HEADERS += \
     TumorOnlyReportWorker.h \
     SomaticReportHelper.h \
     SomaticRnaReport.h \
-    SomaticcfDNAReport.h \
-    UserAccessPermissionList.h \
-    UserActionPermissionList.h
+    SomaticcfDNAReport.h
 
 RESOURCES += \
     cppNGSD.qrc

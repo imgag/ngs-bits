@@ -25,8 +25,6 @@
 #include "FileLocation.h"
 #include "FileInfo.h"
 #include "TsvFile.h"
-#include "UserAccessPermissionList.h"
-#include "UserActionPermissionList.h"
 
 const int MAX_VARIANT_SIZE = 500;
 
@@ -64,6 +62,81 @@ struct CPPNGSDSHARED_EXPORT TableFieldConstraints
 	int max_length; //VARCHAR (from schema)
 	QRegularExpression regexp; //VARCHAR
 };
+
+/// User permission items (used in user_permissions table)
+enum AccessPermission
+{
+	PROJECT, // only a specific project
+	PROJECT_TYPE, // only specific types of projects
+	STUDY, // only a specific study
+	SAMPLE, // only a specific sample
+};
+
+/// converts AccessPermission enum value into a string
+static QString accessPermissionToString(AccessPermission in)
+{
+	switch(in)
+	{
+		case AccessPermission::PROJECT:
+			return "PROJECT";
+		case AccessPermission::PROJECT_TYPE:
+			return "PROJECT_TYPE";
+		case AccessPermission::STUDY:
+			return "STUDY";
+		case AccessPermission::SAMPLE:
+			return "SAMPLE";
+	}
+	THROW(ProgrammingException, "Unhandled access permission type '" + QString::number((int)in) + "' in typeToString()!");
+}
+
+/// converts a valid string into AccessPermission enum value
+static AccessPermission stringToAccessPermission(const QString& in)
+{
+	if (in.toLower() == "project") {return AccessPermission::PROJECT;}
+	if (in.toLower() == "project_type") {return AccessPermission::PROJECT_TYPE;}
+	if (in.toLower() == "study") {return AccessPermission::STUDY;}
+	if (in.toLower() == "sample") {return AccessPermission::SAMPLE;}
+
+	THROW(ProgrammingException, "Unhandled access permission type '" + in + "' in stringToType()!");
+}
+
+
+/// User action permission items (used in user_action_permissions table)
+enum ActionPermission
+{
+	READ_ONLY, // no report config, no NGSD modifications
+	PERFORM_VARIANT_SEARCH, // ability to perform variant search
+	PERFORM_BURDEN_TEST, // ability to perform burden test
+	START_ANALYSIS_JOBS, // ability to start analysis jobs
+};
+
+/// converts actionPermission enum value into a string
+static QString actionPermissionToString(ActionPermission in)
+{
+	switch(in)
+	{
+		case ActionPermission::READ_ONLY:
+			return "READY_ONLY";
+		case ActionPermission::PERFORM_VARIANT_SEARCH:
+			return "PERFORM_VARIANT_SEARCH";
+		case ActionPermission::PERFORM_BURDEN_TEST:
+			return "PERFORM_BURDEN_TEST";
+		case ActionPermission::START_ANALYSIS_JOBS:
+			return "START_ANALYSIS_JOBS";
+	}
+	THROW(ProgrammingException, "Unhandled action permission type '" + QString::number((int)in) + "' in typeToString()!");
+}
+
+/// converts a valid string into actionPermission enum value
+static ActionPermission stringToActionPermission(const QString& in)
+{
+	if (in.toLower() == "read_only") {return ActionPermission::READ_ONLY;}
+	if (in.toLower() == "perform_variant_search") {return ActionPermission::PERFORM_VARIANT_SEARCH;}
+	if (in.toLower() == "perform_burden_test") {return ActionPermission::PERFORM_BURDEN_TEST;}
+	if (in.toLower() == "start_analysis_jobs") {return ActionPermission::START_ANALYSIS_JOBS;}
+
+	THROW(ProgrammingException, "Unhandled action permission type '" + in + "' in stringToType()!");
+}
 
 ///General database field information.
 struct CPPNGSDSHARED_EXPORT TableFieldInfo

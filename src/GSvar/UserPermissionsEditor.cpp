@@ -1,5 +1,4 @@
 #include "UserPermissionsEditor.h"
-#include "UserAccessPermissionList.h"
 #include "GUIHelper.h"
 #include <QMessageBox>
 #include <QMenu>
@@ -71,7 +70,7 @@ void UserPermissionsEditor::updateAccessPermissions()
 		QString data_hint = db_table.row(i).value(1);
 		DBRow new_row;
 
-		switch(UserPermissionList::stringToType(permission_str))
+		switch(stringToAccessPermission(permission_str))
 		{
 			case AccessPermission::PROJECT:
 				human_readable_data = db.getValue("SELECT name FROM project WHERE id='"+ data_hint +"'").toString();				
