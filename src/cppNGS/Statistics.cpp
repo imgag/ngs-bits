@@ -1987,8 +1987,8 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	plot1.setYLabel("normal allele frequency");
 	plot1.setXRange(-0.015,1.015);
 	plot1.setYRange(-0.015,1.015);
-    QList< std::pair<double,double> > points_black;
-    QList< std::pair<double,double> > points_green;
+	QList<QPointF> points_black;
+	QList<QPointF> points_green;
 	for(int i=0; i<variants.count(); ++i)
 	{
 		double af_tumor = -1;
@@ -2072,14 +2072,14 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 		}
 
 		//find AF and set x and y points, implement freebayes and strelka fields
-        std::pair<double,double> point;
-		point.first = af_tumor;
-		point.second = af_normal;
-		if (!variants[i].filtersPassed())	points_black.append(point);
+		QPointF point;
+		point.setX(af_tumor);
+		point.setY(af_normal);
+		if (!variants[i].filtersPassed()) points_black.append(point);
 		else points_green.append(point);
 	}
 
-    QList< std::pair<double,double> > points;
+	QList<QPointF> points;
 	points  << points_black << points_green;
 
 	QString g = "black";
@@ -2280,7 +2280,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 			plot3.addVLine(chrom_starts_norm[c]);
 		}
 		//(2) calculate distance for each chromosome and convert it to x-coordinates
-        QList< std::pair<double,double> > points3;
+		QList<QPointF> points3;
 		QString tmp_chr = "";
 		int tmp_pos = 0;
 		double tmp_offset = 0;
@@ -2293,10 +2293,10 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 			if(tmp_chr == variants[i].chr().str())	//same chromosome
 			{
 				//convert distance to x-Axis position
-                std::pair<double,double> point;
-				point.first = tmp_offset + double(variants[i].start())/double(genome_size);
-				point.second = variants[i].start() - tmp_pos;
-				if(max < point.second)	max = point.second;
+				QPointF point;
+				point.setX(tmp_offset + double(variants[i].start())/double(genome_size));
+				point.setY(variants[i].start() - tmp_pos);
+				if(max < point.y())	max = point.y();
 				points3.append(point);
 			}
 
