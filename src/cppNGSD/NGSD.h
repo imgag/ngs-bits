@@ -72,23 +72,6 @@ enum AccessPermission
 	SAMPLE, // only a specific sample
 };
 
-/// converts AccessPermission enum value into a string
-static QString accessPermissionToString(AccessPermission in)
-{
-	switch(in)
-	{
-		case AccessPermission::PROJECT:
-			return "PROJECT";
-		case AccessPermission::PROJECT_TYPE:
-			return "PROJECT_TYPE";
-		case AccessPermission::STUDY:
-			return "STUDY";
-		case AccessPermission::SAMPLE:
-			return "SAMPLE";
-	}
-	THROW(ProgrammingException, "Unhandled access permission type '" + QString::number((int)in) + "' in typeToString()!");
-}
-
 /// converts a valid string into AccessPermission enum value
 static AccessPermission stringToAccessPermission(const QString& in)
 {
@@ -100,7 +83,6 @@ static AccessPermission stringToAccessPermission(const QString& in)
 	THROW(ProgrammingException, "Unhandled access permission type '" + in + "' in stringToType()!");
 }
 
-
 /// User action permission items (used in user_action_permissions table)
 enum ActionPermission
 {
@@ -109,34 +91,6 @@ enum ActionPermission
 	PERFORM_BURDEN_TEST, // ability to perform burden test
 	START_ANALYSIS_JOBS, // ability to start analysis jobs
 };
-
-/// converts actionPermission enum value into a string
-static QString actionPermissionToString(ActionPermission in)
-{
-	switch(in)
-	{
-		case ActionPermission::READ_ONLY:
-			return "READY_ONLY";
-		case ActionPermission::PERFORM_VARIANT_SEARCH:
-			return "PERFORM_VARIANT_SEARCH";
-		case ActionPermission::PERFORM_BURDEN_TEST:
-			return "PERFORM_BURDEN_TEST";
-		case ActionPermission::START_ANALYSIS_JOBS:
-			return "START_ANALYSIS_JOBS";
-	}
-	THROW(ProgrammingException, "Unhandled action permission type '" + QString::number((int)in) + "' in typeToString()!");
-}
-
-/// converts a valid string into actionPermission enum value
-static ActionPermission stringToActionPermission(const QString& in)
-{
-	if (in.toLower() == "read_only") {return ActionPermission::READ_ONLY;}
-	if (in.toLower() == "perform_variant_search") {return ActionPermission::PERFORM_VARIANT_SEARCH;}
-	if (in.toLower() == "perform_burden_test") {return ActionPermission::PERFORM_BURDEN_TEST;}
-	if (in.toLower() == "start_analysis_jobs") {return ActionPermission::START_ANALYSIS_JOBS;}
-
-	THROW(ProgrammingException, "Unhandled action permission type '" + in + "' in stringToType()!");
-}
 
 ///General database field information.
 struct CPPNGSDSHARED_EXPORT TableFieldInfo
