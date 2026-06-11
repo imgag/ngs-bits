@@ -413,6 +413,7 @@ QMap<QByteArray, QByteArray> WorkerGeneBurdenTest::getOccurences(const QSet<int>
 
 QMap<QByteArray, QByteArray> WorkerGeneBurdenTest::getOccurencesCNV(const QSet<int> &callset_ids, const BedFile &regions)
 {
+
 	NGSD db(test_);
 	QMap<QByteArray, QByteArray> ps_names;
 	ChromosomalIndex<BedFile> cnv_polymorphism_region_index(cnv_polymorphism_region_);
@@ -445,7 +446,8 @@ QMap<QByteArray, QByteArray> WorkerGeneBurdenTest::getOccurencesCNV(const QSet<i
 	{
 		//filter by CN
 		int cn = db.getValue("SELECT cn FROM cnv WHERE id=:0", false, QString::number(cnv_id)).toInt();
-		if (cn != 0) continue;
+		if ((parameters_.inheritance == Inheritance::recessive) && (cn != 0)) continue;
+		if  (cn > 1) continue; // in dominant/de-novo case
 
 		//filter by logll
 		QJsonDocument json = QJsonDocument::fromJson(db.getValue("SELECT cn FROM cnv WHERE id=:0", false, QString::number(cnv_id)).toByteArray());
@@ -525,7 +527,6 @@ QList<BurdenTestResult> GeneBurdenTest::run_burden_test()
 	}
 
 	//Debug:
-	//debug output
 	if (debug_)
 	{
 		QTextStream(stdout) << "case samples: " << ps_ids_cases_.size() << Qt::endl;
@@ -555,11 +556,8 @@ QList<BurdenTestResult> GeneBurdenTest::run_burden_test()
 				int callset_id = cnv_callset_query.value(0).toInt();
 				QMap<QString, QVariant> quality_metrics = QJsonDocument::fromJson(cnv_callset_query.value(1).toByteArray()).object().toVariantMap();
 				double ref_correlation = quality_metrics.value("mean correlation to reference samples").toDouble();
-				qDebug() << quality_metrics;
-				qDebug() << ref_correlation;
 				if (ref_correlation >= min_correlation) callset_ids_cases_ << callset_id;
 			}
-			qDebug() << "callset ids cases:" << callset_ids_cases_.size();
 		}
 		for (int ps_id : std::as_const(ps_ids_controls_))
 		{
@@ -576,7 +574,12 @@ QList<BurdenTestResult> GeneBurdenTest::run_burden_test()
 
 				if (ref_correlation >= min_correlation) callset_ids_controls_ << callset_id;
 			}
-			qDebug() << "callset ids controls:" << callset_ids_controls_.size();
+		}
+
+		if (debug_)
+		{
+			QTextStream(stdout) << "callset ids cases:" << callset_ids_cases_.size() << Qt::endl;
+			QTextStream(stdout) << "callset ids controls:" << callset_ids_controls_.size() << Qt::endl;
 		}
 
 		//read polymorphism region
@@ -651,11 +654,11 @@ QList<BurdenTestResult> GeneBurdenTest::run_burden_test()
 void GeneBurdenTest::initCCR()
 {
 	//read CCR gene list and update the gene names
-	ccr_genes_ = db_.genesToApproved(GeneSet::createFromFile(":/Resources/CCR_supported_genes.txt"));
+	ccr_genes_ = db_.genesToApproved(GeneSet::createFromFile(":/resources/CCR_supported_genes.txt"));
 
 	//create CCR region for each gene
 	BedFile combined_ccr;
-	combined_ccr.load(":/Resources/CCR80_GRCh38.bed");
+	combined_ccr.load(":/resources/CCR80_GRCh38.bed");
 	ccr80_region_.clear();
 	for (int i=0; i<combined_ccr.count(); i++)
 	{

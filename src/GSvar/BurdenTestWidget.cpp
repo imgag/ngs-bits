@@ -928,6 +928,7 @@ void BurdenTestWidget::performBurdenTest()
 	if (ui_->cb_modifier->isChecked()) parameters.impacts << stringToVariantImpact("MODIFIER");
 	parameters.include_mosaic = ui_->cb_include_mosaic->isChecked();
 	parameters.predict_pathogenic = ui_->cb_predict_patogenic->isChecked();
+	parameters.splice_region_size = ui_->sb_splice_region_size->value();
 
 	parameters.inheritance = Inheritance::dominant;
 	if(ui_->cb_inheritance->currentText() == "dominant (only de-novo variants)") parameters.inheritance = Inheritance::de_novo;
@@ -938,9 +939,9 @@ void BurdenTestWidget::performBurdenTest()
 	//Debug:
 	qDebug() << "case samples: " << case_samples_.size();
 	qDebug() << "control samples: " << control_samples_.size();
+	qDebug() << parameters.toText();
 
-
-GeneBurdenTest burden_test(case_samples_, control_samples_, selected_genes_, parameters, Settings::integer("threads"), false, false);
+	GeneBurdenTest burden_test(case_samples_, control_samples_, selected_genes_, parameters, Settings::integer("threads"), false, false);
 	qDebug() << "init burden test: " << Helper::elapsedTime(timer);
 
 	QList<BurdenTestResult> results = burden_test.run_burden_test();
