@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<QcRules>
+    <SysTypeRules type="lrGS" tumor="false">
+        
+        <TermRules term_name="target region read depth">
+            <Rule operation="less than" cutoff="25.0" result="bad"/>
+            <Rule operation="less equal" cutoff="30.0" result="medium"/>
+            <Rule operation="greater than" cutoff="30.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="target region 20x percentage">
+            <Rule operation="less than" cutoff="85.0" result="bad"/>
+            <Rule operation="less equal" cutoff="95.0" result="medium"/>
+            <Rule operation="greater than" cutoff="95.0" result="good"/>
+    	</TermRules>
+
+		<TermRules term_name="SNV allele frequency deviation">
+            <Rule operation="greater than" cutoff="6.0" result="bad"/>
+            <Rule operation="greater equal" cutoff="4.0" result="medium"/>
+            <Rule operation="less than" cutoff="4.0" result="good"/>
+        </TermRules>
+
+		<TermRules term_name="N50 read length (bp)">
+				<Rule operation="less than" cutoff="10000.0" result="medium"/>
+				<Rule operation="greater equal" cutoff="10000.0" result="good"/>
+		</TermRules>
+
+        <TermRules term_name="known variants percentage">
+				<Rule operation="less than" cutoff="97.0" result="bad"/>
+				<Rule operation="less than" cutoff="98.5" result="medium"/>
+		</TermRules>
+
+    </SysTypeRules>
+
+    <SysTypeRules type="WGS" tumor="false">
+
+        <TermRules term_name="target region read depth">
+            <Rule operation="less than" cutoff="25.0" result="bad"/>
+            <Rule operation="less equal" cutoff="30.0" result="medium"/>
+            <Rule operation="greater than" cutoff="30.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="target region 20x percentage">
+            <Rule operation="less than" cutoff="95.0" result="bad"/>
+            <Rule operation="less equal" cutoff="98.0" result="medium"/>
+            <Rule operation="greater than" cutoff="98.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="SNV allele frequency deviation">
+            <Rule operation="greater than" cutoff="6.0" result="bad"/>
+            <Rule operation="greater equal" cutoff="3.0" result="medium"/>
+            <Rule operation="less than" cutoff="3.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="CNV count">
+            <Rule operation="greater than" cutoff="2500.0" result="medium"/>
+            <Rule operation="less equal" cutoff="2500.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="known variants percentage">
+				<Rule operation="less than" cutoff="98.0" result="bad"/>
+				<Rule operation="less than" cutoff="99.0" result="medium"/>
+		</TermRules>
+
+    </SysTypeRules>
+
+    <SysTypeRules type="WES" tumor="false">
+
+        <TermRules term_name="target region read depth">
+            <Rule operation="less than" cutoff="80.0" result="bad"/>
+            <Rule operation="less equal" cutoff="100.0" result="medium"/>
+            <Rule operation="greater than" cutoff="100.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="target region 20x percentage">
+            <Rule operation="less than" cutoff="90.0" result="bad"/>
+            <Rule operation="less equal" cutoff="95.0" result="medium"/>
+            <Rule operation="greater than" cutoff="95.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="SNV allele frequency deviation">
+            <Rule operation="greater than" cutoff="6.0" result="bad"/>
+            <Rule operation="greater equal" cutoff="3.0" result="medium"/>
+            <Rule operation="less than" cutoff="3.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="known variants percentage">
+				<Rule operation="less than" cutoff="98.0" result="bad"/>
+				<Rule operation="less than" cutoff="99.0" result="medium"/>
+		</TermRules>
+
+     </SysTypeRules>
+
+     <SysTypeRules type="WGS" tumor="true">
+
+        <TermRules term_name="target region read depth">
+            <Rule operation="less than" cutoff="100.0" result="bad"/>
+            <Rule operation="less equal" cutoff="120.0" result="medium"/>
+            <Rule operation="greater than" cutoff="120.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="target region 20x percentage">
+            <Rule operation="less than" cutoff="95.0" result="bad"/>
+            <Rule operation="less equal" cutoff="98.0" result="medium"/>
+            <Rule operation="greater than" cutoff="98.0" result="good"/>
+        </TermRules>
+
+    </SysTypeRules>
+    
+    <SysTypeRules type="WES" tumor="true">
+
+        <TermRules term_name="target region read depth">
+            <Rule operation="less than" cutoff="150.0" result="bad"/>
+            <Rule operation="less equal" cutoff="200.0" result="medium"/>
+            <Rule operation="greater than" cutoff="200.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="target region 20x percentage">
+            <Rule operation="less than" cutoff="90.0" result="bad"/>
+            <Rule operation="less equal" cutoff="95.0" result="medium"/>
+            <Rule operation="greater than" cutoff="95.0" result="good"/>
+        </TermRules>
+		
+		  <TermRules term_name="SNV allele frequency deviation">
+            <Rule operation="greater than" cutoff="6.0" result="bad"/>
+            <Rule operation="greater equal" cutoff="3.0" result="medium"/>
+            <Rule operation="less than" cutoff="3.0" result="good"/>
+        </TermRules>
+		
+    </SysTypeRules>
+
+    <SysTypeRules type="RNA" tumor="false">
+
+        <TermRules term_name="target region read depth">
+            <Rule operation="less than" cutoff="8.0" result="bad"/>
+            <Rule operation="greater equal" cutoff="8.0" result="medium"/>
+            <Rule operation="greater than" cutoff="8.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="housekeeping genes 10x percentage">
+            <Rule operation="less than" cutoff="27.0" result="bad"/>
+            <Rule operation="greater equal" cutoff="27.0" result="medium"/>
+            <Rule operation="greater than" cutoff="50.0" result="good"/>
+        </TermRules>
+
+    </SysTypeRules>
+
+    <SysTypeRules type="cfDNA" tumor="false">
+
+        <TermRules term_name="target region read depth">
+            <Rule operation="less than" cutoff="1000.0" result="bad"/>
+            <Rule operation="greater than" cutoff="1000.0" result="medium"/>
+            <Rule operation="greater than" cutoff="3000.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="target region read depth 2-fold duplication">
+            <Rule operation="less than" cutoff="500.0" result="bad"/>
+            <Rule operation="greater than" cutoff="500.0" result="medium"/>
+            <Rule operation="greater than" cutoff="1000.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="monitoring variant 250x percentage">
+            <Rule operation="greater equal" cutoff="99.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="cfDNA-tumor correlation">
+            <Rule operation="greater than" cutoff="80.0" result="medium"/>
+            <Rule operation="greater than" cutoff="95.0" result="good"/>
+        </TermRules>
+
+    </SysTypeRules>
+
+    <SysNameRules name="RPGR-Ex15" tumor="false">
+
+        <TermRules term_name="target region 20x percentage">
+            <Rule operation="less than" cutoff="98.0" result="bad"/>
+            <Rule operation="greater equal" cutoff="89.0" result="medium"/>
+            <Rule operation="greater than" cutoff="99.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="target region read depth">
+            <Rule operation="greater than" cutoff="500.0" result="medium"/>
+            <Rule operation="greater than" cutoff="1000.0" result="good"/>
+        </TermRules>
+
+    </SysNameRules>
+</QcRules>

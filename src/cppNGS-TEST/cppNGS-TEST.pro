@@ -1,7 +1,9 @@
 include("../test.pri")
 
+QT += xml
+
 #include cppXML library
-INCLUDEPATH += $$PWD/cppXML
+INCLUDEPATH += $$PWD/../cppXML
 LIBS += -L$$PWD/../../bin -lcppXML
 
 #include cppNGS library
@@ -22,6 +24,7 @@ SOURCES += \
         Chromosome_Test.cpp \
         BedLine_Test.cpp \
         BedFile_Test.cpp \
+        QcRuleMatcher.cpp \
         VariantList_Test.cpp \
         FilterCascade_Test.cpp \
         ChromosomalIndex_Test.cpp \

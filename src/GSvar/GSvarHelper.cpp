@@ -175,12 +175,8 @@ QString GSvarHelper::buildAsString(bool grch)
 }
 
 QString GSvarHelper::getQcFromRule(const double& qc_value, const QString& name_short, const QString& accession, const QString& sys_type, bool is_tumor)
-{	
-	QString eval_result;
-	eval_result = QcRuleMatcher::evaluate(name_short, sys_type, NGSD().getQCTermNameByAccession(accession), qc_value, is_tumor);
-
-	if (eval_result.isEmpty()) return "good";
-	return eval_result;
+{
+	return QcRuleMatcher(QApplication::applicationDirPath() + QDir::separator() + "GSvar_qc_cutoffs.xml").evaluate(name_short, sys_type, NGSD().getQCTermNameByAccession(accession), qc_value, is_tumor);
 }
 
 void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)

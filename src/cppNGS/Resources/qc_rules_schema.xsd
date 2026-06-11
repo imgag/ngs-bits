@@ -105,7 +105,7 @@
 														</xs:restriction>
 													</xs:simpleType>
 												</xs:attribute>
-												<xs:attribute name="value" type="xs:float" use="required">
+												<xs:attribute name="cutoff" type="xs:float" use="required">
 													<xs:annotation>
 														<xs:documentation>Numeric cutoff.</xs:documentation>
 													</xs:annotation>

@@ -100,6 +100,10 @@ Filter names and parameters are described [here](../tools/SvFilterAnnotations.md
 
 ## Other files
 
+### GSvar_qc_cutoffs.xml
+
+This file stores rules used for determining sample quality: it is XML, which significantly simlifies rule validation and editing. cppNGS/Resources/qc_rules_schema.xsd contains a corresponding schema file.
+
 ### GSvar_special_regions.tsv
 
 This file contains special regions for sub-panel design.
