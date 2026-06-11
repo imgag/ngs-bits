@@ -164,9 +164,6 @@ public:
 	///write XML file
 	void storeXML(QString file_name);
 
-	///methods that create TSV files for QBIC
-	void storeQbicData(QString path);
-
 	///Returns CNV type, e.g. DEL (het) according copy number
 	static QByteArray CnvTypeDescription(int tumor_cn, bool add_cn);
 	///Returns true if germline variant file is valid (annotations and at least one germline variant)
@@ -327,15 +324,6 @@ private:
 	int cnv_index_cytoband_;
 
 	RtfDocument doc_;
-
-	void saveReportData(QString filename, QString path, QString content);
-
-	void somaticSnvForQbic(QString path);
-	void germlineSnvForQbic(QString path);
-	void somaticCnvForQbic(QString path);
-	void germlineCnvForQbic(QString path);
-	void somaticSvForQbic(QString path);
-	void metaDataForQbic(QString path);
 };
 
 #endif // SomaticReportHelper_H

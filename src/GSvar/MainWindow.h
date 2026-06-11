@@ -171,6 +171,7 @@ public slots:
 	void on_actionCohortAnalysis_triggered();
 	void on_actionMaintenance_triggered();
 	void on_actionNotifyUsers_triggered();
+	void on_actionDetermineProxy_triggered();
 
 
     ///Gender determination

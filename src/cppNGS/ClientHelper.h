@@ -16,6 +16,8 @@ struct CPPNGSSHARED_EXPORT ServerInfo
     QString server_url; // server host / domain name
 	QString api_version; // server API version
     QString htslib_version; // htslib version on the server
+	QString operating_system; // OS running on the server
+	QString architecture; // server architecture
     QString qt_version; // Qt version on the server
 
 	bool isEmpty()

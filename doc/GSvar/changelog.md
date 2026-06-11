@@ -1,5 +1,9 @@
 # GSvar change log
 
+## 2025_12-294 (08.06.2026)
+
+- Refactoring of proxy handling: host/port are taken from operatring system (user/password for authenticating proxies are taken from settings) 
+
 ## 2025_12-266 (19.05.2026)
 
 - repeat expansions: added a additional threshold in case both alleles are extended

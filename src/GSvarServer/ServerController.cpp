@@ -104,7 +104,7 @@ HttpResponse ServerController::createStaticStreamResponse(const QString& filenam
 
 HttpResponse ServerController::createStaticFileResponse(const QString& filename, const HttpRequest& request)
 {
-    FastFileInfo *info = new FastFileInfo(filename);
+	FastFileInfo* info = new FastFileInfo(filename);
     if ((filename.isEmpty()) || ((!filename.isEmpty()) && (!info->exists())))
     {
         Log::error(EndpointManager::formatResponseMessage(request, "Requested file does not exist: " + filename));
@@ -231,6 +231,8 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 		json_object.insert("start_time", ServerHelper::getServerStartDateTime().toSecsSinceEpoch());
         json_object.insert("server_url", Settings::string("server_host", true));
 		json_object.insert("htslib_version", hts_version());
+		json_object.insert("operating_system", QSysInfo::prettyProductName());
+		json_object.insert("architecture",  QSysInfo::buildCpuArchitecture());
         json_object.insert("qt_version", QLibraryInfo::version().toString());
         json_doc.setObject(json_object);
 
@@ -312,7 +314,7 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 			QJsonDocument cache_doc = db.getFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing);
 			db.updateFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing);
 			QJsonArray cached_array = cache_doc.array();
-			for (const QJsonValue &value : cached_array)
+			for (const QJsonValue& value : std::as_const(cached_array))
 			{
 				if (value.isObject())
 				{
@@ -1002,45 +1004,6 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 	}
 
 	return HttpResponse(ResponseStatus::OK, request.getContentType(), "No changes to the file detected");
-}
-
-HttpResponse ServerController::saveQbicFiles(const HttpRequest& request)
-{
-	QString qbic_data_path = Settings::string("qbic_data_path");
-	Helper::mkdir(qbic_data_path);
-	if (!qbic_data_path.endsWith(QDir::separator())) qbic_data_path = qbic_data_path + QDir::separator();
-
-	QString filename = request.getUrlParams()["filename"];
-	QString folder_name = request.getUrlParams()["id"];
-	QString content = request.getBody();
-
-	if ((filename.isEmpty()) || (folder_name.isEmpty()))
-    {
-        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Path or filename has not been provided"));
-	}
-
-	// It should not be possible to move up to the parent directory or to access system directories
-	folder_name = folder_name.replace(".", "");
-	folder_name = folder_name.replace(QDir::separator(), "");
-	folder_name = qbic_data_path + folder_name;
-
-	Helper::mkdir(folder_name);
-
-	if (!folder_name.endsWith(QDir::separator())) folder_name = folder_name + QDir::separator();
-
-	try
-	{
-		QSharedPointer<QFile> qBicFile = Helper::openFileForWriting(folder_name+filename);
-		QTextStream stream(qBicFile.data());
-		stream << content;
-		qBicFile->close();
-	}
-	catch (Exception& e)
-    {
-        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not save the data: " + e.message()));
-	}
-
-	return HttpResponse(ResponseStatus::OK, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), filename + " has been saved");
 }
 
 HttpResponse ServerController::uploadFile(const HttpRequest& request)

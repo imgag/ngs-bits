@@ -43,9 +43,8 @@ gsvar_variantsheet_folder = ""
 gsvar_variant_export_folder = ""
 burden_test_files = ""
 
-#somatic data transfer to MTB/QBIC
+#MTB/QBIC upload
 mtb_xml_upload_url = ""
-qbic_data_path = ""
 
 #Number of threads to used for calculations that can be done in parallel (coverage, etc)
 threads = 4
