@@ -136,6 +136,7 @@
 #include <QtCharts/QChartView>
 #include "Background/PingWorker.h"
 #include "AboutDialog.h"
+#include "AnalysisTimePlot.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -497,63 +498,40 @@ AnalysisType MainWindow::getCurrentAnalysisType()
 
 void MainWindow::userSpecificDebugFunction()
 {
-    QElapsedTimer timer;
+	QElapsedTimer timer;
 	timer.start();
 
-	QString user = Helper::userName();
-	if (user=="ahsturm1")
+	try
 	{
-		//show imported somatic variant statistics for DNA2510181A1_01
-		NGSD db;
-		QString ps_id = "159881";
-		SqlQuery query = db.getQuery();
-
-		query.exec("SELECT * FROM somatic_snv_callset WHERE processed_sample_id_tumor="+ps_id);
-		while (query.next())
+		QString user = Helper::userName();
+		if (user=="ahsturm1")
 		{
-			QString t_id = query.value("processed_sample_id_tumor").toString();
-			QString n_id = query.value("processed_sample_id_normal").isNull() ? "" : query.value("processed_sample_id_normal").toString();
-			qDebug() << "somatic_snv_callset" << "id="+query.value("id").toString() << "T="+t_id << "N="+n_id << "caller="+ query.value("caller").toString()+" "+query.value("caller_version").toString() << "date="+query.value("call_date").toString();
+			HttpRequestHandler handler;
+			ServerReply reply = handler.get("https://megsap.de/stats/gsvar.php?version=2025_12");
+			qDebug() << reply.status_code;
+			qDebug() << reply.body;
+			reply = handler.get("https://megsap.de/stats/show.php");
+			qDebug() << reply.status_code;
+			qDebug() << reply.body;
+			reply = handler.get("https://raw.githubusercontent.com/imgag/ngs-bits/refs/heads/master/src/cppCORE-TEST/data_in/txt_file.txt");
+			qDebug() << reply.status_code;
+			qDebug() << reply.body;
+			reply = handler.get("https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions/");
+			qDebug() << reply.status_code;
+			qDebug() << reply.body;
 
-			QString add = (n_id=="") ? " IS NULL" : "="+n_id;
-			int count = db.getValue("SELECT count(*) FROM detected_somatic_variant WHERE processed_sample_id_tumor="+t_id+" AND processed_sample_id_normal"+add).toInt();
-			qDebug() << "  variants: " << count;
 		}
-
-		query.exec("SELECT * FROM somatic_cnv_callset WHERE ps_tumor_id="+ps_id);
-		while (query.next())
+		else if (user=="ahschul1")
 		{
-			QString id = query.value("id").toString();
-			qDebug() << "somatic_cnv_callset" << "id="+id << "T="+query.value("ps_tumor_id").toString() << "N="+query.value("ps_normal_id").toString() << "caller="+ query.value("caller").toString()+" "+query.value("caller_version").toString() << "date="+query.value("call_date").toString();
-
-			int count = db.getValue("SELECT count(*) FROM somatic_cnv WHERE somatic_cnv_callset_id="+id).toInt();
-			qDebug() << "  variants: " << count;
+			qDebug() << NGSD().secondaryAnalyses("21073LRa154_01", "trio");
 		}
-
-		query.exec("SELECT * FROM somatic_sv_callset WHERE ps_tumor_id="+ps_id);
-		while (query.next())
+		else if (user=="ahott1a1")
 		{
-			QString id = query.value("id").toString();
-			qDebug() << "somatic_sv_callset" << "id="+id << "T="+query.value("ps_tumor_id").toString() << "N="+query.value("ps_normal_id").toString() << "caller="+ query.value("caller").toString()+" "+query.value("caller_version").toString() << "date="+query.value("call_date").toString();
-
-			int count = db.getValue("SELECT count(*) FROM somatic_sv_deletion WHERE somatic_sv_callset_id="+id).toInt();
-			count += db.getValue("SELECT count(*) FROM somatic_sv_duplication WHERE somatic_sv_callset_id="+id).toInt();
-			count += db.getValue("SELECT count(*) FROM somatic_sv_insertion WHERE somatic_sv_callset_id="+id).toInt();
-			count += db.getValue("SELECT count(*) FROM somatic_sv_inversion WHERE somatic_sv_callset_id="+id).toInt();
-			count += db.getValue("SELECT count(*) FROM somatic_sv_translocation WHERE somatic_sv_callset_id="+id).toInt();
-			qDebug() << "  variants: " << count;
 		}
 	}
-	else if (user=="ahschul1")
+	catch(Exception& e)
 	{
-		qDebug() << NGSD().secondaryAnalyses("21073LRa154_01", "trio");
-//		qDebug() << NGSD().secondaryAnalyses("21073LRa033_01", "trio");
-//		qDebug() << NGSD().secondaryAnalyses("21073LRa036_01", "trio");
-
-	}
-	else if (user=="ahott1a1")
-	{
-
+		qDebug() << "Exception: " << e.message();
 	}
 
 	qDebug() << "Elapsed time debug function:" << Helper::elapsedTime(timer, true);
@@ -4507,8 +4485,8 @@ void MainWindow::on_actionStatistics_triggered()
 
 	//show dialog
 	TsvTableWidget* widget = new TsvTableWidget(table, this);
-	widget->setMinimumWidth(850);
-	auto dlg = GUIHelper::createDialog(widget, "Statistics", "Sequencing statistics grouped by month (human)");
+	widget->setMinimumWidth(1200);
+	auto dlg = GUIHelper::createDialog(widget, "Sample count (by month)", "Sequencing statistics grouped by month (human)");
 	dlg->exec();
 }
 
@@ -4938,7 +4916,7 @@ void MainWindow::on_actionSampleCounts_triggered()
 	if (!LoginManager::active()) return;
 
 	SampleCountWidget* widget = new SampleCountWidget();
-	auto dlg = GUIHelper::createDialog(widget, "Sample counts");
+	auto dlg = GUIHelper::createDialog(widget, "Sample count (by type)");
 	addModelessDialog(dlg);
 }
 
@@ -5013,6 +4991,12 @@ void MainWindow::on_actionDetermineProxy_triggered()
 	QMessageBox::information(this, "Determine proxy for URL", "For the URL '" + url + "' the follwing proxies are used:\n" + proxies.join('\n'));
 }
 
+void MainWindow::on_actionAnalysisTimePlot_triggered()
+{
+	AnalysisTimePlot* widget = new AnalysisTimePlot(this);
+	auto dlg = GUIHelper::createDialog(widget, "Analysis time");
+	addModelessDialog(dlg);
+}
 
 void MainWindow::on_actionCohortAnalysis_triggered()
 {
@@ -5020,8 +5004,6 @@ void MainWindow::on_actionCohortAnalysis_triggered()
 	auto dlg = GUIHelper::createDialog(widget, "Cohort analysis");
 	addModelessDialog(dlg);
 }
-
-
 
 void MainWindow::on_actionGenderXY_triggered()
 {

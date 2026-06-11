@@ -1262,8 +1262,6 @@ signals:
 	void initProgress(QString text, bool percentage);
 	void updateProgress(int percentage);
 
-
-
 protected:
 	///Copy constructor "declared away".
 	NGSD(const NGSD&) = delete;
