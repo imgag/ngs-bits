@@ -13,6 +13,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QTime>
+#include <QNetworkProxy>
 #include "ExternalToolDialog.h"
 #include "ReportDialog.h"
 #include <QInputDialog>
@@ -3169,10 +3170,10 @@ void MainWindow::on_actionAbout_triggered()
 			add_info += "<br>&nbsp;&nbsp;start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
 			add_info += "<br>&nbsp;&nbsp;API URL: " + server_info.server_url;
 			add_info += "<br>&nbsp;&nbsp;API version: " + server_info.api_version;
-			add_info += "<br>&nbsp;&nbsp;htslib version: " + server_info.htslib_version;
 			add_info += "<br>&nbsp;&nbsp;operating system: " + server_info.operating_system;
 			add_info += "<br>&nbsp;&nbsp;architecture: " + server_info.architecture;
 			add_info += "<br>&nbsp;&nbsp;Qt version: " + server_info.qt_version;
+			add_info += "<br>&nbsp;&nbsp;htslib version: " + server_info.htslib_version;
 		}
 	}
 
@@ -4996,6 +4997,20 @@ void MainWindow::on_actionNotifyUsers_triggered()
 
 	EmailDialog dlg(this, to, subject, body);
 	dlg.exec();
+}
+
+void MainWindow::on_actionDetermineProxy_triggered()
+{
+	QString url = QInputDialog::getText(this, "Determine proxy for URL", "URL:");
+	if (url.isEmpty()) return;
+
+	QStringList proxies;
+	foreach(const QNetworkProxy& proxy, QNetworkProxyFactory::systemProxyForQuery(QNetworkProxyQuery(url)))
+	if (proxy.type()!=QNetworkProxy::NoProxy)
+	{
+		proxies << (proxy.hostName() + ":" + QString::number(proxy.port()));
+	}
+	QMessageBox::information(this, "Determine proxy for URL", "For the URL '" + url + "' the follwing proxies are used:\n" + proxies.join('\n'));
 }
 
 
