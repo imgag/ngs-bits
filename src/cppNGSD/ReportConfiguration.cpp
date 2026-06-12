@@ -587,6 +587,8 @@ void ReportConfiguration::set(const ReportVariantConfiguration& config)
 
 void ReportConfiguration::remove(VariantType type, int index)
 {
+	if (NGSD().userCanPerformAction(LoginManager::userId(), ActionPermission::READ_ONLY)) THROW(AccessDeniedException, "You do not have permissions to remove a report configuration!");
+
 	for (int i=0; i<variant_config_.count(); ++i)
 	{
 		const ReportVariantConfiguration& var_conf = variant_config_[i];

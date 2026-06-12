@@ -1,5 +1,6 @@
 #include "SomaticReportConfiguration.h"
 #include "NGSD.h"
+#include "LoginManager.h"
 
 SomaticReportVariantConfiguration::SomaticReportVariantConfiguration()
 	: variant_type(VariantType::SNVS_INDELS)
@@ -238,6 +239,8 @@ const SomaticReportGermlineVariantConfiguration& SomaticReportConfiguration::get
 
 bool SomaticReportConfiguration::remove(VariantType type, int index)
 {
+	if (NGSD().userCanPerformAction(LoginManager::userId(), ActionPermission::READ_ONLY)) THROW(AccessDeniedException, "You do not have permissions to remove a somatic report configuration!");
+
 	for(int i=0; i<variant_config_.count(); ++i)
 	{
 		const auto& var_conf = variant_config_[i];

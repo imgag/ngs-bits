@@ -1958,6 +1958,7 @@ HttpResponse ServerController::uploadFileToFolder(QString upload_folder, const H
 HttpResponse ServerController::clearPermissionsCache(const HttpRequest &/*request*/)
 {
 	NGSD db;
-	db.clearUserPermissionsCache();
+	db.clearUserAccessPermissionsCache();
+	db.clearUserActionPermissionsCache();
 	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "User permissions cache has been cleared");
 }

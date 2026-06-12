@@ -20,8 +20,6 @@ BurdenTestWidget::BurdenTestWidget(QWidget *parent) :
 		INFO(DatabaseException, "Burden Test Widget requires logging in into NGSD!");
 	}
 
-	LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
-
 	ui_->setupUi(this);
 
 	//connect signals and slots

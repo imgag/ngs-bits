@@ -63,6 +63,35 @@ struct CPPNGSDSHARED_EXPORT TableFieldConstraints
 	QRegularExpression regexp; //VARCHAR
 };
 
+/// User permission items (used in user_permissions table)
+enum AccessPermission
+{
+	PROJECT, // only a specific project
+	PROJECT_TYPE, // only specific types of projects
+	STUDY, // only a specific study
+	SAMPLE, // only a specific sample
+};
+
+/// converts a valid string into AccessPermission enum value
+static AccessPermission stringToAccessPermission(const QString& in)
+{
+	if (in.toLower() == "project") {return AccessPermission::PROJECT;}
+	if (in.toLower() == "project_type") {return AccessPermission::PROJECT_TYPE;}
+	if (in.toLower() == "study") {return AccessPermission::STUDY;}
+	if (in.toLower() == "sample") {return AccessPermission::SAMPLE;}
+
+	THROW(ProgrammingException, "Unhandled access permission type '" + in + "' in stringToType()!");
+}
+
+/// User action permission items (used in user_action_permissions table)
+enum ActionPermission
+{
+	READ_ONLY, // no report config, no NGSD modifications
+	PERFORM_VARIANT_SEARCH, // ability to perform variant search
+	PERFORM_BURDEN_TEST, // ability to perform burden test
+	START_ANALYSIS_JOBS, // ability to start analysis jobs
+};
+
 ///General database field information.
 struct CPPNGSDSHARED_EXPORT TableFieldInfo
 {
@@ -1002,6 +1031,8 @@ public:
 	bool userRoleIn(QString user, QStringList roles);
 	///Checks if the user can access the processed sample. Use for users with role 'restricted_user' only, or it will be slow because the user role has to be checked every time. Uses caching for massive speed-up.
 	bool userCanAccess(int user_id, int ps_id);
+	///Checks if the user can perform certain actions inside GSvar. Used for 'restricted_user' only.
+	bool userCanPerformAction(int user_id, ActionPermission permission);
 
 	/*** Main NGSD functions ***/
 	///Search for processed samples
@@ -1256,7 +1287,9 @@ public:
 	void clearCache();
 
 	///Clears only the user permissions part of the cache
-	void clearUserPermissionsCache();
+	void clearUserAccessPermissionsCache();
+	///Clears only the user action permissions part of the cache
+	void clearUserActionPermissionsCache();
 
 signals:
 	void initProgress(QString text, bool percentage);
@@ -1311,6 +1344,7 @@ protected:
 		QMap<QByteArray, int> gene_expression_gene2id;
 
         QMap<int, QSet<int>> user_can_access;
+		QMap<int, QSet<ActionPermission>> user_can_perform_actions;
 	};
 	static Cache& getCache();
 	void initTranscriptCache();
@@ -1318,6 +1352,7 @@ protected:
 
 private:
 	mutable QMutex cache_mutex_user_access_; //mutex for Cache::user_can_access
+	mutable QMutex cache_mutex_user_actions_; //mutex for Cache::user_can_perform_actions
 };
 
 #endif // NGSD_H
