@@ -1,5 +1,10 @@
 # GSvar change log
 
+## 2025_12-304 (11.06.2026)
+
+- General: Added analysis time plot
+- BugFix: Fixed bug in proxy handling
+
 ## 2025_12-294 (08.06.2026)
 
 - Refactoring of proxy handling: host/port are taken from operatring system (user/password for authenticating proxies are taken from settings) 
@@ -1216,6 +1221,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
