@@ -73,20 +73,12 @@ enum AccessPermission
 };
 
 /// converts a valid string into AccessPermission enum value
-static AccessPermission stringToAccessPermission(const QString& in)
-{
-	if (in.toLower() == "project") {return AccessPermission::PROJECT;}
-	if (in.toLower() == "project_type") {return AccessPermission::PROJECT_TYPE;}
-	if (in.toLower() == "study") {return AccessPermission::STUDY;}
-	if (in.toLower() == "sample") {return AccessPermission::SAMPLE;}
-
-	THROW(ProgrammingException, "Unhandled access permission type '" + in + "' in stringToType()!");
-}
+CPPNGSDSHARED_EXPORT AccessPermission stringToAccessPermission(const QString& in);
 
 /// User action permission items (used in user_action_permissions table)
 enum ActionPermission
 {
-	READ_ONLY, // no report config, no NGSD modifications
+	CHANGE_NGSD_DATA, // abilty to change data in NGSD (comments, report-config, ...)
 	PERFORM_VARIANT_SEARCH, // ability to perform variant search
 	PERFORM_BURDEN_TEST, // ability to perform burden test
 	START_ANALYSIS_JOBS, // ability to start analysis jobs
@@ -1031,8 +1023,8 @@ public:
 	bool userRoleIn(QString user, QStringList roles);
 	///Checks if the user can access the processed sample. Use for users with role 'restricted_user' only, or it will be slow because the user role has to be checked every time. Uses caching for massive speed-up.
 	bool userCanAccess(int user_id, int ps_id);
-	///Checks if the user can perform certain actions inside GSvar. Used for 'restricted_user' only.
-	bool userCanPerformAction(int user_id, ActionPermission permission);
+	///Returns the action permissions of a user. Action permissions can be restricted for users with role 'restricted_user' only.
+	QSet<ActionPermission> userActionPermissions(int user_id);
 
 	/*** Main NGSD functions ***/
 	///Search for processed samples

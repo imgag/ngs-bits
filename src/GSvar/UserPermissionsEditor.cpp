@@ -29,26 +29,23 @@ UserPermissionsEditor::UserPermissionsEditor(QString table, QString user_id, QWi
 	connect(ui_.delete_btn, SIGNAL(clicked(bool)), this, SLOT(removeAccessPermission()));
 
 	// initialize action permissions
-	connect(ui_.cb_read_only, SIGNAL(stateChanged(int)), this, SLOT(updateActionPermissions()));
+	connect(ui_.cb_change_ngsd_data, SIGNAL(stateChanged(int)), this, SLOT(updateActionPermissions()));
 	connect(ui_.cb_variant_search, SIGNAL(stateChanged(int)), this, SLOT(updateActionPermissions()));
 	connect(ui_.cb_burden_test, SIGNAL(stateChanged(int)), this, SLOT(updateActionPermissions()));
 	connect(ui_.cb_start_job, SIGNAL(stateChanged(int)), this, SLOT(updateActionPermissions()));
-
-	NGSD db;
-	SqlQuery query = db.getQuery();
-	query.exec("SELECT read_only, perform_variant_search, perform_burden_test, start_analysis_jobs FROM user_action_permissions WHERE user_id='" + user_id_ + "'");
-	while(query.next())
-	{
-		if (query.value(0).toBool()) ui_.cb_read_only->setChecked(true);
-		if (query.value(1).toBool()) ui_.cb_variant_search->setChecked(true);
-		if (query.value(2).toBool()) ui_.cb_burden_test->setChecked(true);
-		if (query.value(3).toBool()) ui_.cb_start_job->setChecked(true);
-	}
 }
 
 void UserPermissionsEditor::delayedInitialization()
 {
 	updateAccessPermissions();
+
+	//init action permissions
+	NGSD db;
+	QSet<ActionPermission> actions = db.userActionPermissions(user_id_.toInt());
+	ui_.cb_change_ngsd_data->setChecked(actions.contains(ActionPermission::CHANGE_NGSD_DATA));
+	ui_.cb_variant_search->setChecked(actions.contains(ActionPermission::PERFORM_VARIANT_SEARCH));
+	ui_.cb_burden_test->setChecked(actions.contains(ActionPermission::PERFORM_BURDEN_TEST));
+	ui_.cb_start_job->setChecked(actions.contains(ActionPermission::START_ANALYSIS_JOBS));
 }
 
 void UserPermissionsEditor::updateAccessPermissions()
@@ -188,20 +185,13 @@ void UserPermissionsEditor::updateActionPermissions()
 
 	try
 	{
-		// remove the record, if none of the checkboxes is unchecked
-		if (!ui_.cb_read_only->isChecked() && !ui_.cb_variant_search->isChecked() && !ui_.cb_burden_test->isChecked() && !ui_.cb_start_job->isChecked())
+		if (!db.getValue("SELECT id FROM user_action_permissions WHERE user_id='" + user_id_ + "'", true).isValid())
 		{
-			db.getQuery().exec("DELETE FROM user_action_permissions WHERE user_id=" + user_id_);
-			return;
-		}
-
-		if (db.getValue("SELECT count(id) FROM user_action_permissions WHERE user_id='" + user_id_ + "'").toInt()==0)
-		{
-			db.getQuery().exec("INSERT INTO user_action_permissions (user_id, read_only, perform_variant_search, perform_burden_test, start_analysis_jobs) VALUES ('" + user_id_ + "','"+QString::number(ui_.cb_read_only->isChecked()) + "','"+QString::number(ui_.cb_variant_search->isChecked())+"', '"+QString::number(ui_.cb_burden_test->isChecked())+"', '"+QString::number(ui_.cb_start_job->isChecked())+"')");
+			db.getQuery().exec("INSERT INTO user_action_permissions (user_id, change_ngsd_data, perform_variant_search, perform_burden_test, start_analysis_jobs) VALUES ('" + user_id_ + "','"+QString::number(ui_.cb_change_ngsd_data->isChecked()) + "','"+QString::number(ui_.cb_variant_search->isChecked())+"', '"+QString::number(ui_.cb_burden_test->isChecked())+"', '"+QString::number(ui_.cb_start_job->isChecked())+"')");
 		}
 		else
 		{
-			db.getQuery().exec("UPDATE user_action_permissions SET read_only='"+QString::number(ui_.cb_read_only->isChecked())+"', perform_variant_search='"+QString::number(ui_.cb_variant_search->isChecked())+"', perform_burden_test='"+QString::number(ui_.cb_burden_test->isChecked())+"', start_analysis_jobs='"+QString::number(ui_.cb_start_job->isChecked())+"' WHERE user_id='"+user_id_+ "'");
+			db.getQuery().exec("UPDATE user_action_permissions SET change_ngsd_data='"+QString::number(ui_.cb_change_ngsd_data->isChecked())+"', perform_variant_search='"+QString::number(ui_.cb_variant_search->isChecked())+"', perform_burden_test='"+QString::number(ui_.cb_burden_test->isChecked())+"', start_analysis_jobs='"+QString::number(ui_.cb_start_job->isChecked())+"' WHERE user_id='"+user_id_+ "'");
 		}
 	}
 	catch (DatabaseException e)
