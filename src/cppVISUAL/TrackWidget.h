@@ -55,8 +55,10 @@ protected:
 	virtual void showInfoPopup(QPointF global_pos, QString info);
 	// this is same for all track widgets
 	void drawLabel(QPainter&);
-
 	void handleTrackRename();
+	// coordinate conversion helpful functions
+	virtual float chrToScreen(int chrCoord); // can be overriden
+	virtual float chrWidthToScreen(int chrWidth);
 
 	virtual QString getType() = 0;
 

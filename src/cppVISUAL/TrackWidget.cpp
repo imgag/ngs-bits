@@ -135,6 +135,26 @@ void TrackWidget::drawLabel(QPainter& painter)
 
 }
 
+float TrackWidget::chrToScreen(int chrCoord)
+{
+	int w = width();
+	int label_width = SharedData::settings().label_width;
+	const BedLine& region = SharedData::region();
+	float total_width = w - label_width - 4;
+	int x0 = label_width + 2;
+	float scale = total_width / region.length();
+	return ((float)(chrCoord - region.start())) * scale + x0;
+}
+
+float TrackWidget::chrWidthToScreen(int chrWidth)
+{
+	int w = width();
+	int label_width = SharedData::settings().label_width;
+	const BedLine& region = SharedData::region();
+	float total_width = w - label_width - 4;
+	return ((float)chrWidth/region.length()) * total_width;
+}
+
 void TrackWidget::showInfoPopup(QPointF global_pos, QString info)
 {
 	QDialog* popup = new QDialog(this, Qt::Popup);

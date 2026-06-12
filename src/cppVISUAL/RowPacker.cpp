@@ -24,6 +24,14 @@ void RowPacker::restore(int row, int start, int end, int payload)
 	insertIntoRow(row, start, end, payload);
 }
 
+bool RowPacker::canRestore(int row, int start, int end) const
+{
+	if (row >= rows_.size())
+		return true;
+
+	return fits(row, start, end);
+}
+
 int RowPacker::find(int row, int pos) const
 {
 	if (row >= rows_.size()) return -1;

@@ -23,6 +23,8 @@ public:
 
 	int insert(int start, int end, int payload);
 
+	bool canRestore(int row, int start, int end) const;
+
 	void restore(int row, int start, int end, int payload);
 
 	int find(int row, int pos) const;

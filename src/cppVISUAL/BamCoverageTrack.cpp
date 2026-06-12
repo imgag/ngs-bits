@@ -112,7 +112,7 @@ void BamCoverageTrack::storeCoverage()
 			}
 			else if (data.event == BamAlignmentWrapper::INSERTION)
 			{
-				if (base_idx >= 0 && base_idx < coverage_.length()) coverage_[base_idx].insertions += data.length;
+				if (base_idx >= 0 && base_idx < coverage_.length()) coverage_[base_idx].insertions ++;
 			}
 			else if (data.event == BamAlignmentWrapper::DELETION)
 			{
@@ -168,14 +168,10 @@ void BamCoverageTrack::drawCoverage(QPainter& painter)
 	const BedLine& region = SharedData::region();
 
 	int draw_height = height();
-	int label_width = SharedData::settings().label_width;
-	float total_width = width() - label_width - 4;
-	int x0 = label_width + 2;
 
 	if (region.length() < 1500) painter.setPen(Qt::white);
 	else painter.setPen(Qt::gray);
 
-	float scale = (float)region.length() / total_width;
 
 	for (int idx =0; idx < region.length(); ++idx)
 	{
@@ -183,8 +179,8 @@ void BamCoverageTrack::drawCoverage(QPainter& painter)
 		int total_count = cov.total();
 		if (total_count ==0) continue;
 
-		int pX = x0 + (int)((float)idx / scale);
-		int endX = x0 + (int)((float)(idx + 1) / scale);
+		int pX = chrToScreen(region.start() + idx);
+		int endX = chrToScreen(region.start() + idx + 1);
 		int dX = std::max(1, endX - pX);
 		float norm = (float)total_count/max_coverage_;
 		int bar_h = norm * draw_height;

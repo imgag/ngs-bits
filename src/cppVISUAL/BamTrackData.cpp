@@ -3,6 +3,8 @@
 
 #define BAM_OPTIMIZATION
 
+constexpr int REF_OVERHANG = 500; // max
+
 AlignmentKey AlignmentKey::makeKey(const BamAlignment& al)
 {
 	QByteArray cigar = al.cigarDataAsString();
@@ -73,8 +75,18 @@ void BamTrackData::updateRegion()
 
 		pruneAlignments(p_start, p_end); // remove out of bound alignments
 
-		ref_seq_ = SharedData::genome().seq(region.chr(), p_start, p_end - p_start + 1);
-		ref_start_ = p_start;
+		// an alignment read can extend past (or before) the padded region
+		// an alignment read is roughly ~101bp (at most) so a overhang of 500 bp should be sufficient
+		int ref_fetch_start = std::max(0, p_start - REF_OVERHANG);
+		int ref_fetch_end   = p_end + REF_OVERHANG;
+
+		ref_seq_ = SharedData::genome().seq(
+			region.chr(),
+			ref_fetch_start,
+			ref_fetch_end - ref_fetch_start + 1
+			);
+
+		ref_start_ = ref_fetch_start;
 
 		if (p_start < old_start) fetchRegion({loaded_region_.chr(), p_start, old_start});
 		if (p_end > old_end) fetchRegion({loaded_region_.chr(), old_end, p_end});
@@ -112,9 +124,20 @@ void BamTrackData::fullLoad(const BedLine& region)
 	int p_end = region.end() + padding;
 
 	alignments_.clear();
+	loaded_ids_.clear();
 
-	ref_seq_ = SharedData::genome().seq(region.chr(), p_start, p_end - p_start + 1);
-	ref_start_ = p_start;
+	int ref_fetch_start = std::max(0, p_start - REF_OVERHANG);
+	int ref_fetch_end   = p_end + REF_OVERHANG;
+
+	// ref_seq_ = SharedData::genome().seq(region.chr(), p_start, p_end - p_start + 1);
+	// ref_start_ = p_start;
+	ref_seq_ = SharedData::genome().seq(
+		region.chr(),
+		ref_fetch_start,
+		ref_fetch_end - ref_fetch_start + 1
+		);
+
+	ref_start_ = ref_fetch_start;
 
 	BedLine region_to_fetch(region.chr(), p_start, p_end);
 
@@ -229,6 +252,15 @@ void BamAlignmentWrapper::storeCigarData(const Sequence& ref_seq, int ref_start)
 					// mismatches are stored seperatly so the draw function is more optimized
 					// otherwise for each draw all bases would need to be checked
 					if (ref != base) mismatches.push_back({genome_pos, base, qual});
+				}
+				else
+				{
+					qWarning()
+					<< "Reference sequence too short for alignment"
+					<< alignment.name()
+					<< genome_pos
+					<< ref_start
+					<< ref_seq.length();
 				}
 				++genome_pos;
 				++read_pos;

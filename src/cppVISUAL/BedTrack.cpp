@@ -132,8 +132,6 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 	// draw bands
 	if (bedfile_ && bedfile_->chromosomes().contains(region.chr()))
 	{
-		int w = width();
-		float total_width = w - label_width - 4;
 		float y_start = 0.0f;
 
 		QVector<int> idxes = chr_index_->matchingIndices(region.chr(), region.start(), region.end());
@@ -142,13 +140,12 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 			int st = std::max((*bedfile_)[idx].start(), region.start());
 			int en = std::min((*bedfile_)[idx].end(), region.end());
 
-			float x_start = map(st, region.start(), region.end(), 0.0f, total_width);
-			float width = map(en - st, 0.0f, region.length(), 0.0f, total_width);
-
+			float x_start = chrToScreen(st);
+			float width = chrWidthToScreen(en - st + 1);
 
 			if (draw_mode_ == EXPANDED) y_start = row_idxes_[idx] * (BLOCK_HEIGHT + BLOCK_PADDING);
 
-			QRectF chr_rect(label_width + 2 + x_start, y_start, width, BLOCK_HEIGHT);
+			QRectF chr_rect(x_start, y_start, width, BLOCK_HEIGHT);
 
 			painter.setBrush(color_);
 			painter.drawRect(chr_rect);
@@ -246,7 +243,9 @@ void BedTrack::mouseReleaseEvent(QMouseEvent* event)
 
 		float p = ((float)(event->pos().x() - label_width - 2) / total_width);
 
-		int x = region.start() + (region.end() - region.start()) * p;
+		// int x = region.start() + (region.end() - region.start()) * p;
+
+		int x = region.start() + region.length() * p;
 
 		QString info = getBandText(region, row, x);
 

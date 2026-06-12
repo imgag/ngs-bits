@@ -109,10 +109,6 @@ void BafTrack::drawPlot(QPainter& painter)
 void BafTrack::drawPoints(QPainter& painter, const QVector<int>& idxes)
 {
 	const BedLine& region = SharedData::region();
-	int label_width = SharedData::settings().label_width;
-	int total_width = width() - label_width - 4;
-	int x0 = label_width + 2;
-	float scale = (float)region.length() / total_width;
 
 	foreach (int idx, idxes)
 	{
@@ -126,11 +122,8 @@ void BafTrack::drawPoints(QPainter& painter, const QVector<int>& idxes)
 
 		if (pos < region.start()) continue;
 
-		// float norm = (float) (pos - region.start())/(region.end() - region.start());
-		// int px = x0 + (int)(norm * total_width);
-		int id = pos - region.start();
-		float p1 = x0 + (float)((float)id / scale);
-		float p2 = x0 + (float)((float)(id + 1) / scale);
+		float p1 = chrToScreen(pos);
+		float p2 = chrToScreen(pos + 1);
 		float px = (p1 + p2) / 2.f;
 
 		int py = bafToY(baf, TRACK_HEIGHT);
@@ -201,7 +194,6 @@ void BafTrack::drawHeatMap(QPainter& painter, const QVector<int>& idxes)
 	int label_width = SharedData::settings().label_width;
 	int total_width = width() - label_width - 4;
 	int x0 = label_width + 2;
-	float scale = (float)region.length() / total_width;
 
 	painter.fillRect(x0, 0, total_width, TRACK_HEIGHT, Qt::gray);
 	QColor c1(122, 122, 214); // low baf
@@ -218,12 +210,8 @@ void BafTrack::drawHeatMap(QPainter& painter, const QVector<int>& idxes)
 
 		if (pos < region.start()) continue;
 
-		// float norm = (float) (pos - region.start())/(region.end() - region.start());
-		// int px = x0 + (int)(norm * total_width);
-
-		int id = pos - region.start();
-		float px = x0 + (float)((float)id / scale);
-		float endx = x0 + (float)((float)(id + 1) / scale);
+		float px = chrToScreen(pos);
+		float endx = chrToScreen(pos + 1);
 		float dx = endx - px;
 
 		float t = std::clamp(baf, 0.0f, 1.0f);
@@ -246,10 +234,6 @@ void BafTrack::drawBarChart(QPainter& painter, const QVector<int>& idxes)
 	painter.setRenderHint(QPainter::Antialiasing);
 
 	const BedLine& region = SharedData::region();
-	int label_width = SharedData::settings().label_width;
-	int total_width = width() - label_width - 4;
-	int x0 = label_width + 2;
-	float scale = (float)region.length() / total_width;
 
 	foreach (int idx, idxes)
 	{
@@ -263,9 +247,8 @@ void BafTrack::drawBarChart(QPainter& painter, const QVector<int>& idxes)
 
 		if (pos < region.start()) continue;
 
-		int id = pos - region.start();
-		float px = x0 + (float)((float)id / scale);
-		float endx = x0 + (float)((float)(id + 1) / scale);
+		float px = chrToScreen(pos);
+		float endx = chrToScreen(pos + 1);
 		float dx = endx - px;
 
 		float t = std::clamp(baf, 0.0f, 1.0f);

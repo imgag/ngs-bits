@@ -66,8 +66,7 @@ private:
 	void drawAlignmentAndMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y,
 								  int x0, int total_width);
 
-	void drawAlignment(QPainter&, const BamAlignmentWrapper& al, int row_y,
-					   int x0, int total_width);
+	void drawAlignment(QPainter&, const BamAlignmentWrapper& al, int row_y);
 	// draws bases in BamAlignment that do not match the reference base
 	// which are pre calculated in the AlignmentWrapper
 	void drawMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y,
