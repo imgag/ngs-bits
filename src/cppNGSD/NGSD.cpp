@@ -176,15 +176,17 @@ void NGSD::setPassword(int user_id, QString password)
 	getQuery().exec("UPDATE user SET password='" + hash + "', salt='" + salt + "' WHERE id=" + QString::number(user_id));
 }
 
-QString NGSD::getUserRole(int user_id)
+QString NGSD::getUserRole(int user_id) //TODO Alexandr return a enum and cache role for each user id (make deleting cache on server possible)
 {
 	return getValue("SELECT user_role FROM user WHERE id='" + QString::number(user_id) + "'").toString().toLower();
 }
 
 bool NGSD::userRoleIn(QString user, QStringList roles)
 {
+	static QStringList valid_roles;
+	if (valid_roles.isEmpty()) valid_roles = getEnum("user", "user_role");
+
 	//check that role list contains only correct user role names
-	QStringList valid_roles = getEnum("user", "user_role");
 	foreach(const QString& role, roles)
 	{
 		if (!valid_roles.contains(role)) THROW (ProgrammingException, "Invalid role '" + role + "' given in NGSD::userRoleIn()!");
@@ -237,37 +239,32 @@ bool NGSD::userCanAccess(int user_id, int ps_id)
 	return user_can_access.value(user_id).contains(ps_id);
 }
 
-bool NGSD::userCanPerformAction(int user_id, ActionPermission permission)
+QSet<ActionPermission> NGSD::userActionPermissions(int user_id)
 {
-	//only 'user_restricted' users get action permissions, other users have no limitations for the actions
-	if (getUserRole(user_id)!="user_restricted") return true;
+	//only 'user_restricted' users get action permissions, other users have no limitations
+	static QSet<ActionPermission> all_action = {ActionPermission::CHANGE_NGSD_DATA, ActionPermission::PERFORM_VARIANT_SEARCH, ActionPermission::PERFORM_BURDEN_TEST, ActionPermission::START_ANALYSIS_JOBS};
+	if (getUserRole(user_id)!="user_restricted") return all_action;
 
 	QMutexLocker locker(&cache_mutex_user_actions_);
-
 	QMap<int, QSet<ActionPermission>>& user_can_perform_actions = getCache().user_can_perform_actions;
-
 	if (!user_can_perform_actions.contains(user_id))
 	{
-		SqlQuery query = getQuery();
-		query.exec("SELECT read_only, perform_variant_search, perform_burden_test, start_analysis_jobs FROM user_action_permissions WHERE user_id=" + QString::number(user_id));
-
-		// if no action permissions have been assigned, the user is allowed to perform all actions
-		if (query.size()==0) return true;
-
-		// otherwise, we will use only the permissions from the table
 		QSet<ActionPermission> current_permissions;
-		while(query.next())
+
+		SqlQuery query = getQuery();
+		query.exec("SELECT * FROM user_action_permissions WHERE user_id=" + QString::number(user_id));
+		if (query.next()) //no entry in 'user_action_permissions' means no actions...
 		{
-			if (query.value(0).toBool()) current_permissions << ActionPermission::READ_ONLY;
-			if (query.value(1).toBool()) current_permissions << ActionPermission::PERFORM_VARIANT_SEARCH;
-			if (query.value(2).toBool()) current_permissions << ActionPermission::PERFORM_BURDEN_TEST;
-			if (query.value(3).toBool()) current_permissions << ActionPermission::START_ANALYSIS_JOBS;
+			if (query.value("change_ngsd_data").toBool()) current_permissions << ActionPermission::CHANGE_NGSD_DATA;
+			if (query.value("perform_variant_search").toBool()) current_permissions << ActionPermission::PERFORM_VARIANT_SEARCH;
+			if (query.value("perform_burden_test").toBool()) current_permissions << ActionPermission::PERFORM_BURDEN_TEST;
+			if (query.value("start_analysis_jobs").toBool()) current_permissions << ActionPermission::START_ANALYSIS_JOBS;
 		}
 
 		user_can_perform_actions.insert(user_id, current_permissions);
 	}
 
-	return user_can_perform_actions.value(user_id).contains(permission);
+	return user_can_perform_actions.value(user_id);
 }
 
 DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
@@ -11096,4 +11093,14 @@ void NGSD::initGeneExpressionCache()
 	}
 
 	initializing = false;
+}
+
+AccessPermission stringToAccessPermission(const QString &in)
+{
+	if (in.toLower() == "project") {return AccessPermission::PROJECT;}
+	if (in.toLower() == "project_type") {return AccessPermission::PROJECT_TYPE;}
+	if (in.toLower() == "study") {return AccessPermission::STUDY;}
+	if (in.toLower() == "sample") {return AccessPermission::SAMPLE;}
+
+	THROW(ProgrammingException, "Unhandled access permission type '" + in + "' in stringToType()!");
 }

@@ -781,6 +781,22 @@ void DBEditor::store()
 			}
 			query.exec();
 		}
+
+		//special handling for "user" table
+		if (table_=="user")
+		{
+			int i = fields.indexOf("user_role");
+			qDebug() << i;
+			QString role = values[i];
+			if (role=="user_restricted")
+			{
+				db_.getQuery().exec("INSERT IGNORE INTO user_action_permissions (user_id) VALUES ("+QString::number(id_)+")");
+			}
+			else
+			{
+				db_.getQuery().exec("DELETE FROM user_action_permissions WHERE user_id='"+QString::number(id_)+"'");
+			}
+		}
 	}
 	catch (Exception& e)
 	{

@@ -641,7 +641,7 @@ void MainWindow::on_actionRegionToGenes_triggered()
 void MainWindow::on_actionSearchSNVs_triggered()
 {
 	//check if the user can perform this action
-	if (!NGSD().userCanPerformAction(LoginManager::userId(), ActionPermission::PERFORM_VARIANT_SEARCH))
+	if (!LoginManager::userCanPerformAction(ActionPermission::PERFORM_VARIANT_SEARCH))
 	{
 		QMessageBox::information(this, "Access denied", "You do not have permissions to perform Small variants search!");
 		return;
@@ -655,7 +655,7 @@ void MainWindow::on_actionSearchSNVs_triggered()
 void MainWindow::on_actionSearchCNVs_triggered()
 {
 	//check if the user can perform this action
-	if (!NGSD().userCanPerformAction(LoginManager::userId(), ActionPermission::PERFORM_VARIANT_SEARCH))
+	if (!LoginManager::userCanPerformAction(ActionPermission::PERFORM_VARIANT_SEARCH))
 	{
 		QMessageBox::information(this, "Access denied", "You do not have permissions to perform CNV search!");
 		return;
@@ -669,7 +669,7 @@ void MainWindow::on_actionSearchCNVs_triggered()
 void MainWindow::on_actionSearchSVs_triggered()
 {
 	//check if the user can perform this action
-	if (!NGSD().userCanPerformAction(LoginManager::userId(), ActionPermission::PERFORM_VARIANT_SEARCH))
+	if (!LoginManager::userCanPerformAction(ActionPermission::PERFORM_VARIANT_SEARCH))
 	{
 		QMessageBox::information(this, "Access denied", "You do not have permissions to perform SV search!");
 		return;
@@ -683,7 +683,7 @@ void MainWindow::on_actionSearchSVs_triggered()
 void MainWindow::on_actionSearchREs_triggered()
 {
 	//check if the user can perform this action
-	if (!NGSD().userCanPerformAction(LoginManager::userId(), ActionPermission::PERFORM_VARIANT_SEARCH))
+	if (!LoginManager::userCanPerformAction(ActionPermission::PERFORM_VARIANT_SEARCH))
 	{
 		QMessageBox::information(this, "Access denied", "You do not have permissions to perform RE search!");
 		return;
@@ -1734,9 +1734,8 @@ void MainWindow::editVariantValidation(int index)
 
 	try
 	{
-		NGSD db;
 		//check user can perform this action
-		if (db.userCanPerformAction(LoginManager::userId(), ActionPermission::READ_ONLY))
+		if (!LoginManager::userCanPerformAction(ActionPermission::CHANGE_NGSD_DATA))
 		{
 			QMessageBox::information(this, "Access denied", "You do not have permissions to perform variant validation!");
 			return;
@@ -1746,6 +1745,7 @@ void MainWindow::editVariantValidation(int index)
 		if (ps.isEmpty()) return;
 
 		//get variant ID - add if missing
+		NGSD db;
 		QString variant_id = db.variantId(variant, false);
 		if (variant_id=="")
 		{
@@ -1816,15 +1816,15 @@ void MainWindow::editVariantComment(int index)
 
 	try
 	{
-		NGSD db;
 		//check user can perform this action
-		if (db.userCanPerformAction(LoginManager::userId(), ActionPermission::READ_ONLY))
+		if (!LoginManager::userCanPerformAction(ActionPermission::CHANGE_NGSD_DATA))
 		{
 			QMessageBox::information(this, "Access denied", "You do not have permissions to edit a comment!");
 			return;
 		}
 
-		//add variant if missing		
+		//add variant if missing
+		NGSD db;
 		if (db.variantId(variant, false)=="")
 		{
 			db.addVariant(variant, variants_);
@@ -6109,9 +6109,9 @@ void MainWindow::on_actionVirusDetection_triggered()
 void MainWindow::on_actionBurdenTest_triggered()
 {
 	// check if the user can perform this action
-	if (!NGSD().userCanPerformAction(LoginManager::userId(), ActionPermission::PERFORM_BURDEN_TEST))
+	if (!LoginManager::userCanPerformAction(ActionPermission::PERFORM_BURDEN_TEST))
 	{
-		QMessageBox::information(this, "Access denied", "You do not have permissions to perform Burden test!");
+		QMessageBox::information(this, "Access denied", "You do not have permissions to perform burden test!");
 		return;
 	}
 
@@ -6148,7 +6148,7 @@ void MainWindow::editVariantClassification(VariantList& variants, int index)
 	{
 		NGSD db;
 		//check user can perform this action
-		if (db.userCanPerformAction(LoginManager::userId(), ActionPermission::READ_ONLY))
+		if (!LoginManager::userCanPerformAction(ActionPermission::CHANGE_NGSD_DATA))
 		{
 			QMessageBox::information(this, "Access denied", "You do not have permissions to edit classification!");
 			return;
@@ -6205,7 +6205,7 @@ void MainWindow::editVariantClassification(VariantList& variants, int index)
 void MainWindow::editSomaticVariantInterpretation(const VariantList &vl, int index)
 {
 	//check user can perform this action
-	if (NGSD().userCanPerformAction(LoginManager::userId(), ActionPermission::READ_ONLY))
+	if (!LoginManager::userCanPerformAction(ActionPermission::CHANGE_NGSD_DATA))
 	{
 		QMessageBox::information(this, "Access denied", "You do not have permissions to VICC interpretation!");
 		return;
@@ -6406,14 +6406,14 @@ void MainWindow::editVariantReportConfiguration(int index)
 		return;
 	}
 
-	NGSD db;
 	//check user can perform this action
-	if (db.userCanPerformAction(LoginManager::userId(), ActionPermission::READ_ONLY))
+	if (!LoginManager::userCanPerformAction(ActionPermission::CHANGE_NGSD_DATA))
 	{
 		QMessageBox::information(this, "Access denied", "You do not have permissions to add/edit a report configuration!");
 		return;
 	}
 
+	NGSD db;
 	if(germlineReportSupported()) //germline report configuration
 	{
 		//init/get config
@@ -6444,10 +6444,9 @@ void MainWindow::editVariantReportConfiguration(int index)
 		}
 
 		//exec dialog
-        ReportVariantDialog dlg(variant.toString(QChar()), inheritance_by_gene, var_config, this);
+		ReportVariantDialog dlg(variant.toString(QChar()), inheritance_by_gene, var_config, this);
 		dlg.setEnabled(!report_settings_.report_config->isFinalized());
 		if (dlg.exec()!=QDialog::Accepted) return;
-
 
 		//update config, GUI and NGSD
 		report_settings_.report_config->set(var_config);

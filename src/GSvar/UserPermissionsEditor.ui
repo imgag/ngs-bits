@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>600</width>
-    <height>527</height>
+    <height>400</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -20,6 +20,21 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <property name="leftMargin">
+    <number>3</number>
+   </property>
+   <property name="topMargin">
+    <number>3</number>
+   </property>
+   <property name="rightMargin">
+    <number>3</number>
+   </property>
+   <property name="bottomMargin">
+    <number>3</number>
+   </property>
+   <property name="spacing">
+    <number>3</number>
+   </property>
    <item row="1" column="1">
     <layout class="QVBoxLayout" name="verticalLayout">
      <property name="spacing">
@@ -86,16 +101,31 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0">
+   <item row="2" column="0" colspan="2">
     <widget class="QGroupBox" name="gb_allowed_actions">
      <property name="title">
       <string>Allowed actions</string>
      </property>
      <layout class="QVBoxLayout" name="vertical_layout_2">
+      <property name="spacing">
+       <number>3</number>
+      </property>
+      <property name="leftMargin">
+       <number>3</number>
+      </property>
+      <property name="topMargin">
+       <number>3</number>
+      </property>
+      <property name="rightMargin">
+       <number>3</number>
+      </property>
+      <property name="bottomMargin">
+       <number>3</number>
+      </property>
       <item>
-       <widget class="QCheckBox" name="cb_read_only">
+       <widget class="QCheckBox" name="cb_change_ngsd_data">
         <property name="text">
-         <string>Read only (no changes to the database)</string>
+         <string>Change NGSD data (report configuration, variant classification, varuiant comments, variant validation, ...)</string>
         </property>
        </widget>
       </item>
