@@ -2893,6 +2893,69 @@ GenderEstimate Statistics::genderSRY(GenomeBuild build, QString bam_file, double
 	return output;
 }
 
+GenderEstimate Statistics::genderDepthX(QString bam_file, QString roi, double min_ratio_female, int threads, const QString &ref_file)
+{
+	GenderEstimate output;
+
+	//load target region
+	BedFile reg;
+	reg.load(roi, false, false);
+
+	//determine depth for target region
+	Statistics::avgCoverage(reg, bam_file, 20, threads, 2, ref_file, false);
+
+	//calcualte ratio
+	QVector<double> depth_auto;
+	QVector<double> depth_chrx;
+	for (int i=0; i<reg.count(); ++i)
+	{
+		const BedLine& line = reg[i];
+
+		bool ok = false;
+		double depth = line.annotations()[0].toDouble(&ok);
+		if (!ok) continue;
+
+		if (line.chr().isAutosome())
+		{
+			depth_auto << depth;
+		}
+		else if (line.chr().isX())
+		{
+			depth_chrx << depth;
+		}
+	}
+
+	//check we have enough regions each
+	if (depth_auto.count()<10 || depth_chrx.count()<10)
+	{
+		output.gender = "unknown (too few target regions on autosomes/chrX)";
+		return output;
+	}
+	output.add_info << KeyValuePair("regs_chx", QString::number( depth_chrx.count()));
+	output.add_info << KeyValuePair("regs_auto", QString::number(depth_auto.count()));
+
+	//calcaulate ratio of median cov
+	std::sort(depth_auto.begin(), depth_auto.end());
+	double cov_auto = BasicStatistics::median(depth_auto);
+	std::sort(depth_chrx.begin(), depth_chrx.end());
+	double cov_chrx = BasicStatistics::median(depth_chrx);
+
+	//check that we have coverage
+	if (cov_auto==0 || cov_chrx==0)
+	{
+		output.gender = "unknown (average coverage on autosomes/chrX is zero)";
+		return output;
+	}
+
+	double ratio = cov_chrx/cov_auto;
+	output.add_info << KeyValuePair("cov_chrx", QString::number(cov_chrx, 'f', 2));
+	output.add_info << KeyValuePair("cov_auto", QString::number(cov_auto, 'f', 2));
+	output.add_info << KeyValuePair("ratio_chrx_auto", QString::number(ratio, 'f', 2));
+	output.gender = ratio>=min_ratio_female ? "female" : "male";
+
+	return output;
+}
+
 template<typename T>
 void Statistics::addQcValue(QCCollection& output, QByteArray accession, QByteArray name, const T& value)
 {

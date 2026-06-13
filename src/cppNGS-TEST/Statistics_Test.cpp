@@ -820,6 +820,23 @@ TEST_CLASS(Statistics_Test)
 		S_EQUAL(estimate.gender, "female");
 	}
 
+	TEST_METHOD(genderDepthX)
+	{
+		GenderEstimate estimate = Statistics::genderDepthX(TESTDATA("data_in/panel.bam"), TESTDATA("data_in/panel.bed"));
+		I_EQUAL(estimate.add_info.count(), 5);
+		S_EQUAL(estimate.add_info[0].key, "regs_chx");
+		S_EQUAL(estimate.add_info[0].value, "98");
+		S_EQUAL(estimate.add_info[1].key, "regs_auto");
+		S_EQUAL(estimate.add_info[1].value, "1434");
+		S_EQUAL(estimate.add_info[2].key, "cov_chrx");
+		S_EQUAL(estimate.add_info[2].value, "127.20");
+		S_EQUAL(estimate.add_info[3].key, "cov_auto");
+		S_EQUAL(estimate.add_info[3].value, "111.44");
+		S_EQUAL(estimate.add_info[4].key, "ratio_chrx_auto");
+		S_EQUAL(estimate.add_info[4].value, "1.14");
+		S_EQUAL(estimate.gender, "female");
+	}
+
 	TEST_METHOD(genderHetX)
 	{
 		GenderEstimate estimate = Statistics::genderHetX(GenomeBuild::HG19, TESTDATA("data_in/panel.bam"));
