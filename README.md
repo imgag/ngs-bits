@@ -58,8 +58,9 @@ Change log is available on the [releases](https://github.com/imgag/ngs-bits/rele
 
 You can cite ngs-bits in using Zenodo DOIs:
 
-* 2025_12: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17877407.svg)](https://zenodo.org/records/17877407)
-* 2025_09: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17201254.svg)](https://zenodo.org/records/17201254)
+
+release 2026_06: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20699528.svg)](https://zenodo.org/records/20699528)  
+release 2025_12: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17877407.svg)](https://zenodo.org/records/17877407)  
 
 A list of all releases/DOIs can be found [here](https://zenodo.org/search?q=parent.id%3A14216718&f=allversions%3Atrue&l=list&p=1&s=10&sort=version).
 
@@ -205,3 +206,4 @@ You can open the a qcML file in Firefox and to show a human-readable version of 
 * [FastaMask](doc/tools/FastaMask.md) - Mask regions in a FASTA file with N bases.
 * [HgvsToVcf](doc/tools/HgvsToVcf.md) - Transforms a TSV file with transcript ID and HGVS.c change into a VCF file (needs [NGSD](doc/install_ngsd.md)).
 * [VariantRanking](doc/tools/VariantRanking/index.md) - Rankes small variants in the context of a patients phenotype using an evidence-based model (needs [NGSD](doc/install_ngsd.md)).
+
