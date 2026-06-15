@@ -1046,7 +1046,7 @@ void BurdenTestWidget::performBurdenTest()
 		//get all variants for this gene
 		QSet<int> variant_ids = getVariantsForRegion(max_ngsd, max_gnomad_af, gene_regions, gene_name, impacts, predict_pathogenic);
 
-		qDebug() << i << "get var ids for gene " + gene_name + ": "<< variant_ids.size() << Helper::elapsedTime(timer);
+		//qDebug() << i << "get var ids for gene " + gene_name + ": "<< variant_ids.size() << Helper::elapsedTime(timer);
 
 		// for all matching variants: get counts of case and control cohort
 		QMap<int,QSet<int>> detected_variants;

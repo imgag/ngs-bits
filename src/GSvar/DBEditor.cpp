@@ -786,7 +786,6 @@ void DBEditor::store()
 		if (table_=="user")
 		{
 			int i = fields.indexOf("user_role");
-			qDebug() << i;
 			QString role = values[i];
 			if (role=="user_restricted")
 			{
