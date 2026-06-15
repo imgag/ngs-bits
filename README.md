@@ -1,13 +1,9 @@
 # *ngs-bits* - Short-read and long-read sequencing tools for diagnostics
 
-![Linux build status](https://github.com/imgag/ngs-bits/workflows/Linux%20build/badge.svg)
-![MacOS build status](https://github.com/imgag/ngs-bits/workflows/MacOS%20build/badge.svg)
-![Windows build status](https://github.com/imgag/ngs-bits/workflows/Windows%20build/badge.svg)  
-[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/ngs-bits/README.html)
-
 ## Downloading ngs-bits
 
-Binaries and Docker containers of *ngs-bits* are available via [Bioconda](https://bioconda.github.io/recipes/ngs-bits/README.html).
+Binaries and Docker containers of *ngs-bits* are available via Bioconda:  
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/ngs-bits/README.html)
 
 Apptainer/Singularity containers are available for the [megSAP server](https://megsap.de/download/container/ngs-bits.php).
 
