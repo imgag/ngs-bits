@@ -74,7 +74,7 @@ private:
 	void drawAllBases(QPainter&, const BamAlignmentWrapper& al, int row_y,
 					  int x0, int total_width);
 
-	QString getBamAlignmentText(const BamAlignment& al);
+	QString getBamAlignmentText(const BamAlignmentWrapper& al, int genome_pos);
 	// iterates through the alignments and stores pairs as ReadPair in read_pairs_
 	void makePairs();
 

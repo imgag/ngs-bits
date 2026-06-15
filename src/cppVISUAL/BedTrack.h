@@ -91,6 +91,8 @@ private:
 	QString getBandTextExpandedMode(const BedLine& region, int row, int x);
 	// returns the location plus annonations for the bedline as a string
 	QString getBandString(const BedLine&);
+	// handles pop up request and displays the correct information at global pos
+	void handlePopupRequest(QPointF local_pos, QPointF global_pos);
 
 	//utility function for calculating the nubmer of rows required/chr
 	void calculateNumRows();

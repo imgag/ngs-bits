@@ -135,7 +135,7 @@ void TrackWidget::drawLabel(QPainter& painter)
 
 }
 
-float TrackWidget::chrToScreen(int chrCoord)
+float TrackWidget::genomePosToScreen(int genome_pos)
 {
 	int w = width();
 	int label_width = SharedData::settings().label_width;
@@ -143,16 +143,32 @@ float TrackWidget::chrToScreen(int chrCoord)
 	float total_width = w - label_width - 4;
 	int x0 = label_width + 2;
 	float scale = total_width / region.length();
-	return ((float)(chrCoord - region.start())) * scale + x0;
+	return ((float)(genome_pos - region.start())) * scale + x0;
 }
 
-float TrackWidget::chrWidthToScreen(int chrWidth)
+float TrackWidget::genomeWidthToScreen(int genome_width)
 {
 	int w = width();
 	int label_width = SharedData::settings().label_width;
 	const BedLine& region = SharedData::region();
 	float total_width = w - label_width - 4;
-	return ((float)chrWidth/region.length()) * total_width;
+	return ((float)genome_width/region.length()) * total_width;
+}
+
+bool TrackWidget::isOutOfDrawRegion(int x)
+{
+	int label_width = SharedData::settings().label_width;
+	return (x < label_width + 2 || x > width() - 2);
+}
+
+int TrackWidget::screenXToGenomePos(int x_pos)
+{
+	int w = width();
+	int label_width = SharedData::settings().label_width;
+	int total_width = w - label_width - 4;
+	const BedLine& region = SharedData::region();
+	float p = (float)(x_pos - label_width - 2) / total_width;
+	return region.start() + static_cast<int>(p * region.length());
 }
 
 void TrackWidget::showInfoPopup(QPointF global_pos, QString info)

@@ -140,8 +140,8 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 			int st = std::max((*bedfile_)[idx].start(), region.start());
 			int en = std::min((*bedfile_)[idx].end(), region.end());
 
-			float x_start = chrToScreen(st);
-			float width = chrWidthToScreen(en - st + 1);
+			float x_start = genomePosToScreen(st);
+			float width = genomeWidthToScreen(en - st + 1);
 
 			if (draw_mode_ == EXPANDED) y_start = row_idxes_[idx] * (BLOCK_HEIGHT + BLOCK_PADDING);
 
@@ -234,28 +234,24 @@ void BedTrack::mouseReleaseEvent(QMouseEvent* event)
 
 	if (!dragging)
 	{
-		int row = event->pos().y() / (BLOCK_HEIGHT + BLOCK_PADDING);
-
-		const BedLine& region = SharedData::region();
-
-		int label_width = SharedData::settings().label_width;
-		int total_width = width() - 4 - label_width;
-
-		float p = ((float)(event->pos().x() - label_width - 2) / total_width);
-
-		// int x = region.start() + (region.end() - region.start()) * p;
-
-		int x = region.start() + region.length() * p;
-
-		QString info = getBandText(region, row, x);
-
-		if (!info.isEmpty())
-		{
-			showInfoPopup(event->globalPosition(), info);
-		}
+		handlePopupRequest(event->pos(), event->globalPosition());
 	}
 
 	TrackWidget::mouseReleaseEvent(event);
+}
+
+void BedTrack::handlePopupRequest(QPointF local_pos, QPointF global_pos)
+{
+	int row = local_pos.y() / (BLOCK_HEIGHT + BLOCK_PADDING);
+
+	const BedLine& region = SharedData::region();
+
+	if (isOutOfDrawRegion(local_pos.x())) return;
+	int x = screenXToGenomePos(local_pos.x());
+
+	QString info = getBandText(region, row, x);
+
+	if (!info.isEmpty()) showInfoPopup(global_pos, info);
 }
 
 QString BedTrack::getBandText(const BedLine& region, int row, int x)

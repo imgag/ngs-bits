@@ -85,7 +85,7 @@ void BafTrack::drawPlot(QPainter& painter)
 	drawReferenceLine(painter, 1.0f, x0, total_width, TRACK_HEIGHT);
 
 	int padding = region.length() / 3;
-	int start = std::min(0, region.start() - padding);
+	int start = std::max(0, region.start() - padding);
 	int end = region.end() + padding;
 	const QVector<int>& idxes = chr_index_->matchingIndices(region.chr(), start, end);
 
@@ -122,8 +122,8 @@ void BafTrack::drawPoints(QPainter& painter, const QVector<int>& idxes)
 
 		if (pos < region.start()) continue;
 
-		float p1 = chrToScreen(pos);
-		float p2 = chrToScreen(pos + 1);
+		float p1 = genomePosToScreen(pos);
+		float p2 = genomePosToScreen(pos + 1);
 		float px = (p1 + p2) / 2.f;
 
 		int py = bafToY(baf, TRACK_HEIGHT);
@@ -210,8 +210,8 @@ void BafTrack::drawHeatMap(QPainter& painter, const QVector<int>& idxes)
 
 		if (pos < region.start()) continue;
 
-		float px = chrToScreen(pos);
-		float endx = chrToScreen(pos + 1);
+		float px = genomePosToScreen(pos);
+		float endx = genomePosToScreen(pos + 1);
 		float dx = endx - px;
 
 		float t = std::clamp(baf, 0.0f, 1.0f);
@@ -247,8 +247,8 @@ void BafTrack::drawBarChart(QPainter& painter, const QVector<int>& idxes)
 
 		if (pos < region.start()) continue;
 
-		float px = chrToScreen(pos);
-		float endx = chrToScreen(pos + 1);
+		float px = genomePosToScreen(pos);
+		float endx = genomePosToScreen(pos + 1);
 		float dx = endx - px;
 
 		float t = std::clamp(baf, 0.0f, 1.0f);
@@ -323,10 +323,9 @@ void BafTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 	int label_width = SharedData::settings().label_width;
 	int total_width = width() - label_width - 4;
 
-	if (local_pos.x() < label_width + 2 || local_pos.x() > width() - 2) return;
+	if (isOutOfDrawRegion(local_pos.x())) return;
 
-	float p = (float)(local_pos.x() - label_width - 2) / total_width;
-	int click_position = region.start() + (region.length() * p);
+	int click_position = screenXToGenomePos(local_pos.x());
 
 	double bp_per_pixel = (double)region.length() / total_width;
 	int padding = std::max(2, static_cast<int>(bp_per_pixel * 2));

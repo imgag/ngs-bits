@@ -59,6 +59,7 @@ void BamCoverageTrack::storeCoverage()
 {
 	max_coverage_ = 0;
 	int max_region_len = SharedData::settings().bam_max_region_len;
+	coverage_.clear();
 	coverage_.fill(BaseCoverage(), max_region_len);
 
 	const BedLine& region = SharedData::region();
@@ -142,7 +143,8 @@ void BamCoverageTrack::storeCoverage()
 			case 'G': case 'g': base_count = cov.g(); break;
 			case 'T': case 't': base_count = cov.t(); break;
 		}
-		cov.is_variant = (((double)base_count / total_count) < (1.f - SharedData::settings().coverage_mismatch_threshold));
+		if (total_count == 0) cov.is_variant = false;
+		else cov.is_variant = (((double)base_count / total_count) < (1.f - SharedData::settings().coverage_mismatch_threshold));
 	}
 }
 
@@ -179,8 +181,8 @@ void BamCoverageTrack::drawCoverage(QPainter& painter)
 		int total_count = cov.total();
 		if (total_count ==0) continue;
 
-		int pX = chrToScreen(region.start() + idx);
-		int endX = chrToScreen(region.start() + idx + 1);
+		int pX = genomePosToScreen(region.start() + idx);
+		int endX = genomePosToScreen(region.start() + idx + 1);
 		int dX = std::max(1, endX - pX);
 		float norm = (float)total_count/max_coverage_;
 		int bar_h = norm * draw_height;
@@ -271,20 +273,13 @@ QString BamCoverageTrack::getCoverageText(const BaseCoverage& cov, int coverage_
 
 void BamCoverageTrack::handlePopupRequest(QPointF local_pos, QPointF global_pos)
 {
+	if (isOutOfDrawRegion(local_pos.x())) return;
+
 	const BedLine& region = SharedData::region();
-	int label_width = SharedData::settings().label_width;
-	int total_width = width() - label_width - 4;
-
-	if (local_pos.x() < label_width + 2 ||
-		local_pos.x() > width() - 2) return;
-
-	float p = (float)(local_pos.x() - label_width - 2)/(total_width);
-	int x = region.length() * p;
-
+	int x = screenXToGenomePos(local_pos.x()) - region.start();
 	if (x < 0 || x >= coverage_.length()) return;
 
-	const BaseCoverage& cov = coverage_[x];
-	QString info = getCoverageText(cov, x);
+	QString info = getCoverageText(coverage_[x], x);
 	showInfoPopup(global_pos, info);
 }
 

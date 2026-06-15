@@ -57,8 +57,10 @@ protected:
 	void drawLabel(QPainter&);
 	void handleTrackRename();
 	// coordinate conversion helpful functions
-	virtual float chrToScreen(int chrCoord); // can be overriden
-	virtual float chrWidthToScreen(int chrWidth);
+	virtual float genomePosToScreen(int genome_pos); // can be overriden
+	virtual float genomeWidthToScreen(int genome_width);
+	virtual int screenXToGenomePos(int x_pos);
+	virtual bool isOutOfDrawRegion(int x_pos);
 
 	virtual QString getType() = 0;
 

@@ -27,11 +27,11 @@ inline size_t qHash(const AlignmentKey& k, size_t seed = 0)
 
 struct BamAlignmentWrapper
 {
-	enum Event
+	enum Event // Cigar Op
 	{
-		MATCH,
-		INSERTION,
-		DELETION
+		MATCH, // CMATCH, CEQUAL, CDIFF
+		INSERTION, // CINS
+		DELETION // CDEL
 	};
 
 	struct EventData // event data from cigar
@@ -47,7 +47,7 @@ struct BamAlignmentWrapper
 	{
 		int genomic_pos;
 		char base; // base at genomic pos
-		int quality;
+		int quality; // quality at genomic pos
 	};
 
 	AlignmentKey id; // for hashing
