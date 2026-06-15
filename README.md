@@ -18,7 +18,7 @@ Use git to clone the most recent release (the source code package of GitHub does
 
 	> git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2025_12
+	> git checkout 2026_06
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -148,6 +148,7 @@ You can open the a qcML file in Firefox and to show a human-readable version of 
 
 * [VcfAdd](doc/tools/VcfAdd.md) - Merges several VCF files into one VCF by appending one to the other.
 * [VcfAnnotateConsequence](doc/tools/VcfAnnotateConsequence.md) - Adds transcript-specific consequence predictions to a VCF file (similar to Ensembl VEP).
+* [VcfAnnotateFrequency](doc/tools/VcfAnnotateFrequency.md) - Annotates VCF variants with allele frequency and depth from a BAM/CRAM file.
 * [VcfAnnotateFromBed](doc/tools/VcfAnnotateFromBed.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfAnnotateFromBigWig](doc/tools/VcfAnnotateFromBigWig.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfAnnotateFromVcf](doc/tools/VcfAnnotateFromVcf/index.md) - Annotates a VCF file with data from one or more source VCF files.
@@ -159,6 +160,7 @@ You can open the a qcML file in Firefox and to show a human-readable version of 
 * [VcfExtractSamples](doc/tools/VcfExtractSamples.md) - Extract one or several samples from a VCF file. Can also be used to re-order sample columns.
 * [VcfFilter](doc/tools/VcfFilter.md) - Filters a VCF based on the given criteria.
 * [VcfLeftNormalize](doc/tools/VcfLeftNormalize.md) - Normalizes all variants and shifts indels to the left in a VCF file.
+* [VcfMerge](doc/tools/VcfMerge.md) - Merges several VCF files into a multi-sample VCF file.
 * [VcfReplaceSamples](doc/tools/VcfReplaceSamples.md) - Replaces sample identifiers in the VCF header.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
 * [VcfSplit](doc/tools/VcfSplit.md) - Splits a VCF into several chunks.
@@ -169,7 +171,6 @@ You can open the a qcML file in Firefox and to show a human-readable version of 
 * [VcfToBedpe](doc/tools/VcfToBedpe.md) - Converts a VCF file containing structural variants to BEDPE format.
 * [VcfToTsv](doc/tools/VcfToTsv.md) - Converts a VCF file to a tab-separated text file.
 
-
 ### BEDPE tools (structural variants)
 
 * [BedpeAnnotateFromBed](doc/tools/BedpeAnnotateFromBed.md) - Annotates a BEDPE file with information from a BED file.
@@ -179,7 +180,7 @@ You can open the a qcML file in Firefox and to show a human-readable version of 
 * [BedpeToBed](doc/tools/BedpeToBed.md) - Converts a BEDPE file into BED file.
 * [SvFilterAnnotations](doc/tools/SvFilterAnnotations.md) - Filter a structural variant list in BEDPE format based on variant annotations.
 
-### Gene handling tools
+### Gene/transcript handling tools
 
 * [GenePrioritization](doc/tools/GenePrioritization.md): Performs gene prioritization based on list of known disease genes and a PPI graph (see also GraphStringDb).
 * [GraphStringDb](doc/tools/GraphStringDb.md): Creates simple representation of String-DB interaction graph.
@@ -187,7 +188,9 @@ You can open the a qcML file in Firefox and to show a human-readable version of 
 * [GenesToBed](doc/tools/GenesToBed.md) - Converts a text file with gene names to a BED file (needs [NGSD](doc/install_ngsd.md)).
 * [GenesToTranscripts](doc/tools/GenesToTranscripts.md) - Converts a text file with gene names to transcript names (needs [NGSD](doc/install_ngsd.md)).
 * [NGSDExportGenes](doc/tools/NGSDExportGenes.md) - Lists genes from NGSD (needs [NGSD](doc/install_ngsd.md)).
+* [TranscriptComparison](doc/tools/TranscriptComparison.md) - Compares transcripts from Ensembl and RefSeq/CCDS (needs [NGSD](doc/install_ngsd.md)).
 * [TranscriptsToBed](doc/tools/TranscriptsToBed.md) - Converts a text file with transcript names to a BED file (needs [NGSD](doc/install_ngsd.md)).
+* [TranscriptToProtein](doc/tools/TranscriptToProtein.md) - Computes the protein sequence for each transcript name given (needs [NGSD](doc/install_ngsd.md)).
 
 ### Phenotype handling tools
 
@@ -202,4 +205,3 @@ You can open the a qcML file in Firefox and to show a human-readable version of 
 * [FastaMask](doc/tools/FastaMask.md) - Mask regions in a FASTA file with N bases.
 * [HgvsToVcf](doc/tools/HgvsToVcf.md) - Transforms a TSV file with transcript ID and HGVS.c change into a VCF file (needs [NGSD](doc/install_ngsd.md)).
 * [VariantRanking](doc/tools/VariantRanking/index.md) - Rankes small variants in the context of a patients phenotype using an evidence-based model (needs [NGSD](doc/install_ngsd.md)).
-
