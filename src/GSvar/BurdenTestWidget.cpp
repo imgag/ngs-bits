@@ -20,8 +20,6 @@ BurdenTestWidget::BurdenTestWidget(QWidget *parent) :
 		INFO(DatabaseException, "Burden Test Widget requires logging in into NGSD!");
 	}
 
-	LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
-
 	ui_->setupUi(this);
 
 	//connect signals and slots
@@ -965,6 +963,7 @@ void BurdenTestWidget::performBurdenTest()
 		ui_->tw_gene_table->item(row_idx, column_idx++)->setToolTip(gene_result.hits_cases.keys().join(", "));
 		ui_->tw_gene_table->setItem(row_idx, column_idx, GUIHelper::createTableItem(static_cast<int>(gene_result.hits_controls.size())));
 		ui_->tw_gene_table->item(row_idx, column_idx++)->setToolTip(gene_result.hits_controls.keys().join(", "));
+
 
 		// add infos for hidden columns (ps names)
 		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(gene_result.hits_cases.keys().join(", ")));

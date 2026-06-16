@@ -147,23 +147,23 @@ void RequestWorker::run()
                 user_info = " - requested by " + user_session.user_login + " (" + user_session.user_name + ")";
 			}
 		}
-		QString client_type = "Unknown client";
-		if (!parsed_request.getHeaderByName("User-Agent").isEmpty())
+		QString client_type = " - Unknown client";
+		QString user_agent = parsed_request.getHeaderByName("User-Agent").join(" ").trimmed().toLower();
+		if (!user_agent.isEmpty())
 		{
-			if (parsed_request.getHeaderByName("User-Agent")[0].toLower().indexOf("igv") > -1)
+			if (user_agent.contains("igv"))
 			{
-				client_type = "IGV";
+				client_type = " - IGV";
 			}
-			else if ((parsed_request.getHeaderByName("User-Agent")[0].toLower().indexOf("gsvar") > -1) || (parsed_request.getHeaderByName("User-Agent")[0].toLower().indexOf("qt") > -1))
+			else if (user_agent.contains("gsvar") || user_agent.contains("qt"))
 			{
-				client_type = "GSvar";
+				client_type = " - GSvar";
 			}
 			else
 			{
-				client_type = "Browser";
+				client_type = " - Browser";
 			}
 		}
-		client_type = " - " + client_type;
 
 		if (current_endpoint.authentication_type != AuthType::NONE)
 		{

@@ -404,6 +404,28 @@ DEFAULT CHARACTER SET = utf8;
 
 
 -- -----------------------------------------------------
+-- Table `user_action_permissions`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `user_action_permissions`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `user_id` INT(11) NOT NULL,
+  `change_ngsd_data` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Allows changing the database: report config, classification, VICC, comments, variant validation, ...',
+  `perform_variant_search` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Allows performing variant search for small variants, CNVs, REs, SVs',
+  `perform_burden_test` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Allows performing burden test',
+  `start_analysis_jobs` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Allows starting sample analyisis jobs',
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `idx_user_id` (`user_id`),
+  CONSTRAINT `fk_user_action_permissions_user`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `user` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
+
+-- -----------------------------------------------------
 -- Table `sample`
 -- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS `sample`

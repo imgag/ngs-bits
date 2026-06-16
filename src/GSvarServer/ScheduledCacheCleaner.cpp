@@ -18,7 +18,8 @@ ScheduledCacheCleaner::ScheduledCacheCleaner(QObject *parent)
 void ScheduledCacheCleaner::scheduleNextRun()
 {
 	Log::info("Permissions cache cleaning...");
-	db_.clearUserPermissionsCache();
+	db_.clearUserAccessPermissionsCache();
+	db_.clearUserActionPermissionsCache();
 
 	// Runs every day at 3 a.m.
 	QDateTime now = QDateTime::currentDateTime();

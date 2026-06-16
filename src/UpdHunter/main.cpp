@@ -39,7 +39,7 @@ public:
 		addFloat("reg_min_q", "Mimimum Q-score required for a UPD region.",  true, 20.0);
 		addFlag("debug", "Enable verbose debug output.");
 
-		changeLog(2026,  5,  5, "Added parameter 'var_use_special_calls' and fixed bug in handling of exclude regions .");
+		changeLog(2026,  5,  5, "Added parameter 'var_use_special_calls' and fixed bug in handling of exclude regions.");
 		changeLog(2024,  6,  6, "Added optional output file containing informative variants.");
 		changeLog(2020,  8,  7, "VCF files only as input format for variant list.");
 		changeLog(2018,  6, 11, "First working version.");

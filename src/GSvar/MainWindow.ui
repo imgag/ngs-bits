@@ -564,6 +564,7 @@
     <addaction name="actionSampleCounts"/>
     <addaction name="actionStatistics"/>
     <addaction name="actionShowDatabaseInfo"/>
+    <addaction name="actionAnalysisTimePlot"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuNGSD"/>
@@ -974,7 +975,7 @@
   </action>
   <action name="actionStatistics">
    <property name="text">
-    <string>Statistics</string>
+    <string>Sample count (by month)</string>
    </property>
   </action>
   <action name="actionDevice">
@@ -1497,7 +1498,7 @@
   </action>
   <action name="actionSampleCounts">
    <property name="text">
-    <string>Sample counts</string>
+    <string>Sample count (by type)</string>
    </property>
   </action>
   <action name="actionExportSampleData">
@@ -1513,6 +1514,11 @@
   <action name="actionDetermineProxy">
    <property name="text">
     <string>Determine proxy for URL</string>
+   </property>
+  </action>
+  <action name="actionAnalysisTimePlot">
+   <property name="text">
+    <string>Analysis time plot</string>
    </property>
   </action>
  </widget>

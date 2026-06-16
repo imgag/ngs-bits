@@ -28,7 +28,6 @@ int sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
     try
 	{
 		HttpRequestHandler http_handler;
-		http_handler.disableProxy();
 		server_reply = http_handler.get(url, headers);
 		reply = server_reply.body;
 	}
