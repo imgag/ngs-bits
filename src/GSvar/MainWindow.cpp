@@ -504,26 +504,36 @@ void MainWindow::userSpecificDebugFunction()
 	try
 	{
 		QString user = Helper::userName();
+		qDebug() << ("Executing debug function for user "+user+" - time: "+QDateTime::currentDateTime().toString(Qt::ISODate));
 		if (user=="ahsturm1")
 		{
+			QByteArray request = R"(<?xml version="1.0" encoding="utf-8"?>
+			                        <soapenv:Envelope
+			                            xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+			                            xmlns:urn="urn:sap-com:document:sap:soap:functions:mc-style">
+			                          <soapenv:Header/>
+			                          <soapenv:Body>
+			                            <urn:ZishWsSetGenomData>
+			                              <ImpFalnr>0000022580</ImpFalnr>
+			                              <ImpMeldeDatum></ImpMeldeDatum>
+			                              <ImpMeldungsart>0</ImpMeldungsart>
+			                              <ImpMeldungsnr></ImpMeldungsnr>
+			                              <ImpMeldungstyp>K</ImpMeldungstyp>
+			                              <ImpVorgangsnr>DSFGERGWEG344GSDFGSDFGSDFGSDGSDFGDFGSDGDFGSDFGDFGDGDGSDGDGDFGDFG</ImpVorgangsnr>
+			                              <ImpVorgangsDatum>2026-06-16</ImpVorgangsDatum>
+			                            </urn:ZishWsSetGenomData>
+			                          </soapenv:Body>
+			                        </soapenv:Envelope>)";
 			HttpRequestHandler handler;
-			ServerReply reply = handler.get("https://megsap.de/stats/gsvar.php?version=2025_12");
+			handler.setCredentials("ah3arzt", "TODO");
+			handler.setHeader("content-type", "text/xml; charset=utf-8");
+			handler.setHeader("SOAPAction", "\"urn:sap-com:document:sap:soap:functions:mc-style:ZISH_WS_SET_GENOM_DATA:ZishWsSetGenomDataRequest\"");
+			ServerReply reply = handler.post("http://vsldt4as01.med.uni-tuebingen.de:8080/sap/bc/srt/rfc/sap/zish_ws_set_genom_data/100/zish_ws_set_genom_data/zish_ws_set_genom_data", request);
 			qDebug() << reply.status_code;
 			qDebug() << reply.body;
-			reply = handler.get("https://megsap.de/stats/show.php");
-			qDebug() << reply.status_code;
-			qDebug() << reply.body;
-			reply = handler.get("https://raw.githubusercontent.com/imgag/ngs-bits/refs/heads/master/src/cppCORE-TEST/data_in/txt_file.txt");
-			qDebug() << reply.status_code;
-			qDebug() << reply.body;
-			reply = handler.get("https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions/");
-			qDebug() << reply.status_code;
-			qDebug() << reply.body;
-
 		}
 		else if (user=="ahschul1")
 		{
-			qDebug() << NGSD().secondaryAnalyses("21073LRa154_01", "trio");
 		}
 		else if (user=="ahott1a1")
 		{
@@ -531,7 +541,7 @@ void MainWindow::userSpecificDebugFunction()
 	}
 	catch(Exception& e)
 	{
-		qDebug() << "Exception: " << e.message();
+		qDebug() << "Exception in debug function:\n" << e.message();
 	}
 
 	qDebug() << "Elapsed time debug function:" << Helper::elapsedTime(timer, true);
