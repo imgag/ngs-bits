@@ -67,6 +67,7 @@ private:
 	TEST_METHOD(predict_pathogenic)
 	{
 		SKIP_IF_NO_TEST_NGSD();
+		SKIP_IF_NO_HG38_GENOME();
 
 		//init
 		NGSD db(true);
@@ -86,6 +87,7 @@ private:
 	TEST_METHOD(recessive)
 	{
 		SKIP_IF_NO_TEST_NGSD();
+		SKIP_IF_NO_HG38_GENOME();
 
 		//init
 		NGSD db(true);
@@ -104,6 +106,7 @@ private:
 	TEST_METHOD(ccr_region)
 	{
 		SKIP_IF_NO_TEST_NGSD();
+		SKIP_IF_NO_HG38_GENOME();
 
 		//init
 		NGSD db(true);
@@ -123,6 +126,7 @@ private:
 	TEST_METHOD(ngsd_count)
 	{
 		SKIP_IF_NO_TEST_NGSD();
+		SKIP_IF_NO_HG38_GENOME();
 
 		//init
 		NGSD db(true);
@@ -141,6 +145,7 @@ private:
 	TEST_METHOD(cnv)
 	{
 		SKIP_IF_NO_TEST_NGSD();
+		SKIP_IF_NO_HG38_GENOME();
 
 		//init
 		NGSD db(true);
