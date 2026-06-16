@@ -663,3 +663,7 @@ VcfMerge.depends = cppNGS
 SUBDIRS += TranscriptToProtein
 tools-TEST.depends += TranscriptToProtein
 TranscriptToProtein.depends = cppNGS
+
+SUBDIRS += NGSDSampleUsers
+tools-TEST.depends += NGSDSampleUsers
+NGSDSampleUsers.depends = cppNGSD
