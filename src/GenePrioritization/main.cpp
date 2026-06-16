@@ -111,6 +111,7 @@ public:
 		addEnum("method", "Gene prioritization method to use.", true, QStringList() << "flooding" << "random_walk", "flooding");
 		addInt("n", "Number of network diffusion iterations (flooding).", true, 2);
 		addFloat("restart", "Restart probability (random_walk).", true, 0.4);
+		addFlag("test_mode", "Enabled test mode (fixes random number generator seed)");
 		addOutfile("debug", "Output TSV file for debugging", true);
     }
 
@@ -249,9 +250,10 @@ public:
         }
     }
 
-    void randomWalk(Graph<NodeContent, EdgeContent>& graph, double restart_probability, const QString& debug_file, int max_steps = 1000000)
+	void randomWalk(Graph<NodeContent, EdgeContent>& graph, double restart_probability, const QString& debug_file, bool test_mode, int max_steps = 1000000)
     {
-        std::default_random_engine generator;
+		std::default_random_engine generator;
+		if (test_mode) generator.seed(42);
         std::uniform_real_distribution<double> restart_distrib(0.0,1.0);
 
         std::uniform_int_distribution<int> start_nodes_distrib(0, starting_nodes_.size() - 1);
@@ -362,7 +364,7 @@ public:
 
 		if(method == "random_walk")
         {
-            randomWalk(interaction_network, getFloat("restart"), getOutfile("debug"));
+			randomWalk(interaction_network, getFloat("restart"), getOutfile("debug"), getFlag("test_mode"));
         }
         else if(method == "flooding")
         {
