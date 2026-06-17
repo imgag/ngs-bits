@@ -28,6 +28,7 @@ void WorkerGeneBurdenTest::run()
 	try
 	{
 		NGSD db(test_);
+		db.enableDebugging(debug_);
 		QElapsedTimer timer;
 		timer.start();
 		if (debug_) QTextStream(stdout) << "Processing gene " << gene_result_.gene << Qt::endl;
@@ -152,6 +153,7 @@ void WorkerGeneBurdenTest::run()
 				var_ids_str << QString::number(id);
 			}
 			SqlQuery detected_variant_query = db.getQuery();
+			detected_variant_query.setForwardOnly(true);
 			detected_variant_query.exec("SELECT processed_sample_id, variant_id FROM detected_variant WHERE variant_id IN (" + var_ids_str.join(", ") + ") "
 										+ "AND processed_sample_id IN (" + ps_ids_.join(", ") + ")" + ((parameters_.include_mosaic)?"":" AND mosaic=0"));
 			while (detected_variant_query.next())
@@ -207,6 +209,7 @@ void WorkerGeneBurdenTest::run()
 QMap<int, Variant> WorkerGeneBurdenTest::getVariantsForRegion(const BedFile &regions)
 {
 	NGSD db(test_);
+	db.enableDebugging(debug_);
 	QMap<int, Variant> variants;
 
 	if(regions.count() < 1)
@@ -217,6 +220,7 @@ QMap<int, Variant> WorkerGeneBurdenTest::getVariantsForRegion(const BedFile &reg
 	//execute query
 	QString query_text = createGeneQuery(regions);
 	SqlQuery query = db.getQuery();
+	query.setForwardOnly(true);
 	query.exec(query_text);
 	if (debug_) QTextStream(stdout) << "\t initial variants: " << query.size() << Qt::endl;
 
@@ -320,12 +324,17 @@ QString WorkerGeneBurdenTest::createGeneQuery(const BedFile &regions)
 
 	//gene regions
 	QStringList chr_ranges;
+	Chromosome chr;
 	for (int i = 0; i < regions.count(); ++i)
 	{
-		chr_ranges << "(chr='" + regions[i].chr().strNormalized(true) + "' AND end>=" + QString::number(regions[i].start()) + " AND start<=" + QString::number(regions[i].end()) + ")";
+		//set chromosome in first iteration
+		if (!chr.isValid()) chr = regions[i].chr();
+		// check if exons are all on same chromosome
+		if (chr != regions[i].chr()) THROW(ArgumentException, "Exon regions of gene " + gene_result_.gene + " spann multiple chromosomes!");
+		chr_ranges << "(end>=" + QString::number(regions[i].start()) + " AND start<=" + QString::number(regions[i].end()) + ")";
 	}
 	//collapse to final query
-	query_text += " AND (" + chr_ranges.join(" OR ") + ") ORDER BY start";
+	query_text += " AND chr='" + chr.strNormalized(true) + "' AND (" + chr_ranges.join(" OR ") + ") ORDER BY start";
 
 	return query_text;
 }
@@ -333,6 +342,7 @@ QString WorkerGeneBurdenTest::createGeneQuery(const BedFile &regions)
 QMap<QByteArray, QByteArray> WorkerGeneBurdenTest::getOccurences(const QSet<int> &variant_ids, const QSet<int> &ps_ids, const QMap<int, QSet<int> > &detected_variants, Inheritance inheritance)
 {
 	NGSD db(test_);
+	db.enableDebugging(debug_);
 	// load reference
 	FastaFileIndex genome_reference(Settings::string("reference_genome", false));
 	QMap<QByteArray, QByteArray> hits;
@@ -415,6 +425,7 @@ QMap<QByteArray, QByteArray> WorkerGeneBurdenTest::getOccurencesCNV(const QSet<i
 {
 
 	NGSD db(test_);
+	db.enableDebugging(debug_);
 	QMap<QByteArray, QByteArray> ps_names;
 	ChromosomalIndex<BedFile> cnv_polymorphism_region_index(cnv_polymorphism_region_);
 
@@ -432,9 +443,14 @@ QMap<QByteArray, QByteArray> WorkerGeneBurdenTest::getOccurencesCNV(const QSet<i
 
 	//filter by region
 	QStringList chr_ranges;
+	Chromosome chr;
 	for (int i = 0; i < regions.count(); ++i)
 	{
-		chr_ranges << "(chr='" + regions[i].chr().strNormalized(true) + "' AND end>=" + QString::number(regions[i].start()) + " AND start<=" + QString::number(regions[i].end()) + ")";
+		//set chromosome in first iteration
+		if (!chr.isValid()) chr = regions[i].chr();
+		// check if exons are all on same chromosome
+		if (chr != regions[i].chr()) THROW(ArgumentException, "Exon regions of gene " + gene_result_.gene + " spann multiple chromosomes!");
+		chr_ranges << "(end>=" + QString::number(regions[i].start()) + " AND start<=" + QString::number(regions[i].end()) + ")";
 	}
 	query_text += "(" + chr_ranges.join(" OR ") + ")";
 
@@ -550,6 +566,7 @@ QList<BurdenTestResult> GeneBurdenTest::run_burden_test()
 			QString processing_system_type = db_.getProcessedSampleData(QString::number(ps_id)).processing_system_type;
 			double min_correlation = (processing_system_type == "WGS") ? 0.35: 0.9;
 			cnv_callset_query.bindValue(0, ps_id);
+			cnv_callset_query.setForwardOnly(true);
 			cnv_callset_query.exec();
 			while(cnv_callset_query.next())
 			{
@@ -565,6 +582,7 @@ QList<BurdenTestResult> GeneBurdenTest::run_burden_test()
 			QString processing_system_type = db_.getProcessedSampleData(QString::number(ps_id)).processing_system_type;
 			double min_correlation = (processing_system_type == "WGS") ? 0.35: 0.9;
 			cnv_callset_query.bindValue(0, ps_id);
+			cnv_callset_query.setForwardOnly(true);
 			cnv_callset_query.exec();
 			while(cnv_callset_query.next())
 			{

@@ -10,6 +10,7 @@ private:
     TEST_METHOD(default_params)
 	{
 		SKIP_IF_NO_TEST_NGSD();
+		SKIP_IF_NO_HG38_GENOME();
 
 		//init
 		NGSD db(true);
@@ -28,6 +29,7 @@ private:
 	TEST_METHOD(singlethread)
 	{
 		SKIP_IF_NO_TEST_NGSD();
+		SKIP_IF_NO_HG38_GENOME();
 
 		//init
 		NGSD db(true);
@@ -47,6 +49,7 @@ private:
 	TEST_METHOD(low_impact_modifier)
 	{
 		SKIP_IF_NO_TEST_NGSD();
+		SKIP_IF_NO_HG38_GENOME();
 
 		//init
 		NGSD db(true);
