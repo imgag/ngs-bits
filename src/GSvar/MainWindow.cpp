@@ -3195,7 +3195,7 @@ void MainWindow::on_actionAbout_triggered()
 		}
 		else
 		{
-			add_info += "<br>&nbsp;&nbsp;version: " + server_info.version;
+			add_info += "<br>&nbsp;&nbsp;version: " + server_info.version + " (" + server_info.date + ")";
 			add_info += "<br>&nbsp;&nbsp;start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
 			add_info += "<br>&nbsp;&nbsp;API URL: " + server_info.server_url;
 			add_info += "<br>&nbsp;&nbsp;API version: " + server_info.api_version;
