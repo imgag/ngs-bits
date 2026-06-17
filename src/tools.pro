@@ -668,3 +668,6 @@ SUBDIRS += NGSDGeneBurdenTest
 tools-TEST.depends += NGSDGeneBurdenTest
 NGSDGeneBurdenTest.depends = cppNGSD
 
+SUBDIRS += NGSDSampleUsers
+tools-TEST.depends += NGSDSampleUsers
+NGSDSampleUsers.depends = cppNGSD

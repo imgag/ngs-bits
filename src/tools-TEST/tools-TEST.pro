@@ -184,4 +184,5 @@ SOURCES += \
     NGSDExportSpliceAI_Test.cpp \
     VcfMerge_Test.cpp \
     TranscriptToProtein_Test.cpp \
+    NGSDSampleUsers_Test.cpp \
     main.cpp

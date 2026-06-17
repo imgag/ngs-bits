@@ -1,7 +1,7 @@
 include("../test.pri")
 
 #include cppXML library
-INCLUDEPATH += $$PWD/cppXML
+INCLUDEPATH += $$PWD/../cppXML
 LIBS += -L$$PWD/../../bin -lcppXML
 
 #include cppNGS library

@@ -249,9 +249,9 @@ public:
         }
     }
 
-    void randomWalk(Graph<NodeContent, EdgeContent>& graph, double restart_probability, const QString& debug_file, int max_steps = 1000000)
+	void randomWalk(Graph<NodeContent, EdgeContent>& graph, double restart_probability, const QString& debug_file, int max_steps = 1000000)
     {
-        std::default_random_engine generator;
+		std::default_random_engine generator;
         std::uniform_real_distribution<double> restart_distrib(0.0,1.0);
 
         std::uniform_int_distribution<int> start_nodes_distrib(0, starting_nodes_.size() - 1);
@@ -362,7 +362,7 @@ public:
 
 		if(method == "random_walk")
         {
-            randomWalk(interaction_network, getFloat("restart"), getOutfile("debug"));
+			randomWalk(interaction_network, getFloat("restart"), getOutfile("debug"));
         }
         else if(method == "flooding")
         {
