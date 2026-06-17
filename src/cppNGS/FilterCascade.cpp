@@ -4499,7 +4499,7 @@ void FilterSvCompHet::apply(const BedpeFile& svs, FilterResult& result) const
 	{
 		if (!result.flags()[i]) continue;
 
-		GeneSet genes = GeneSet::createFromText(svs[i].annotations()[i_genes], ';');
+		GeneSet genes = GeneSet::createFromText(svs[i].annotations()[i_genes], ',');
 		for (const QByteArray& gene : std::as_const(genes))
 		{
 			gene_count[gene] += 1;
@@ -4538,7 +4538,7 @@ void FilterSvCompHet::apply(const BedpeFile& svs, FilterResult& result) const
 	{
 		if (!result.flags()[i]) continue;
 
-		GeneSet genes = GeneSet::createFromText(svs[i].annotations()[i_genes], ';');
+		GeneSet genes = GeneSet::createFromText(svs[i].annotations()[i_genes], ',');
 		result.flags()[i] = genes.intersectsWith(comphet_hit);
 	}
 }
