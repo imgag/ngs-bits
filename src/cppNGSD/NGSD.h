@@ -718,6 +718,8 @@ public:
 	bool isOpen() const;
 	///Returns if the database is a production database based on information in the table 'db_info'.
 	bool isProductionDb() const;
+	///Enables debuggins
+	void enableDebugging(bool enabled) { debug_ = enabled; }
 
 	///Returns if the database is available (i.e. the credentials are in the settings file or the application is in client-server mode)
 	static bool isAvailable(bool test_db=false);
@@ -764,7 +766,7 @@ public:
 	///Returns a SqlQuery object on the NGSD for custom queries.
 	SqlQuery getQuery() const
 	{
-		return SqlQuery(*db_);
+		return SqlQuery(*db_, debug_);
 	}
 	///Executes all queries from a text file.
 	void executeQueriesFromFile(QString filename);
@@ -1300,7 +1302,10 @@ protected:
 
 	///The database adapter
 	QSharedPointer<QSqlDatabase> db_;
+	//Use test database instead of production database
 	bool test_db_;
+	//Enable debugging (prints executed queries)
+	bool debug_;
 
 	///Caching functionality (static)
 	struct Cache

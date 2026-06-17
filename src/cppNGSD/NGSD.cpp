@@ -29,6 +29,7 @@
 
 NGSD::NGSD(bool test_db, QString test_name_override)
 	: test_db_(test_db)
+	, debug_(false)
 {
 	QString db_identifier = "NGSD_" + QUuid::createUuid().toString();
 	db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", db_identifier)));
@@ -5908,7 +5909,7 @@ void NGSD::updateQC(QString obo_file, bool debug)
 
 	// database connection
 	transaction();
-	QSqlQuery query = getQuery();
+	SqlQuery query = getQuery();
 	query.prepare("INSERT INTO qc_terms (qcml_id, name, description, type, obsolete) VALUES (:0, :1, :2, :3, :4) ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), type=VALUES(type), obsolete=VALUES(obsolete)");
 	int c_terms_ngs = 0;
 	int c_terms_valid_type = 0;
@@ -10991,6 +10992,7 @@ void NGSD::initTranscriptCache()
 	//get exon coordinates for each transcript from NGSD
 	QHash<int, QList<QPair<int, int>>> tmp_coords;
 	SqlQuery query = getQuery();
+	query.setForwardOnly(true);
 	query.exec("SELECT transcript_id, start, end FROM gene_exon ORDER BY start, end");
 	while(query.next())
 	{
