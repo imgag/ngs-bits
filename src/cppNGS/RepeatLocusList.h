@@ -60,6 +60,9 @@ public:
 	const QByteArrayList& overlappingInsertions() const { return overlapping_insertions_; }
 	void setOverlappingInsertions(const QByteArrayList& overlapping_insertions) { overlapping_insertions_ = overlapping_insertions; }
 
+	int refSize() const { return ref_size_; }
+	void setRefSize(int ref_size) { ref_size_ = ref_size; }
+
 	bool sameRegionAndLocus(const RepeatLocus& rhs) const;
 
 	QString toString(bool add_region_unit, bool add_genotypes) const;
@@ -82,6 +85,7 @@ protected:
 
 	//annotations
 	QByteArrayList overlapping_insertions_;
+	int ref_size_ = -1;
 };
 
 ///CNV list types

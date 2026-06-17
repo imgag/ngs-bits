@@ -477,6 +477,7 @@ void RepeatExpansionWidget::displayRepeats()
 	// fill table widget with variants/repeat expansions
 	ui_.table->setRowCount(res_.count());
 	bool hide_ins_column = true;
+	bool hide_ref_size_column = true;
     for(int row_idx=0; row_idx<res_.count(); ++row_idx)
 	{
 		const RepeatLocus& re = res_[row_idx];
@@ -527,16 +528,24 @@ void RepeatExpansionWidget::displayRepeats()
 			setCellDecoration(row_idx, "reads spanning", "Less than 3 spanning reads", yellow_);
 		}
 
+		//reference size
+		if (re.refSize() > -1)
+		{
+			setCell(row_idx, "ref size", QString::number(re.refSize()));
+			hide_ref_size_column = false;
+		}
+
 		//additional annotations
 		setCell(row_idx, "overlapping insertions", re.overlappingInsertions().join(", "));
 		if (re.overlappingInsertions().size() > 0)
 		{
 			hide_ins_column = false;
-			setCellDecoration(row_idx, "overlapping insertions", "Overlapping insertion called.", yellow_);
+			setCellDecoration(row_idx, "overlapping insertions", "Overlapping insertion called. (Calculated overall repeat units)", yellow_);
 		}
 	}
 
 	ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "overlapping insertions"), hide_ins_column);
+	ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "ref size"), hide_ref_size_column);
 
 }
 
@@ -601,7 +610,7 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
         QStringList disease_ids_omim = getRepeatExpansionFieldById(re_table, "disease_ids_omim", id).split(",");
         QString omim_like_clause = "";
         QString omim_when_clause = "";
-        for (const QString &id : disease_ids_omim)
+		for (const QString &id : std::as_const(disease_ids_omim))
         {
             QString disease_id = id.trimmed();
             if (disease_id.isEmpty()) continue;
@@ -655,7 +664,7 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
         //HPO terms
         QStringList hpo_terms = getRepeatExpansionFieldById(re_table, "hpo_terms", id).split(",");
         QString hpo_like_clause = "";
-        for (const QString &term : hpo_terms)
+		for (const QString &term : std::as_const(hpo_terms))
         {
             if (!hpo_like_clause.isEmpty()) hpo_like_clause += " OR ";
             hpo_like_clause += "hpo_id LIKE '" + term.trimmed() + "'";

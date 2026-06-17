@@ -192,6 +192,10 @@ void RepeatLocusList::load(QString filename)
 			overlapping_insertions.removeAll("");
 			rl.setOverlappingInsertions(overlapping_insertions);
 
+			//ref size
+			QByteArray ref_size = re.info("REF_SIZE").trimmed();
+			if (!ref_size.isEmpty()) rl.setRefSize((int) Helper::toDouble(ref_size, "REF_SIZE entry in INFO", "Repeat locus " + repeat_id));
+
 			if (caller_version_ == "V1.5.0" || caller_version_ == "V1.5.1")
 			{
 				//genotype

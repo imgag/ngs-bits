@@ -323,6 +323,11 @@
      </column>
      <column>
       <property name="text">
+       <string>ref size</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
        <string>max. normal</string>
       </property>
      </column>
