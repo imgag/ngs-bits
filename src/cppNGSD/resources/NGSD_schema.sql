@@ -112,8 +112,7 @@ CONSTRAINT `fk_transcript_id2`
   REFERENCES `gene_transcript` (`id` )
   ON DELETE NO ACTION
   ON UPDATE NO ACTION,
-KEY `start` (`start`),
-KEY `end` (`end`)
+KEY `idx_start_end_transcript` (`start`, `end`, `transcript_id`)
 )
 ENGINE=InnoDB DEFAULT
 CHARSET=utf8

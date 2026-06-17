@@ -10,11 +10,14 @@ class CPPNGSDSHARED_EXPORT SqlQuery
 	: public QSqlQuery
 {
 public:
-		SqlQuery(QSqlDatabase db);       
+		SqlQuery(QSqlDatabase db, bool debug=false);
 
 		void exec(const QString& query);
 		void prepare(const QString& query);
 		void exec();
+	protected:
+		//Enable debugging (prints executed queries)
+		bool debug_;
 };
 
 #endif // SQLQUERY_H
