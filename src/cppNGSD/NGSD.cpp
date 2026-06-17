@@ -177,9 +177,18 @@ void NGSD::setPassword(int user_id, QString password)
 	getQuery().exec("UPDATE user SET password='" + hash + "', salt='" + salt + "' WHERE id=" + QString::number(user_id));
 }
 
-QString NGSD::getUserRole(int user_id) //TODO Alexandr return a enum and cache role for each user id (make deleting cache on server possible)
+QByteArray NGSD::getUserRole(int user_id)
 {
-	return getValue("SELECT user_role FROM user WHERE id='" + QString::number(user_id) + "'").toString().toLower();
+	QMutexLocker locker(&cache_mutex_user_roles_);
+	QMap<int, QByteArray>& user_role = getCache().user_role;
+
+	//get user-specific data and store it in cache
+	if (!user_role.contains(user_id))
+	{
+		user_role[user_id] = getValue("SELECT user_role FROM user WHERE id='" + QString::number(user_id) + "'").toByteArray().toLower();
+	}
+
+	return user_role[user_id];
 }
 
 bool NGSD::userRoleIn(QString user, QStringList roles)
@@ -10937,22 +10946,30 @@ void NGSD::clearCache()
 	cache_instance.gene_expression_id2gene.clear();
 	cache_instance.gene_expression_gene2id.clear();
 
-	clearUserAccessPermissionsCache();
-	clearUserActionPermissionsCache();
+	clearUserCaches();
 }
 
-void NGSD::clearUserAccessPermissionsCache()
+void NGSD::clearUserCaches()
 {
-	QMutexLocker locker(&cache_mutex_user_access_);
 	Cache& cache_instance = getCache();
-	cache_instance.user_can_access.clear();
-}
 
-void NGSD::clearUserActionPermissionsCache()
-{
-	QMutexLocker locker(&cache_mutex_user_actions_);
-	Cache& cache_instance = getCache();
-	cache_instance.user_can_perform_actions.clear();
+	//roles
+	{
+		QMutexLocker locker(&cache_mutex_user_roles_);
+		cache_instance.user_role.clear();
+	}
+
+	//sample access permissions
+	{
+		QMutexLocker locker(&cache_mutex_user_access_);
+		cache_instance.user_can_access.clear();
+	}
+
+	//action permissions
+	{
+		QMutexLocker locker(&cache_mutex_user_actions_);
+		cache_instance.user_can_perform_actions.clear();
+	}
 }
 
 NGSD::Cache::Cache()

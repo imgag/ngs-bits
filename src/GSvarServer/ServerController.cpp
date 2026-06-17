@@ -633,7 +633,7 @@ HttpResponse ServerController::checkProjectFolder(const HttpRequest &request)
 
 		// access is restricted only for the user role 'admin'
 		NGSD db;
-		QString role = db.getUserRole(current_session.user_id);
+		QByteArray role = db.getUserRole(current_session.user_id);
 		if (role!="admin")
 		{
 			THROW_HTTP(HttpException, "You do not have permissions to change projects!", 401,  {}, {});
@@ -694,7 +694,7 @@ HttpResponse ServerController::getProjectFolderSettings(const HttpRequest &reque
 
 		// access is restricted only for the user role 'admin'
 		NGSD db;
-		QString role = db.getUserRole(current_session.user_id);
+		QByteArray role = db.getUserRole(current_session.user_id);
 		if (role!="admin")
 		{
 			THROW_HTTP(HttpException, "You do not have permissions to change projects!", 401,  {}, {});
@@ -1811,7 +1811,7 @@ QString ServerController::getProcessedSampleFile(int ps_id, const PathType& type
 
         NGSD db;
         // access is restricted only for the user role 'user_restricted'
-        QString role = db.getUserRole(current_session.user_id);
+		QByteArray role = db.getUserRole(current_session.user_id);
         if (role=="user_restricted" && !db.userCanAccess(current_session.user_id, ps_id))
         {
             THROW_HTTP(HttpException, "You do not have permissions to the sample with id '" + QString::number(ps_id) + "'", 401,  {}, {});
@@ -1958,7 +1958,6 @@ HttpResponse ServerController::uploadFileToFolder(QString upload_folder, const H
 HttpResponse ServerController::clearPermissionsCache(const HttpRequest &/*request*/)
 {
 	NGSD db;
-	db.clearUserAccessPermissionsCache();
-	db.clearUserActionPermissionsCache();
-	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "User permissions cache has been cleared");
+	db.clearUserCaches();
+	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "User role/permission/action cache has been cleared");
 }

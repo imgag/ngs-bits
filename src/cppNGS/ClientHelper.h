@@ -150,6 +150,9 @@ public:
 	///Returns the URL used for sending requests to the GSvar server (use only when in client-server mode)
 	static QString serverApiUrl();
 
+	///Clears user-specific caches on server (roles, sample permissions, action permissions)
+	static void clearServerUserCache(QString token);
+
 private:
 	///Constructor declared away
 	ClientHelper() = delete;

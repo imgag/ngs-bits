@@ -5684,7 +5684,7 @@ void MainWindow::refreshVariantTable(bool keep_widths, bool keep_heights)
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
-    QElapsedTimer timer;
+	QElapsedTimer timer;
 	timer.start();
 
 	//apply filters
@@ -6835,7 +6835,7 @@ void MainWindow::applyFilters(bool debug_time)
 			NGSD db;
 			GeneSet pheno_genes;
 			int i = 0;
-            for (const Phenotype& pheno : phenos)
+			for (const Phenotype& pheno : phenos)
 			{
 				GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(pheno.accession()), pheno_settings.sources, pheno_settings.evidence_levels, true, false);
 
@@ -6881,7 +6881,7 @@ void MainWindow::applyFilters(bool debug_time)
 		ReportConfigFilter rc_filter = ui_.filters->reportConfigurationFilter();
 		if (germlineReportSupported() && rc_filter!=ReportConfigFilter::NONE)
 		{
-            QSet<int> report_variant_indices = Helper::listToSet(report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false));
+			QSet<int> report_variant_indices = Helper::listToSet(report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false));
 			for(int i=0; i<variants_.count(); ++i)
 			{
 				if (!filter_result_.flags()[i]) continue;

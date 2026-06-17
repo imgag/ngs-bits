@@ -146,3 +146,10 @@ QString ClientHelper::serverApiUrl()
 {
 	return  "https://" + Settings::string("server_host", true) + ":" + Settings::string("server_port", true) + "/" + serverApiVersion() + "/";
 }
+
+void ClientHelper::clearServerUserCache(QString token)
+{
+	HttpHeaders add_headers;
+	add_headers.insert("Content-Type", "application/json");
+	HttpRequestHandler().post(ClientHelper::serverApiUrl() + "clear_cache?token=" + token, QByteArray{}, add_headers);
+}
