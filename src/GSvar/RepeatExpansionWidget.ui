@@ -388,6 +388,11 @@
        <string>in-house testing</string>
       </property>
      </column>
+     <column>
+      <property name="text">
+       <string>overlapping insertions</string>
+      </property>
+     </column>
     </widget>
    </item>
   </layout>

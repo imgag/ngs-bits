@@ -51,6 +51,7 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 
 		//hide lrGS column
 		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads supporting"), true);
+		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "overlapping insertions"), true);
 
 	}
 	else if (sys_type_=="lrGS")
@@ -69,6 +70,7 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 
 		//hide lrGS column
 		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads supporting"), true);
+		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "overlapping insertions"), true);
 	}
 	if (sys_type_cutoff_col_.isEmpty())
 	{
@@ -474,6 +476,7 @@ void RepeatExpansionWidget::displayRepeats()
 {
 	// fill table widget with variants/repeat expansions
 	ui_.table->setRowCount(res_.count());
+	bool hide_ins_column = true;
     for(int row_idx=0; row_idx<res_.count(); ++row_idx)
 	{
 		const RepeatLocus& re = res_[row_idx];
@@ -523,7 +526,18 @@ void RepeatExpansionWidget::displayRepeats()
 		{
 			setCellDecoration(row_idx, "reads spanning", "Less than 3 spanning reads", yellow_);
 		}
+
+		//additional annotations
+		setCell(row_idx, "overlapping insertions", re.overlappingInsertions().join(", "));
+		if (re.overlappingInsertions().size() > 0)
+		{
+			hide_ins_column = false;
+			setCellDecoration(row_idx, "overlapping insertions", "Overlapping insertion called.", yellow_);
+		}
 	}
+
+	ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "overlapping insertions"), hide_ins_column);
+
 }
 
 void RepeatExpansionWidget::loadMetaDataFromNGSD()

@@ -57,6 +57,9 @@ public:
 	const QByteArray& confidenceIntervals() const { return confidence_intervals_; }
 	void setConfidenceIntervals(const QByteArray& confidence_intervals) { confidence_intervals_ = confidence_intervals.trimmed(); }
 
+	const QByteArrayList& overlappingInsertions() const { return overlapping_insertions_; }
+	void setOverlappingInsertions(const QByteArrayList& overlapping_insertions) { overlapping_insertions_ = overlapping_insertions; }
+
 	bool sameRegionAndLocus(const RepeatLocus& rhs) const;
 
 	QString toString(bool add_region_unit, bool add_genotypes) const;
@@ -76,6 +79,9 @@ protected:
 	QByteArray reads_in_repeat_;
 	QByteArray reads_spanning_;
 	QByteArray confidence_intervals_;
+
+	//annotations
+	QByteArrayList overlapping_insertions_;
 };
 
 ///CNV list types

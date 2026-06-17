@@ -187,6 +187,11 @@ void RepeatLocusList::load(QString filename)
 			//filters
 			rl.setFilters(re.filters());
 
+			//additional annotations
+			QByteArrayList overlapping_insertions = re.info("OVERLAPPING_INS").trimmed().split(',');
+			overlapping_insertions.removeAll("");
+			rl.setOverlappingInsertions(overlapping_insertions);
+
 			if (caller_version_ == "V1.5.0" || caller_version_ == "V1.5.1")
 			{
 				//genotype
