@@ -519,13 +519,13 @@ void MainWindow::userSpecificDebugFunction()
 			                              <ImpMeldungsart>0</ImpMeldungsart>
 			                              <ImpMeldungsnr></ImpMeldungsnr>
 			                              <ImpMeldungstyp>K</ImpMeldungstyp>
-			                              <ImpVorgangsnr>DSFGERGWEG344GSDFGSDFGSDFGSDGSDFGDFGSDGDFGSDFGDFGDGDGSDGDGDFGDFG</ImpVorgangsnr>
-			                              <ImpVorgangsDatum>2026-06-16</ImpVorgangsDatum>
+			                              <ImpVorgangsnr>AAAGERGWEG344GSDFGSDFGSDFGSDGSDFGDFGSDGDFGSDFGDFGDGDGSDGDGDFGDFG</ImpVorgangsnr>
+			                              <ImpVgUploadDatum>2026-06-18</ImpVgUploadDatum>
 			                            </urn:ZishWsSetGenomData>
 			                          </soapenv:Body>
 			                        </soapenv:Envelope>)";
 			HttpRequestHandler handler;
-			handler.setCredentials("ah3arzt", "TODO");
+			handler.setCredentials("ah3arzt", "XXXXXXXXXXXXXXX - TODO - XXXXXXXXXXXXXXX");
 			handler.setHeader("content-type", "text/xml; charset=utf-8");
 			handler.setHeader("SOAPAction", "\"urn:sap-com:document:sap:soap:functions:mc-style:ZISH_WS_SET_GENOM_DATA:ZishWsSetGenomDataRequest\"");
 			ServerReply reply = handler.post("http://vsldt4as01.med.uni-tuebingen.de:8080/sap/bc/srt/rfc/sap/zish_ws_set_genom_data/100/zish_ws_set_genom_data/zish_ws_set_genom_data", request);
