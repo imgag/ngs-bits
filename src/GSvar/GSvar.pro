@@ -22,6 +22,7 @@ ICON = Icons/Icon.icns
 }
 
 SOURCES += main.cpp\
+    AnalysisTimePlot.cpp \
     Background/BackgroundJobDialog.cpp \
     Background/BackgroundWorkerBase.cpp \
     Background/NGSDCacheInitializer.cpp \
@@ -156,6 +157,7 @@ SOURCES += main.cpp\
     OncoTreeSelector.cpp
 
 HEADERS += MainWindow.h \
+    AnalysisTimePlot.h \
     Background/BackgroundJobDialog.h \
     Background/BackgroundWorkerBase.h \
     Background/NGSDCacheInitializer.h \
@@ -290,6 +292,7 @@ HEADERS += MainWindow.h \
     OncoTreeSelector.h
 
 FORMS    += MainWindow.ui \
+    AnalysisTimePlot.ui \
     Background/BackgroundJobDialog.ui \
     CfDNAPanelBatchImport.ui \
     ColumnConfigWidget.ui \

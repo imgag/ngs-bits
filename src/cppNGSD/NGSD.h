@@ -63,6 +63,27 @@ struct CPPNGSDSHARED_EXPORT TableFieldConstraints
 	QRegularExpression regexp; //VARCHAR
 };
 
+/// User permission items (used in user_permissions table)
+enum AccessPermission
+{
+	PROJECT, // only a specific project
+	PROJECT_TYPE, // only specific types of projects
+	STUDY, // only a specific study
+	SAMPLE, // only a specific sample
+};
+
+/// converts a valid string into AccessPermission enum value
+CPPNGSDSHARED_EXPORT AccessPermission stringToAccessPermission(const QString& in);
+
+/// User action permission items (used in user_action_permissions table)
+enum ActionPermission
+{
+	CHANGE_NGSD_DATA, // abilty to change data in NGSD (comments, report-config, ...)
+	PERFORM_VARIANT_SEARCH, // ability to perform variant search
+	PERFORM_BURDEN_TEST, // ability to perform burden test
+	START_ANALYSIS_JOBS, // ability to start analysis jobs
+};
+
 ///General database field information.
 struct CPPNGSDSHARED_EXPORT TableFieldInfo
 {
@@ -697,6 +718,8 @@ public:
 	bool isOpen() const;
 	///Returns if the database is a production database based on information in the table 'db_info'.
 	bool isProductionDb() const;
+	///Enables debuggins
+	void enableDebugging(bool enabled) { debug_ = enabled; }
 
 	///Returns if the database is available (i.e. the credentials are in the settings file or the application is in client-server mode)
 	static bool isAvailable(bool test_db=false);
@@ -743,7 +766,7 @@ public:
 	///Returns a SqlQuery object on the NGSD for custom queries.
 	SqlQuery getQuery() const
 	{
-		return SqlQuery(*db_);
+		return SqlQuery(*db_, debug_);
 	}
 	///Executes all queries from a text file.
 	void executeQueriesFromFile(QString filename);
@@ -996,12 +1019,14 @@ public:
 	///Sets the password for a NGSD user using a new random salt.
 	void setPassword(int user_id, QString password);
 	///Return a role for a given user.
-	QString getUserRole(int user_id);
+	QByteArray getUserRole(int user_id);
 
 	///Checks if the user has one of the given roles.
 	bool userRoleIn(QString user, QStringList roles);
 	///Checks if the user can access the processed sample. Use for users with role 'restricted_user' only, or it will be slow because the user role has to be checked every time. Uses caching for massive speed-up.
 	bool userCanAccess(int user_id, int ps_id);
+	///Returns the action permissions of a user. Action permissions can be restricted for users with role 'restricted_user' only.
+	QSet<ActionPermission> userActionPermissions(int user_id);
 
 	/*** Main NGSD functions ***/
 	///Search for processed samples
@@ -1258,14 +1283,12 @@ public:
 	//clearCache() should only be called outside of NGSD for tests!
 	void clearCache();
 
-	///Clears only the user permissions part of the cache
-	void clearUserPermissionsCache();
+	///Clears user-specific caches (user roles, sample access permissions, actions permissions)
+	void clearUserCaches();
 
 signals:
 	void initProgress(QString text, bool percentage);
 	void updateProgress(int percentage);
-
-
 
 protected:
 	///Copy constructor "declared away".
@@ -1280,7 +1303,10 @@ protected:
 
 	///The database adapter
 	QSharedPointer<QSqlDatabase> db_;
+	//Use test database instead of production database
 	bool test_db_;
+	//Enable debugging (prints executed queries)
+	bool debug_;
 
 	///Caching functionality (static)
 	struct Cache
@@ -1315,14 +1341,18 @@ protected:
 		QMap<int, QByteArray> gene_expression_id2gene;
 		QMap<QByteArray, int> gene_expression_gene2id;
 
+		QMap<int, QByteArray> user_role;
         QMap<int, QSet<int>> user_can_access;
+		QMap<int, QSet<ActionPermission>> user_can_perform_actions;
 	};
 	static Cache& getCache();
 	void initTranscriptCache();
 	void initGeneExpressionCache();
 
 private:
+	mutable QMutex cache_mutex_user_roles_; //mutex for Cache::user_can_access
 	mutable QMutex cache_mutex_user_access_; //mutex for Cache::user_can_access
+	mutable QMutex cache_mutex_user_actions_; //mutex for Cache::user_can_perform_actions
 };
 
 #endif // NGSD_H

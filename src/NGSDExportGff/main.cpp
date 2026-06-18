@@ -201,7 +201,7 @@ public:
 	                    "GROUP BY gene_id) start, "
  
 	                    "(SELECT MAX(end) end FROM ( "
-	                    "	SELECT gene_id, (SELECT MAX(end) start FROM gene_exon ge WHERE ge.transcript_id = gt.id group BY transcript_id) end "
+						"	SELECT gene_id, (SELECT MAX(end) end FROM gene_exon ge WHERE ge.transcript_id = gt.id group BY transcript_id) end "
 	                    "FROM gene_transcript gt  "
 	                    "WHERE source = 'ensembl')x_end "
 	                    "WHERE x_end.gene_id = gene.id "

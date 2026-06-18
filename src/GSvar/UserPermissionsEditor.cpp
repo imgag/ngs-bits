@@ -1,5 +1,4 @@
 #include "UserPermissionsEditor.h"
-#include "UserPermissionList.h"
 #include "GUIHelper.h"
 #include <QMessageBox>
 #include <QMenu>
@@ -17,24 +16,39 @@ UserPermissionsEditor::UserPermissionsEditor(QString table, QString user_id, QWi
 {
 	ui_.setupUi(this);
 
+	// initialize access permissions
 	ui_.add_btn->setToolTip("Add a new user permission");
 	ui_.add_btn->setMenu(new QMenu());
 	ui_.add_btn->menu()->addSeparator();
-	ui_.add_btn->menu()->addAction("Add project permission", this, SLOT(addProjectPermission()));
-	ui_.add_btn->menu()->addAction("Add project type permission", this, SLOT(addProjectTypePermission()));
-	ui_.add_btn->menu()->addAction("Add study permission", this, SLOT(addStudyPermission()));
-	ui_.add_btn->menu()->addAction("Add sample permission", this, SLOT(addSamplePermission()));
+	ui_.add_btn->menu()->addAction("Add project permission", this, SLOT(addProjectAccessPermission()));
+	ui_.add_btn->menu()->addAction("Add project type permission", this, SLOT(addProjectTypeAccessPermission()));
+	ui_.add_btn->menu()->addAction("Add study permission", this, SLOT(addStudyAccessPermission()));
+	ui_.add_btn->menu()->addAction("Add sample permission", this, SLOT(addSampleAccessPermission()));
 	ui_.add_btn->setPopupMode(QToolButton::InstantPopup);
 
-	connect(ui_.delete_btn, SIGNAL(clicked(bool)), this, SLOT(remove()));
+	connect(ui_.delete_btn, SIGNAL(clicked(bool)), this, SLOT(removeAccessPermission()));
+
+	// initialize action permissions
+	connect(ui_.cb_change_ngsd_data, SIGNAL(stateChanged(int)), this, SLOT(updateActionPermissions()));
+	connect(ui_.cb_variant_search, SIGNAL(stateChanged(int)), this, SLOT(updateActionPermissions()));
+	connect(ui_.cb_burden_test, SIGNAL(stateChanged(int)), this, SLOT(updateActionPermissions()));
+	connect(ui_.cb_start_job, SIGNAL(stateChanged(int)), this, SLOT(updateActionPermissions()));
 }
 
 void UserPermissionsEditor::delayedInitialization()
 {
-	updateTable();
+	updateAccessPermissions();
+
+	//init action permissions
+	NGSD db;
+	QSet<ActionPermission> actions = db.userActionPermissions(user_id_.toInt());
+	ui_.cb_change_ngsd_data->setChecked(actions.contains(ActionPermission::CHANGE_NGSD_DATA));
+	ui_.cb_variant_search->setChecked(actions.contains(ActionPermission::PERFORM_VARIANT_SEARCH));
+	ui_.cb_burden_test->setChecked(actions.contains(ActionPermission::PERFORM_BURDEN_TEST));
+	ui_.cb_start_job->setChecked(actions.contains(ActionPermission::START_ANALYSIS_JOBS));
 }
 
-void UserPermissionsEditor::updateTable()
+void UserPermissionsEditor::updateAccessPermissions()
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
@@ -53,20 +67,20 @@ void UserPermissionsEditor::updateTable()
 		QString data_hint = db_table.row(i).value(1);
 		DBRow new_row;
 
-		switch(UserPermissionList::stringToType(permission_str))
+		switch(stringToAccessPermission(permission_str))
 		{
-			case Permission::PROJECT:
+			case AccessPermission::PROJECT:
 				human_readable_data = db.getValue("SELECT name FROM project WHERE id='"+ data_hint +"'").toString();				
 				break;
-			case Permission::PROJECT_TYPE:
+			case AccessPermission::PROJECT_TYPE:
 				human_readable_data = data_hint;
 				break;
-			case Permission::STUDY:
+			case AccessPermission::STUDY:
 				human_readable_data = db.getValue("SELECT name FROM study WHERE id='"+ data_hint +"'").toString();
 				break;
-			case Permission::SAMPLE:
+			case AccessPermission::SAMPLE:
 				human_readable_data = db.sampleName(data_hint);
-				break;
+				break;			
 		}
 
 		new_row.setId(db_table.row(i).id());
@@ -79,12 +93,12 @@ void UserPermissionsEditor::updateTable()
 	QApplication::restoreOverrideCursor();
 }
 
-void UserPermissionsEditor::addProjectPermission()
+void UserPermissionsEditor::addProjectAccessPermission()
 {	
-	createAddPermissionDialog("project");
+	createAddAccessPermissionDialog("project");
 }
 
-void UserPermissionsEditor::addProjectTypePermission()
+void UserPermissionsEditor::addProjectTypeAccessPermission()
 {
 	QStringList enum_project_types;
 	const TableInfo& table_info = db_.tableInfo("project");
@@ -117,21 +131,21 @@ void UserPermissionsEditor::addProjectTypePermission()
 	QSharedPointer<QDialog> dialog = GUIHelper::createDialog(selector, "Select a project type", "Project type:", true);
 	if (dialog->exec()==QDialog::Accepted && selector->isValidSelection())
 	{
-		addPermissionToDatabase("project_type", selector->getId(), selector->text());		
+		addAccessPermissionToDatabase("project_type", selector->getId(), selector->text());
 	}
 }
 
-void UserPermissionsEditor::addStudyPermission()
+void UserPermissionsEditor::addStudyAccessPermission()
 {
-	createAddPermissionDialog("study");
+	createAddAccessPermissionDialog("study");
 }
 
-void UserPermissionsEditor::addSamplePermission()
+void UserPermissionsEditor::addSampleAccessPermission()
 {
-	createAddPermissionDialog("sample");
+	createAddAccessPermissionDialog("sample");
 }
 
-void UserPermissionsEditor::remove()
+void UserPermissionsEditor::removeAccessPermission()
 {
 	//check
 	QSet<int> rows = ui_.table->selectedRows();
@@ -161,23 +175,33 @@ void UserPermissionsEditor::remove()
 														  "\n\nDatabase error:\n" + e.message());
 	}
 
-	updateTable();
-	clearServerCache();
+	updateAccessPermissions();
+	ClientHelper::clearServerUserCache(LoginManager::userToken());
 }
 
-void UserPermissionsEditor::clearServerCache()
+void UserPermissionsEditor::updateActionPermissions()
 {
+	NGSD db;
+
 	try
 	{
-		HttpRequestHandler().post(ClientHelper::serverApiUrl() + "clear_cache?token=" + LoginManager::userToken(), QByteArray{});
+		if (!db.getValue("SELECT id FROM user_action_permissions WHERE user_id='" + user_id_ + "'", true).isValid())
+		{
+			db.getQuery().exec("INSERT INTO user_action_permissions (user_id, change_ngsd_data, perform_variant_search, perform_burden_test, start_analysis_jobs) VALUES ('" + user_id_ + "','"+QString::number(ui_.cb_change_ngsd_data->isChecked()) + "','"+QString::number(ui_.cb_variant_search->isChecked())+"', '"+QString::number(ui_.cb_burden_test->isChecked())+"', '"+QString::number(ui_.cb_start_job->isChecked())+"')");
+		}
+		else
+		{
+			db.getQuery().exec("UPDATE user_action_permissions SET change_ngsd_data='"+QString::number(ui_.cb_change_ngsd_data->isChecked())+"', perform_variant_search='"+QString::number(ui_.cb_variant_search->isChecked())+"', perform_burden_test='"+QString::number(ui_.cb_burden_test->isChecked())+"', start_analysis_jobs='"+QString::number(ui_.cb_start_job->isChecked())+"' WHERE user_id='"+user_id_+ "'");
+		}
 	}
-	catch (Exception& e)
+	catch (DatabaseException e)
 	{
-		QMessageBox::warning(this, "Failed to clear user permissions cache on the server", e.message());
+		QMessageBox::warning(this, "Error while changing permissions", "Could not save action permissions for the selected user: " + e.message());
 	}
+	ClientHelper::clearServerUserCache(LoginManager::userToken());
 }
 
-void UserPermissionsEditor::createAddPermissionDialog(QString table_name)
+void UserPermissionsEditor::createAddAccessPermissionDialog(QString table_name)
 {
 	QString entity_name = table_name;
 	entity_name =  entity_name.replace(0, 1, entity_name[0].toUpper());
@@ -187,11 +211,11 @@ void UserPermissionsEditor::createAddPermissionDialog(QString table_name)
 	QSharedPointer<QDialog> dialog = GUIHelper::createDialog(selector, "Select a " + entity_name.toLower(), entity_name + " name:", true);
 	if (dialog->exec()==QDialog::Accepted && selector->isValidSelection())
 	{
-		addPermissionToDatabase(table_name, selector->getId(), selector->text());
+		addAccessPermissionToDatabase(table_name, selector->getId(), selector->text());
 	}
 }
 
-void UserPermissionsEditor::addPermissionToDatabase(QString permission, QString data, QString display_text)
+void UserPermissionsEditor::addAccessPermissionToDatabase(QString permission, QString data, QString display_text)
 {
 	try
 	{
@@ -207,6 +231,6 @@ void UserPermissionsEditor::addPermissionToDatabase(QString permission, QString 
 	{
 		QMessageBox::warning(this, "Adding new permission", "Error while adding a new permission to the database: " + e.message());
 	}
-	updateTable();
-	clearServerCache();
+	updateAccessPermissions();
+	ClientHelper::clearServerUserCache(LoginManager::userToken());
 }
