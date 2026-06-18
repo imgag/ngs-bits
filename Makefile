@@ -252,7 +252,7 @@ dummy:
 
 download_test_files:
 	wget -O ./src/cppNGS-TEST/data_in/hg19ToHg38.over.chain.gz https://download.imgag.de/public/genomes/hg19ToHg38.over.chain.gz
-	wget -O ./src/cppNGS-TEST/data_in/hg38ToHg19.over.chain.gz https://download.imgag.de/public/genomes/hg19ToHg38.over.chain.gz
+	wget -O ./src/cppNGS-TEST/data_in/hg38ToHg19.over.chain.gz https://download.imgag.de/public/genomes/hg38ToHg19.over.chain.gz
 
 #################################### 3rd party  ##################################
 
