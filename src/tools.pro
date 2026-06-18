@@ -667,3 +667,7 @@ TranscriptToProtein.depends = cppNGS
 SUBDIRS += NGSDSampleUsers
 tools-TEST.depends += NGSDSampleUsers
 NGSDSampleUsers.depends = cppNGSD
+
+SUBDIRS += NgsBitsInfo
+tools-TEST.depends += NgsBitsInfo
+NgsBitsInfo.depends = cppNGS

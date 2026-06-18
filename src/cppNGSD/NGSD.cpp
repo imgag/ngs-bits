@@ -7022,7 +7022,7 @@ GeneSet NGSD::phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype
 		}
 	}
 
-	QHash<int, QList<QByteArray>>& hpo_genes_cache = getCache().hpo_genes; //TODO Marc/Alexandr: access caches through functions and initialize it once (using a mutex)
+	QHash<int, QList<QByteArray>>& hpo_genes_cache = getCache().hpo_genes;
 	if (hpo_genes_cache.isEmpty())
 	{
 		SqlQuery hpo_pairs_query = getQuery();
@@ -11123,3 +11123,37 @@ AccessPermission stringToAccessPermission(const QString &in)
 
 	THROW(ProgrammingException, "Unhandled access permission type '" + in + "' in stringToType()!");
 }
+
+//TODO Marc/Alexandr: provide functions to access/initialize individual caches, e.g. for getCache().hpo_genes. Here an example:
+/*
+const QHash<int, QString>& NGSD::geneCache()
+{
+    // Fast path
+    {
+	QReadLocker locker(&gene_cache_lock_);
+
+	if (!gene_cache_.isEmpty())
+	{
+	    return gene_cache_;
+	}
+    }
+
+    // Initialization
+    {
+	QWriteLocker locker(&gene_cache_lock_);
+
+	// Another thread may have initialized it already.
+	if (gene_cache_.isEmpty())
+	{
+	    QHash<int, QString> tmp;
+
+	    // Fill tmp from SQL
+	    // ...
+
+	    gene_cache_ = std::move(tmp);
+	}
+
+	return gene_cache_;
+    }
+}
+*/
