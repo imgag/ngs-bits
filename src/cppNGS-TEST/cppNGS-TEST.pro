@@ -24,7 +24,7 @@ SOURCES += \
         Chromosome_Test.cpp \
         BedLine_Test.cpp \
         BedFile_Test.cpp \
-        QcRuleMatcher.cpp \
+        QcRuleMatcher_Test.cpp \
         VariantList_Test.cpp \
         FilterCascade_Test.cpp \
         ChromosomalIndex_Test.cpp \

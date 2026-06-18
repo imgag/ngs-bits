@@ -45,7 +45,7 @@ SOURCES += main.cpp\
     MaintenanceDialog.cpp \
     MethylationWidget.cpp \
     NsxSettingsDialog.cpp \
-    PathogenicWtDialog.cpp \   
+    PathogenicWtDialog.cpp \
     Background/PingWorker.cpp \
     ReSearchWidget.cpp \
     RepeatExpansionWidget.cpp \
@@ -179,7 +179,7 @@ HEADERS += MainWindow.h \
     MaintenanceDialog.h \
     MethylationWidget.h \
     NsxSettingsDialog.h \
-    PathogenicWtDialog.h \    
+    PathogenicWtDialog.h \
     Background/PingWorker.h \
     ReSearchWidget.h \
     RepeatExpansionWidget.h \

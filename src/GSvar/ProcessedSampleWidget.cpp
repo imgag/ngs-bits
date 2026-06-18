@@ -27,6 +27,7 @@
 #include "ClientHelper.h"
 #include "FileLocationProviderRemote.h"
 #include "TransferredVariantDialog.h"
+#include "QcRuleMatcher.h"
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	: TabBaseClass(parent)
@@ -452,7 +453,7 @@ void ProcessedSampleWidget::updateQCMetrics()
 			bool ok = false;
 			double qc_value = ui_->qc_table->item(r,c)->text().toDouble(&ok);
 			if (!ok) continue;
-			QString qc_class = GSvarHelper::getQcFromRule(qc_value, name_short, qc_table.row(r).value(0), sys_type, s_data.is_tumor);
+			QString qc_class = QcRuleMatcher(QApplication::applicationDirPath()+QDir::separator()+"GSvar_qc_cutoffs.xml").evaluate(name_short, sys_type, db.getQCTermNameByAccession(qc_table.row(r).value(0)), qc_value, s_data.is_tumor);
 			GSvarHelper::colorQcItem(ui_->qc_table->item(r,c), qc_class);
 		}
 	}

@@ -22,21 +22,6 @@ QcRuleMatcher::QcRuleMatcher(QString cutoff_config_file)
 
 		// populating the cache
 		xml_root_ = doc.documentElement();
-
-		QDomNodeList sys_level_rules;		
-		for (int s=0; s<2; s++)
-		{
-			if (s==0) sys_level_rules = xml_root_.elementsByTagName("SysTypeRules");
-			if (s==1) sys_level_rules = xml_root_.elementsByTagName("SysNameRules");
-
-			for (int i=0; i<sys_level_rules.count(); i++)
-			{
-				QDomElement sys_element = sys_level_rules.at(i).toElement();
-				QDomNodeList term_rules = sys_element.elementsByTagName("TermRules");
-
-				for (int j = 0; j < term_rules.count(); j++) rule_term_name_.insert(term_rules.at(j).toElement().attribute("term_name"));
-			}
-		}
 		if (!xml_root_.isNull()) has_rules_ = true;
 	}
 }

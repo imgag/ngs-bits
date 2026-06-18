@@ -288,7 +288,7 @@ void SequencingRunWidget::updateRunSampleTable()
 	if (is_batch_view_)
 	{
 		samples = db.createTable("processed_sample",  QString("SELECT ps.id, (SELECT name FROM sequencing_run WHERE id=ps.sequencing_run_id), ps.lane, ps.quality, ")
-														+ "CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.gender, s.sample_type, "
+														+ "CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.sample_type, "
 														+ "(SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), s.disease_group, s.disease_status, "
 														+ "(SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), "
 														+ "sp.name, sys.name_manufacturer, sys.type as sys_type, ps.processing_input, ps.molarity, (SELECT name FROM user WHERE id=ps.operator_id), "
@@ -299,7 +299,7 @@ void SequencingRunWidget::updateRunSampleTable()
 	}
 	else
 	{
-		samples = db.createTable("processed_sample", QString("SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.gender, s.sample_type, (SELECT CONCAT(name, ' (', type, ')') ")
+		samples = db.createTable("processed_sample", QString("SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.sample_type, (SELECT CONCAT(name, ' (', type, ')') ")
 													+ "FROM project WHERE id=ps.project_id), s.disease_group, s.disease_status, (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') "
 													+ "FROM mid WHERE id=ps.mid2_i5), sp.name, sys.name_manufacturer, sys.type as sys_type, ps.processing_input, ps.molarity, (SELECT name FROM user WHERE id=ps.operator_id), ps.processing_modus, ps.batch_number, ps.comment" + QString(ui_->show_sample_comment->isChecked() ? ", s.comment as sample_comment" : "") + ", ps.urgent, ps.scheduled_for_resequencing "
 													+ "FROM processed_sample ps, sample s, processing_system sys, species sp WHERE sp.id=s.species_id AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.sequencing_run_id IN ('" + run_ids_.join("', '") + "') "
@@ -325,7 +325,6 @@ void SequencingRunWidget::updateRunSampleTable()
 	}
 
 	//remove columns not shown but needed for QC
-	samples.takeColumn(samples.columnIndex("gender"));
 	QStringList sys_types = samples.takeColumn(samples.columnIndex("sys_type"));
 
 	//add QC data
@@ -434,7 +433,7 @@ void SequencingRunWidget::updateRunSampleTable()
 				bool ok = false;
 				double qc_value = ui_->samples->item(r,c)->text().toDouble(&ok);
 				if (!ok) continue;
-				QString qc_class = GSvarHelper::getQcFromRule(qc_value, name_short, accession, sys_types[r], is_tumor);
+				QString qc_class = QcRuleMatcher(QApplication::applicationDirPath()+QDir::separator()+"GSvar_qc_cutoffs.xml").evaluate(name_short, sys_types[r], db.getQCTermNameByAccession(accession), qc_value, is_tumor);
 				GSvarHelper::colorQcItem(ui_->samples->item(r,c), qc_class);
 			}
 		}

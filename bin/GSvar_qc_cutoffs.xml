@@ -121,10 +121,15 @@
             <Rule operation="greater than" cutoff="95.0" result="good"/>
         </TermRules>
 		
-		  <TermRules term_name="SNV allele frequency deviation">
+		<TermRules term_name="SNV allele frequency deviation">
             <Rule operation="greater than" cutoff="6.0" result="bad"/>
             <Rule operation="greater equal" cutoff="3.0" result="medium"/>
             <Rule operation="less than" cutoff="3.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="known somatic variants percentage">
+            <Rule operation="greater equal" cutoff="10.0" result="bad"/>
+            <Rule operation="greater equal" cutoff="7.0" result="medium"/>
         </TermRules>
 		
     </SysTypeRules>
