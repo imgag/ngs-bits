@@ -70,14 +70,14 @@ void BamCoverageTrack::storeCoverage()
 	int ref_start =  track_data_->getRefSeqStart();
 
 	//store coverage
-	for (const auto& wrapped : aligns)
+	for (const auto& al : aligns)
 	{
-		const BamAlignment& al = wrapped.alignment;
+		// const BamAlignment& al = wrapped.alignment;
 
 		if (al.end() < region.start()) continue;
 		if (al.start() > region.end()) continue;
 
-		foreach (const auto& data, wrapped.getEvents())
+		foreach (const auto& data, al.getEvents())
 		{
 			int base_idx = data.genome_pos - region.start();
 			if (data.event == BamAlignmentWrapper::MATCH)

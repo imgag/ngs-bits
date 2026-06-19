@@ -54,7 +54,23 @@ void BamAlignmentTrack::setTrackData(QSharedPointer<BamTrackData> track_data)
 {
 	track_data_ = track_data;
 	connect(track_data_.get(), SIGNAL(onDataUpdate()), this, SLOT(dataReady()));
+	connect(track_data_.get(), SIGNAL(onFullLoad()), this, SLOT(fullLoad()));
 	dataReady();
+}
+
+void BamAlignmentTrack::fullLoad()
+{
+	row_idxes_.clear();
+	pair_row_idxes_.clear();
+	row_stored_with_pair_.clear();
+	normal_row_store_.clear();
+	pair_row_store_.clear();
+
+	row_idxes_.squeeze();
+	pair_row_idxes_.squeeze();
+	row_stored_with_pair_.squeeze();
+	normal_row_store_.squeeze();
+	pair_row_store_.squeeze();
 }
 
 void BamAlignmentTrack::dataReady()
@@ -82,9 +98,10 @@ void BamAlignmentTrack::calculateRowsNormalMode()
 	for (int i =0; i < alns.size(); ++i)
 	{
 		const BamAlignmentWrapper& w = alns[i];
-		if (row_idxes_.contains(w) && row_packer_.canRestore(row_idxes_[w], w.alignment.start(), w.alignment.end()))
+		const auto& aln_id = w.id;
+		if (row_idxes_.contains(aln_id) && row_packer_.canRestore(row_idxes_[aln_id], w.start(), w.end()))
 		{
-			row_packer_.restore(row_idxes_[w], w.alignment.start(), w.alignment.end(), i);
+			row_packer_.restore(row_idxes_[aln_id], w.start(), w.end(), i);
 			restored.insert(i);
 		}
 	}
@@ -92,8 +109,8 @@ void BamAlignmentTrack::calculateRowsNormalMode()
 	for (int i =0; i < alns.size(); ++i)
 	{
 		if (restored.contains(i)) continue;
-		int row = row_packer_.insert(alns[i].alignment.start(), alns[i].alignment.end(), i);
-		row_idxes_[alns[i]] = row;
+		int row = row_packer_.insert(alns[i].start(), alns[i].end(), i);
+		row_idxes_[alns[i].id] = row;
 	}
 
 	if (num_rows_ < row_packer_.rowCount()) num_rows_ = row_packer_.rowCount();
@@ -114,9 +131,8 @@ void BamAlignmentTrack::calculateRowsPairMode()
 	for (int i =0; i < read_pairs_.count(); ++i)
 	{
 		const auto& read_pair = read_pairs_[i];
-		const auto& al = alns[read_pair.first].alignment;
-		int row = pair_row_idxes_.value(al.name(), -1);
-		if (row != -1 && row_stored_with_pair_.value(al.name(), false) &&
+		int row = pair_row_idxes_.value(alns[i].name(), -1);
+		if (row != -1 && row_stored_with_pair_.value(alns[i].name(), false) &&
 			row_packer_.canRestore(row, read_pair.start, read_pair.end))
 		{
 			row_packer_.restore(row, read_pair.start, read_pair.end, i);
@@ -128,7 +144,7 @@ void BamAlignmentTrack::calculateRowsPairMode()
 	for (int i =0; i < read_pairs_.count(); ++i)
 	{
 		const ReadPair& read_pair = read_pairs_[i];
-		const auto& al1 = alns[read_pair.first].alignment;
+		const auto& al1 = alns[read_pair.first];
 
 		if (restored.contains(i)) continue;
 
@@ -181,8 +197,8 @@ void BamAlignmentTrack::drawAlignmentAndMismatches(QPainter& painter, const BamA
 
 	const BedLine& region = SharedData::region();
 
-	if (al.alignment.end() < region.start() ||
-		al.alignment.start() > region.end()) return;
+	if (al.end() < region.start() ||
+		al.start() > region.end()) return;
 
 	drawAlignment(painter, al, row_y);
 	if (!show_all_bases_) drawMismatches(painter, al, row_y, x0, total_width);
@@ -199,7 +215,7 @@ void BamAlignmentTrack::drawNormalMode(QPainter& painter, const BedLine&)
 	for (int i =0; i < alns.size(); ++i)
 	{
 		const BamAlignmentWrapper& al_w = alns[i];
-		int row_y = row_idxes_.value(alns[i], -1) * (ROW_HEIGHT + ROW_PADDING);
+		int row_y = row_idxes_.value(alns[i].id, -1) * (ROW_HEIGHT + ROW_PADDING);
 		drawAlignmentAndMismatches(painter, al_w, row_y, x0, total_width);
 	}
 }
@@ -217,23 +233,22 @@ void BamAlignmentTrack::drawPairMode(QPainter& painter, const BedLine& region)
 		if (read_pair.first != -1)
 		{
 			const BamAlignmentWrapper& al_w = alns[read_pair.first];
-			int row_y = pair_row_idxes_.value(al_w.alignment.name(), -1) * (ROW_HEIGHT + ROW_PADDING);
+			int row_y = pair_row_idxes_.value(al_w.name(), -1) * (ROW_HEIGHT + ROW_PADDING);
 			drawAlignmentAndMismatches(painter, al_w, row_y, x0, total_width);
 		}
 
 		if (read_pair.second != -1)
 		{
 			const BamAlignmentWrapper& al_w = alns[read_pair.second];
-			const BamAlignment& al = alns[read_pair.second].alignment;
-			int row_y = pair_row_idxes_.value(al.name(), -1) * (ROW_HEIGHT + ROW_PADDING);
+			int row_y = pair_row_idxes_.value(al_w.name(), -1) * (ROW_HEIGHT + ROW_PADDING);
 			drawAlignmentAndMismatches(painter, al_w, row_y, x0, total_width);
 		}
 
 		//draw line
 		if(read_pair.first != -1 && read_pair.second != -1)
 		{
-			const BamAlignment& al1 = alns[read_pair.first].alignment;
-			const BamAlignment& al2 = alns[read_pair.second].alignment;
+			const BamAlignmentWrapper& al1 = alns[read_pair.first];
+			const BamAlignmentWrapper& al2 = alns[read_pair.second];
 
 			int st = std::clamp(al1.end() + 1, region.start(), region.end() + 1);
 			int en = std::clamp(al2.start(), region.start(), region.end() + 1);
@@ -270,8 +285,11 @@ QColor BamAlignmentTrack::strandColor(bool is_reversed)
 void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapper& al_w, int row_y)
 {
 	const BedLine& region = SharedData::region();
-	const BamAlignment& al = al_w.alignment;
+	int label_width = SharedData::settings().label_width;
+	int total_width = width() - label_width - 4;
+	double pixels_per_base = (double)total_width / region.length();
 
+	// first pass for matches and deletions
 	foreach (const auto& data, al_w.getEvents())
 	{
 		int st = std::max(data.genome_pos, region.start());
@@ -287,11 +305,11 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 		if (data.event == BamAlignmentWrapper::MATCH)
 		{
 			#ifdef DRAW_TRANSPARENT
-			painter.setPen(strandColor(al.isReverseStrand()));
+			painter.setPen(strandColor(al_w.isReverseStrand()));
 			painter.setBrush(Qt::NoBrush);
 			#else
 			painter.setPen(Qt::NoPen);
-			painter.setBrush(strandColor(al.isReverseStrand()));
+			painter.setBrush(strandColor(al_w.isReverseStrand()));
 			#endif
 			painter.drawRect(x_start, row_y, width, ROW_HEIGHT);
 		}
@@ -301,12 +319,16 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 			painter.setPen(Qt::blue);
 			int mid = row_y + ROW_HEIGHT / 2;
 			painter.drawLine(x_start, mid, x_start + width, mid);
+			double pixels_per_base = (double)total_width / region.length();
+			if (pixels_per_base >= cached_char_size_.width())
+			{
+				QRectF text_rect(x_start, row_y, width, ROW_HEIGHT);
+				painter.setPen(Qt::darkCyan);
+				painter.setFont(cached_font_);
+				painter.drawText(text_rect, Qt::AlignCenter, QString::number(data.length));
+			}
 		}
 	}
-
-	int label_width = SharedData::settings().label_width;
-	int total_width = width() - label_width - 4;
-	double pixels_per_base = (double)total_width / region.length();
 
 	// second pass for insertions
 	foreach (const auto& data, al_w.getEvents())
@@ -357,18 +379,18 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 		}
 	}
 
-	int st = std::max(al.start(), region.start());
-	int en = std::min(al.end(), region.end() + 1);
+	int st = std::max(al_w.start(), region.start());
+	int en = std::min(al_w.end(), region.end() + 1);
 
 	float x_start = genomePosToScreen(st);
 	float width = genomeWidthToScreen(en - st + 1);
 
 	float tri_w = std::min(6.f, width / 3);
-	QColor body = strandColor(al.isReverseStrand());
+	QColor body = strandColor(al_w.isReverseStrand());
 	painter.setBrush(body.darker(130));
 	QPolygon arrow;
 	int mid = row_y + ROW_HEIGHT / 2;
-	if (!al.isReverseStrand())
+	if (!al_w.isReverseStrand())
 	{
 		arrow << QPoint(x_start + width, mid)
 		<< QPoint(x_start + width - tri_w, row_y)
@@ -513,7 +535,7 @@ void BamAlignmentTrack::makePairs()
 
 	for (int i =0; i < alns.count(); ++i)
 	{
-		const BamAlignment& al = alns[i].alignment;
+		const BamAlignmentWrapper& al = alns[i];
 		QString name = al.name();
 		if (pending.contains(name))
 		{
@@ -574,14 +596,13 @@ void BamAlignmentTrack::mousePressEvent(QMouseEvent* event)
 
 QString BamAlignmentTrack::getBamAlignmentText(const BamAlignmentWrapper& al_w, int genome_pos)
 {
-	const BamAlignment& al = al_w.alignment;
 	QString text = QString("%1\nStart: %2  End: %3\nStrand: %4\n")
-					   .arg(al.name())
-					   .arg(al.start())
-					   .arg(al.end())
-					   .arg(al.isReverseStrand() ? "Reverse" : "Forward");
+					   .arg(al_w.name())
+					   .arg(al_w.start())
+					   .arg(al_w.end())
+					   .arg(al_w.isReverseStrand() ? "Reverse" : "Forward");
 
-	if (genome_pos < al.start() || genome_pos > al.end()) return text;
+	if (genome_pos < al_w.start() || genome_pos > al_w.end()) return text;
 
 	foreach (const auto& event_data, al_w.getEvents())
 	{

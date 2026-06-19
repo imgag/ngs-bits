@@ -85,7 +85,9 @@ private:
 	static QSize characterSize(QFont font);
 	void handlePopupRequest(QPoint local_pos, QPointF global_pos);
 
-	QHash<BamAlignmentWrapper, int> row_idxes_; // BamAlignmentWrapper -> row index
+
+	/*TODO: all of these need to be stored as LRUCache*/
+	QHash<AlignmentKey, int> row_idxes_; // BamAlignmentWrapperId -> row index
 	QHash<QString, int> pair_row_idxes_; // Pair Name -> row index
 
 	QHash<QString, bool> row_stored_with_pair_; // Pair Name -> bool, used for checking if alignment with name was stored as a pair or not
@@ -110,6 +112,7 @@ private:
 
 private slots:
 	void dataReady();
+	void fullLoad();
 };
 
 #endif // BAMALIGNMENTTRACK_H

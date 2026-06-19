@@ -51,21 +51,24 @@ struct BamAlignmentWrapper
 	};
 
 	AlignmentKey id; // for hashing
-	BamAlignment alignment;
+	// uncomment if features needed in future
+	// BamAlignment alignment; // no longer stored (because of data duplication)
 	QVector<MismatchInfo> mismatches; // cached mismatches
 	QVector<EventData> events;
 
 	BamAlignmentWrapper(BamAlignment aln)
-		: id(AlignmentKey::makeKey(aln)), alignment(aln)
+		: id(AlignmentKey::makeKey(aln))
 	{
+		storeAlignmentInfo(aln);
 	}
 
 	BamAlignmentWrapper(BamAlignment&& aln)
-		: id(AlignmentKey::makeKey(aln)), alignment(std::move(aln))
+		: id(AlignmentKey::makeKey(aln))
 	{
+		storeAlignmentInfo(aln);
 	}
 
-	void storeCigarData(const Sequence& ref_seq, int ref_start);
+	void storeCigarData(const BamAlignment& alignment, const Sequence& ref_seq, int ref_start);
 
 	const QVector<MismatchInfo>& getMismatches() const
 	{
@@ -80,6 +83,28 @@ struct BamAlignmentWrapper
 	bool operator==(const BamAlignmentWrapper& other) const
 	{
 		return id == other.id;
+	}
+
+	int start() const { return st_; }
+
+	int end() const { return en_; }
+
+	bool isReverseStrand() const {return is_reverse_;}
+
+	QString name() const {return name_;}
+
+private:
+	int st_;
+	int en_;
+	bool is_reverse_;
+	QString name_;
+
+	void storeAlignmentInfo(const BamAlignment& al)
+	{
+		st_ = al.start();
+		en_ = al.end();
+		is_reverse_ = al.isReverseStrand();
+		name_ = al.name();
 	}
 };
 
@@ -132,6 +157,7 @@ public:
 signals:
 	// void onDataChange();
 	void onDataUpdate();
+	void onFullLoad();
 
 public slots:
 	void updateRegion();

@@ -118,6 +118,7 @@ void BamTrackData::updateRegion()
 
 void BamTrackData::fullLoad(const BedLine& region)
 {
+	emit onFullLoad();
 	is_loading_ = true;
 	int padding = region.length() / 3;
 	int p_start = std::max(0, region.start() - padding);
@@ -125,6 +126,8 @@ void BamTrackData::fullLoad(const BedLine& region)
 
 	alignments_.clear();
 	loaded_ids_.clear();
+	alignments_.squeeze();
+	loaded_ids_.squeeze();
 
 	int ref_fetch_start = std::max(0, p_start - REF_OVERHANG);
 	int ref_fetch_end   = p_end + REF_OVERHANG;
@@ -165,8 +168,7 @@ void BamTrackData::fetchRegion(const BedLine& region)
 		if (loaded_ids_.contains(wrapped_alignment.id)) continue;
 		loaded_ids_.insert(wrapped_alignment.id);
 
-		// wrapped_alignment.storeMismatches(ref_seq_, ref_start_);
-		wrapped_alignment.storeCigarData(ref_seq_, ref_start_);
+		wrapped_alignment.storeCigarData(al, ref_seq_, ref_start_);
 		alignments_.push_back(std::move(wrapped_alignment));
 	}
 }
@@ -179,8 +181,8 @@ void BamTrackData::pruneAlignments(int keep_start, int keep_end)
 		[&](const BamAlignmentWrapper& al)
 		{
 			bool remove =
-				al.alignment.start() > keep_end ||
-				al.alignment.end() < keep_start;
+				al.start() > keep_end ||
+				al.end() < keep_start;
 
 			// also remove the id from loaded_ids_
 			if (remove) loaded_ids_.remove(al.id);
@@ -191,7 +193,7 @@ void BamTrackData::pruneAlignments(int keep_start, int keep_end)
 	alignments_.erase(it, alignments_.end());
 }
 
-void BamAlignmentWrapper::storeCigarData(const Sequence& ref_seq, int ref_start)
+void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Sequence& ref_seq, int ref_start)
 {
 	events.clear();
 	mismatches.clear();
@@ -292,7 +294,7 @@ void BamTrackData::updateData()
 	{
 		if (al.isUnmapped() || al.isDuplicate() || al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		BamAlignmentWrapper wrapped_alignment(al);
-		wrapped_alignment.storeCigarData(ref_seq_, region.start());
+		wrapped_alignment.storeCigarData(al, ref_seq_, region.start());
 		alignments_ << wrapped_alignment;
 	}
 	emit onDataUpdate();
