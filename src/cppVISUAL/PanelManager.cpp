@@ -43,59 +43,39 @@ void PanelManager::mousePressEvent(QMouseEvent* event)
 	}
 }
 
-
-
 void PanelManager::mouseMoveEvent(QMouseEvent* event)
 {
-	int x = event->pos().x();
-
-	if (is_dragging_)
-	{
-		int w = width();
-		int label_width = SharedData::settings().label_width;
-		float total_width = width() - label_width - 4;
-
-		if (x > label_width + 2 && x < w - 2)
-		{
-			if (abs(x - drag_start_x_) >= 5)
-			{
-				float end = x;
-				float start = drag_start_x_;
-				float diff = ((end - start)/total_width) * (.4 * drag_start_region_.length());
-
-				SharedData::setRegion(drag_start_region_.chr(), drag_start_region_.start() - diff, drag_start_region_.end() - diff);
-			}
-		}
-
-		update();
-	}
+	if (is_dragging_) updateDragRegion(event->pos().x());
+	update();
 }
-
 
 void PanelManager::mouseReleaseEvent(QMouseEvent* event)
 {
-	int x = event->pos().x();
-	int w = width();
-	int label_width = SharedData::settings().label_width;
-	float total_width = width() - label_width - 4;
-
 	if (event->button() == Qt::LeftButton && is_dragging_)
 	{
-		if (x > label_width + 2 && x < w - 2)
-		{
-			if (abs(x - drag_start_x_) >= 5)
-			{
-				float end = x;
-				float start = drag_start_x_;
-				float diff = ((end - start)/total_width) * (.4 * drag_start_region_.length());
-
-				SharedData::setRegion(drag_start_region_.chr(), drag_start_region_.start() - diff, drag_start_region_.end() - diff);
-			}
-		}
+		updateDragRegion(event->pos().x());
 	}
 
 	is_dragging_ = false;
+
 	update();
+}
+
+void PanelManager::updateDragRegion(int mouse_x)
+{
+	int w = width();
+	int label_width = SharedData::settings().label_width;
+	double total_width = width() - label_width - 4;
+	if (total_width <= 0) return;
+
+	int x_clamped = std::clamp(mouse_x, label_width + 2, w - 2);
+	double bases_per_pxiel = (double)drag_start_region_.length() / total_width;
+	double diff = (x_clamped - drag_start_x_) * bases_per_pxiel;
+
+	int new_start = drag_start_region_.start() - std::lround(diff);
+	int new_end = drag_start_region_.end() - std::lround(diff);
+
+	SharedData::setRegion(drag_start_region_.chr(), new_start, new_end);
 }
 
 

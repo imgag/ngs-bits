@@ -43,6 +43,7 @@ public slots:
 private:
 	// connects addPanelAbove and addPanelBelow signals and slots to the TrackGroup
 	void connectSignals(TrackGroup*);
+	void updateDragRegion(int x);
 };
 
 

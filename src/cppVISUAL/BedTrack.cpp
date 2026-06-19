@@ -12,7 +12,7 @@
 #include <QToolTip>
 
 static constexpr int BLOCK_HEIGHT  = 10;
-static constexpr int BLOCK_PADDING = 5;
+static constexpr int BLOCK_PADDING = 15;
 static constexpr int SPACING_BELOW = 20;
 
 
@@ -129,6 +129,15 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 	painter.setBrush(Qt::NoBrush);
 	painter.drawRect(bounding_rect);
 
+	QFont font = painter.font();
+	font.setPointSize(8); // fixed screen size
+	painter.setFont(font);
+
+	QFontMetrics fm(font);
+
+	float last_label_x = -1.0f;
+	float last_label_y = -1.0f;
+
 	// draw bands
 	if (bedfile_ && bedfile_->chromosomes().contains(region.chr()))
 	{
@@ -137,8 +146,9 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 		QVector<int> idxes = chr_index_->matchingIndices(region.chr(), region.start(), region.end());
 		foreach(int idx, idxes)
 		{
-			int st = std::max((*bedfile_)[idx].start(), region.start());
-			int en = std::min((*bedfile_)[idx].end(), region.end());
+			const BedLine& bedline = (*bedfile_)[idx];
+			int st = std::max(bedline.start(), region.start());
+			int en = std::min(bedline.end(), region.end());
 
 			float x_start = genomePosToScreen(st);
 			float width = genomeWidthToScreen(en - st + 1);
@@ -146,9 +156,38 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 			if (draw_mode_ == EXPANDED) y_start = row_idxes_[idx] * (BLOCK_HEIGHT + BLOCK_PADDING);
 
 			QRectF chr_rect(x_start, y_start, width, BLOCK_HEIGHT);
-
 			painter.setBrush(color_);
+			painter.setPen(outlinePen);
 			painter.drawRect(chr_rect);
+			// use 4th column as name
+			if (!bedline.annotations().isEmpty())
+			{
+				QString name = bedline.annotations().at(0);
+
+				int text_width = fm.horizontalAdvance(name);
+
+				float text_x = x_start + (width - text_width) / 2.0f;
+
+				if (isOutOfDrawRegion(text_x)) continue;
+
+				if (text_x > last_label_x || std::abs(y_start - last_label_y) > 1)
+				{
+					QRectF text_rect(
+						text_x,
+						y_start + BLOCK_HEIGHT,
+						text_width,
+						fm.height()
+						);
+
+					painter.setPen(Qt::black);
+					painter.drawText(text_rect,
+									 Qt::AlignCenter,
+									 name);
+
+					last_label_x = text_x + text_width + 5;
+					last_label_y = y_start;
+				}
+			}
 		}
 	}
 }
@@ -262,12 +301,16 @@ QString BedTrack::getBandText(const BedLine& region, int row, int x)
 
 QString BedTrack::getBandTextExpandedMode(const BedLine& region, int row, int x)
 {
+	int label_width = SharedData::settings().label_width;
+	int total_width = width() - label_width - 4;
+	double bp_per_pixel = (double)region.length() / total_width;
+	int padding = std::max(2, static_cast<int>(bp_per_pixel * 2));
 	QString collected_info;
 	// int resolution = region.length() * .001;
 	foreach (const BandData& data, row_store_[row])
 	{
-		if (x >= data.start &&
-			x <= data.end)
+		if (x + padding >= data.start &&
+			x - padding <= data.end)
 		{
 			const BedLine& bd = (*bedfile_)[data.ind];
 			if (bd.chr() == region.chr())
@@ -282,11 +325,16 @@ QString BedTrack::getBandTextExpandedMode(const BedLine& region, int row, int x)
 
 QString BedTrack::getBandTextCollapsedMode(const BedLine& region, int row, int x)
 {
+	int label_width = SharedData::settings().label_width;
+	int total_width = width() - label_width - 4;
+	double bp_per_pixel = (double)region.length() / total_width;
+	int padding = std::max(2, static_cast<int>(bp_per_pixel * 2));
+
 	QString collected_info;
 
 	if (row != 0) return collected_info;
 
-	QVector<int> idxes = chr_index_->matchingIndices(region.chr(), x - 20, x + 20);
+	QVector<int> idxes = chr_index_->matchingIndices(region.chr(), x - padding, x + padding);
 
 	foreach (int idx, idxes)
 	{
