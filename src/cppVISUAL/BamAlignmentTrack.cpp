@@ -12,6 +12,7 @@
 static constexpr int ROW_HEIGHT = 10;
 static constexpr int ROW_PADDING = 2;
 static constexpr int SPACING_BELOW = 4;
+static constexpr int MAX_QUALITY = 41;
 
 BamAlignmentTrack::BamAlignmentTrack(QWidget* parent, QString file_path, QString name)
 	: TrackWidget(parent, file_path, name)
@@ -464,13 +465,13 @@ void BamAlignmentTrack::drawMismatches(QPainter& painter, const BamAlignmentWrap
 
 		int dX = std::max(1, end_x - x_start);
 		QColor color = baseColor(variant_data.base);
-		color = QColor(color.red(), color.green(), color.blue(), ((float)variant_data.quality/41)*255);
+		color = QColor(color.red(), color.green(), color.blue(), ((float)variant_data.quality/MAX_QUALITY)*255);
+		painter.setPen(color);
 
 		if (pixels_per_base >= cached_char_size_.width())
 		{
 			painter.setFont(cached_font_);
 			// int w = cached_char_size_.width();
-			painter.setPen(color);
 			QRectF text_rect(x_start, row_y, dX, ROW_HEIGHT);
 			painter.drawText(text_rect, Qt::AlignCenter, QString(variant_data.base).toUpper());
 		}
@@ -510,12 +511,12 @@ void BamAlignmentTrack::drawAllBases(QPainter& painter, const BamAlignmentWrappe
 				char base = event_data.bases[i];
 				int qual = event_data.qualities[i];
 				QColor color = baseColor(base);
-				color = QColor(color.red(), color.green(), color.blue(), ((float)qual/41)*255);
+				color = QColor(color.red(), color.green(), color.blue(), ((float)qual/MAX_QUALITY)*255);
+				painter.setPen(color);
 
 				if (pixels_per_base >= cached_char_size_.width())
 				{
 					painter.setFont(cached_font_);
-					painter.setPen(color);
 					QRectF text_rect(x_start, row_y - 5, dX, ROW_HEIGHT + 10);
 					painter.drawText(text_rect, Qt::AlignHCenter, QString(base).toUpper());
 				}
