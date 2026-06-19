@@ -131,8 +131,9 @@ void BamAlignmentTrack::calculateRowsPairMode()
 	for (int i =0; i < read_pairs_.count(); ++i)
 	{
 		const auto& read_pair = read_pairs_[i];
-		int row = pair_row_idxes_.value(alns[i].name(), -1);
-		if (row != -1 && row_stored_with_pair_.value(alns[i].name(), false) &&
+		const auto& al = alns[read_pair.first];
+		int row = pair_row_idxes_.value(al.name(), -1);
+		if (row != -1 && row_stored_with_pair_.value(al.name(), false) &&
 			row_packer_.canRestore(row, read_pair.start, read_pair.end))
 		{
 			row_packer_.restore(row, read_pair.start, read_pair.end, i);
@@ -501,9 +502,13 @@ void BamAlignmentTrack::drawAllBases(QPainter& painter, const BamAlignmentWrappe
 
 				int dX = std::max(1, end_x - x_start);
 
+				if (i >= event_data.bases.length() || i >= event_data.qualities.length())
+				{
+					qDebug() << __FILE__ << __LINE__ << "Bug: data.length does not match bases or qualities length";
+					continue;
+				}
 				char base = event_data.bases[i];
 				int qual = event_data.qualities[i];
-				if (i >= event_data.bases.length()) qDebug("i > length of bases, bug.");
 				QColor color = baseColor(base);
 				color = QColor(color.red(), color.green(), color.blue(), ((float)qual/41)*255);
 
