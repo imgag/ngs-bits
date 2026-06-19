@@ -23,12 +23,28 @@ QcRuleMatcher::QcRuleMatcher(QString cutoff_config_file)
 		// populating the cache
 		xml_root_ = doc.documentElement();
 		if (!xml_root_.isNull()) has_rules_ = true;
+
+		// caching the QC names
+		for (int n = 0; n < 2; n++)
+		{
+			QDomNodeList sys_level_rules;
+			if (n==0) sys_level_rules = xml_root_.elementsByTagName("SysTypeRules");
+			if (n==1) sys_level_rules = xml_root_.elementsByTagName("SysNameRules");
+			for (int i = 0; i < sys_level_rules.count(); i++)
+			{
+				QDomNodeList term_rules = sys_level_rules.at(i).toElement().elementsByTagName("TermRules");
+				for (int j = 0; j < term_rules.count(); j++) available_qc_names_.insert(term_rules.at(j).toElement().attribute("term_name"));
+			}
+		}
 	}
 }
 
 QString QcRuleMatcher::evaluate(const QString& name_short, const QString &sys_type, const QString &term_name, double value, bool is_tumor)
 {
 	QString expected_tumor_value = is_tumor ? "true" : "false";
+
+	// if the given QC term is not present in our rules, we ignore it
+	if (!available_qc_names_.contains(term_name)) return "";
 
 	// first we check if there are rules for the processing system short name and use them for validation
 	QString result = checkQcRule(name_short, term_name, value, expected_tumor_value, true);
@@ -54,7 +70,10 @@ QString QcRuleMatcher::evaluate(const QString& name_short, const QString& sys_ty
 
 	for (int i=0; i<qc_data.count(); ++i)
 	{
-		QString quality = evaluate(name_short, sys_type, qc_data[i].name(), qc_data[i].asDouble(), is_tumor);
+		// if the given QC term is not present in our rules, we ignore it
+		if (!available_qc_names_.contains(qc_data[i].name())) continue;
+
+		QString quality = evaluate(name_short, sys_type, qc_data[i].name(), toNumber(qc_data[i].toString()), is_tumor);
 		if (quality == "good") good_count++;
 		if (quality == "medium") medium_count++;
 		if (quality == "bad") bad_count++;
@@ -91,6 +110,18 @@ bool QcRuleMatcher::hasAllQcMetrics(QSet<QString>& term_names, const QString& ru
 		}
 	}
 	return result;
+}
+
+double QcRuleMatcher::toNumber(const QString &str)
+{
+	bool ok = false;
+	double d = str.toDouble(&ok);
+	if (ok)	return d;
+
+	int i = str.toInt(&ok);
+	if (ok) return static_cast<double>(i);
+
+	return 0.0;
 }
 
 bool QcRuleMatcher::matches(const QString &operation, double value, double cutoff)

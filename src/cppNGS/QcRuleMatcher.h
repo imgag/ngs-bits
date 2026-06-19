@@ -26,6 +26,8 @@ public:
 
 private:
 	QDomElement xml_root_; // caching the XML config to avoid reading it for each rule validation
+	QSet<QString> available_qc_names_; // a list of unuque QC values found in the XML config
+	double toNumber(const QString& str);
 
 	bool matches(const QString& operation, double value, double cutoff);
 	QString checkQcRule(const QString &sys_name, const QString &term_name, double value, QString expected_tumor_value, bool needs_sys_override);	
