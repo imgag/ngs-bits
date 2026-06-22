@@ -366,3 +366,8 @@ void LoginManager::checkRoleNotIn(QStringList roles)
 		INFO(AccessDeniedException, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_login_ + "' has the role '" + NGSD().getUserRole(manager.userId()) + "'!");
 	}
 }
+
+bool LoginManager::userCanPerformAction(ActionPermission action)
+{
+	return NGSD().userActionPermissions(instance().user_id_).contains(action);
+}

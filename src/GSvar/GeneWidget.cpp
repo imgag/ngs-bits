@@ -222,6 +222,12 @@ void GeneWidget::updateGUI()
 
 void GeneWidget::editInheritance()
 {
+	if (!LoginManager::userCanPerformAction(ActionPermission::CHANGE_NGSD_DATA))
+	{
+		QMessageBox::information(this, "Acces denied", "You do not have permissions to change gene data in NGSD!");
+		return;
+	}
+
     NGSD db;
     GeneInfo info = db.geneInfo(symbol_);
     QStringList modes = db.getEnum("geneinfo_germline", "inheritance");
@@ -238,6 +244,12 @@ void GeneWidget::editInheritance()
 
 void GeneWidget::editComment()
 {
+	if (!LoginManager::userCanPerformAction(ActionPermission::CHANGE_NGSD_DATA))
+	{
+		QMessageBox::information(this, "Acces denied", "You do not have permissions to change gene data in NGSD!");
+		return;
+	}
+
     NGSD db;
     GeneInfo info = db.geneInfo(symbol_);
 	QString text = "[" + QDate::currentDate().toString("dd.MM.yyyy") + " " + LoginManager::userLogin() + "]\nAdd comment here\n\n" + info.comments;

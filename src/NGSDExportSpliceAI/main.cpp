@@ -17,7 +17,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Exports gene transcripts from NGSD in format expected by SpliceAI (parameter -A).");
-		setExtendedDescription(QStringList() << "The export is based on the following transcripts: MANE select transcripts, MANE plus clinical transcripts and perferred transcrripts." << "Then the best transcript of all protein-coding and OMIM genes are that are not covered by in the initial export are added.");
+		setExtendedDescription(QStringList() << "The export is based on the following transcripts: MANE select transcripts, MANE plus clinical transcripts and perferred transcrripts." << "Then the best transcript of all protein-coding and OMIM genes are that are not covered by the initial export are added.");
 		addOutfile("out", "The output TXT file.", false);
         addFlag("test", "Uses the test database instead of on the production database.");
 	}

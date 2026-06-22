@@ -496,6 +496,13 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 		return false;
 	}
 
+	//check user can perform this action
+	if (!LoginManager::userCanPerformAction(ActionPermission::START_ANALYSIS_JOBS))
+	{
+		QMessageBox::information(parent, "Acces denied", "You do not have permissions to start analysis jobs!");
+		return false;
+	}
+
 	//init NGSD
 	NGSD db;
 

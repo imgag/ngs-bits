@@ -17,6 +17,13 @@ jobs:
       shell: bash
     - name: Select Xcode
       run: sudo xcode-select -s /Applications/Xcode_26.0.app
+    - name: Remove unused Homebrew taps
+      run: |
+        brew uninstall bicep || true
+        brew untap aws/tap || true
+        brew untap azure/bicep || true
+        brew uninstall packer
+        brew untap hashicorp/tap || true
     - name: Update Homebrew
       run: brew update
     - name: Setup other dependencies

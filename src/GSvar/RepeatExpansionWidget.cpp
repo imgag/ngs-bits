@@ -308,8 +308,16 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	}
 	else if (action==a_delete)
 	{
-		report_config_->remove(VariantType::RES, row);
-		updateReportConfigHeaderIcon(row);
+		try
+		{
+			report_config_->remove(VariantType::RES, row);
+		}
+		catch(AccessDeniedException& e)
+		{
+			QMessageBox::information(this, "Access denied", e.message());
+			return;
+		}
+		updateReportConfigHeaderIcon(row);		
 	}
 	else if (action==a_google)
 	{
@@ -952,7 +960,15 @@ void RepeatExpansionWidget::svHeaderContextMenu(QPoint pos)
 	}
 	else if (action==a_delete)
 	{
-		report_config_->remove(VariantType::RES, row);
+		try
+		{
+			report_config_->remove(VariantType::RES, row);
+		}
+		catch(AccessDeniedException& e)
+		{
+			QMessageBox::information(this, "Access denied", e.message());
+			return;
+		}
 		updateReportConfigHeaderIcon(row);
 	}
 }

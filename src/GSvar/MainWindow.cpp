@@ -13,6 +13,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 #include <QTime>
+#include <QNetworkProxy>
 #include "ExternalToolDialog.h"
 #include "ReportDialog.h"
 #include <QInputDialog>
@@ -135,6 +136,7 @@
 #include <QtCharts/QChartView>
 #include "Background/PingWorker.h"
 #include "AboutDialog.h"
+#include "AnalysisTimePlot.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -496,63 +498,50 @@ AnalysisType MainWindow::getCurrentAnalysisType()
 
 void MainWindow::userSpecificDebugFunction()
 {
-    QElapsedTimer timer;
+	QElapsedTimer timer;
 	timer.start();
 
-	QString user = Helper::userName();
-	if (user=="ahsturm1")
+	try
 	{
-		//show imported somatic variant statistics for DNA2510181A1_01
-		NGSD db;
-		QString ps_id = "159881";
-		SqlQuery query = db.getQuery();
-
-		query.exec("SELECT * FROM somatic_snv_callset WHERE processed_sample_id_tumor="+ps_id);
-		while (query.next())
+		QString user = Helper::userName();
+		qDebug() << ("Executing debug function for user "+user+" - time: "+QDateTime::currentDateTime().toString(Qt::ISODate));
+		if (user=="ahsturm1")
 		{
-			QString t_id = query.value("processed_sample_id_tumor").toString();
-			QString n_id = query.value("processed_sample_id_normal").isNull() ? "" : query.value("processed_sample_id_normal").toString();
-			qDebug() << "somatic_snv_callset" << "id="+query.value("id").toString() << "T="+t_id << "N="+n_id << "caller="+ query.value("caller").toString()+" "+query.value("caller_version").toString() << "date="+query.value("call_date").toString();
-
-			QString add = (n_id=="") ? " IS NULL" : "="+n_id;
-			int count = db.getValue("SELECT count(*) FROM detected_somatic_variant WHERE processed_sample_id_tumor="+t_id+" AND processed_sample_id_normal"+add).toInt();
-			qDebug() << "  variants: " << count;
+			QByteArray request = R"(<?xml version="1.0" encoding="utf-8"?>
+			                        <soapenv:Envelope
+			                            xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+			                            xmlns:urn="urn:sap-com:document:sap:soap:functions:mc-style">
+			                          <soapenv:Header/>
+			                          <soapenv:Body>
+			                            <urn:ZishWsSetGenomData>
+			                              <ImpFalnr>0000022580</ImpFalnr>
+			                              <ImpMeldeDatum></ImpMeldeDatum>
+			                              <ImpMeldungsart>0</ImpMeldungsart>
+			                              <ImpMeldungsnr></ImpMeldungsnr>
+			                              <ImpMeldungstyp>K</ImpMeldungstyp>
+			                              <ImpVorgangsnr>AAAGERGWEG344GSDFGSDFGSDFGSDGSDFGDFGSDGDFGSDFGDFGDGDGSDGDGDFGDFG</ImpVorgangsnr>
+			                              <ImpVgUploadDatum>2026-06-18</ImpVgUploadDatum>
+			                            </urn:ZishWsSetGenomData>
+			                          </soapenv:Body>
+			                        </soapenv:Envelope>)";
+			HttpRequestHandler handler;
+			handler.setCredentials("ah3arzt", "XXXXXXXXXXXXXXX - TODO - XXXXXXXXXXXXXXX");
+			handler.setHeader("content-type", "text/xml; charset=utf-8");
+			handler.setHeader("SOAPAction", "\"urn:sap-com:document:sap:soap:functions:mc-style:ZISH_WS_SET_GENOM_DATA:ZishWsSetGenomDataRequest\"");
+			ServerReply reply = handler.post("http://vsldt4as01.med.uni-tuebingen.de:8080/sap/bc/srt/rfc/sap/zish_ws_set_genom_data/100/zish_ws_set_genom_data/zish_ws_set_genom_data", request);
+			qDebug() << reply.status_code;
+			qDebug() << reply.body;
 		}
-
-		query.exec("SELECT * FROM somatic_cnv_callset WHERE ps_tumor_id="+ps_id);
-		while (query.next())
+		else if (user=="ahschul1")
 		{
-			QString id = query.value("id").toString();
-			qDebug() << "somatic_cnv_callset" << "id="+id << "T="+query.value("ps_tumor_id").toString() << "N="+query.value("ps_normal_id").toString() << "caller="+ query.value("caller").toString()+" "+query.value("caller_version").toString() << "date="+query.value("call_date").toString();
-
-			int count = db.getValue("SELECT count(*) FROM somatic_cnv WHERE somatic_cnv_callset_id="+id).toInt();
-			qDebug() << "  variants: " << count;
 		}
-
-		query.exec("SELECT * FROM somatic_sv_callset WHERE ps_tumor_id="+ps_id);
-		while (query.next())
+		else if (user=="ahott1a1")
 		{
-			QString id = query.value("id").toString();
-			qDebug() << "somatic_sv_callset" << "id="+id << "T="+query.value("ps_tumor_id").toString() << "N="+query.value("ps_normal_id").toString() << "caller="+ query.value("caller").toString()+" "+query.value("caller_version").toString() << "date="+query.value("call_date").toString();
-
-			int count = db.getValue("SELECT count(*) FROM somatic_sv_deletion WHERE somatic_sv_callset_id="+id).toInt();
-			count += db.getValue("SELECT count(*) FROM somatic_sv_duplication WHERE somatic_sv_callset_id="+id).toInt();
-			count += db.getValue("SELECT count(*) FROM somatic_sv_insertion WHERE somatic_sv_callset_id="+id).toInt();
-			count += db.getValue("SELECT count(*) FROM somatic_sv_inversion WHERE somatic_sv_callset_id="+id).toInt();
-			count += db.getValue("SELECT count(*) FROM somatic_sv_translocation WHERE somatic_sv_callset_id="+id).toInt();
-			qDebug() << "  variants: " << count;
 		}
 	}
-	else if (user=="ahschul1")
+	catch(Exception& e)
 	{
-		qDebug() << NGSD().secondaryAnalyses("21073LRa154_01", "trio");
-//		qDebug() << NGSD().secondaryAnalyses("21073LRa033_01", "trio");
-//		qDebug() << NGSD().secondaryAnalyses("21073LRa036_01", "trio");
-
-	}
-	else if (user=="ahott1a1")
-	{
-
+		qDebug() << "Exception in debug function:\n" << e.message();
 	}
 
 	qDebug() << "Elapsed time debug function:" << Helper::elapsedTime(timer, true);
@@ -661,6 +650,13 @@ void MainWindow::on_actionRegionToGenes_triggered()
 
 void MainWindow::on_actionSearchSNVs_triggered()
 {
+	//check if the user can perform this action
+	if (!LoginManager::userCanPerformAction(ActionPermission::PERFORM_VARIANT_SEARCH))
+	{
+		QMessageBox::information(this, "Access denied", "You do not have permissions to perform Small variants search!");
+		return;
+	}
+
 	SmallVariantSearchWidget* widget = new SmallVariantSearchWidget();
 	auto dlg = GUIHelper::createDialog(widget, "Small variants search");
 	addModelessDialog(dlg);
@@ -668,6 +664,13 @@ void MainWindow::on_actionSearchSNVs_triggered()
 
 void MainWindow::on_actionSearchCNVs_triggered()
 {
+	//check if the user can perform this action
+	if (!LoginManager::userCanPerformAction(ActionPermission::PERFORM_VARIANT_SEARCH))
+	{
+		QMessageBox::information(this, "Access denied", "You do not have permissions to perform CNV search!");
+		return;
+	}
+
 	CnvSearchWidget* widget = new CnvSearchWidget();
 	auto dlg = GUIHelper::createDialog(widget, "CNV search");
 	addModelessDialog(dlg);
@@ -675,6 +678,13 @@ void MainWindow::on_actionSearchCNVs_triggered()
 
 void MainWindow::on_actionSearchSVs_triggered()
 {
+	//check if the user can perform this action
+	if (!LoginManager::userCanPerformAction(ActionPermission::PERFORM_VARIANT_SEARCH))
+	{
+		QMessageBox::information(this, "Access denied", "You do not have permissions to perform SV search!");
+		return;
+	}
+
 	SvSearchWidget* widget = new SvSearchWidget();
 	auto dlg = GUIHelper::createDialog(widget, "SV search");
 	addModelessDialog(dlg);
@@ -682,6 +692,13 @@ void MainWindow::on_actionSearchSVs_triggered()
 
 void MainWindow::on_actionSearchREs_triggered()
 {
+	//check if the user can perform this action
+	if (!LoginManager::userCanPerformAction(ActionPermission::PERFORM_VARIANT_SEARCH))
+	{
+		QMessageBox::information(this, "Access denied", "You do not have permissions to perform RE search!");
+		return;
+	}
+
 	ReSearchWidget* widget = new ReSearchWidget();
 	auto dlg = GUIHelper::createDialog(widget, "RE search");
 	addModelessDialog(dlg);
@@ -1727,12 +1744,18 @@ void MainWindow::editVariantValidation(int index)
 
 	try
 	{
+		//check user can perform this action
+		if (!LoginManager::userCanPerformAction(ActionPermission::CHANGE_NGSD_DATA))
+		{
+			QMessageBox::information(this, "Access denied", "You do not have permissions to perform variant validation!");
+			return;
+		}
+
 		QString ps = selectProcessedSample();
 		if (ps.isEmpty()) return;
 
-		NGSD db;
-
 		//get variant ID - add if missing
+		NGSD db;
 		QString variant_id = db.variantId(variant, false);
 		if (variant_id=="")
 		{
@@ -1803,6 +1826,13 @@ void MainWindow::editVariantComment(int index)
 
 	try
 	{
+		//check user can perform this action
+		if (!LoginManager::userCanPerformAction(ActionPermission::CHANGE_NGSD_DATA))
+		{
+			QMessageBox::information(this, "Access denied", "You do not have permissions to edit a comment!");
+			return;
+		}
+
 		//add variant if missing
 		NGSD db;
 		if (db.variantId(variant, false)=="")
@@ -3165,14 +3195,14 @@ void MainWindow::on_actionAbout_triggered()
 		}
 		else
 		{
-			add_info += "<br>&nbsp;&nbsp;version: " + server_info.version;
+			add_info += "<br>&nbsp;&nbsp;version: " + server_info.version + " (" + server_info.date + ")";
 			add_info += "<br>&nbsp;&nbsp;start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
 			add_info += "<br>&nbsp;&nbsp;API URL: " + server_info.server_url;
 			add_info += "<br>&nbsp;&nbsp;API version: " + server_info.api_version;
-			add_info += "<br>&nbsp;&nbsp;htslib version: " + server_info.htslib_version;
 			add_info += "<br>&nbsp;&nbsp;operating system: " + server_info.operating_system;
 			add_info += "<br>&nbsp;&nbsp;architecture: " + server_info.architecture;
 			add_info += "<br>&nbsp;&nbsp;Qt version: " + server_info.qt_version;
+			add_info += "<br>&nbsp;&nbsp;htslib version: " + server_info.htslib_version;
 		}
 	}
 
@@ -4506,8 +4536,8 @@ void MainWindow::on_actionStatistics_triggered()
 
 	//show dialog
 	TsvTableWidget* widget = new TsvTableWidget(table, this);
-	widget->setMinimumWidth(850);
-	auto dlg = GUIHelper::createDialog(widget, "Statistics", "Sequencing statistics grouped by month (human)");
+	widget->setMinimumWidth(1200);
+	auto dlg = GUIHelper::createDialog(widget, "Sample count (by month)", "Sequencing statistics grouped by month (human)");
 	dlg->exec();
 }
 
@@ -4937,7 +4967,7 @@ void MainWindow::on_actionSampleCounts_triggered()
 	if (!LoginManager::active()) return;
 
 	SampleCountWidget* widget = new SampleCountWidget();
-	auto dlg = GUIHelper::createDialog(widget, "Sample counts");
+	auto dlg = GUIHelper::createDialog(widget, "Sample count (by type)");
 	addModelessDialog(dlg);
 }
 
@@ -4998,6 +5028,26 @@ void MainWindow::on_actionNotifyUsers_triggered()
 	dlg.exec();
 }
 
+void MainWindow::on_actionDetermineProxy_triggered()
+{
+	QString url = QInputDialog::getText(this, "Determine proxy for URL", "URL:");
+	if (url.isEmpty()) return;
+
+	QStringList proxies;
+	foreach(const QNetworkProxy& proxy, QNetworkProxyFactory::systemProxyForQuery(QNetworkProxyQuery(url)))
+	if (proxy.type()!=QNetworkProxy::NoProxy)
+	{
+		proxies << (proxy.hostName() + ":" + QString::number(proxy.port()));
+	}
+	QMessageBox::information(this, "Determine proxy for URL", "For the URL '" + url + "' the follwing proxies are used:\n" + proxies.join('\n'));
+}
+
+void MainWindow::on_actionAnalysisTimePlot_triggered()
+{
+	AnalysisTimePlot* widget = new AnalysisTimePlot(this);
+	auto dlg = GUIHelper::createDialog(widget, "Analysis time");
+	addModelessDialog(dlg);
+}
 
 void MainWindow::on_actionCohortAnalysis_triggered()
 {
@@ -5005,8 +5055,6 @@ void MainWindow::on_actionCohortAnalysis_triggered()
 	auto dlg = GUIHelper::createDialog(widget, "Cohort analysis");
 	addModelessDialog(dlg);
 }
-
-
 
 void MainWindow::on_actionGenderXY_triggered()
 {
@@ -5636,7 +5684,7 @@ void MainWindow::refreshVariantTable(bool keep_widths, bool keep_heights)
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
-    QElapsedTimer timer;
+	QElapsedTimer timer;
 	timer.start();
 
 	//apply filters
@@ -5731,13 +5779,21 @@ void MainWindow::varHeaderContextMenu(QPoint pos)
 	}
 	else if (action==a_delete)
 	{
-		if(germlineReportSupported())
+		try
 		{
-			report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
+			if(germlineReportSupported())
+			{
+				report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
+			}
+			else
+			{
+				somatic_report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
+			}
 		}
-		else
+		catch(AccessDeniedException& e)
 		{
-			somatic_report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
+			QMessageBox::information(this, "Access denied", e.message());
+			return;
 		}
 		updateReportConfigHeaderIcon(index);
 	}
@@ -5819,14 +5875,22 @@ void MainWindow::execContextMenuAction(QAction* action, int index)
 	{
 		if ((!report_settings_.report_config->isFinalized() && report_settings_.report_config->exists(VariantType::SNVS_INDELS, index)) || somatic_report_settings_.report_config->exists(VariantType::SNVS_INDELS, index))
 		{
-			if(germlineReportSupported())
+			try
 			{
-				report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
+				if(germlineReportSupported())
+				{
+					report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
+				}
+				else if(somaticReportSupported())
+				{
+					somatic_report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
+					storeSomaticReportConfig();
+				}
 			}
-			else if(somaticReportSupported())
+			catch(AccessDeniedException& e)
 			{
-				somatic_report_settings_.report_config->remove(VariantType::SNVS_INDELS, index);
-				storeSomaticReportConfig();
+				QMessageBox::information(this, "Access denied", e.message());
+				return;
 			}
 
 			updateReportConfigHeaderIcon(index);
@@ -6054,8 +6118,14 @@ void MainWindow::on_actionVirusDetection_triggered()
 
 void MainWindow::on_actionBurdenTest_triggered()
 {
-	BurdenTestWidget* widget = new BurdenTestWidget(this);
+	// check if the user can perform this action
+	if (!LoginManager::userCanPerformAction(ActionPermission::PERFORM_BURDEN_TEST))
+	{
+		QMessageBox::information(this, "Access denied", "You do not have permissions to perform burden test!");
+		return;
+	}
 
+	BurdenTestWidget* widget = new BurdenTestWidget(this);
 	auto dlg = GUIHelper::createDialog(widget, "Gene-based burden test");
 	addModelessDialog(dlg);
 }
@@ -6086,14 +6156,19 @@ void MainWindow::editVariantClassification(VariantList& variants, int index)
 {
 	try
 	{
+		NGSD db;
+		//check user can perform this action
+		if (!LoginManager::userCanPerformAction(ActionPermission::CHANGE_NGSD_DATA))
+		{
+			QMessageBox::information(this, "Access denied", "You do not have permissions to edit classification!");
+			return;
+		}
+
 		Variant& variant = variants[index];
 
 		//execute dialog
 		ClassificationDialog dlg(this, variant);
 		if (dlg.exec()!=QDialog::Accepted) return;
-
-		//update NGSD
-		NGSD db;
 
 		ClassificationInfo class_info = dlg.classificationInfo();
 
@@ -6139,6 +6214,13 @@ void MainWindow::editVariantClassification(VariantList& variants, int index)
 
 void MainWindow::editSomaticVariantInterpretation(const VariantList &vl, int index)
 {
+	//check user can perform this action
+	if (!LoginManager::userCanPerformAction(ActionPermission::CHANGE_NGSD_DATA))
+	{
+		QMessageBox::information(this, "Access denied", "You do not have permissions to VICC interpretation!");
+		return;
+	}
+
 	SomaticVariantInterpreterWidget* interpreter = new SomaticVariantInterpreterWidget(this, index, vl);
 	auto dlg = GUIHelper::createDialog(interpreter, "Somatic Variant Interpretation");
 	connect(interpreter, SIGNAL(stored(int, QString, QString)), this, SLOT(updateSomaticVariantInterpretationAnno(int, QString, QString)) );
@@ -6334,8 +6416,14 @@ void MainWindow::editVariantReportConfiguration(int index)
 		return;
 	}
 
-	NGSD db;
+	//check user can perform this action
+	if (!LoginManager::userCanPerformAction(ActionPermission::CHANGE_NGSD_DATA))
+	{
+		QMessageBox::information(this, "Access denied", "You do not have permissions to add/edit a report configuration!");
+		return;
+	}
 
+	NGSD db;
 	if(germlineReportSupported()) //germline report configuration
 	{
 		//init/get config
@@ -6366,10 +6454,9 @@ void MainWindow::editVariantReportConfiguration(int index)
 		}
 
 		//exec dialog
-        ReportVariantDialog dlg(variant.toString(QChar()), inheritance_by_gene, var_config, this);
+		ReportVariantDialog dlg(variant.toString(QChar()), inheritance_by_gene, var_config, this);
 		dlg.setEnabled(!report_settings_.report_config->isFinalized());
 		if (dlg.exec()!=QDialog::Accepted) return;
-
 
 		//update config, GUI and NGSD
 		report_settings_.report_config->set(var_config);
@@ -6748,7 +6835,7 @@ void MainWindow::applyFilters(bool debug_time)
 			NGSD db;
 			GeneSet pheno_genes;
 			int i = 0;
-            for (const Phenotype& pheno : phenos)
+			for (const Phenotype& pheno : phenos)
 			{
 				GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(pheno.accession()), pheno_settings.sources, pheno_settings.evidence_levels, true, false);
 
@@ -6794,7 +6881,7 @@ void MainWindow::applyFilters(bool debug_time)
 		ReportConfigFilter rc_filter = ui_.filters->reportConfigurationFilter();
 		if (germlineReportSupported() && rc_filter!=ReportConfigFilter::NONE)
 		{
-            QSet<int> report_variant_indices = Helper::listToSet(report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false));
+			QSet<int> report_variant_indices = Helper::listToSet(report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false));
 			for(int i=0; i<variants_.count(); ++i)
 			{
 				if (!filter_result_.flags()[i]) continue;

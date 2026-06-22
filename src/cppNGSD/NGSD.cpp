@@ -7,7 +7,6 @@
 #include "NGSHelper.h"
 #include "FilterCascade.h"
 #include "LoginManager.h"
-#include "UserPermissionList.h"
 #include "VariantImpact.h"
 #include <QFileInfo>
 #include <QPair>
@@ -30,6 +29,7 @@
 
 NGSD::NGSD(bool test_db, QString test_name_override)
 	: test_db_(test_db)
+	, debug_(false)
 {
 	QString db_identifier = "NGSD_" + QUuid::createUuid().toString();
 	db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", db_identifier)));
@@ -177,15 +177,26 @@ void NGSD::setPassword(int user_id, QString password)
 	getQuery().exec("UPDATE user SET password='" + hash + "', salt='" + salt + "' WHERE id=" + QString::number(user_id));
 }
 
-QString NGSD::getUserRole(int user_id)
+QByteArray NGSD::getUserRole(int user_id)
 {
-	return getValue("SELECT user_role FROM user WHERE id='" + QString::number(user_id) + "'").toString().toLower();
+	QMutexLocker locker(&cache_mutex_user_roles_);
+	QMap<int, QByteArray>& user_role = getCache().user_role;
+
+	//get user-specific data and store it in cache
+	if (!user_role.contains(user_id))
+	{
+		user_role[user_id] = getValue("SELECT user_role FROM user WHERE id='" + QString::number(user_id) + "'").toByteArray().toLower();
+	}
+
+	return user_role[user_id];
 }
 
 bool NGSD::userRoleIn(QString user, QStringList roles)
 {
+	static QStringList valid_roles;
+	if (valid_roles.isEmpty()) valid_roles = getEnum("user", "user_role");
+
 	//check that role list contains only correct user role names
-	QStringList valid_roles = getEnum("user", "user_role");
 	foreach(const QString& role, roles)
 	{
 		if (!valid_roles.contains(role)) THROW (ProgrammingException, "Invalid role '" + role + "' given in NGSD::userRoleIn()!");
@@ -213,29 +224,57 @@ bool NGSD::userCanAccess(int user_id, int ps_id)
 		query.exec("SELECT * FROM user_permissions WHERE user_id=" + QString::number(user_id));
 		while(query.next())
 		{
-			Permission permission = UserPermissionList::stringToType(query.value("permission").toString());
+			AccessPermission permission = stringToAccessPermission(query.value("permission").toString());
 			QString data = query.value("data").toString();
 
 			switch(permission)
 			{
-				case Permission::PROJECT:
+			        case AccessPermission::PROJECT:
 					ps_ids << getValuesInt("SELECT id FROM processed_sample WHERE project_id=" + data);
 					break;
-				case Permission::PROJECT_TYPE:
+			        case AccessPermission::PROJECT_TYPE:
 					ps_ids << getValuesInt("SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND p.type='" + data + "'");
 					break;
-				case Permission::SAMPLE:
+			        case AccessPermission::SAMPLE:
 					ps_ids << getValuesInt("SELECT id FROM processed_sample WHERE sample_id=" + data);
 					break;
-				case Permission::STUDY:
+			        case AccessPermission::STUDY:
 					ps_ids << getValuesInt("SELECT processed_sample_id FROM study_sample WHERE study_id=" + data);
-					break;
+					break;			       
 			}
 		}
 		user_can_access.insert(user_id, Helper::listToSet(ps_ids));
 	}
 
 	return user_can_access.value(user_id).contains(ps_id);
+}
+
+QSet<ActionPermission> NGSD::userActionPermissions(int user_id)
+{
+	//only 'user_restricted' users get action permissions, other users have no limitations
+	static QSet<ActionPermission> all_action = {ActionPermission::CHANGE_NGSD_DATA, ActionPermission::PERFORM_VARIANT_SEARCH, ActionPermission::PERFORM_BURDEN_TEST, ActionPermission::START_ANALYSIS_JOBS};
+	if (getUserRole(user_id)!="user_restricted") return all_action;
+
+	QMutexLocker locker(&cache_mutex_user_actions_);
+	QMap<int, QSet<ActionPermission>>& user_can_perform_actions = getCache().user_can_perform_actions;
+	if (!user_can_perform_actions.contains(user_id))
+	{
+		QSet<ActionPermission> current_permissions;
+
+		SqlQuery query = getQuery();
+		query.exec("SELECT * FROM user_action_permissions WHERE user_id=" + QString::number(user_id));
+		if (query.next()) //no entry in 'user_action_permissions' means no actions...
+		{
+			if (query.value("change_ngsd_data").toBool()) current_permissions << ActionPermission::CHANGE_NGSD_DATA;
+			if (query.value("perform_variant_search").toBool()) current_permissions << ActionPermission::PERFORM_VARIANT_SEARCH;
+			if (query.value("perform_burden_test").toBool()) current_permissions << ActionPermission::PERFORM_BURDEN_TEST;
+			if (query.value("start_analysis_jobs").toBool()) current_permissions << ActionPermission::START_ANALYSIS_JOBS;
+		}
+
+		user_can_perform_actions.insert(user_id, current_permissions);
+	}
+
+	return user_can_perform_actions.value(user_id);
 }
 
 DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
@@ -5413,7 +5452,7 @@ ClinvarSubmissionStatus NGSD::getSubmissionStatus(const QString& submission_id, 
 {
 	//switch on/off testing
 	if(test_run) qDebug() << "Test run enabled!";
-	const QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions/" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/";
+	QString api_url = (test_run)? "https://submit.ncbi.nlm.nih.gov/apitest/v1/submissions/" : "https://submit.ncbi.nlm.nih.gov/api/v1/submissions/";
 
 
 	// read API key
@@ -5432,7 +5471,7 @@ ClinvarSubmissionStatus NGSD::getSubmissionStatus(const QString& submission_id, 
 		add_headers.insert("SP-API-KEY", api_key);
 
 		//get request
-        QByteArray reply = request_handler.get(api_url + submission_id.toUpper() + "/actions/", add_headers).body;
+		QByteArray reply = request_handler.get(api_url + submission_id.toUpper() + "/actions/", add_headers).body;
 		qDebug() << api_url + submission_id.toUpper() + "/actions/";
 		// parse response
 		QJsonObject response = QJsonDocument::fromJson(reply).object();
@@ -5445,7 +5484,7 @@ ClinvarSubmissionStatus NGSD::getSubmissionStatus(const QString& submission_id, 
 		{
 			//get summary file and extract stable id or error message
 			QString report_summary_file = actions.at(0).toObject().value("responses").toArray().at(0).toObject().value("files").toArray().at(0).toObject().value("url").toString();
-            QByteArray summary_reply = request_handler.get(report_summary_file).body;
+			QByteArray summary_reply = request_handler.get(report_summary_file).body;
 			QJsonDocument summary_response = QJsonDocument::fromJson(summary_reply);
 
 			if (submission_status.status == "processed")
@@ -5879,7 +5918,7 @@ void NGSD::updateQC(QString obo_file, bool debug)
 
 	// database connection
 	transaction();
-	QSqlQuery query = getQuery();
+	SqlQuery query = getQuery();
 	query.prepare("INSERT INTO qc_terms (qcml_id, name, description, type, obsolete) VALUES (:0, :1, :2, :3, :4) ON DUPLICATE KEY UPDATE name=VALUES(name), description=VALUES(description), type=VALUES(type), obsolete=VALUES(obsolete)");
 	int c_terms_ngs = 0;
 	int c_terms_valid_type = 0;
@@ -6983,7 +7022,7 @@ GeneSet NGSD::phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype
 		}
 	}
 
-	QHash<int, QList<QByteArray>>& hpo_genes_cache = getCache().hpo_genes; //TODO Marc/Alexandr: access caches through functions and initialize it once (using a mutex)
+	QHash<int, QList<QByteArray>>& hpo_genes_cache = getCache().hpo_genes;
 	if (hpo_genes_cache.isEmpty())
 	{
 		SqlQuery hpo_pairs_query = getQuery();
@@ -10907,14 +10946,30 @@ void NGSD::clearCache()
 	cache_instance.gene_expression_id2gene.clear();
 	cache_instance.gene_expression_gene2id.clear();
 
-	clearUserPermissionsCache();
+	clearUserCaches();
 }
 
-void NGSD::clearUserPermissionsCache()
+void NGSD::clearUserCaches()
 {
-	QMutexLocker locker(&cache_mutex_user_access_);
 	Cache& cache_instance = getCache();
-	cache_instance.user_can_access.clear();
+
+	//roles
+	{
+		QMutexLocker locker(&cache_mutex_user_roles_);
+		cache_instance.user_role.clear();
+	}
+
+	//sample access permissions
+	{
+		QMutexLocker locker(&cache_mutex_user_access_);
+		cache_instance.user_can_access.clear();
+	}
+
+	//action permissions
+	{
+		QMutexLocker locker(&cache_mutex_user_actions_);
+		cache_instance.user_can_perform_actions.clear();
+	}
 }
 
 NGSD::Cache::Cache()
@@ -10954,6 +11009,7 @@ void NGSD::initTranscriptCache()
 	//get exon coordinates for each transcript from NGSD
 	QHash<int, QList<QPair<int, int>>> tmp_coords;
 	SqlQuery query = getQuery();
+	query.setForwardOnly(true);
 	query.exec("SELECT transcript_id, start, end FROM gene_exon ORDER BY start, end");
 	while(query.next())
 	{
@@ -11057,3 +11113,47 @@ void NGSD::initGeneExpressionCache()
 
 	initializing = false;
 }
+
+AccessPermission stringToAccessPermission(const QString &in)
+{
+	if (in.toLower() == "project") {return AccessPermission::PROJECT;}
+	if (in.toLower() == "project_type") {return AccessPermission::PROJECT_TYPE;}
+	if (in.toLower() == "study") {return AccessPermission::STUDY;}
+	if (in.toLower() == "sample") {return AccessPermission::SAMPLE;}
+
+	THROW(ProgrammingException, "Unhandled access permission type '" + in + "' in stringToType()!");
+}
+
+//TODO Marc/Alexandr: provide functions to access/initialize individual caches, e.g. for getCache().hpo_genes. Here an example:
+/*
+const QHash<int, QString>& NGSD::geneCache()
+{
+    // Fast path
+    {
+	QReadLocker locker(&gene_cache_lock_);
+
+	if (!gene_cache_.isEmpty())
+	{
+	    return gene_cache_;
+	}
+    }
+
+    // Initialization
+    {
+	QWriteLocker locker(&gene_cache_lock_);
+
+	// Another thread may have initialized it already.
+	if (gene_cache_.isEmpty())
+	{
+	    QHash<int, QString> tmp;
+
+	    // Fill tmp from SQL
+	    // ...
+
+	    gene_cache_ = std::move(tmp);
+	}
+
+	return gene_cache_;
+    }
+}
+*/

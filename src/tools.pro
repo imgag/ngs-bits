@@ -472,10 +472,6 @@ SUBDIRS += BedpeAnnotateBreakpointDensity
 tools-TEST.depends += BedpeAnnotateBreakpointDensity
 BedpeAnnotateBreakpointDensity.depends = cppNGS
 
-SUBDIRS += NGSDUpdateSvGenotype
-tools-TEST.depends += NGSDUpdateSvGenotype
-NGSDUpdateSvGenotype.depends = cppNGSD
-
 SUBDIRS += HgvsToVcf
 tools-TEST.depends += HgvsToVcf
 HgvsToVcf.depends = cppNGSD
@@ -632,10 +628,6 @@ SUBDIRS += MantaVcfFix
 tools-TEST.depends += MantaVcfFix
 MantaVcfFix.depends = cppNGS
 
-SUBDIRS += MantaFindDuplicates
-tools-TEST.depends += MantaFindDuplicates
-MantaFindDuplicates.depends = cppNGSD
-
 SUBDIRS += SnifflesVcfFix
 tools-TEST.depends += SnifflesVcfFix
 SnifflesVcfFix.depends = cppNGSD
@@ -671,3 +663,11 @@ VcfMerge.depends = cppNGS
 SUBDIRS += TranscriptToProtein
 tools-TEST.depends += TranscriptToProtein
 TranscriptToProtein.depends = cppNGS
+
+SUBDIRS += NGSDSampleUsers
+tools-TEST.depends += NGSDSampleUsers
+NGSDSampleUsers.depends = cppNGSD
+
+SUBDIRS += NgsBitsInfo
+tools-TEST.depends += NgsBitsInfo
+NgsBitsInfo.depends = cppNGS

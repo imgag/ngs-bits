@@ -370,14 +370,22 @@
     <property name="title">
      <string>Help</string>
     </property>
+    <widget class="QMenu" name="menuDebugging">
+     <property name="title">
+      <string>Debugging</string>
+     </property>
+     <addaction name="actionOpenLogFile"/>
+     <addaction name="actionClearLogFile"/>
+     <addaction name="separator"/>
+     <addaction name="actionOpenGSvarDataFolder"/>
+     <addaction name="separator"/>
+     <addaction name="actionDetermineProxy"/>
+    </widget>
     <addaction name="actionOpenDocumentation"/>
     <addaction name="actionChangeLog"/>
     <addaction name="separator"/>
     <addaction name="actionSettings"/>
-    <addaction name="actionOpenLogFile"/>
-    <addaction name="actionClearLogFile"/>
-    <addaction name="actionOpenGSvarDataFolder"/>
-    <addaction name="separator"/>
+    <addaction name="menuDebugging"/>
     <addaction name="actionEncrypt"/>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
@@ -556,6 +564,7 @@
     <addaction name="actionSampleCounts"/>
     <addaction name="actionStatistics"/>
     <addaction name="actionShowDatabaseInfo"/>
+    <addaction name="actionAnalysisTimePlot"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuNGSD"/>
@@ -966,7 +975,7 @@
   </action>
   <action name="actionStatistics">
    <property name="text">
-    <string>Statistics</string>
+    <string>Sample count (by month)</string>
    </property>
   </action>
   <action name="actionDevice">
@@ -1472,7 +1481,7 @@
   </action>
   <action name="actionOpenGSvarDataFolder">
    <property name="text">
-    <string>Open GSvar data folder</string>
+    <string>Open GSvar AppData folder</string>
    </property>
   </action>
   <action name="actionMethylation">
@@ -1489,7 +1498,7 @@
   </action>
   <action name="actionSampleCounts">
    <property name="text">
-    <string>Sample counts</string>
+    <string>Sample count (by type)</string>
    </property>
   </action>
   <action name="actionExportSampleData">
@@ -1500,6 +1509,16 @@
   <action name="actionShowDatabaseInfo">
    <property name="text">
     <string>Show info about imported DBs</string>
+   </property>
+  </action>
+  <action name="actionDetermineProxy">
+   <property name="text">
+    <string>Determine proxy for URL</string>
+   </property>
+  </action>
+  <action name="actionAnalysisTimePlot">
+   <property name="text">
+    <string>Analysis time plot</string>
    </property>
   </action>
  </widget>

@@ -16,13 +16,18 @@
 #include <QJsonObject>
 #include <QNetworkProxy>
 
+bool ignoreProxySettings()
+{
+	if (!qputenv("NO_PROXY", "localhost,127.0.0.1,::1")) return false;
+	return true;
+}
+
 int sendGetRequest(QByteArray& reply, QString url, HttpHeaders headers)
 {
 	ServerReply server_reply;
     try
 	{
 		HttpRequestHandler http_handler;
-		http_handler.disableProxy();
 		server_reply = http_handler.get(url, headers);
 		reply = server_reply.body;
 	}
@@ -132,6 +137,7 @@ private:
 
 	TEST_METHOD(test_token_based_authentication)
 	{
+		if (!ignoreProxySettings()) SKIP("Could not set NO_PROXY variable, the tests may not work properly");
 		if (!ServerHelper::settingsValid(true))
 		{
 			SKIP("Server has not been configured correctly");
@@ -478,6 +484,7 @@ private:
 
 	TEST_METHOD(test_queuing_engine_api_endpoints)
 	{
+		if (!ignoreProxySettings()) SKIP("Could not set NO_PROXY variable, the tests may not work properly");
 		if (Settings::string("qe_api_base_url", true).isEmpty())
 		{
 			SKIP("This test requieres a queuing engine API server base URL, which is not set in the config");

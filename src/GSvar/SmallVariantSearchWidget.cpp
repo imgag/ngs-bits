@@ -56,9 +56,6 @@ void SmallVariantSearchWidget::updateVariants()
 	{
 		QApplication::setOverrideCursor(Qt::BusyCursor);
 
-		//not for restricted users
-		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
-
 		//process genes/region
 		QStringList comments;
 		QList<QList<QVariant>> output;
