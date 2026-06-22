@@ -323,7 +323,7 @@
      </column>
      <column>
       <property name="text">
-       <string>ref size</string>
+       <string>ref. size</string>
       </property>
      </column>
      <column>

@@ -163,6 +163,9 @@ void RepeatLocusList::load(QString filename)
 		}
 	}
 
+	//mark if VCF has annotation of insertions
+	contains_insertion_annotation_ = repeat_expansions.vcfHeader().infoIdDefined("OVERLAPPING_INS");
+
 	// fill table widget with variants/repeat expansions
 	for(int row_idx=0; row_idx<repeat_expansions.count(); ++row_idx)
 	{

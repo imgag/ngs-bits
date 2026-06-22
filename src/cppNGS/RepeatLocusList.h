@@ -153,6 +153,12 @@ public:
 		variants_.append(add);
 	}
 
+	//Returns if overlapping INS are annotated to the VCF
+	bool ContainsInsertionAnnotation() const
+	{
+		return contains_insertion_annotation_;
+	}
+
 	///Returns the index of the repeat which matches the given RepeatLocus + allele count, -1 if not found
 	///		NOTICE: if 'fuzzy_match' is set to true, also repeats are reported where the max alleles match to above 95%
 	int findMatch(const RepeatLocus& re, bool fuzzy_match = false) const;
@@ -163,6 +169,7 @@ protected:
 	QByteArray caller_version_;
 	QDate call_date_;
 	QList<RepeatLocus> variants_;
+	bool contains_insertion_annotation_ = false;
 };
 
 #endif // REPEATEXPANSIONLIST_H

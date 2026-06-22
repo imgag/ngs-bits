@@ -76,6 +76,8 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 	{
 		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "statistical cutoff"), true);
 	}
+	//show annotation column only if annotation exists
+	ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "overlapping insertions"), !res.ContainsInsertionAnnotation());
 
     if (!res_.isEmpty())
     {
@@ -476,8 +478,6 @@ void RepeatExpansionWidget::displayRepeats()
 {
 	// fill table widget with variants/repeat expansions
 	ui_.table->setRowCount(res_.count());
-	bool hide_ins_column = true;
-	bool hide_ref_size_column = true;
     for(int row_idx=0; row_idx<res_.count(); ++row_idx)
 	{
 		const RepeatLocus& re = res_[row_idx];
@@ -528,25 +528,9 @@ void RepeatExpansionWidget::displayRepeats()
 			setCellDecoration(row_idx, "reads spanning", "Less than 3 spanning reads", yellow_);
 		}
 
-		//reference size
-		if (re.refSize() > -1)
-		{
-			setCell(row_idx, "ref size", QString::number(re.refSize()));
-			hide_ref_size_column = false;
-		}
-
 		//additional annotations
 		setCell(row_idx, "overlapping insertions", re.overlappingInsertions().join(", "));
-		if (re.overlappingInsertions().size() > 0)
-		{
-			hide_ins_column = false;
-			setCellDecoration(row_idx, "overlapping insertions", "Overlapping insertion called. (Calculated overall repeat units)", yellow_);
-		}
 	}
-
-	ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "overlapping insertions"), hide_ins_column);
-	ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "ref size"), hide_ref_size_column);
-
 }
 
 void RepeatExpansionWidget::loadMetaDataFromNGSD()
@@ -581,6 +565,9 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
             setCellDecoration(row, "repeat ID", "Repeat not found in NGSD", orange_);
             continue;
         }
+		//ref_size
+		QString ref_size = getRepeatExpansionFieldById(re_table, "ref_size", id);
+		setCell(row, "ref. size", ref_size);
 
         //max_normal
         QString max_normal = getRepeatExpansionFieldById(re_table, "max_normal", id);
@@ -750,7 +737,7 @@ void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
 		{
 			setCellDecoration(row, "genotype", "Above min. pathogenic cutoff!", red_);
 		}
-		if (min_pathogenic_hom!=-1 && min>=min_pathogenic_hom)
+		else if (min_pathogenic_hom!=-1 && min>=min_pathogenic_hom)
 		{
 			setCellDecoration(row, "genotype", "Above min. pathogenic cutoff!", red_);
 		}
@@ -761,6 +748,35 @@ void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
 		else if (statistical_cutoff!=-1.0 && max>=statistical_cutoff)
 		{
 			setCellDecoration(row, "genotype", "Above statistical cutoff!", yellow_);
+		}
+
+		//determine color for INS
+		QString insertions = getCell(row, "overlapping insertions");
+		if (!insertions.trimmed().isEmpty())
+		{
+			//get max expansion
+			double max_ins = 0.0;
+			for (const QString& ins : insertions.split(','))
+			{
+				max_ins = std::max(max_ins, Helper::toDouble(ins.split('(').at(0), "Insertion size", getCell(row, "repeat ID")));
+			}
+
+			if (min_pathogenic!=-1 && max_ins>=min_pathogenic)
+			{
+				setCellDecoration(row, "overlapping insertions", "Insertion above min. pathogenic cutoff!", red_);
+			}
+			else if (min_pathogenic_hom!=-1 && max_ins>=min_pathogenic_hom)
+			{
+				setCellDecoration(row, "overlapping insertions", "Insertion above min. pathogenic cutoff!", red_);
+			}
+			else if (max_normal!=-1 && max_ins>max_normal)
+			{
+				setCellDecoration(row, "overlapping insertions", "Insertion above max. normal cutoff!", orange_);
+			}
+			else if (statistical_cutoff!=-1.0 && max_ins>=statistical_cutoff)
+			{
+				setCellDecoration(row, "overlapping insertions", "Insertion above statistical cutoff!", yellow_);
+			}
 		}
 	}
 }
@@ -868,19 +884,27 @@ void RepeatExpansionWidget::updateRowVisibility()
 	//expansion status
 	if (ui_.filter_expanded->currentText()=="possibly expanded")
 	{
-		int col = GUIHelper::columnIndex(ui_.table, "genotype");
+		int col_gt = GUIHelper::columnIndex(ui_.table, "genotype");
+		int col_oi = GUIHelper::columnIndex(ui_.table, "overlapping insertions");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-            QColor color = ui_.table->item(row, col)->background().color();
-			if (color!=red_ && color!=orange_ && color!=yellow_) hidden[row] = true;
+			QColor color_gt = ui_.table->item(row, col_gt)->background().color();
+			QColor color_oi = ui_.table->item(row, col_oi)->background().color();
+			if (color_gt!=red_ && color_gt!=orange_ && color_gt!=yellow_ && color_oi!=red_
+				&& color_oi!=orange_ && color_oi!=yellow_)
+			{
+				hidden[row] = true;
+			}
 		}
 	}
 	if (ui_.filter_expanded->currentText()=="pathogenic")
 	{
-		int col = GUIHelper::columnIndex(ui_.table, "genotype");
+		int col_gt = GUIHelper::columnIndex(ui_.table, "genotype");
+		int col_oi = GUIHelper::columnIndex(ui_.table, "overlapping insertions");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-            if (ui_.table->item(row, col)->background().color()!=red_) hidden[row] = true;
+			if ((ui_.table->item(row, col_gt)->background().color()!=red_)
+				&& (ui_.table->item(row, col_oi)->background().color()!=red_)) hidden[row] = true;
 		}
 	}
 
