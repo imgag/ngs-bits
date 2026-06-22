@@ -95,6 +95,12 @@ void BamTrackData::updateRegion()
 		loaded_region_.setEnd(p_end);
 		is_loading_ = false;
 
+		// TODO: need to check if this is too slow
+		// std::sort(alignments_.begin(), alignments_.end(),
+		// 		  [](const BamAlignmentWrapper& a, const BamAlignmentWrapper&b){
+		// 			return a.start() <= b.start();}
+		// 		  );
+
 		emit onDataUpdate();
 		return;
 	}

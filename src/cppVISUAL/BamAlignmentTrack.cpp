@@ -6,7 +6,7 @@
 #include <QPainter>
 #include <QMenu>
 
-#define DRAW_TRANSPARENT
+// #define DRAW_TRANSPARENT
 
 //constants
 static constexpr int ROW_HEIGHT = 10;
@@ -290,6 +290,8 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 	int label_width = SharedData::settings().label_width;
 	int total_width = width() - label_width - 4;
 	double pixels_per_base = (double)total_width / region.length();
+	int last_x = -1.0f;
+	QColor color = strandColor(al_w.isReverseStrand());
 
 	// first pass for matches and deletions
 	foreach (const auto& data, al_w.getEvents())
@@ -299,21 +301,23 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 
 		if (en <= region.start()) continue;
 
-		float x_start = genomePosToScreen(st);
-		float width = genomeWidthToScreen(en - st + 1);
+		int x_start = genomePosToScreen(st);
+		int width = genomeWidthToScreen(en - st + 1);
 
 		if (width < 0) continue;
 
 		if (data.event == BamAlignmentWrapper::MATCH)
 		{
+			QRectF match_rect(x_start, row_y, width, ROW_HEIGHT);
+			last_x = x_start + width;
 			#ifdef DRAW_TRANSPARENT
-			painter.setPen(strandColor(al_w.isReverseStrand()));
+			painter.setPen(color);
 			painter.setBrush(Qt::NoBrush);
 			#else
 			painter.setPen(Qt::NoPen);
-			painter.setBrush(strandColor(al_w.isReverseStrand()));
+			painter.setBrush(color);
 			#endif
-			painter.drawRect(x_start, row_y, width, ROW_HEIGHT);
+			painter.drawRect(match_rect);
 		}
 
 		else if (data.event == BamAlignmentWrapper::DELETION)
@@ -321,7 +325,6 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 			painter.setPen(Qt::blue);
 			int mid = row_y + ROW_HEIGHT / 2;
 			painter.drawLine(x_start, mid, x_start + width, mid);
-			double pixels_per_base = (double)total_width / region.length();
 			if (pixels_per_base >= cached_char_size_.width())
 			{
 				QRectF text_rect(x_start, row_y, width, ROW_HEIGHT);
@@ -376,35 +379,35 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 					QString::number(data.length)
 					);
 			}
-			// painter.drawText(text_rect, Qt::AlignHCenter, "I");
-			// painter.drawRect(x_start, row_y, 2, ROW_HEIGHT);
 		}
 	}
 
+	//draw the arrows
 	int st = std::max(al_w.start(), region.start());
-	int en = std::min(al_w.end(), region.end() + 1);
+	int x_start = genomePosToScreen(st);
 
-	float x_start = genomePosToScreen(st);
-	float width = genomeWidthToScreen(en - st + 1);
+	painter.setPen(Qt::NoPen);
+	painter.setBrush(color);
 
-	float tri_w = std::min(6.f, width / 3);
-	QColor body = strandColor(al_w.isReverseStrand());
-	painter.setBrush(body.darker(130));
-	QPolygon arrow;
 	int mid = row_y + ROW_HEIGHT / 2;
-	if (!al_w.isReverseStrand())
+	int tri_w = 6;
+
+	if (!al_w.isReverseStrand() && last_x > 0)
 	{
-		arrow << QPoint(x_start + width, mid)
-		<< QPoint(x_start + width - tri_w, row_y)
-		<< QPoint(x_start + width - tri_w, row_y + ROW_HEIGHT);
+		QPolygon arrow;
+		arrow << QPoint(last_x + tri_w, mid)
+		<< QPoint(last_x, row_y)
+		<< QPoint(last_x, row_y + ROW_HEIGHT);
+		painter.drawPolygon(arrow);
 	}
-	else
+	else if (!isOutOfDrawRegion(x_start - tri_w))
 	{
-		arrow << QPoint(x_start, mid)
-		<< QPoint(x_start + tri_w, row_y)
-		<< QPoint(x_start + tri_w, row_y + ROW_HEIGHT);
+		QPolygon arrow;
+		arrow << QPoint(x_start - tri_w, mid)
+		<< QPoint(x_start, row_y)
+		<< QPoint(x_start, row_y + ROW_HEIGHT);
+		painter.drawPolygon(arrow);
 	}
-	painter.drawPolygon(arrow);
 }
 
 QColor BamAlignmentTrack::baseColor(QChar base)
