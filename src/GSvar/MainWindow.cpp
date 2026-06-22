@@ -519,13 +519,13 @@ void MainWindow::userSpecificDebugFunction()
 			                              <ImpMeldungsart>0</ImpMeldungsart>
 			                              <ImpMeldungsnr></ImpMeldungsnr>
 			                              <ImpMeldungstyp>K</ImpMeldungstyp>
-			                              <ImpVorgangsnr>DSFGERGWEG344GSDFGSDFGSDFGSDGSDFGDFGSDGDFGSDFGDFGDGDGSDGDGDFGDFG</ImpVorgangsnr>
-			                              <ImpVorgangsDatum>2026-06-16</ImpVorgangsDatum>
+			                              <ImpVorgangsnr>AAAGERGWEG344GSDFGSDFGSDFGSDGSDFGDFGSDGDFGSDFGDFGDGDGSDGDGDFGDFG</ImpVorgangsnr>
+			                              <ImpVgUploadDatum>2026-06-18</ImpVgUploadDatum>
 			                            </urn:ZishWsSetGenomData>
 			                          </soapenv:Body>
 			                        </soapenv:Envelope>)";
 			HttpRequestHandler handler;
-			handler.setCredentials("ah3arzt", "TODO");
+			handler.setCredentials("ah3arzt", "XXXXXXXXXXXXXXX - TODO - XXXXXXXXXXXXXXX");
 			handler.setHeader("content-type", "text/xml; charset=utf-8");
 			handler.setHeader("SOAPAction", "\"urn:sap-com:document:sap:soap:functions:mc-style:ZISH_WS_SET_GENOM_DATA:ZishWsSetGenomDataRequest\"");
 			ServerReply reply = handler.post("http://vsldt4as01.med.uni-tuebingen.de:8080/sap/bc/srt/rfc/sap/zish_ws_set_genom_data/100/zish_ws_set_genom_data/zish_ws_set_genom_data", request);
@@ -3195,7 +3195,7 @@ void MainWindow::on_actionAbout_triggered()
 		}
 		else
 		{
-			add_info += "<br>&nbsp;&nbsp;version: " + server_info.version;
+			add_info += "<br>&nbsp;&nbsp;version: " + server_info.version + " (" + server_info.date + ")";
 			add_info += "<br>&nbsp;&nbsp;start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
 			add_info += "<br>&nbsp;&nbsp;API URL: " + server_info.server_url;
 			add_info += "<br>&nbsp;&nbsp;API version: " + server_info.api_version;
@@ -5684,7 +5684,7 @@ void MainWindow::refreshVariantTable(bool keep_widths, bool keep_heights)
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
-    QElapsedTimer timer;
+	QElapsedTimer timer;
 	timer.start();
 
 	//apply filters
@@ -6835,7 +6835,7 @@ void MainWindow::applyFilters(bool debug_time)
 			NGSD db;
 			GeneSet pheno_genes;
 			int i = 0;
-            for (const Phenotype& pheno : phenos)
+			for (const Phenotype& pheno : phenos)
 			{
 				GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(pheno.accession()), pheno_settings.sources, pheno_settings.evidence_levels, true, false);
 
@@ -6881,7 +6881,7 @@ void MainWindow::applyFilters(bool debug_time)
 		ReportConfigFilter rc_filter = ui_.filters->reportConfigurationFilter();
 		if (germlineReportSupported() && rc_filter!=ReportConfigFilter::NONE)
 		{
-            QSet<int> report_variant_indices = Helper::listToSet(report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false));
+			QSet<int> report_variant_indices = Helper::listToSet(report_settings_.report_config->variantIndices(VariantType::SNVS_INDELS, false));
 			for(int i=0; i<variants_.count(); ++i)
 			{
 				if (!filter_result_.flags()[i]) continue;

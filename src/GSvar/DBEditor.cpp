@@ -16,6 +16,8 @@
 #include <QToolButton>
 #include <QApplication>
 #include <QCryptographicHash>
+#include "ClientHelper.h"
+#include "LoginManager.h"
 
 DBEditor::DBEditor(QWidget* parent, QString table, int id)
 	: QWidget(parent)
@@ -795,6 +797,8 @@ void DBEditor::store()
 			{
 				db_.getQuery().exec("DELETE FROM user_action_permissions WHERE user_id='"+QString::number(id_)+"'");
 			}
+
+			ClientHelper::clearServerUserCache(LoginManager::userToken());
 		}
 	}
 	catch (Exception& e)

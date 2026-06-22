@@ -1019,7 +1019,7 @@ public:
 	///Sets the password for a NGSD user using a new random salt.
 	void setPassword(int user_id, QString password);
 	///Return a role for a given user.
-	QString getUserRole(int user_id);
+	QByteArray getUserRole(int user_id);
 
 	///Checks if the user has one of the given roles.
 	bool userRoleIn(QString user, QStringList roles);
@@ -1280,10 +1280,8 @@ public:
 	//clearCache() should only be called outside of NGSD for tests!
 	void clearCache();
 
-	///Clears only the user permissions part of the cache
-	void clearUserAccessPermissionsCache();
-	///Clears only the user action permissions part of the cache
-	void clearUserActionPermissionsCache();
+	///Clears user-specific caches (user roles, sample access permissions, actions permissions)
+	void clearUserCaches();
 
 signals:
 	void initProgress(QString text, bool percentage);
@@ -1340,6 +1338,7 @@ protected:
 		QMap<int, QByteArray> gene_expression_id2gene;
 		QMap<QByteArray, int> gene_expression_gene2id;
 
+		QMap<int, QByteArray> user_role;
         QMap<int, QSet<int>> user_can_access;
 		QMap<int, QSet<ActionPermission>> user_can_perform_actions;
 	};
@@ -1348,6 +1347,7 @@ protected:
 	void initGeneExpressionCache();
 
 private:
+	mutable QMutex cache_mutex_user_roles_; //mutex for Cache::user_can_access
 	mutable QMutex cache_mutex_user_access_; //mutex for Cache::user_can_access
 	mutable QMutex cache_mutex_user_actions_; //mutex for Cache::user_can_perform_actions
 };

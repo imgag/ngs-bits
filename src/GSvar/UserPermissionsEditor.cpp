@@ -176,7 +176,7 @@ void UserPermissionsEditor::removeAccessPermission()
 	}
 
 	updateAccessPermissions();
-	clearServerCache();
+	ClientHelper::clearServerUserCache(LoginManager::userToken());
 }
 
 void UserPermissionsEditor::updateActionPermissions()
@@ -198,21 +198,7 @@ void UserPermissionsEditor::updateActionPermissions()
 	{
 		QMessageBox::warning(this, "Error while changing permissions", "Could not save action permissions for the selected user: " + e.message());
 	}
-	clearServerCache();
-}
-
-void UserPermissionsEditor::clearServerCache()
-{
-	try
-	{
-		HttpHeaders add_headers;
-		add_headers.insert("Content-Type", "application/json");
-		HttpRequestHandler().post(ClientHelper::serverApiUrl() + "clear_cache?token=" + LoginManager::userToken(), QByteArray{}, add_headers);
-	}
-	catch (Exception& e)
-	{
-		QMessageBox::warning(this, "Failed to clear user permissions cache on the server", e.message());
-	}
+	ClientHelper::clearServerUserCache(LoginManager::userToken());
 }
 
 void UserPermissionsEditor::createAddAccessPermissionDialog(QString table_name)
@@ -246,5 +232,5 @@ void UserPermissionsEditor::addAccessPermissionToDatabase(QString permission, QS
 		QMessageBox::warning(this, "Adding new permission", "Error while adding a new permission to the database: " + e.message());
 	}
 	updateAccessPermissions();
-	clearServerCache();
+	ClientHelper::clearServerUserCache(LoginManager::userToken());
 }

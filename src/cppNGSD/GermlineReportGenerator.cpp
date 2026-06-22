@@ -59,7 +59,6 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		}
 	}
 
-
 	//get data from database
 	QString sample_id = db_.sampleId(data_.ps);
 	SampleData sample_data = db_.getSampleData(sample_id);
@@ -522,10 +521,13 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<br /><b>" << trans("Klasse 1: Benigne Ver&auml;nderungen") << ":</b> " << trans("Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden.") << Qt::endl;
 		stream << "</p>" << Qt::endl;
 	}
+	stream << "<!-- SECTION: MAIN END -->" << Qt::endl;
 
 	///low-coverage analysis
 	if (data_.report_settings.show_coverage_details)
 	{
+		stream << "<!-- SECTION: GAPS -->" << Qt::endl;
+
 		//get target region coverages (from NGSD or calculate)
 		double target_region_read_depth = -1.0;
 		if (data_.report_settings.recalculate_avg_depth)
@@ -626,11 +628,13 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "</p>" << Qt::endl;
 
 		writeRNACoverageReport(stream);
+		stream << "<!-- SECTION: GAPS END -->" << Qt::endl;
 	}
 
 	//OMIM table
 	if (data_.report_settings.show_omim_table)
 	{
+		stream << "<!-- SECTION: GENES -->" << Qt::endl;
 		stream << Qt::endl;
 		stream << "<p><b>" << trans("OMIM Gene und Phenotypen") << "</b>" << Qt::endl;
 		stream << "</p>" << Qt::endl;
@@ -698,12 +702,14 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			}
 		}
 		stream << "</table>" << Qt::endl;
+		stream << "<!-- SECTION: GENES END -->" << Qt::endl;
 	}
 
 	//PRS table
 	if (data_.prs.count()>0)
 	{
 		stream << Qt::endl;
+		stream << "<!-- SECTION: PRS -->" << Qt::endl;
 		stream << "<p><b>" << trans("Polygener Risiko-Score (PRS)") << (Settings::string("location", true)=="UKT" ? "*" : "") << "</b></p>" << Qt::endl;
 		stream << "<table>" << Qt::endl;
 		stream << "<tr><td><b>" << trans("Erkrankung") << "</b></td><td><b>PRS</b></td><td><b>" << trans("Publikation") << "</b></td><td><b>" << trans("Score") << "</b></td><td><b>" << trans("Z-Score") << "</b></td><td><b>" << trans("Population (gesch&auml;tzt aus NGS)") << "</b></td></tr>" << Qt::endl;
@@ -776,6 +782,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		{
 			stream << "<p>" << trans("*Diese Analyse ist nicht Teil des Akkreditierungsumfangs.") << "</p>" << Qt::endl;
 		}
+		stream << "<!-- SECTION: PRS END -->" << Qt::endl;
 	}
 
 	//close stream
@@ -807,7 +814,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
-	w.writeAttribute("version", "12");
+	w.writeAttribute("version", "13");
 	w.writeAttribute("type", data_.report_settings.report_type);
 
 	//element ReportGeneration
@@ -1657,19 +1664,51 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element ReportDocument
 	w.writeStartElement("ReportDocument");
-	QString format = QFileInfo(html_document).suffix().toUpper();
-	w.writeAttribute("format", format);
-	QByteArray base64_data = "";
-	if (!test_mode_)
-	{
-		QFile file(html_document);
-		file.open(QIODevice::ReadOnly);
-		base64_data = file.readAll();
-		file.close();
-	}
-	base64_data = base64_data.toBase64();
-	w.writeCharacters(base64_data);
+	w.writeAttribute("format", "HTML");
+	QFile file(html_document);
+	file.open(QIODevice::ReadOnly);
+	QByteArray html_full = file.readAll();
+	file.close();
+	w.writeCharacters(html_full.toBase64());
 	w.writeEndElement();
+
+	//element ReportDocumentPartMain
+	QHash<QByteArray, QByteArray> sections = htmlSections(html_full.split('\n'));
+	if (sections.contains("MAIN"))
+	{
+		w.writeStartElement("ReportDocumentPartMain");
+		w.writeAttribute("format", "HTML");
+		w.writeCharacters(sections["MAIN"].toBase64());
+		w.writeEndElement();
+	}
+	else THROW(ProgrammingException, "Could not determine section MAIN in HTML report!");
+
+	//element ReportDocumentPartGaps
+	if (sections.contains("GAPS"))
+	{
+		w.writeStartElement("ReportDocumentPartGaps");
+		w.writeAttribute("format", "HTML");
+		w.writeCharacters(sections["GAPS"].toBase64());
+		w.writeEndElement();
+	}
+
+	//element ReportDocumentPartGenes
+	if (sections.contains("GENES"))
+	{
+		w.writeStartElement("ReportDocumentPartGenes");
+		w.writeAttribute("format", "HTML");
+		w.writeCharacters(sections["GENES"].toBase64());
+		w.writeEndElement();
+	}
+
+	//element ReportDocumentPartPRS
+	if (sections.contains("PRS"))
+	{
+		w.writeStartElement("ReportDocumentPartPRS");
+		w.writeAttribute("format", "HTML");
+		w.writeCharacters(sections["PRS"].toBase64());
+		w.writeEndElement();
+	}
 
 	w.writeEndDocument();
 	outfile->close();
@@ -1778,6 +1817,7 @@ void GermlineReportGenerator::writeHtmlHeader(QTextStream& stream, QString sampl
 	stream << "	   </style>" << Qt::endl;
 	stream << "	</head>" << Qt::endl;
 	stream << "	<body>" << Qt::endl;
+	stream << "<!-- SECTION: MAIN -->" << Qt::endl;
 }
 
 void GermlineReportGenerator::writeHtmlFooter(QTextStream& stream)
@@ -2889,4 +2929,33 @@ void GermlineReportGenerator::writeGapsByGeneTable(QTextStream& stream, QMap<QBy
 	}
 	stream << "</table>" << Qt::endl;
 
+}
+
+QHash<QByteArray, QByteArray> GermlineReportGenerator::htmlSections(QByteArrayList html_full)
+{
+	QHash<QByteArray, QByteArray> output;
+
+	//determine section start/end
+	QHash<QByteArray, int> indices;
+	for (int i=0; i<html_full.count(); ++i)
+	{
+		QByteArray line = html_full[i].trimmed();
+		if (line.startsWith("<!-- SECTION:") && line.endsWith("-->"))
+		{
+			QByteArray tag = line.replace("<!-- SECTION:", "").replace("-->", "").trimmed();
+			indices[tag] = i;
+		}
+	}
+
+	for (const QByteArray& tag: QByteArrayList{"MAIN", "GAPS", "GENES", "PRS"})
+	{
+		int start = indices.value(tag, -1);
+		int end = indices.value(tag+" END", -1);
+		if (start!=-1 && end!=-1)
+		{
+			output[tag] = html_full.mid(start+1, end-start-1).join('\n');
+		}
+	}
+
+	return output;
 }

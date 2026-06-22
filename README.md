@@ -55,8 +55,8 @@ Change log is available on the [releases](https://github.com/imgag/ngs-bits/rele
 You can cite ngs-bits in using Zenodo DOIs:
 
 
-release 2026_06: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20699528.svg)](https://zenodo.org/records/20699528)  
-release 2025_12: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17877407.svg)](https://zenodo.org/records/17877407)  
+* [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20699528.svg)](https://zenodo.org/records/20699528)  
+* [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17877407.svg)](https://zenodo.org/records/17877407)  
 
 A list of all releases/DOIs can be found [here](https://zenodo.org/search?q=parent.id%3A14216718&f=allversions%3Atrue&l=list&p=1&s=10&sort=version).
 
@@ -74,7 +74,6 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 * [SampleIdentity](doc/tools/SampleIdentity.md) - Tries to identify datasets that are from the same patient based on BAM/CRAM files of WGS/WES/lrGS/RNA sequencing.
 * [SampleGender](doc/tools/SampleGender.md) - Determines sample gender based on a BAM file.
 * [SampleAncestry](doc/tools/SampleAncestry/index.md) - Estimates the ancestry of a sample based on variants.
-* [CnvHunter](doc/tools/CnvHunter/index.md) - CNV detection from targeted resequencing data using non-matched control samples.
 * [RohHunter](doc/tools/RohHunter/index.md) - ROH detection based on a variant list annotated with AF values.
 * [UpdHunter](doc/tools/UpdHunter.md) - UPD detection from trio variant data.
 
@@ -98,7 +97,6 @@ You can open the a qcML file in Firefox and to show a human-readable version of 
 * [BamDownsample](doc/tools/BamDownsample.md) - Downsamples a BAM file to the given percentage of reads.
 * [BamExtract](doc/tools/BamExtract.md) - Extract reads from BAM/CRAM by read name.
 * [BamFilter](doc/tools/BamFilter.md) - Filters a BAM file by multiple criteria.
-* [BamHighCoverage](doc/tools/BamHighCoverage.md) - Determines high-coverage regions in a BAM file.
 * [BamInfo](doc/tools/BamInfo.md) - Basic BAM information.
 * [BamToFastq](doc/tools/BamToFastq.md) - Converts a coordinate-sorted BAM file to FASTQ files.
 * [FastaFromBam](doc/tools/FastaFromBam.md) - Download the reference genome FASTA file for a BAM/CRAM file.
@@ -196,7 +194,6 @@ You can open the a qcML file in Firefox and to show a human-readable version of 
 
 ### Misc tools
 
-* [FastqFromBam](doc/tools/FastqFromBam.md) - Download the reference genome FASTA file for a BAM/CRAM file.
 * [FastaChecksumUpdate](doc/tools/FastaChecksumUpdate.md) - Fixes MD5 checksums in FASTA sequence headers.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file containing DNA sequences.
 * [FastaMask](doc/tools/FastaMask.md) - Mask regions in a FASTA file with N bases.
