@@ -7,7 +7,6 @@
 #include "UrlManager.h"
 #include "FileMetaCache.h"
 #include "PipelineSettings.h"
-#include "ScheduledCacheCleaner.h"
 
 ServerWrapper::ServerWrapper(const quint16& port)
 	: is_running_(false)
@@ -83,7 +82,7 @@ ServerWrapper::ServerWrapper(const quint16& port)
 			Log::info("GSvar server is running on port #" + QString::number(port));
 
 			// Permissions cache cleaner task that runs on schedule
-			QSharedPointer<ScheduledCacheCleaner>(new ScheduledCacheCleaner(this));
+			scheduled_cache_cleaner_ = QSharedPointer<ScheduledCacheCleaner>(new ScheduledCacheCleaner(this));
 
 			// Remove expired sessions and URLs on schedule
 			connect(&session_timer_, SIGNAL(timeout()), this, SLOT(cleanupSessionsAndUrls()));

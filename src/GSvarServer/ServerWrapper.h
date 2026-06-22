@@ -9,6 +9,7 @@
 #include "Log.h"
 #include "SslServer.h"
 #include "ClientHelper.h"
+#include "ScheduledCacheCleaner.h"
 
 class ServerWrapper : public QObject
 {
@@ -32,6 +33,7 @@ private:
 	QByteArray readUserNotificationFromFile();
 	QSslKey readPrivateKey(const QString &filePath, const QByteArray &passPhrase = QByteArray());
 	QSharedPointer<SslServer> server_;
+	QSharedPointer<ScheduledCacheCleaner> scheduled_cache_cleaner_;
 	bool is_running_;
 
 	QThreadPool background_task_pool_;
