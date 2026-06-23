@@ -484,7 +484,20 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 				file_list << file_locator->getMethylationCohortImage(locus);
 				break;
 			case PathType::PARAPHASE_EVIDENCE:
-				file_list = file_locator->getParaphaseEvidenceFiles(return_if_missing);
+				file_list << file_locator->getParaphaseEvidenceFiles(return_if_missing);
+				break;
+			case PathType::METHYLATION_TRACK:
+				if (locus.isEmpty())
+				{
+					return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Locus value has not been provided"));
+				}
+				file_list << file_locator->getMethylationTrackFile(locus);
+				break;
+			case PathType::PHASING_TRACK:
+				file_list << file_locator->getPhasingTrackFile(return_if_missing);
+				break;
+			case PathType::EPIGEN:
+				file_list << file_locator->getEpigenFile(return_if_missing);
 				break;
 			case PathType::GSVAR:
 				file_list << FileLocation(url_entity.file_id, PathType::GSVAR, found_file, true);

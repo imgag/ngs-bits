@@ -38,6 +38,12 @@ public:
 	virtual FileLocation getMethylationImage(QString locus) const = 0;
 	//Returns the methylation image of a given locus
 	virtual FileLocation getMethylationCohortImage(QString locus) const = 0;
+	//Returns the methylation track of a given locus
+	virtual FileLocation getMethylationTrack(QString haplotype) const = 0;
+	//Returns the phasing track
+	virtual FileLocation getPhasingTrack() const = 0;
+	//Returns the methylation track of a given locus
+	virtual FileLocation getEpigenFile() const = 0;
 
 	//############################## sample-specific files ##############################
 	//Returns sample-specific BAM files
@@ -72,6 +78,7 @@ public:
 	virtual FileLocationList getSomaticLowCoverageFiles(bool return_if_missing) const = 0;
 	//Returns sample-specific reads mapped to the correct pseudo gene (BAM format)
 	virtual FileLocationList getParaphaseEvidenceFiles(bool return_if_missing) const = 0;
+
 
 
 	//############################## somatic-only files ##############################

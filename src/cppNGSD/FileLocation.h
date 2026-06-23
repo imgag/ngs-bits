@@ -66,6 +66,9 @@ enum class PathType
 	METHYLATION_IMAGE, // image of a given methylation locus (PNG format)
 	METHYLATION_COHORT_IMAGE, // cohort plot of a given methylation locus (PNG format)
 	PARAPHASE_EVIDENCE, //Corrected mapping of pseudo gene regions (BAM format)
+	METHYLATION_TRACK, //Bedmethyl file (for a given haplotype)
+	PHASING_TRACK, //BED track of all phasing blocks (calculated based on het small vars)
+	EPIGEN, //Epigen TSV file for upload to epigen central
 	OTHER // everything else
 };
 
@@ -254,6 +257,12 @@ struct FileLocation
 			case PathType::PARAPHASE_EVIDENCE:
 				return "PARAPHASE_EVIDENCE";
 
+			case PathType::METHYLATION_TRACK:
+				return "METHYLATION_TRACK";
+			case PathType::PHASING_TRACK:
+				return "PHASING_TRACK";
+			case PathType::EPIGEN:
+				return "EPIGEN";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToString()!");
 	}
@@ -312,6 +321,9 @@ struct FileLocation
 		if (in_upper == "METHYLATION_IMAGE") return PathType::METHYLATION_IMAGE;
 		if (in_upper == "METHYLATION_COHORT_IMAGE") return PathType::METHYLATION_COHORT_IMAGE;
 		if (in_upper == "PARAPHASE_EVIDENCE") return PathType::PARAPHASE_EVIDENCE;
+		if (in_upper == "METHYLATION_TRACK") return PathType::METHYLATION_TRACK;
+		if (in_upper == "PHASING_TRACK") return PathType::PHASING_TRACK;
+		if (in_upper == "EPIGEN") return PathType::EPIGEN;
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
 	}
 
@@ -419,6 +431,13 @@ struct FileLocation
 				return "cohort plot of a given methylation locus";
 			case PathType::PARAPHASE_EVIDENCE:
 				return "Mapping of pseudo gene regions (Paraphase)";
+
+			case PathType::METHYLATION_TRACK:
+				return "Mapping of pseudo gene regions (Paraphase)";
+			case PathType::PHASING_TRACK:
+				return "BED track of phasing blocks";
+			case PathType::EPIGEN:
+				return "Epigen TSV file for upload to epigen central";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToHumanReadableString()!");
 	}
