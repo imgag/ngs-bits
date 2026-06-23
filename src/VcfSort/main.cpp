@@ -37,7 +37,6 @@ public:
 		bool remove_unused_contigs = getFlag("remove_unused_contigs");
 		int compression_level = getInt("compression_level");
 		if (compression_level<0 || compression_level>10) THROW(ArgumentException, "Invalid gzip compression level '" + QString::number(compression_level) +"' given for VCF file '" + out + "'!");
-		QTextStream debug(stdout); //TODO remove
 
 		//sort
 		if (split_chrs) //split by chr to save memory
@@ -79,7 +78,6 @@ public:
 				vl.store(tmp_file, false);
 
 				tmp_files << tmp_file;
-				debug << tmp_file << " variants:" << vl.count() << " roi:" << roi.baseCount() << Qt::endl;
 
 				//clear cache
 				VcfFile::clearCache();
@@ -131,7 +129,7 @@ public:
 			}
 
 			//delete tmp files
-			for (QString tmp_file: std::as_const(tmp_files))
+			for (const QString& tmp_file: std::as_const(tmp_files))
 			{
 				QFile::remove(tmp_file);
 			}
