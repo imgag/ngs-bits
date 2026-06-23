@@ -161,8 +161,7 @@ class CPPNGSSHARED_EXPORT VcfLine
 public:
 	///Default constructor.
 	VcfLine();
-	///Constructor with basic entries
-	/// (chromosome, start position, reference base(s), List of alternative base(s), List of FormatIDs, List of sampleIDs, List containing for every sample a list of values for every format)
+	///Constructor with basic entries (chromosome, start position, reference base(s), List of alternative base(s), List of FormatIDs, List of sampleIDs, List containing for every sample a list of values for every format)
 	VcfLine(const Chromosome& chr, int start, const Sequence& ref, const QList<Sequence>& alt, QByteArrayList format_ids = QByteArrayList(), QByteArrayList sample_ids = QByteArrayList(), QList<QByteArrayList> list_of_format_values = QList<QByteArrayList>());
 
 	const Chromosome& chr() const

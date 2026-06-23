@@ -784,7 +784,7 @@ void RepeatExpansionWidget::colorRepeatCountConfidenceInterval()
 
 void RepeatExpansionWidget::setReportConfigHeaderIcons()
 {
-	if(report_config_==NULL) return;
+	if(report_config_==nullptr) return;
 
     QSet<int> report_variant_indices = Helper::listToSet(report_config_->variantIndices(VariantType::RES, false));
 	for(int r=0; r<res_.count(); ++r)
