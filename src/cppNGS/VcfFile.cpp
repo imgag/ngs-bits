@@ -10,6 +10,13 @@ VcfFile::VcfFile()
 {
 }
 
+void VcfFile::setChromosome(QByteArray chr)
+{
+	if (load_performed_) THROW(ProgrammingException, "Calling 'VcfFile::setChromosome' after 'VcfFile::load' is not allowed!");
+
+	load_chr_ = chr + '\t';
+}
+
 void VcfFile::setRegion(const BedFile& roi, bool invert)
 {
 	if (load_performed_) THROW(ProgrammingException, "Calling 'VcfFile::setRegion' after 'VcfFile::load' is not allowed!");
@@ -101,7 +108,11 @@ void VcfFile::parseHeaderFields(const QByteArray& line)
 
 void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids)
 {
-	QList<QByteArray> line_parts = line.split('\t');
+	//Skip variants that are not on the requested chromosome (if given)
+	if (!load_chr_.isEmpty() && !line.startsWith(load_chr_)) return;
+
+	//split line
+	QByteArrayList line_parts = line.split('\t'); //TODO Marc: massive speed-up possible when using QByteArrayView
 	if (line_parts.count()< MIN_COLS) THROW(FileParseException, "VCF data line needs at least 8 tab-separated columns! Found " + QString::number(line_parts.count()) + " column(s) in line number " + QString::number(line_number) + ": " + line);
 
 	VcfLine vcf_line;

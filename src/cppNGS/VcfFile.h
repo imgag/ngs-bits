@@ -35,6 +35,8 @@ public:
 	///Default constructor
 	VcfFile();
 
+	///Restricts all following calls of `load` to the chromosome given. Must be set before the first call of `load` or throws an exception.
+	void setChromosome(QByteArray chr);
 	///Restricts all following calls of `load` to the region given in this file. If `invert` is set, only variants outside the region are loaded. Must be set before the first call of `load` or throws an exception.
 	void setRegion(const BedFile& roi, bool invert = false);
 	///If set to `false`, restricts all following calls of `load` to sinlge-sample input. Default is `true`. Must be set before the first call of `load` or throws an exception.
@@ -157,6 +159,7 @@ private:
 	bool load_performed_ = false;
 	QSharedPointer<ChromosomalIndex<BedFile>> load_reg_;
 	bool load_reg_inv_ = false;
+	QByteArray load_chr_;
 	bool load_allow_multi_sample_ = true;
 
 

@@ -10,6 +10,8 @@ class ConcreteTool
 public:
 	ConcreteTool(int& argc, char *argv[])
 		: ToolBase(argc, argv)
+		, debug_(false)
+		, debug_stream_(stdout)
 	{
 	}
 
@@ -22,10 +24,18 @@ public:
 		addInt("compression_level", "Output VCF compression level from 1 (fastest) to 9 (best compression). If unset, an unzipped VCF is written.", true, BGZF_NO_COMPRESSION);
 		addFlag("remove_unused_contigs", "Remove comment lines of contigs, i.e. chromosomes, that are not used in the output VCF.");
 		addFlag("split_chrs", "Mode with reduced memory consumption for large files. Sorts only one chromosome at a time into a tmp file and merges all tmp files at the end.");
+		addFlag("debug", "Enable debug output to STDOUT.");
 
 		changeLog(2026,  6, 23, "Added parameter '-split_chrs'. Removed parameters 'qual' and 'fai'.");
 		changeLog(2022, 12,  8, "Added parameter '-remove_unused_contigs'.");
 		changeLog(2020,  8, 12, "Added parameter '-compression_level' for compression level of output VCF files.");
+	}
+
+	void printTime(QString part, bool restart=true)
+	{
+		if (!debug_) return;
+		debug_stream_ << "Execution time of '" << part << "': " << Helper::elapsedTime(debug_timer_) << Qt::endl;
+		if (restart) debug_timer_.restart();
 	}
 
 	virtual void main()
@@ -37,6 +47,9 @@ public:
 		bool remove_unused_contigs = getFlag("remove_unused_contigs");
 		int compression_level = getInt("compression_level");
 		if (compression_level<0 || compression_level>10) THROW(ArgumentException, "Invalid gzip compression level '" + QString::number(compression_level) +"' given for VCF file '" + out + "'!");
+
+		debug_ = getFlag("debug");
+		debug_timer_.start();
 
 		//sort
 		if (split_chrs) //split by chr to save memory
@@ -57,6 +70,7 @@ public:
 				chr_set << chr;
 			}
 			file.close();
+			printTime("determining chromosomes");
 
 			//sort chromosomes
 			QList<Chromosome> chrs(chr_set.begin(), chr_set.end());
@@ -66,16 +80,16 @@ public:
 			QStringList tmp_files;
 			for(const Chromosome& chr: chrs)
 			{
-				BedFile roi;
-				roi.append(BedLine(chr, 1, 300000000));
-
 				VcfFile vl;
-				vl.setRegion(roi);
+				vl.setChromosome(chr.str());
 				vl.load(in);
+				printTime("loading " + chr.str() + " (" + QString::number(vl.count()) + " variants)");
 				vl.sort();
+				printTime("sorting " + chr.str());
 				if (remove_unused_contigs) vl.removeUnusedContigHeaders();
 				QString tmp_file = Helper::tempFileName("_"+chr.str()+".vcf");
 				vl.store(tmp_file, false);
+				printTime("storing " + chr.str());
 
 				tmp_files << tmp_file;
 
@@ -127,6 +141,7 @@ public:
 				int closed = bgzf_close(out_stream);
 				if (closed!=0) THROW(FileAccessException, "Writing bgzipped VCF file '" + out + "' failed: could not close file.");
 			}
+			printTime("merging tmp files");
 
 			//delete tmp files
 			for (const QString& tmp_file: std::as_const(tmp_files))
@@ -138,11 +153,22 @@ public:
 		{
 			VcfFile vl;
 			vl.load(in);
+			printTime("loading");
 			vl.sort();
-			if (remove_unused_contigs) vl.removeUnusedContigHeaders();
+			printTime("sorting");
+			if (remove_unused_contigs)
+			{	vl.removeUnusedContigHeaders();
+				printTime("removing unused contigs");
+			}
 			vl.store(out, false, compression_level);
+			printTime("storing");
 		}
     }
+
+protected:
+	bool debug_;
+	QTextStream debug_stream_;
+	QElapsedTimer debug_timer_;
 };
 
 #include "main.moc"
