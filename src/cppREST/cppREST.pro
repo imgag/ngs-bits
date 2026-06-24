@@ -37,8 +37,7 @@ win32: LIBS += -L$$PWD/../../libxml2/libs/ -lxml2
 unix: QMAKE_CXXFLAGS += $$system(pkg-config --cflags libxml-2.0)
 unix: LIBS += -lxml2
 
-SOURCES += \
-    BasicServer.cpp \
+SOURCES += \   
     EndpointManager.cpp \
     FastFileInfo.cpp \
     FileMetaCache.cpp \
@@ -56,8 +55,7 @@ SOURCES += \
     SslServer.cpp \
     UrlManager.cpp
 
-HEADERS += \
-    BasicServer.h \
+HEADERS += \   
     EndpointManager.h \
     FastFileInfo.h \
     FileMetaCache.h \
