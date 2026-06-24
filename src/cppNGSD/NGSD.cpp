@@ -2633,6 +2633,7 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
     QElapsedTimer timer;
 	timer.start();
 	QSet<int> cohort;
+	QString s_id = sampleId(processedSampleName(ps_id));
 
 	//get all available ps ids with expression data
 	QSet<int> all_ps_ids;
@@ -2649,7 +2650,7 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 		THROW(ArgumentException, "Invalid mode '" + mode + "' given! Valid modes are 'genes' or 'exons'");
 	}
 
-    if(debug) qDebug() << "Get all psample ids with expression data: " << Helper::elapsedTime(timer);
+	if(debug) qDebug() << "Get all psample ids with expression data: " << Helper::elapsedTime(timer);
 
 
 	if ((cohort_type == RNA_COHORT_GERMLINE) || (cohort_type == RNA_COHORT_GERMLINE_PROJECT))
@@ -2690,14 +2691,12 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 	}
 	else if (cohort_type == RNA_COHORT_SOMATIC)
 	{
-        QElapsedTimer timer;
+		QElapsedTimer timer;
 		timer.start();
 
 		//check requirements:
 		if(ps_id.trimmed().isEmpty()) THROW(ArgumentException, "Processed sample id required for somatic RNA cohort determination!");
 
-
-		QString s_id = sampleId(processedSampleName(ps_id));
 		int project_id = getValue("SELECT id FROM project WHERE name=:0", false, project).toInt();
 
 		//get sample ids of related samples
@@ -2764,6 +2763,18 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 	{
 		THROW(ArgumentException, "Invalid cohort type!");
 	}
+
+	//remove related samples
+	QSet<int> related_samples = relatedSamples(Helper::toInt(s_id));
+	related_samples << Helper::toInt(s_id);
+	QSet<int> related_ps_ids;
+	for (int sample_id : std::as_const(related_samples))
+	{
+		QList<int> tmp = getValuesInt("SELECT id FROM processed_sample WHERE sample_id = :0", QString::number(sample_id));
+		related_ps_ids += QSet<int>(tmp.begin(), tmp.end());
+	}
+	cohort = cohort.subtract(related_ps_ids);
+
 
 	//consider only ps_ids which have expression data
 	cohort = cohort.intersect(all_ps_ids);
