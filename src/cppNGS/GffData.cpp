@@ -2,68 +2,11 @@
 #include "NGSHelper.h"
 #include "VersatileFile.h"
 
-int fastSplit(const QByteArray& line, QList<QByteArrayView>& parts, char sep)
-{
-    const char* data = line.constData();
-    qsizetype start = 0;
-    qsizetype col = 0;
-    for (qsizetype i=0; i<line.size(); ++i)
-    {
-        if (data[i]==sep)
-        {
-            parts[col++] = QByteArrayView(data + start, i-start);
-            start = i + 1;
-        }
-    }
-    parts[col++] = QByteArrayView(data+start, line.size()-start);
-
-    return col;
-}
-
-QList<QByteArrayView> fastSplit(const QByteArray& line, char sep)
-{
-    QList<QByteArrayView> output;
-
-    const char* data = line.constData();
-    qsizetype start = 0;
-    for (qsizetype i=0; i<line.size(); ++i)
-    {
-        if (data[i]==sep)
-        {
-            output << QByteArrayView(data + start, i-start);
-            start = i + 1;
-        }
-    }
-    output << QByteArrayView(data+start, line.size()-start);
-
-    return output;
-}
-
-
-QList<QByteArrayView> fastSplit(QByteArrayView line, char sep)
-{
-    QList<QByteArrayView> output;
-
-    const char* data = line.data();
-    qsizetype start = 0;
-    for (qsizetype i = 0; i < line.size(); ++i)
-    {
-        if (data[i] == sep)
-        {
-            output << QByteArrayView(data + start, i - start);
-            start = i + 1;
-        }
-    }
-    output << QByteArrayView(data + start, line.size() - start);
-
-    return output;
-}
-
 QHash<QByteArray, QByteArray> parseGffAttributes(const QByteArray& to_split)
 {
     QHash<QByteArray, QByteArray> output;
 
-    QList<QByteArrayView> parts = fastSplit(to_split, ';');
+	QList<QByteArrayView> parts = Helper::fastSplit(to_split, ';');
     foreach(const QByteArrayView& part, parts)
     {
         int split_index = part.indexOf('=');
@@ -89,7 +32,7 @@ GeneData parseGeneLine(QByteArrayView to_split)
 {
     GeneData output;
 
-    QList<QByteArrayView> parts = fastSplit(to_split, ';');
+	QList<QByteArrayView> parts = Helper::fastSplit(to_split, ';');
     foreach(const QByteArrayView& part, parts)
     {
         int split_index = part.indexOf('=');
@@ -151,7 +94,7 @@ TranscriptData parseTranscriptLine(QByteArrayView to_split)
 {
     TranscriptData output;
 
-    QList<QByteArrayView> parts = fastSplit(to_split, ';');
+	QList<QByteArrayView> parts = Helper::fastSplit(to_split, ';');
     foreach(const QByteArrayView& part, parts)
     {
         int split_index = part.indexOf('=');
@@ -182,7 +125,7 @@ TranscriptData parseTranscriptLine(QByteArrayView to_split)
         }
         else if (key=="tag")
         {
-            QList<QByteArrayView> tags = fastSplit(value, ',');
+			QList<QByteArrayView> tags = Helper::fastSplit(value, ',');
             foreach(const QByteArrayView& tag, tags)
             {
                 if (tag=="basic" || tag=="gencode_basic") //The tag was changed from "basic" in Ensembl 112 to "gencode_basic" in Ensembl 113
@@ -318,7 +261,7 @@ GffData GffData::loadEnsembl(QString filename, const GffSettings& settings, int&
         //skip header lines
         if (line.startsWith("#")) continue;
 
-        int col_count = fastSplit(line, parts, '\t');
+		int col_count = Helper::fastSplit(line, '\t', parts);
         if (col_count!=9) THROW(FileParseException, "GFF line of '" + filename + "' does not contain 9 columns:\n"+line);
 
         //gene line
