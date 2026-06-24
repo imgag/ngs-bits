@@ -2630,10 +2630,11 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateCohortExpressionStatistics(int 
 
 QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QString& project, const QString& ps_id, RnaCohortDeterminationStategy cohort_type, const QByteArray& mode, const QStringList& exclude_quality, const QString& gender, bool debug)
 {
-    QElapsedTimer timer;
+	QElapsedTimer timer;
 	timer.start();
 	QSet<int> cohort;
-	QString s_id = sampleId(processedSampleName(ps_id));
+	QString s_id;
+	if (!ps_id.isEmpty()) s_id = sampleId(processedSampleName(ps_id));
 
 	//get all available ps ids with expression data
 	QSet<int> all_ps_ids;
@@ -2662,12 +2663,12 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 		}
 
 		QString query_string_cohort = QString(
-					"SELECT ps.id "
-					"FROM processed_sample ps "
-					"         LEFT JOIN sample s on ps.sample_id = s.id "
-					"WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " "
-					"  AND s.tissue = '" + tissue_type + "' "
-					);
+		                        "SELECT ps.id "
+		                        "FROM processed_sample ps "
+		                        "         LEFT JOIN sample s on ps.sample_id = s.id "
+		                        "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " "
+		                        "  AND s.tissue = '" + tissue_type + "' "
+		                        );
 
 		if (exclude_quality.size() > 0)
 		{
@@ -2733,14 +2734,14 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 		timer.restart();
 
 		QString query_string_cohort = QString("SELECT DISTINCT ps.id FROM processed_sample ps LEFT JOIN sample s on ps.sample_id=s.id	"
-											  "LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id "
-											  "LEFT JOIN sample_disease_info sdi ON s.id=sdi.sample_id OR sr.sample1_id=sdi.sample_id OR sr.sample2_id=sdi.sample_id "
-											  "WHERE ps.processing_system_id=" + QString::number(sys_id) + " "
-											  "AND ps.project_id=" + QString::number(project_id) + " "
-											  "AND ps.quality != 'bad' "
-											  "AND (sr.relation='same sample' OR sr.relation IS NULL) "
-                                              "AND ((sdi.type='ICD10 code' AND sdi.disease_info='" + icd10_disease_info.values().at(0) + "') "
-                                              "OR (sdi.type='HPO term id' AND sdi.disease_info='" + hpo_disease_info.values().at(0) + "')) ");
+		                                                                          "LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id "
+		                                                                          "LEFT JOIN sample_disease_info sdi ON s.id=sdi.sample_id OR sr.sample1_id=sdi.sample_id OR sr.sample2_id=sdi.sample_id "
+		                                                                          "WHERE ps.processing_system_id=" + QString::number(sys_id) + " "
+		                                                                          "AND ps.project_id=" + QString::number(project_id) + " "
+		                                                                          "AND ps.quality != 'bad' "
+		                                                                          "AND (sr.relation='same sample' OR sr.relation IS NULL) "
+		                              "AND ((sdi.type='ICD10 code' AND sdi.disease_info='" + icd10_disease_info.values().at(0) + "') "
+		                              "OR (sdi.type='HPO term id' AND sdi.disease_info='" + hpo_disease_info.values().at(0) + "')) ");
 
 		if (exclude_quality.size() > 0)
 		{
@@ -2765,15 +2766,18 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 	}
 
 	//remove related samples
-	QSet<int> related_samples = relatedSamples(Helper::toInt(s_id));
-	related_samples << Helper::toInt(s_id);
-	QSet<int> related_ps_ids;
-	for (int sample_id : std::as_const(related_samples))
+	if (!s_id.isEmpty())
 	{
-		QList<int> tmp = getValuesInt("SELECT id FROM processed_sample WHERE sample_id = :0", QString::number(sample_id));
-		related_ps_ids += QSet<int>(tmp.begin(), tmp.end());
+		QSet<int> related_samples = relatedSamples(Helper::toInt(s_id));
+		related_samples << Helper::toInt(s_id);
+		QSet<int> related_ps_ids;
+		for (int sample_id : std::as_const(related_samples))
+		{
+			QList<int> tmp = getValuesInt("SELECT id FROM processed_sample WHERE sample_id = :0", QString::number(sample_id));
+			related_ps_ids += QSet<int>(tmp.begin(), tmp.end());
+		}
+		cohort = cohort.subtract(related_ps_ids);
 	}
-	cohort = cohort.subtract(related_ps_ids);
 
 
 	//consider only ps_ids which have expression data
