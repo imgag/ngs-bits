@@ -175,6 +175,53 @@
 
     </SysTypeRules>
 
+    <SysTypeRules type="Panel" tumor="false">
+
+        <TermRules term_name="target region read depth">
+            <Rule operation="less than" cutoff="80.0" result="bad"/>
+            <Rule operation="less equal" cutoff="100.0" result="medium"/>
+            <Rule operation="greater than" cutoff="100.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="target region 20x percentage">
+            <Rule operation="less than" cutoff="90.0" result="bad"/>
+            <Rule operation="less equal" cutoff="95.0" result="medium"/>
+            <Rule operation="greater than" cutoff="95.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="SNV allele frequency deviation">
+            <Rule operation="greater than" cutoff="6.0" result="bad"/>
+            <Rule operation="greater equal" cutoff="3.0" result="medium"/>
+            <Rule operation="less than" cutoff="3.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="known variants percentage">
+	    <Rule operation="less than" cutoff="98.0" result="bad"/>
+	    <Rule operation="less than" cutoff="99.0" result="medium"/>
+        </TermRules>
+    </SysTypeRules>
+
+
+    <SysTypeRules type="sWGS" tumor="false">
+
+        <TermRules term_name="target region read depth">
+            <Rule operation="less than" cutoff="3.0" result="bad"/>
+            <Rule operation="less equal" cutoff="5.0" result="medium"/>
+            <Rule operation="greater than" cutoff="5.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="target region half depth percentage">
+            <Rule operation="less than" cutoff="85.0" result="bad"/>
+            <Rule operation="less equal" cutoff="90.0" result="medium"/>
+            <Rule operation="greater than" cutoff="90.0" result="good"/>
+        </TermRules>
+
+        <TermRules term_name="CNV count">
+            <Rule operation="greater than" cutoff="500.0" result="medium"/>
+            <Rule operation="less equal" cutoff="500.0" result="good"/>
+        </TermRules>
+    </SysTypeRules>
+
     <SysNameRules name="RPGR-Ex15" tumor="false">
 
         <TermRules term_name="target region 20x percentage">
