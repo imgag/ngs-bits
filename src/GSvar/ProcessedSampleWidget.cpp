@@ -27,6 +27,7 @@
 #include "ClientHelper.h"
 #include "FileLocationProviderRemote.h"
 #include "TransferredVariantDialog.h"
+#include "QcRuleMatcher.h"
 
 ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	: TabBaseClass(parent)
@@ -439,9 +440,21 @@ void ProcessedSampleWidget::updateQCMetrics()
 		//colors
 		QString sys_type = db.getValue("SELECT sys.type FROM processed_sample ps, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.id='"+ps_id_+"'").toString();
 		int c = qc_table.columnIndex("value");
+
+		//is it a tumor or not
+		QString s_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id='" + ps_id_ + "'").toString();
+		SampleData s_data = db.getSampleData(s_id);
+
+		ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id_);
+		QString name_short = db.getValue("SELECT name_short FROM processing_system WHERE name_manufacturer=:0", true, ps_data.processing_system).toString();
+
 		for (int r=0; r<qc_table.rowCount(); ++r)
 		{
-			GSvarHelper::colorQcItem(ui_->qc_table->item(r,c), qc_table.row(r).value(0), sys_type, sample_data.gender);
+			bool ok = false;
+			double qc_value = ui_->qc_table->item(r,c)->text().toDouble(&ok);
+			if (!ok) continue;
+			QString qc_class = QcRuleMatcher(QApplication::applicationDirPath()+QDir::separator()+"GSvar_qc_cutoffs.xml").evaluate(name_short, sys_type, db.getQCTermNameByAccession(qc_table.row(r).value(0)), qc_value, s_data.is_tumor);
+			GSvarHelper::colorQcItem(ui_->qc_table->item(r,c), qc_class);
 		}
 	}
 	catch (Exception& e)

@@ -1111,6 +1111,9 @@ public:
 	QCCollection getQCData(const QString& processed_sample_id);
 	///Returns all values for a QC term (from sample of the same processing system)
 	QVector<double> getQCValues(const QString& accession, const QString& processed_sample_id);
+	///Return QC term name as text, based on its QCML_ID
+	QString getQCTermNameByAccession(const QString& accession);
+
 	///Returns KASP data. Throws a DatabaseException if no valid KASP was performed for the sample.
 	KaspData kaspData(const QString& processed_sample_id);
 
