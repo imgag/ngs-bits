@@ -10,8 +10,6 @@ class ConcreteTool
 public:
 	ConcreteTool(int& argc, char *argv[])
 		: ToolBase(argc, argv)
-		, debug_(false)
-		, debug_stream_(stdout)
 	{
 	}
 
@@ -31,13 +29,6 @@ public:
 		changeLog(2020,  8, 12, "Added parameter '-compression_level' for compression level of output VCF files.");
 	}
 
-	void printTime(QString part, bool restart=true)
-	{
-		if (!debug_) return;
-		debug_stream_ << "Execution time of '" << part << "': " << Helper::elapsedTime(debug_timer_) << Qt::endl;
-		if (restart) debug_timer_.restart();
-	}
-
 	virtual void main()
 	{
 		//init
@@ -47,9 +38,7 @@ public:
 		bool remove_unused_contigs = getFlag("remove_unused_contigs");
 		int compression_level = getInt("compression_level");
 		if (compression_level<0 || compression_level>10) THROW(ArgumentException, "Invalid gzip compression level '" + QString::number(compression_level) +"' given for VCF file '" + out + "'!");
-
 		debug_ = getFlag("debug");
-		debug_timer_.start();
 
 		//sort
 		if (split_chrs) //split by chr to save memory
@@ -164,11 +153,6 @@ public:
 			printTime("storing");
 		}
     }
-
-protected:
-	bool debug_;
-	QTextStream debug_stream_;
-	QElapsedTimer debug_timer_;
 };
 
 #include "main.moc"
