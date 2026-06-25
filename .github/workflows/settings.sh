@@ -36,6 +36,7 @@ echo "socket_read_timeout = 10" >> ./bin/settings.ini
 echo "socket_write_timeout = 10" >> ./bin/settings.ini
 echo "socket_encryption_timeout = 5" >> ./bin/settings.ini
 echo "location = \"UKT\"" >> ./bin/settings.ini
+echo "mock_server_url = \"http://localhost:8088\"" >> ./bin/settings.ini
 
 touch ./bin/GSvarServer-TEST.ini
 echo "url_lifetime = 5" >> ./bin/GSvarServer-TEST.ini
