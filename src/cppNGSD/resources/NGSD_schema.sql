@@ -2753,6 +2753,7 @@ CREATE  TABLE IF NOT EXISTS `repeat_expansion`
   `name` VARCHAR(50) NOT NULL COMMENT 'Used for displaying only! Do not used this to identify a RE!',
   `region` VARCHAR(25) NOT NULL COMMENT 'Used to check the the repeat is the correct one during import',
   `repeat_unit` VARCHAR(50) NOT NULL COMMENT 'Used to check the the repeat is the correct one during import',
+  `ref_size` INT(10) DEFAULT NULL,
   `max_normal` INT(10) DEFAULT NULL,
   `min_pathogenic` INT(10) DEFAULT NULL,
   `min_pathogenic_hom` INT(10) DEFAULT NULL COMMENT 'Additional pathogenicity cutoff in case the RE is homozygous (lower then default cutoff).',
