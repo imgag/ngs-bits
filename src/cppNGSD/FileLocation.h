@@ -66,7 +66,9 @@ enum class PathType
 	METHYLATION_IMAGE, // image of a given methylation locus (PNG format)
 	METHYLATION_COHORT_IMAGE, // cohort plot of a given methylation locus (PNG format)
 	PARAPHASE_EVIDENCE, //Corrected mapping of pseudo gene regions (BAM format)
-	METHYLATION_TRACK, //Bedmethyl file (for a given haplotype)
+	METHYLATION_TRACK, //Bedmethyl file (combined)
+	METHYLATION_TRACK_HP1, //Bedmethyl file (haplotype 1)
+	METHYLATION_TRACK_HP2, //Bedmethyl file (haplotype 2)
 	PHASING_TRACK, //BED track of all phasing blocks (calculated based on het small vars)
 	EPIGEN, //Epigen TSV file for upload to epigen central
 	OTHER // everything else
@@ -259,6 +261,10 @@ struct FileLocation
 
 			case PathType::METHYLATION_TRACK:
 				return "METHYLATION_TRACK";
+			case PathType::METHYLATION_TRACK_HP1:
+				return "METHYLATION_TRACK_HP1";
+			case PathType::METHYLATION_TRACK_HP2:
+				return "METHYLATION_TRACK_HP2";
 			case PathType::PHASING_TRACK:
 				return "PHASING_TRACK";
 			case PathType::EPIGEN:
@@ -322,6 +328,8 @@ struct FileLocation
 		if (in_upper == "METHYLATION_COHORT_IMAGE") return PathType::METHYLATION_COHORT_IMAGE;
 		if (in_upper == "PARAPHASE_EVIDENCE") return PathType::PARAPHASE_EVIDENCE;
 		if (in_upper == "METHYLATION_TRACK") return PathType::METHYLATION_TRACK;
+		if (in_upper == "METHYLATION_TRACK_HP1") return PathType::METHYLATION_TRACK_HP1;
+		if (in_upper == "METHYLATION_TRACK_HP2") return PathType::METHYLATION_TRACK_HP2;
 		if (in_upper == "PHASING_TRACK") return PathType::PHASING_TRACK;
 		if (in_upper == "EPIGEN") return PathType::EPIGEN;
 		THROW(ProgrammingException, "Unhandled path type string '" + in_upper + "' in stringToType()!");
@@ -431,9 +439,12 @@ struct FileLocation
 				return "cohort plot of a given methylation locus";
 			case PathType::PARAPHASE_EVIDENCE:
 				return "Mapping of pseudo gene regions (Paraphase)";
-
 			case PathType::METHYLATION_TRACK:
-				return "Mapping of pseudo gene regions (Paraphase)";
+				return "Methylation track as Bedmethyl file (combined)";
+			case PathType::METHYLATION_TRACK_HP1:
+				return "Methylation track as Bedmethyl file (for haplotype 1)";
+			case PathType::METHYLATION_TRACK_HP2:
+				return "Methylation track as Bedmethyl file (for haplotype 2)";
 			case PathType::PHASING_TRACK:
 				return "BED track of phasing blocks";
 			case PathType::EPIGEN:
