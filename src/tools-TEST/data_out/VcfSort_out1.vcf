@@ -1,43 +1,144 @@
-##fileformat=VCFv4.1
-##samtoolsVersion=0.1.18 (r982:295)
-##INFO=<ID=INDEL,Number=0,Type=Flag,Description="Indicates that the variant is an INDEL.">
-##INFO=<ID=DP,Number=1,Type=Integer,Description="Raw read depth">
-##INFO=<ID=VDB,Number=1,Type=Float,Description="Variant Distance Bias">
-##INFO=<ID=AF1,Number=1,Type=Float,Description="Max-likelihood estimate of the first ALT allele frequency (assuming HWE)">
-##INFO=<ID=AC1,Number=1,Type=Float,Description="Max-likelihood estimate of the first ALT allele count (no HWE assumption)">
-##INFO=<ID=DP4,Number=4,Type=Integer,Description="# high-quality ref-forward bases, ref-reverse, alt-forward and alt-reverse bases">
-##INFO=<ID=MQ,Number=1,Type=Integer,Description="Root-mean-square mapping quality of covering reads">
-##INFO=<ID=FQ,Number=1,Type=Float,Description="Phred probability of all samples being the same">
-##INFO=<ID=PV4,Number=4,Type=Float,Description="P-values for strand bias, baseQ bias, mapQ bias and tail distance bias">
-##INFO=<ID=G3,Number=3,Type=Float,Description="ML estimate of genotype frequencies">
-##INFO=<ID=HWE,Number=1,Type=Float,Description="Chi^2 based HWE test P-value based on G3">
-##INFO=<ID=CLR,Number=1,Type=Integer,Description="Log ratio of genotype likelihoods with and without the constraint">
-##INFO=<ID=UGT,Number=1,Type=String,Description="The most probable unconstrained genotype configuration in the trio">
-##INFO=<ID=CGT,Number=1,Type=String,Description="The most probable constrained genotype configuration in the trio">
-##INFO=<ID=PC2,Number=2,Type=Integer,Description="Phred probability of the nonRef allele frequency in group1 samples being larger (,smaller) than in group2.">
-##INFO=<ID=PCHI2,Number=1,Type=Float,Description="Posterior weighted chi^2 P-value for testing the association between group1 and group2 samples.">
-##INFO=<ID=QCHI2,Number=1,Type=Integer,Description="Phred scaled PCHI2.">
-##INFO=<ID=PR,Number=1,Type=Integer,Description="# permutations yielding a smaller PCHI2.">
+##fileformat=VCFv4.2
+##reference=/tmp/local_ngs_data_GRCh38//GRCh38.fa
+##fileDate=20260520
+##contig=<ID=chr1,length=248956422>
+##contig=<ID=chr2,length=242193529>
+##contig=<ID=chr3,length=198295559>
+##contig=<ID=chr4,length=190214555>
+##contig=<ID=chr5,length=181538259>
+##contig=<ID=chr6,length=170805979>
+##contig=<ID=chr7,length=159345973>
+##contig=<ID=chr8,length=145138636>
+##contig=<ID=chr9,length=138394717>
+##contig=<ID=chr10,length=133797422>
+##contig=<ID=chr11,length=135086622>
+##contig=<ID=chr12,length=133275309>
+##contig=<ID=chr13,length=114364328>
+##contig=<ID=chr14,length=107043718>
+##contig=<ID=chr15,length=101991189>
+##contig=<ID=chr16,length=90338345>
+##contig=<ID=chr17,length=83257441>
+##contig=<ID=chr18,length=80373285>
+##contig=<ID=chr19,length=58617616>
+##contig=<ID=chr20,length=64444167>
+##contig=<ID=chr21,length=46709983>
+##contig=<ID=chr22,length=50818468>
+##contig=<ID=chrX,length=156040895>
+##contig=<ID=chrY,length=57227415>
+##contig=<ID=chrMT,length=16569>
+##contig=<ID=chr1_KI270706v1_random,length=175055>
+##contig=<ID=chr1_KI270707v1_random,length=32032>
+##contig=<ID=chr1_KI270708v1_random,length=127682>
+##contig=<ID=chr1_KI270709v1_random,length=66860>
+##contig=<ID=chr1_KI270710v1_random,length=40176>
+##contig=<ID=chr1_KI270711v1_random,length=42210>
+##contig=<ID=chr1_KI270712v1_random,length=176043>
+##contig=<ID=chr1_KI270713v1_random,length=40745>
+##contig=<ID=chr1_KI270714v1_random,length=41717>
+##contig=<ID=chr2_KI270715v1_random,length=161471>
+##contig=<ID=chr2_KI270716v1_random,length=153799>
+##contig=<ID=chr3_GL000221v1_random,length=155397>
+##contig=<ID=chr4_GL000008v2_random,length=209709>
+##contig=<ID=chr5_GL000208v1_random,length=92689>
+##contig=<ID=chr9_KI270717v1_random,length=40062>
+##contig=<ID=chr9_KI270718v1_random,length=38054>
+##contig=<ID=chr9_KI270719v1_random,length=176845>
+##contig=<ID=chr9_KI270720v1_random,length=39050>
+##contig=<ID=chr11_KI270721v1_random,length=100316>
+##contig=<ID=chr14_GL000009v2_random,length=201709>
+##contig=<ID=chr14_GL000225v1_random,length=211173>
+##contig=<ID=chr14_KI270722v1_random,length=194050>
+##contig=<ID=chr14_GL000194v1_random,length=191469>
+##contig=<ID=chr14_KI270723v1_random,length=38115>
+##contig=<ID=chr14_KI270724v1_random,length=39555>
+##contig=<ID=chr14_KI270725v1_random,length=172810>
+##contig=<ID=chr14_KI270726v1_random,length=43739>
+##contig=<ID=chr15_KI270727v1_random,length=448248>
+##contig=<ID=chr16_KI270728v1_random,length=1872759>
+##contig=<ID=chr17_GL000205v2_random,length=185591>
+##contig=<ID=chr17_KI270729v1_random,length=280839>
+##contig=<ID=chr17_KI270730v1_random,length=112551>
+##contig=<ID=chr22_KI270731v1_random,length=150754>
+##contig=<ID=chr22_KI270732v1_random,length=41543>
+##contig=<ID=chr22_KI270733v1_random,length=179772>
+##contig=<ID=chr22_KI270734v1_random,length=165050>
+##contig=<ID=chr22_KI270735v1_random,length=42811>
+##contig=<ID=chr22_KI270736v1_random,length=181920>
+##contig=<ID=chr22_KI270737v1_random,length=103838>
+##contig=<ID=chr22_KI270738v1_random,length=99375>
+##contig=<ID=chr22_KI270739v1_random,length=73985>
+##contig=<ID=chrY_KI270740v1_random,length=37240>
+##SAMPLE=<ID=23014LRa023_01,Gender=n/a,ExternalSampleName=DNA-2300790 A/GLAB NA12878,IsTumor=no,IsFFPE=no,DiseaseGroup=n/a,DiseaseStatus=Affected>
+##INFO=<ID=F,Number=0,Type=Flag,Description="Result from full-alignment calling">
+##INFO=<ID=P,Number=0,Type=Flag,Description="Result from pileup calling">
+##INFO=<ID=MQM,Number=1,Type=Integer,Description="Some info from freebayes">
+##INFO=<ID=SAP,Number=1,Type=Integer,Description="Some info from freebayes">
+##INFO=<ID=SAF,Number=1,Type=Integer,Description="Some info from freebayes">
+##INFO=<ID=SAR,Number=1,Type=Integer,Description="Some info from freebayes">
+##INFO=<ID=ABP,Number=1,Type=Integer,Description="Some info from freebayes">
+##FILTER=<ID=mosaic,Description="Potential mosaic variant">
+##FILTER=<ID=PASS,Description="All filters passed">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=AF,Number=A,Type=Float,Description="Observed allele frequency in reads, for each ALT allele, in the same order as listed, or the REF allele for a RefCall">
+##FORMAT=<ID=AO,Number=A,Type=Float,Description="Alternative observation count">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Approximate read depth (reads 1. with MQ below 5 or an user-specified threshold, or 2. selected by 'samtools view -F 2316', are filtered)">
 ##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
-##FORMAT=<ID=GL,Number=3,Type=Float,Description="Likelihoods for RR,RA,AA genotypes (R=ref,A=alt)">
-##FORMAT=<ID=DP,Number=1,Type=Integer,Description="# high-quality bases">
-##FORMAT=<ID=SP,Number=1,Type=Integer,Description="Phred-scaled strand bias P-value">
-##FORMAT=<ID=PL,Number=G,Type=Integer,Description="List of Phred-scaled genotype likelihoods">
-#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	./Sample_GS120297A3/GS120297A3.bam
-chr1	11676308	.	G	GACCC	215	.	INDEL;DP=6;VDB=0.0000;AF1=1;AC1=2;DP4=0,0,3,3;MQ=60;FQ=-52.5	GT:PL:GQ	1/1:255,18,0:33
-chr2	130931421	.	G	A	225	.	DP=2512;VDB=0.0002;AF1=0.5;AC1=1;DP4=457,473,752,757;MQ=46;FQ=225;PV4=0.77,1,2.5e-138,1	GT:PL:GQ	0/1:255,0,255:99
-chr3	72196892	.	G	GGTC	50.4	.	INDEL;DP=30;VDB=0.0000;AF1=1;AC1=2;DP4=0,0,2,1;MQ=47;FQ=-43.5	GT:PL:GQ	1/1:90,9,0:16
-chr10	11676377	.	G	A	158	.	DP=6;VDB=0.0000;AF1=1;AC1=2;DP4=0,0,3,3;MQ=60;FQ=-45	GT:PL:GQ	1/1:191,18,0:33
-chr11	68247038	.	T	TATATCT	190	.	INDEL;DP=6;VDB=0.0000;AF1=1;AC1=2;DP4=0,0,3,3;MQ=46;FQ=-52.5	GT:PL:GQ	1/1:230,18,0:33
-chr12	68247113	.	G	T	63	.	DP=3;VDB=0.0000;AF1=1;AC1=2;DP4=0,0,1,2;MQ=41;FQ=-36	GT:PL:GQ	1/1:95,9,0:16
-chr20	130932396	.	AACA	AA	214	.	INDEL;DP=3298;VDB=0.0012;AF1=1;AC1=2;DP4=5,6,1169,2016;MQ=48;FQ=-290;PV4=0.55,0.0051,1,1	GT:PL:GQ	1/1:255,255,0:99
-chr21	72196817	.	G	GA	217	.	INDEL;DP=31;VDB=0.0000;AF1=0.5;AC1=1;DP4=4,3,11,11;MQ=42;FQ=88.5;PV4=1,1,0.17,0.28	GT:PL:GQ	0/1:255,0,123:99
-chr22	72196887	.	G	C	222	.	DP=30;VDB=0.0000;AF1=1;AC1=2;DP4=0,0,14,14;MQ=41;FQ=-111	GT:PL:GQ	1/1:255,84,0:99
-chrX	67904549	.	A	G	222	.	DP=44;VDB=0.0002;AF1=1;AC1=2;DP4=0,0,19,22;MQ=50;FQ=-150	GT:PL:GQ	1/1:255,123,0:99
-chrY	67904586	.	G	A	222	.	DP=44;VDB=0.0002;AF1=1;AC1=2;DP4=0,0,22,22;MQ=51;FQ=-159	GT:PL:GQ	1/1:255,132,0:99
-chrM	14466629	.	A	AA	70.4	.	INDEL;DP=4;VDB=0.0001;AF1=1;AC1=2;DP4=0,0,1,2;MQ=50;FQ=-43.5	GT:PL:GQ	1/1:110,9,0:16
-chr6_Un3	14466629	.	A	AA	70.4	.	INDEL;DP=4;VDB=0.0001;AF1=1;AC1=2;DP4=0,0,1,2;MQ=50;FQ=-43.5	GT:PL:GQ	1/1:110,9,0:16
-chr6_Un2	14466629	.	A	AA	70.4	.	INDEL;DP=4;VDB=0.0001;AF1=1;AC1=2;DP4=0,0,1,2;MQ=50;FQ=-43.5	GT:PL:GQ	1/1:110,9,0:16
-chr6_Un1	14466629	.	A	AA	70.4	.	INDEL;DP=4;VDB=0.0001;AF1=1;AC1=2;DP4=0,0,1,2;MQ=50;FQ=-43.5	GT:PL:GQ	1/1:110,9,0:16
-chr6_Un4	14466629	.	A	AA	70.4	.	INDEL;DP=4;VDB=0.0001;AF1=1;AC1=2;DP4=0,0,1,2;MQ=50;FQ=-43.5	GT:PL:GQ	1/1:110,9,0:16
+##FORMAT=<ID=PS,Number=1,Type=Integer,Description="Phase set identifier">
+##FORMAT=<ID=CT,Number=1,Type=String,Description="Variant call type.">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	23014LRa023_01
+chr1	30985986	.	A	G	6	PASS	F	GT:DP:AF:GQ:PS	0|1:2:0.500:6:30985986
+chr1	30986207	.	A	G	15	PASS	F	GT:DP:AF:GQ:PS	1/1:2:1.000:14:.
+chr1	30986432	.	T	C	6	PASS	F	GT:DP:AF:GQ:PS	1|0:2:0.500:5:30985986
+chr1	30986496	.	C	T	12	PASS	F	GT:DP:AF:GQ:PS	0|1:2:0.500:12:30985986
+chr1	30986540	.	ATGC	A	6	PASS	F	GT:DP:AF:GQ:PS	0|1:2:0.500:5:30985986
+chr1	30986614	.	T	C	5	PASS	F	GT:DP:AF:GQ:PS	1|0:2:0.500:5:30985986
+chr1	31204091	.	A	G	30	PASS	P	GT:DP:AF:GQ:PS	1/1:71:0.845:30:.
+chr1	31204499	.	C	T	26	PASS	P	GT:DP:AF:GQ:PS	1/1:73:0.877:26:.
+chr1	31205200	.	G	A	30	PASS	P	GT:DP:AF:GQ:PS	1/1:63:1.000:29:.
+chr1	31205391	.	T	C	38	PASS	P	GT:DP:AF:GQ:PS	1/1:64:1.000:38:.
+chr1	31205444	.	A	G	29	PASS	P	GT:DP:AF:GQ:PS	1/1:63:0.810:28:.
+chr1	31205558	.	A	C	30	PASS	P	GT:DP:AF:GQ:PS	1/1:64:0.969:29:.
+chr1	31205779	.	C	A	27	PASS	P	GT:DP:AF:GQ:PS	1/1:64:0.984:26:.
+chr1	31206237	.	A	AAAATAAATAAATAAATAAATAAAT	10	PASS	.	GT:DP:AF:GQ:PS	./1:61:0.361:10:.
+chr1	31206237	.	A	AAAATAAATAAATAAATAAATAAATAAAT	10	PASS	.	GT:DP:AF:GQ:PS	./1:61:0.426:10:.
+chr1	32007111	.	GA	G	8	PASS	F	GT:DP:AF:GQ:PS	1/1:16:0.438:8:.
+chr1	32010749	.	G	T	24	PASS	F	GT:DP:AF:GQ:PS	1/1:6:1.000:24:.
+chr1	32013546	.	A	G	19	PASS	F	GT:DP:AF:GQ:PS	0|1:3:0.333:18:31684381
+chr1	32013579	.	T	C	7	PASS	F	GT:DP:AF:GQ:PS	0|1:3:0.333:7:31684381
+chr1	32014000	.	A	G	7	PASS	F	GT:DP:AF:GQ:PS	0|1:3:0.333:7:31684381
+chr1	32014269	.	A	G	12	PASS	F	GT:DP:AF:GQ:PS	0|1:3:0.333:12:31684381
+chr1	32014519	.	A	G	7	PASS	F	GT:DP:AF:GQ:PS	0|1:3:0.333:6:31684381
+chr1	32014719	.	C	T	10	PASS	F	GT:DP:AF:GQ:PS	0|1:3:0.333:9:31684381
+chr1	32015056	.	G	A	14	PASS	F	GT:DP:AF:GQ:PS	1/1:2:1.000:14:.
+chr1	32015602	.	A	G	11	PASS	F	GT:DP:AF:GQ:PS	1/1:2:1.000:10:.
+chr1	32015635	.	C	T	6	PASS	F	GT:DP:AF:GQ:PS	1|0:2:0.500:5:31684381
+chr1	32016641	.	T	C	5	PASS	F	GT:DP:AF:GQ:PS	1|0:2:0.500:5:31684381
+chr1	32016726	.	A	T	8	PASS	F	GT:DP:AF:GQ:PS	0|1:2:0.500:8:31684381
+chr1	32016833	.	G	A	8	PASS	F	GT:DP:AF:GQ:PS	0/1:2:0.500:8:.
+chr4	89720188	.	G	GT	0	mosaic	MQM=60;SAP=13;SAR=16;SAF=6;ABP=0	GT:DP:AO:GQ	0/1:423:22:160
+chr4	89720258	.	C	CT	0	mosaic	MQM=60;SAP=6;SAR=8;SAF=4;ABP=0	GT:DP:AO:GQ	0/1:267:8:138
+chr4	89720258	.	CT	C	0	mosaic	MQM=60;SAP=7;SAR=6;SAF=2;ABP=0	GT:DP:AO:GQ	0/1:267:12:138
+chr12	40192782	.	CTTT	C	1037	mosaic	MQM=60;SAP=3;SAR=9;SAF=9;ABP=925	GT:DP:AO:GQ	0/1:494:15:133
+chr12	40193828	.	G	GAACA	11180	mosaic	MQM=60;SAP=9;SAR=72;SAF=54;ABP=103	GT:DP:AO:GQ	0/1:385:11:160
+chr12	40196538	.	G	C	640	mosaic	MQM=60;SAP=3;SAR=2;SAF=2;ABP=142	GT:DP:AO:GQ	0/1:79:3:29
+chr22	10524880	.	C	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/1:3:0.667:10:10524880:.
+chr22	10525822	.	G	GCGGCTTTTTGGTCCCCGCCGCCA	.	PASS	.	GT:DP:AF:GQ:PS:CT	1/1:4:1.000:5:.:.
+chr22	10526058	.	G	GGCCGTCGCGTCTTTTTGCCCCCGCCGCCCCGGCTTTTT	.	PASS	.	GT:DP:AF:GQ:PS:CT	1/1:4:1.000:5:.:.
+chr22	10526438	.	A	G	.	PASS	.	GT:DP:AF:GQ:PS:CT	1/1:4:1.000:5:.:.
+chr22	10526445	.	A	G	.	PASS	.	GT:DP:AF:GQ:PS:CT	1/1:4:1.000:7:.:.
+chr22	10526739	.	C	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/1:4:1.000:6:10524880:.
+chr22	10527074	.	A	G	.	PASS	.	GT:DP:AF:GQ:PS:CT	1/1:3:1.000:6:.:.
+chr22	10527208	.	G	C	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:0:.:.:.:.
+chr22	10527251	.	A	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:0:.:.:.:.
+chr22	10527529	.	G	A	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:0:.:.:.:.
+chr22	10527916	.	T	G	.	PASS	.	GT:DP:AF:GQ:PS:CT	1/1:3:1.000:5:.:.
+chr22	10528978	.	A	G	.	PASS	.	GT:DP:AF:GQ:PS:CT	1/1:5:1.000:8:.:.
+chr22	10528992	.	TA	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:1:1.000:.:.:.
+chr22	10529499	.	C	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	1/1:4:1.000:10:.:.
+chr22	10529845	.	T	A	.	PASS	.	GT:DP:AF:GQ:PS:CT	1/1:5:1.000:6:.:.
+chr22	10530851	.	A	AAGATGAAATGATGAGATGAAATGAAATCATG	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:0:.:.:.:.
+chr22	10531066	.	GATGAA	G	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:0:.:.:.:.
+chr22	10531443	.	G	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	1/1:4:1.000:8:.:.
+chr22	10532287	.	G	A	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/1:4:0.750:10:.:.
+chr22	10532599	.	G	C	.	PASS	.	GT:DP:AF:GQ:PS:CT	1/1:3:1.000:7:.:.
+chr22	10533254	.	A	T	.	PASS	.	GT:DP:AF:GQ:PS:CT	0/0:0:.:.:.:.

@@ -664,6 +664,10 @@ SUBDIRS += TranscriptToProtein
 tools-TEST.depends += TranscriptToProtein
 TranscriptToProtein.depends = cppNGS
 
+SUBDIRS += NGSDGeneBurdenTest
+tools-TEST.depends += NGSDGeneBurdenTest
+NGSDGeneBurdenTest.depends = cppNGSD
+
 SUBDIRS += NGSDSampleUsers
 tools-TEST.depends += NGSDSampleUsers
 NGSDSampleUsers.depends = cppNGSD

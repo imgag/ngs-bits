@@ -35,6 +35,7 @@ SOURCES += \
     FileLocationList.cpp \
     FileLocationProviderLocal.cpp \
     FileLocationProviderRemote.cpp \
+    GeneBurdenTest.cpp \
     SqlQuery.cpp\
     NGSD.cpp \
     GenLabDB.cpp \
@@ -61,6 +62,7 @@ HEADERS += \
     FileLocationProvider.h \
     FileLocationProviderLocal.h \
     FileLocationProviderRemote.h \
+    GeneBurdenTest.h \
     SqlQuery.h \
     NGSD.h \
     GenLabDB.h \
@@ -82,3 +84,7 @@ HEADERS += \
 
 RESOURCES += \
     cppNGSD.qrc
+
+DISTFILES += \
+    resources/CCR80_GRCh38.bed \
+    resources/CCR_supported_genes.txt

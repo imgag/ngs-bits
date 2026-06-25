@@ -339,6 +339,7 @@ private:
 		S_EQUAL(vl[0].ref(), Sequence("G"));
 		S_EQUAL(vl[0].alt(0), Sequence("T"));
 		I_EQUAL(vl[0].alt().count(), 1);
+		I_EQUAL(vl[0].id().count(), 1);
 		S_EQUAL(vl[0].id().at(0), "rs35659744");
 		S_EQUAL(QString::number(vl[0].qual()), "11836.9");
 		IS_TRUE(vl[0].filters().empty());
@@ -351,6 +352,7 @@ private:
 		S_EQUAL(vl[156].ref(), Sequence("G"));
 		S_EQUAL(vl[156].alt(0), Sequence("A"));
 		I_EQUAL(vl[156].alt().count(), 1);
+		I_EQUAL(vl[156].id().count(), 1);
 		S_EQUAL(vl[156].id().at(0), "rs6512586");
 		S_EQUAL(QString::number(vl[156].qual()), "39504.2");
 		IS_TRUE(vl[156].filters().empty());
@@ -722,5 +724,4 @@ private:
 		vcf_file.store("out/panel_vep_loadStore.vcf");
 		COMPARE_FILES("out/panel_vep_loadStore.vcf", TESTDATA("data_in/panel_vep.vcf"));
     }
-
 };

@@ -2630,9 +2630,11 @@ QMap<QByteArray, ExpressionStats> NGSD::calculateCohortExpressionStatistics(int 
 
 QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QString& project, const QString& ps_id, RnaCohortDeterminationStategy cohort_type, const QByteArray& mode, const QStringList& exclude_quality, const QString& gender, bool debug)
 {
-    QElapsedTimer timer;
+	QElapsedTimer timer;
 	timer.start();
 	QSet<int> cohort;
+	QString s_id;
+	if (!ps_id.isEmpty()) s_id = sampleId(processedSampleName(ps_id));
 
 	//get all available ps ids with expression data
 	QSet<int> all_ps_ids;
@@ -2649,7 +2651,7 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 		THROW(ArgumentException, "Invalid mode '" + mode + "' given! Valid modes are 'genes' or 'exons'");
 	}
 
-    if(debug) qDebug() << "Get all psample ids with expression data: " << Helper::elapsedTime(timer);
+	if(debug) qDebug() << "Get all psample ids with expression data: " << Helper::elapsedTime(timer);
 
 
 	if ((cohort_type == RNA_COHORT_GERMLINE) || (cohort_type == RNA_COHORT_GERMLINE_PROJECT))
@@ -2661,12 +2663,12 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 		}
 
 		QString query_string_cohort = QString(
-					"SELECT ps.id "
-					"FROM processed_sample ps "
-					"         LEFT JOIN sample s on ps.sample_id = s.id "
-					"WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " "
-					"  AND s.tissue = '" + tissue_type + "' "
-					);
+		                        "SELECT ps.id "
+		                        "FROM processed_sample ps "
+		                        "         LEFT JOIN sample s on ps.sample_id = s.id "
+		                        "WHERE ps.processing_system_id = " + QByteArray::number(sys_id) + " "
+		                        "  AND s.tissue = '" + tissue_type + "' "
+		                        );
 
 		if (exclude_quality.size() > 0)
 		{
@@ -2690,14 +2692,12 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 	}
 	else if (cohort_type == RNA_COHORT_SOMATIC)
 	{
-        QElapsedTimer timer;
+		QElapsedTimer timer;
 		timer.start();
 
 		//check requirements:
 		if(ps_id.trimmed().isEmpty()) THROW(ArgumentException, "Processed sample id required for somatic RNA cohort determination!");
 
-
-		QString s_id = sampleId(processedSampleName(ps_id));
 		int project_id = getValue("SELECT id FROM project WHERE name=:0", false, project).toInt();
 
 		//get sample ids of related samples
@@ -2734,14 +2734,14 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 		timer.restart();
 
 		QString query_string_cohort = QString("SELECT DISTINCT ps.id FROM processed_sample ps LEFT JOIN sample s on ps.sample_id=s.id	"
-											  "LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id "
-											  "LEFT JOIN sample_disease_info sdi ON s.id=sdi.sample_id OR sr.sample1_id=sdi.sample_id OR sr.sample2_id=sdi.sample_id "
-											  "WHERE ps.processing_system_id=" + QString::number(sys_id) + " "
-											  "AND ps.project_id=" + QString::number(project_id) + " "
-											  "AND ps.quality != 'bad' "
-											  "AND (sr.relation='same sample' OR sr.relation IS NULL) "
-                                              "AND ((sdi.type='ICD10 code' AND sdi.disease_info='" + icd10_disease_info.values().at(0) + "') "
-                                              "OR (sdi.type='HPO term id' AND sdi.disease_info='" + hpo_disease_info.values().at(0) + "')) ");
+		                                                                          "LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id "
+		                                                                          "LEFT JOIN sample_disease_info sdi ON s.id=sdi.sample_id OR sr.sample1_id=sdi.sample_id OR sr.sample2_id=sdi.sample_id "
+		                                                                          "WHERE ps.processing_system_id=" + QString::number(sys_id) + " "
+		                                                                          "AND ps.project_id=" + QString::number(project_id) + " "
+		                                                                          "AND ps.quality != 'bad' "
+		                                                                          "AND (sr.relation='same sample' OR sr.relation IS NULL) "
+		                              "AND ((sdi.type='ICD10 code' AND sdi.disease_info='" + icd10_disease_info.values().at(0) + "') "
+		                              "OR (sdi.type='HPO term id' AND sdi.disease_info='" + hpo_disease_info.values().at(0) + "')) ");
 
 		if (exclude_quality.size() > 0)
 		{
@@ -2764,6 +2764,21 @@ QSet<int> NGSD::getRNACohort(int sys_id, const QString& tissue_type, const QStri
 	{
 		THROW(ArgumentException, "Invalid cohort type!");
 	}
+
+	//remove related samples
+	if (!s_id.isEmpty())
+	{
+		QSet<int> related_samples = relatedSamples(Helper::toInt(s_id));
+		related_samples << Helper::toInt(s_id);
+		QSet<int> related_ps_ids;
+		for (int sample_id : std::as_const(related_samples))
+		{
+			QList<int> tmp = getValuesInt("SELECT id FROM processed_sample WHERE sample_id = :0", QString::number(sample_id));
+			related_ps_ids += QSet<int>(tmp.begin(), tmp.end());
+		}
+		cohort = cohort.subtract(related_ps_ids);
+	}
+
 
 	//consider only ps_ids which have expression data
 	cohort = cohort.intersect(all_ps_ids);
@@ -4658,10 +4673,7 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_re
 			QByteArrayList variant_info = line.annotations().at(0).split('>');
 			if (variant_info.size() != 2)
 			{
-				if (throw_on_fail)
-				{
-					THROW(FileParseException, "Invalid variant information '" + line.annotations().at(0) + "' for region " + line.toString(true) + "!" );
-				}
+				if (throw_on_fail) THROW(FileParseException, "Invalid variant information '" + line.annotations().at(0) + "' for region " + line.toString(true) + "!" );
 				return VcfFile();
 			}
 			VcfLine vcf_line(line.chr(), line.start(), variant_info.at(0), QList<Sequence>() << variant_info.at(1), format_ids, sample_ids, list_of_format_values);
@@ -4739,6 +4751,11 @@ QVector<double> NGSD::getQCValues(const QString& accession, const QString& proce
 	}
 
 	return output;
+}
+
+QString NGSD::getQCTermNameByAccession(const QString &accession)
+{
+	return getValue("SELECT qc_terms.name FROM qc_terms WHERE qcml_id='"+accession+"'").toString();
 }
 
 KaspData NGSD::kaspData(const QString& processed_sample_id)

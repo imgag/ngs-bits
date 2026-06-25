@@ -35,6 +35,8 @@ public:
 	///Default constructor
 	VcfFile();
 
+	///Restricts all following calls of `load` to the chromosome given. Must be set before the first call of `load` or throws an exception.
+	void setChromosome(QByteArray chr);
 	///Restricts all following calls of `load` to the region given in this file. If `invert` is set, only variants outside the region are loaded. Must be set before the first call of `load` or throws an exception.
 	void setRegion(const BedFile& roi, bool invert = false);
 	///If set to `false`, restricts all following calls of `load` to sinlge-sample input. Default is `true`. Must be set before the first call of `load` or throws an exception.
@@ -133,8 +135,11 @@ public:
 	///Returns string where all URL encoded chars of an INFO column value are decoded
 	static QString decodeInfoValue(QString encoded_info_value);
 
-	///Remove contig headers that are not unsed.
-	void removeUnusedContigHeaders();
+	///Remove contig headers of chromosomes that are not unsed. If used chromosomes are not given, they are automatically determined from the loaded VCF lines.
+	void removeUnusedContigHeaders(QSet<QByteArray> used_chrs = QSet<QByteArray>());
+
+	///Clear cache of strings and string lists used to reduce memory consumption.
+	static void clearCache();
 
 private:
 	void storeHeaderColumns(QTextStream& stream) const;
@@ -154,6 +159,7 @@ private:
 	bool load_performed_ = false;
 	QSharedPointer<ChromosomalIndex<BedFile>> load_reg_;
 	bool load_reg_inv_ = false;
+	QByteArray load_chr_;
 	bool load_allow_multi_sample_ = true;
 
 
@@ -235,7 +241,8 @@ private:
 	//for using the parse functions in testing
 	friend class VcfLine_Test;
 
-	//storing all QByteArrays in a list of unique QByteArrays
-	static const QByteArray& strCache(const QByteArray& str);
-    static const QByteArrayList strArrayCache(const QByteArrayList& str);
+	//caching function to store each QByteArray only once
+	static QByteArray strCache(const QByteArray& str, bool clear_cache=false);
+	//caching function to store each QByteArrayList only once
+	static QByteArrayList strArrayCache(const QByteArrayList& str, bool clear_cache=false);
 };

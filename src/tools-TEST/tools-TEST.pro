@@ -36,6 +36,7 @@ SOURCES += \
     BedpeExtractGenotype_Test.cpp \
     BedpeExtractInfoField_Test.cpp \
     NGSDExportIgvGeneTrack_Test.cpp \
+    NGSDGeneBurdenTest_Test.cpp \
     NGSDSameSample_Test.cpp \
     NGSDTransferReportConfig_Test.cpp \
     SampleAncestry_Test.cpp \

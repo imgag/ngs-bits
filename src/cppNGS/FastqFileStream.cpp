@@ -162,10 +162,7 @@ FastqOutfileStream::FastqOutfileStream(QString filename, int compression_level, 
 	, is_closed_(false)
 {
 	gzfile_ = gzopen(filename.toUtf8().data(), "wb");
-    if (gzfile_ == NULL)
-    {
-        THROW(FileAccessException, "Could not open file '" + filename + "' for writing!");
-	}
+	if (gzfile_==nullptr) THROW(FileAccessException, "Could not open file '" + filename + "' for writing!");
 
 	gzbuffer(gzfile_, 131072);
 

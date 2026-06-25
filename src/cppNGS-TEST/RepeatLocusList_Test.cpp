@@ -26,6 +26,19 @@ private:
 		S_EQUAL(res.callerVersion(), "V1.5.0");
 		S_EQUAL(res.callingDate().toString(Qt::ISODate), "2024-06-12");
 		I_EQUAL(res.count(), 30);
+
+		//Test first repeat
+		const RepeatLocus& rl = res[0];
+		S_EQUAL(rl.allele1(), "12.6");
+		S_EQUAL(rl.allele2(), "12.6");
+		S_EQUAL(rl.alleles(), "12.6/12.6");
+		S_EQUAL(rl.confidenceIntervals(), "7.0-16.7/7.0-16.7");
+		S_EQUAL(rl.coverage(), "87");
+		IS_TRUE(rl.filters().isEmpty());
+		S_EQUAL(rl.geneSymbol(), "GLS");
+		S_EQUAL(rl.name(), "GLS");
+		S_EQUAL(rl.overlappingInsertions().join(","), "37.6 (het)");
+		I_EQUAL(rl.refSize(), 7);
 	}
 
 	TEST_METHOD(findMatch)

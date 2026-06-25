@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Mit XMLSpy v2022 rel. 2 (x64) (http://www.altova.com) von Marc Sturm (Universitätsklinikum Tübingen) bearbeitet -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
+	<xs:element name="QcRules">
+		<xs:annotation>
+			<xs:documentation>Specification of QC rules</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="SysTypeRules" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Rules for a processing system type.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="TermRules" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>List of rules for a specific QC term. The first rule that matches, determines the color.</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="Rule" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:attribute name="operation" use="required">
+													<xs:annotation>
+														<xs:documentation>Operation to apply.</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:enumeration value="less than"/>
+															<xs:enumeration value="less equal"/>
+															<xs:enumeration value="greater than"/>
+															<xs:enumeration value="greater equal"/>
+															<xs:enumeration value=""/>
+															<xs:enumeration value=""/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="cutoff" type="xs:float" use="required">
+													<xs:annotation>
+														<xs:documentation>Numeric cutoff.</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="result" use="required">
+													<xs:annotation>
+														<xs:documentation>Resulting quality category.</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:enumeration value="medium"/>
+															<xs:enumeration value="bad"/>
+															<xs:enumeration value="good"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="term_name" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>QC term name (checked against NGSD qc_terms>name)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="type" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>Processing system type (checked against NGSD processing_system>type)</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="tumor" type="xs:boolean" use="required">
+							<xs:annotation>
+								<xs:documentation>Defines if the rules are for germline or tumor samples. </xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+				<xs:element name="SysNameRules" minOccurs="0" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Rules for a processing system name (overrides rules for the system type</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="TermRules" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>List of rules for a specific QC term. The first rule that matches, determines the color.</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:sequence>
+										<xs:element name="Rule" maxOccurs="unbounded">
+											<xs:complexType>
+												<xs:attribute name="operation" use="required">
+													<xs:annotation>
+														<xs:documentation>Operation to apply.</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:enumeration value="less than"/>
+															<xs:enumeration value="less equal"/>
+															<xs:enumeration value="greater than"/>
+															<xs:enumeration value="greater equal"/>
+															<xs:enumeration value=""/>
+															<xs:enumeration value=""/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+												<xs:attribute name="cutoff" type="xs:float" use="required">
+													<xs:annotation>
+														<xs:documentation>Numeric cutoff.</xs:documentation>
+													</xs:annotation>
+												</xs:attribute>
+												<xs:attribute name="result" use="required">
+													<xs:annotation>
+														<xs:documentation>Resulting quality category.</xs:documentation>
+													</xs:annotation>
+													<xs:simpleType>
+														<xs:restriction base="xs:string">
+															<xs:enumeration value="medium"/>
+															<xs:enumeration value="bad"/>
+															<xs:enumeration value="good"/>
+														</xs:restriction>
+													</xs:simpleType>
+												</xs:attribute>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="term_name" type="xs:string" use="required">
+										<xs:annotation>
+											<xs:documentation>QC term name (checked against NGSD qc_terms>name)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="name" type="xs:string" use="required">
+							<xs:annotation>
+								<xs:documentation>Processing system short name (checked against NGSD processing_system>name_short)</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="tumor" type="xs:boolean" use="required">
+							<xs:annotation>
+								<xs:documentation>Defines if the rules are for germline or tumor samples. </xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>
