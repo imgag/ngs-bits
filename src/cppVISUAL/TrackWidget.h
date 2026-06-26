@@ -12,7 +12,7 @@
 #include <QWidget>
 #include <QXmlStreamWriter>
 
-struct Viewport
+struct CPPVISUALSHARED_EXPORT Viewport
 {
 	const BedLine& region;
 	int total_width;
@@ -67,7 +67,7 @@ protected:
 	virtual void mouseMoveEvent(QMouseEvent* event) override;
 	// creates a pop up at global_pos and display info text on that
 	virtual void showInfoPopup(QPointF global_pos, QString info);
-	// draws the name of the widget on the left right
+	// draws the name of the widget on the left side
 	void drawLabel(QPainter&);
 	// called when rename is clicked
 	void handleTrackRename();

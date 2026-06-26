@@ -9,7 +9,7 @@
 
 #include <QSharedPointer>
 
-struct ReadPair
+struct CPPVISUALSHARED_EXPORT ReadPair
 {
 	int first =-1;
 	int second =-1;

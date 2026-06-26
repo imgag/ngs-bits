@@ -7,7 +7,7 @@
 
 #include <QSharedPointer>
 
-struct BaseCoverage // stores coverage at a given genome pos
+struct CPPVISUALSHARED_EXPORT BaseCoverage // stores coverage at a given genome pos
 {
 	// bases read in forward strands
 	int forward_a =0;

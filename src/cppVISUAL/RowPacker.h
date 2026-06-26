@@ -1,10 +1,11 @@
 #ifndef ROWPACKER_H
 #define ROWPACKER_H
 
+#include "cppVISUAL_global.h"
 #include <QVector>
 #include <QPair>
 
-class RowPacker
+class CPPVISUALSHARED_EXPORT RowPacker
 {
 public:
 	struct Interval

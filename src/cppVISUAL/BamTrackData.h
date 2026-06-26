@@ -3,12 +3,13 @@
 
 #include "SharedData.h"
 #include "BamReader.h"
+#include "cppVISUAL_global.h"
 
 #include <QObject>
 #include <QString>
 
 // Alignment key for BamAlignment for making it hashable
-struct AlignmentKey
+struct CPPVISUALSHARED_EXPORT AlignmentKey
 {
 	uint64_t a;
 	uint64_t b;
@@ -26,7 +27,7 @@ inline size_t qHash(const AlignmentKey& k, size_t seed = 0)
 	return qHashMulti(seed, k.a, k.b);
 }
 
-struct BamAlignmentWrapper
+struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 {
 	enum Event // Cigar Op
 	{
@@ -115,7 +116,7 @@ inline size_t qHash(const BamAlignmentWrapper& key, size_t seed = 0)
 }
 
 /*this is used for connecting BamAlignemnt and BamCoverage tracks*/
-class BamTrackData : public QObject
+class CPPVISUALSHARED_EXPORT BamTrackData : public QObject
 {
 	Q_OBJECT
 public:

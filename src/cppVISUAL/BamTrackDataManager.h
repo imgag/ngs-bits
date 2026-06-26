@@ -11,7 +11,7 @@
  * store format: (file_path -> QWeakPtr<TrackData>)
  * even though it stores only weak ptr, it's necessary to switch to LRUCache for a lower memory hog
  */
-class BamTrackDataManager
+class CPPVISUALSHARED_EXPORT BamTrackDataManager
 {
 public:
 	// if file_path in cache, returns cached BamTrackData
