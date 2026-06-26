@@ -1,18 +1,12 @@
 #ifndef BURDENTESTWIDGET_H
 #define BURDENTESTWIDGET_H
 
-#include <NGSD.h>
+#include "NGSD.h"
 #include <QSet>
 #include <QTableWidget>
 #include <QTextEdit>
 #include <QWidget>
-
-enum class Inheritance
-{
-	dominant,
-	de_novo,
-	recessive
-};
+#include "GeneBurdenTest.h"
 
 namespace Ui {
 class BurdenTestWidget;
@@ -70,9 +64,6 @@ private:
 	int getNewestProcessedSample(const QSet<int>& ps_list);
 	int getNewestSample(const QSet<int>& s_list);
 	QSet<int> removeDiseaseStatus(const QSet<int>& s_list, const QStringList& stati_to_remove);
-
-
-
 
 
 };

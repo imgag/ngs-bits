@@ -4673,10 +4673,7 @@ VcfFile NGSD::getIdSnpsFromProcessingSystem(int sys_id, const BedFile& target_re
 			QByteArrayList variant_info = line.annotations().at(0).split('>');
 			if (variant_info.size() != 2)
 			{
-				if (throw_on_fail)
-				{
-					THROW(FileParseException, "Invalid variant information '" + line.annotations().at(0) + "' for region " + line.toString(true) + "!" );
-				}
+				if (throw_on_fail) THROW(FileParseException, "Invalid variant information '" + line.annotations().at(0) + "' for region " + line.toString(true) + "!" );
 				return VcfFile();
 			}
 			VcfLine vcf_line(line.chr(), line.start(), variant_info.at(0), QList<Sequence>() << variant_info.at(1), format_ids, sample_ids, list_of_format_values);

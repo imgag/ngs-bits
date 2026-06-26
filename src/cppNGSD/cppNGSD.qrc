@@ -6,5 +6,8 @@
         <file>resources/TumorOnlyNGSReport_v1.xsd</file>
         <file>resources/GermlineReport.xsd</file>
         <file>resources/signature_description.tsv</file>
+        <file>resources/CCR_supported_genes.txt</file>
+        <file>resources/CCR80_GRCh38.bed</file>
+        <file>resources/GeneBurdenTest_cnv_af.bed</file>
     </qresource>
 </RCC>

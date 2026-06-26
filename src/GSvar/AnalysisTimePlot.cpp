@@ -7,6 +7,7 @@
 #include <QDateTimeAxis>
 #include <QValueAxis>
 #include "GUIHelper.h"
+#include "BasicStatistics.h"
 
 AnalysisTimePlot::AnalysisTimePlot(QWidget* parent)
 	: QWidget(parent)
@@ -78,7 +79,9 @@ void AnalysisTimePlot::updatePlot()
 				if (min_value>mins_max) mins_max = min_value;
 			}
 		}
-		ui_.count->setText("count: " + QString::number(times.size()));
+		double mean = BasicStatistics::mean(mins);
+		double stdev = BasicStatistics::stdev(mins, mean);
+		ui_.stats->setText("count: " + QString::number(times.size()) + " median: " + QString::number(mean, 'f', 2)+ " stdev: " + QString::number(stdev, 'f', 2));
 
 		//check that at least one time is given
 		if (times.isEmpty())
