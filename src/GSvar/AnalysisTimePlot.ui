@@ -199,9 +199,12 @@
       </spacer>
      </item>
      <item>
-      <widget class="QLabel" name="count">
+      <widget class="QLabel" name="stats">
        <property name="text">
         <string/>
+       </property>
+       <property name="textInteractionFlags">
+        <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard</set>
        </property>
       </widget>
      </item>

@@ -1,5 +1,11 @@
 # GSvar change log
 
+## 2026_06-48 (26.06.2026)
+
+- repeat expansion dialog: added column with inserterion calls at repeat locus for long-read
+- repeat expansion dialog: added reference length of repeat loci
+- general: QC metrics cutoffs are now taken from configuration XML file and consistently used everywhere in GSvar
+
 ## 2025_12-304 (11.06.2026)
 
 - General: Added analysis time plot
