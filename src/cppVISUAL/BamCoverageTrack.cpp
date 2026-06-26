@@ -55,6 +55,8 @@ void BamCoverageTrack::dataReady()
 	update();
 }
 
+//TODO: this could be optimized if BamTrackData does this
+// (it's here for now because coverage is not needed if BamCoverageTrack does not exist)
 void BamCoverageTrack::storeCoverage()
 {
 	max_coverage_ = 0;
@@ -113,7 +115,7 @@ void BamCoverageTrack::storeCoverage()
 			}
 			else if (data.event == BamAlignmentWrapper::INSERTION)
 			{
-				if (base_idx >= 0 && base_idx < coverage_.length()) coverage_[base_idx].insertions ++;
+				if (base_idx >= 0 && base_idx < coverage_.length()) coverage_[base_idx].insertions++;
 			}
 			else if (data.event == BamAlignmentWrapper::DELETION)
 			{
@@ -168,6 +170,7 @@ void BamCoverageTrack::drawZoomInText(QPainter& painter)
 void BamCoverageTrack::drawCoverage(QPainter& painter)
 {
 	const BedLine& region = SharedData::region();
+	const Viewport& viewport = getViewport();
 
 	int draw_height = height();
 
@@ -181,8 +184,8 @@ void BamCoverageTrack::drawCoverage(QPainter& painter)
 		int total_count = cov.total();
 		if (total_count ==0) continue;
 
-		int pX = genomePosToScreen(region.start() + idx);
-		int endX = genomePosToScreen(region.start() + idx + 1);
+		int pX = viewport.genomePosToScreen(region.start() + idx);
+		int endX = viewport.genomePosToScreen(region.start() + idx + 1);
 		int dX = std::max(1, endX - pX);
 		float norm = (float)total_count/max_coverage_;
 		int bar_h = norm * draw_height;
@@ -273,10 +276,11 @@ QString BamCoverageTrack::getCoverageText(const BaseCoverage& cov, int coverage_
 
 void BamCoverageTrack::handlePopupRequest(QPointF local_pos, QPointF global_pos)
 {
-	if (isOutOfDrawRegion(local_pos.x())) return;
+	const Viewport& viewport = getViewport();
+	if (viewport.isOutOfDrawRegion(local_pos.x())) return;
 
 	const BedLine& region = SharedData::region();
-	int x = screenXToGenomePos(local_pos.x()) - region.start();
+	int x = viewport.screenXToGenomePos(local_pos.x()) - region.start();
 	if (x < 0 || x >= coverage_.length()) return;
 
 	QString info = getCoverageText(coverage_[x], x);

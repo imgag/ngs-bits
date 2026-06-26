@@ -111,6 +111,7 @@ void BedTrack::handleContextMenuAction(QAction* action)
 void BedTrack::paintEvent(QPaintEvent* /*event*/)
 {
 	const BedLine& region = SharedData::region();
+	const Viewport& viewport = getViewport();
 	QPainter painter(this);
 
 	painter.fillRect(rect(), QColor(250, 250, 250));
@@ -150,8 +151,8 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 			int st = std::max(bedline.start(), region.start());
 			int en = std::min(bedline.end(), region.end());
 
-			float x_start = genomePosToScreen(st);
-			float width = genomeWidthToScreen(en - st + 1);
+			float x_start = viewport.genomePosToScreen(st);
+			float width = viewport.genomeWidthToScreen(en - st + 1);
 
 			if (draw_mode_ == EXPANDED) y_start = row_idxes_[idx] * (BLOCK_HEIGHT + BLOCK_PADDING);
 
@@ -168,7 +169,7 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 
 				float text_x = x_start + (width - text_width) / 2.0f;
 
-				if (isOutOfDrawRegion(text_x)) continue;
+				if (viewport.isOutOfDrawRegion(text_x)) continue;
 
 				if (text_x > last_label_x || std::abs(y_start - last_label_y) > 1)
 				{
@@ -282,11 +283,12 @@ void BedTrack::mouseReleaseEvent(QMouseEvent* event)
 void BedTrack::handlePopupRequest(QPointF local_pos, QPointF global_pos)
 {
 	int row = local_pos.y() / (BLOCK_HEIGHT + BLOCK_PADDING);
+	const Viewport& viewport = getViewport();
 
 	const BedLine& region = SharedData::region();
 
-	if (isOutOfDrawRegion(local_pos.x())) return;
-	int x = screenXToGenomePos(local_pos.x());
+	if (viewport.isOutOfDrawRegion(local_pos.x())) return;
+	int x = viewport.screenXToGenomePos(local_pos.x());
 
 	QString info = getBandText(region, row, x);
 

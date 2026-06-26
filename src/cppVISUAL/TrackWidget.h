@@ -3,6 +3,7 @@
 
 #include "cppVISUAL_global.h"
 #include "TrackManager.h"
+#include "BedFile.h"
 
 #include <QVector>
 #include <QDomElement>
@@ -10,6 +11,19 @@
 #include <QMouseEvent>
 #include <QWidget>
 #include <QXmlStreamWriter>
+
+struct Viewport
+{
+	const BedLine& region;
+	int total_width;
+	int x0;
+	float pixels_per_base;
+
+	float genomePosToScreen(int genome_pos) const;
+	float genomeWidthToScreen(int genome_width) const;
+	int screenXToGenomePos(int x_pos) const;
+	bool isOutOfDrawRegion(int x_pos) const;
+};
 
 class CPPVISUALSHARED_EXPORT TrackWidget
 	: public QWidget
@@ -53,14 +67,12 @@ protected:
 	virtual void mouseMoveEvent(QMouseEvent* event) override;
 	// creates a pop up at global_pos and display info text on that
 	virtual void showInfoPopup(QPointF global_pos, QString info);
-	// this is same for all track widgets
+	// draws the name of the widget on the left right
 	void drawLabel(QPainter&);
+	// called when rename is clicked
 	void handleTrackRename();
-	// coordinate conversion helpful functions
-	virtual float genomePosToScreen(int genome_pos); // can be overriden
-	virtual float genomeWidthToScreen(int genome_width);
-	virtual int screenXToGenomePos(int x_pos);
-	virtual bool isOutOfDrawRegion(int x_pos);
+	// returns the current viewport
+	virtual Viewport getViewport();
 
 	virtual QString getType() = 0;
 

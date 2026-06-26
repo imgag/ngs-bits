@@ -97,14 +97,6 @@ private:
 	//utility function for calculating the nubmer of rows required/chr
 	void calculateNumRows();
 
-	//utility function for mapping a \in [min_, max_] to [c, d]
-	inline float map(float a, float min_, float max_, float c, float d)
-	{
-		float p = (float)(a - min_)/(float)(max_ - min_);
-		p = std::clamp(p, 0.f, 1.f);
-		return c + (d - c) * p;
-	}
-
 	enum DrawMode
 	{
 		COLLAPSED,

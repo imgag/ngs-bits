@@ -72,8 +72,8 @@ bool RowPacker::fits(int row, int start, int end) const
 	int pos = insertionPoint(row, start);
 	const auto& intervals = rows_[row];
 
-	if (pos > 0 && intervals[pos - 1].end >= start - 1) return false;
-	if (pos < intervals.size() && end >= intervals[pos].start + 1) return false;
+	if (pos > 0 && intervals[pos - 1].end >= start - 3) return false;
+	if (pos < intervals.size() && end >= intervals[pos].start + 3) return false;
 	return true;
 }
 

@@ -109,6 +109,7 @@ void BafTrack::drawPlot(QPainter& painter)
 void BafTrack::drawPoints(QPainter& painter, const QVector<int>& idxes)
 {
 	const BedLine& region = SharedData::region();
+	const Viewport& viewport = getViewport();
 
 	foreach (int idx, idxes)
 	{
@@ -122,8 +123,8 @@ void BafTrack::drawPoints(QPainter& painter, const QVector<int>& idxes)
 
 		if (pos < region.start()) continue;
 
-		float p1 = genomePosToScreen(pos);
-		float p2 = genomePosToScreen(pos + 1);
+		float p1 = viewport.genomePosToScreen(pos);
+		float p2 = viewport.genomePosToScreen(pos + 1);
 		float px = (p1 + p2) / 2.f;
 
 		int py = bafToY(baf, TRACK_HEIGHT);
@@ -137,9 +138,7 @@ void BafTrack::drawLinePlot(QPainter& painter, const QVector<int>& idxes)
 {
 	painter.setRenderHint(QPainter::Antialiasing);
 	const BedLine& region = SharedData::region();
-	int label_width = SharedData::settings().label_width;
-	int total_width = width() - label_width - 4;
-	int x0 = label_width + 2;
+	const Viewport& viewport = getViewport();
 
 	for (int i =1; i < idxes.count(); ++i)
 	{
@@ -163,10 +162,10 @@ void BafTrack::drawLinePlot(QPainter& painter, const QVector<int>& idxes)
 		if ((norm < 0 && norm2 < 0) ||
 			(norm > 1 && norm2 > 1)) continue;
 
-		int px1 = x0 + (int)(norm * total_width);
+		int px1 = viewport.x0 + (int)(norm * viewport.total_width);
 		int py1 = bafToY(baf1, TRACK_HEIGHT);
 
-		int px2 = x0 + (int)(norm2 * total_width);
+		int px2 = viewport.x0 + (int)(norm2 * viewport.total_width);
 		int py2 = bafToY(baf2, TRACK_HEIGHT);
 
 		if (norm < 0 && norm2 > 0)
@@ -176,9 +175,9 @@ void BafTrack::drawLinePlot(QPainter& painter, const QVector<int>& idxes)
 			if (px1 != px2)
 			{
 				float m = (py2 - py1)/(float)(px2 - px1);
-				py1 = m*(x0 - px1) + py1;
+				py1 = m*(viewport.x0 - px1) + py1;
 			}
-			px1 = x0;
+			px1 = viewport.x0;
 		}
 
 		painter.setPen(QPen(Qt::blue, 2, Qt::SolidLine));
@@ -191,11 +190,9 @@ void BafTrack::drawHeatMap(QPainter& painter, const QVector<int>& idxes)
 	painter.setRenderHint(QPainter::Antialiasing);
 
 	const BedLine& region = SharedData::region();
-	int label_width = SharedData::settings().label_width;
-	int total_width = width() - label_width - 4;
-	int x0 = label_width + 2;
+	const Viewport& viewport = getViewport();
 
-	painter.fillRect(x0, 0, total_width, TRACK_HEIGHT, Qt::gray);
+	painter.fillRect(viewport.x0, 0, viewport.total_width, TRACK_HEIGHT, Qt::gray);
 	QColor c1(122, 122, 214); // low baf
 	QColor c2(0, 0, 255);     // high baf
 	foreach (int idx, idxes)
@@ -210,8 +207,8 @@ void BafTrack::drawHeatMap(QPainter& painter, const QVector<int>& idxes)
 
 		if (pos < region.start()) continue;
 
-		float px = genomePosToScreen(pos);
-		float endx = genomePosToScreen(pos + 1);
+		float px = viewport.genomePosToScreen(pos);
+		float endx = viewport.genomePosToScreen(pos + 1);
 		float dx = endx - px;
 
 		float t = std::clamp(baf, 0.0f, 1.0f);
@@ -234,6 +231,7 @@ void BafTrack::drawBarChart(QPainter& painter, const QVector<int>& idxes)
 	painter.setRenderHint(QPainter::Antialiasing);
 
 	const BedLine& region = SharedData::region();
+	const Viewport& viewport = getViewport();
 
 	foreach (int idx, idxes)
 	{
@@ -247,8 +245,8 @@ void BafTrack::drawBarChart(QPainter& painter, const QVector<int>& idxes)
 
 		if (pos < region.start()) continue;
 
-		float px = genomePosToScreen(pos);
-		float endx = genomePosToScreen(pos + 1);
+		float px = viewport.genomePosToScreen(pos);
+		float endx = viewport.genomePosToScreen(pos + 1);
 		float dx = endx - px;
 
 		float t = std::clamp(baf, 0.0f, 1.0f);
@@ -320,14 +318,13 @@ void BafTrack::mouseReleaseEvent(QMouseEvent* event)
 void BafTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 {
 	const BedLine& region = SharedData::region();
-	int label_width = SharedData::settings().label_width;
-	int total_width = width() - label_width - 4;
+	const Viewport viewport = getViewport();
 
-	if (isOutOfDrawRegion(local_pos.x())) return;
+	if (viewport.isOutOfDrawRegion(local_pos.x())) return;
 
-	int click_position = screenXToGenomePos(local_pos.x());
+	int click_position = viewport.screenXToGenomePos(local_pos.x());
 
-	double bp_per_pixel = (double)region.length() / total_width;
+	double bp_per_pixel = 1.0 / viewport.pixels_per_base;
 	int padding = std::max(2, static_cast<int>(bp_per_pixel * 2));
 
 	int start = std::max(0, click_position - padding);

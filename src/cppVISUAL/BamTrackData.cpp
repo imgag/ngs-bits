@@ -1,6 +1,8 @@
 #include "BamTrackData.h"
 #include "FileLoader.h"
 
+#include <QtConcurrent/QtConcurrent>
+
 #define BAM_OPTIMIZATION
 
 constexpr int REF_OVERHANG = 500; // max
@@ -17,7 +19,6 @@ AlignmentKey AlignmentKey::makeKey(const BamAlignment& al)
 
 	return {h1, h2};
 }
-
 
 void BamTrackData::updateRegion()
 {
@@ -98,7 +99,7 @@ void BamTrackData::updateRegion()
 		// TODO: need to check if this is too slow
 		// std::sort(alignments_.begin(), alignments_.end(),
 		// 		  [](const BamAlignmentWrapper& a, const BamAlignmentWrapper&b){
-		// 			return a.start() <= b.start();}
+		// 			return a.start() < b.start();}
 		// 		  );
 
 		emit onDataUpdate();
@@ -138,8 +139,6 @@ void BamTrackData::fullLoad(const BedLine& region)
 	int ref_fetch_start = std::max(0, p_start - REF_OVERHANG);
 	int ref_fetch_end   = p_end + REF_OVERHANG;
 
-	// ref_seq_ = SharedData::genome().seq(region.chr(), p_start, p_end - p_start + 1);
-	// ref_start_ = p_start;
 	ref_seq_ = SharedData::genome().seq(
 		region.chr(),
 		ref_fetch_start,

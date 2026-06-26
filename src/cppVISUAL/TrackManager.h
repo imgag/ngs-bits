@@ -10,6 +10,7 @@
 
 class TrackWidget;
 
+// a map of track id to track widget pointer; used to extract the explicit track from id on drop
 class CPPVISUALSHARED_EXPORT TrackManager : QObject
 {
 	Q_OBJECT

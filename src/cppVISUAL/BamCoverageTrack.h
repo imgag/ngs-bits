@@ -7,13 +7,15 @@
 
 #include <QSharedPointer>
 
-struct BaseCoverage
+struct BaseCoverage // stores coverage at a given genome pos
 {
+	// bases read in forward strands
 	int forward_a =0;
 	int forward_c =0;
 	int forward_g =0;
 	int forward_t =0;
 
+	// bases read in reverse strands
 	int reverse_a =0;
 	int reverse_c =0;
 	int reverse_g =0;
@@ -27,7 +29,7 @@ struct BaseCoverage
 	int g() const {return forward_g + reverse_g;}
 	int t() const {return forward_t + reverse_t;}
 
-	bool is_variant =false;
+	bool is_variant =false; // set to true when a significant number of bases differ from the reference base
 
 	int total() const {return a() + c() + g() + t();}
 
@@ -60,7 +62,6 @@ private:
 	// track_data shared b/w coverage/alignment tracks
 	QSharedPointer<BamTrackData> track_data_;
 	// vector for stroing the coverage everytime the region changes
-	// so that we don't have to recalulate every coverage paintEvent
 	QVector<BaseCoverage> coverage_;
 	int max_coverage_;
 

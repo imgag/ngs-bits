@@ -63,16 +63,13 @@ private:
 	void drawNormalMode(QPainter& painter, const BedLine&);
 	void drawPairMode(QPainter& painter, const BedLine& region);
 
-	void drawAlignmentAndMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y,
-								  int x0, int total_width);
+	void drawAlignmentAndMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y);
 
 	void drawAlignment(QPainter&, const BamAlignmentWrapper& al, int row_y);
 	// draws bases in BamAlignment that do not match the reference base
 	// which are pre calculated in the AlignmentWrapper
-	void drawMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y,
-					  int x0, int total_width);
-	void drawAllBases(QPainter&, const BamAlignmentWrapper& al, int row_y,
-					  int x0, int total_width);
+	void drawMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y);
+	void drawAllBases(QPainter&, const BamAlignmentWrapper& al, int row_y);
 
 	QString getBamAlignmentText(const BamAlignmentWrapper& al, int genome_pos);
 	// iterates through the alignments and stores pairs as ReadPair in read_pairs_

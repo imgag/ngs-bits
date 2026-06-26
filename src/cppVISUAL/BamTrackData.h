@@ -7,6 +7,7 @@
 #include <QObject>
 #include <QString>
 
+// Alignment key for BamAlignment for making it hashable
 struct AlignmentKey
 {
 	uint64_t a;
