@@ -1457,7 +1457,7 @@ void MVHub::checkForMetaDataErrors()
 		}
 
 		//checks for status 'Abgeschlossen'
-		if (status=="Abgeschlossen")
+		if (status=="Abgeschlossen" && (network==SE || network==FBREK))
 		{
 			if (getString(r, c_report_date)=="")
 			{
