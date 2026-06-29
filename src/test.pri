@@ -2,10 +2,9 @@ include("base.pri")
 
 #base settings
 TEMPLATE = app
-QT       += gui widgets charts
-QT       += network
-CONFIG   += console
-CONFIG   -= app_bundle
+QT += gui widgets charts network httpserver
+CONFIG += console
+CONFIG -= app_bundle
 
 #reduce optimization to improve compile time (this is only a test, thus we don't need optimization)
 QMAKE_CXXFLAGS_RELEASE -= -O3

@@ -46,6 +46,9 @@ projects_folder_test = "";
 projects_folder_external = "";
 data_folder = ""
 
+#burden test cli
+burden_test_cnp_regions = ""
+
 #setting for variant scoring/ranking
 ranking_variant_blacklist=
 
@@ -60,3 +63,6 @@ location = ""
 
 #SSL certificate authorities to validate a connection to the database server
 db_ssl_ca = ""
+
+#URL (with the port number) that is used to start a mock server for cppCORE tests
+mock_server_url = "http://localhost:8000"

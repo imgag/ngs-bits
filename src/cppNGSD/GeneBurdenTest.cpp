@@ -600,9 +600,28 @@ QList<BurdenTestResult> GeneBurdenTest::run_burden_test()
 			QTextStream(stdout) << "callset ids controls:" << callset_ids_controls_.size() << Qt::endl;
 		}
 
-		//read polymorphism region
-		cnv_polymorphism_region_.load(Settings::string("burden_test_cnp_regions"));
-		cnv_polymorphism_region_.sort();
+		//read CNV polymorphism region
+		if (test_)
+		{
+			// use pre-defined test file
+			QTextStream(stderr) << "Running in test mode, using predefined polymorphism region" << Qt::endl;
+			cnv_polymorphism_region_.load(":/resources/GeneBurdenTest_cnv_af.bed", false);
+		}
+		else
+		{
+			QString filepath = Settings::string("burden_test_cnp_regions", true);
+			if (filepath.isEmpty())
+			{
+				QTextStream(stderr) << "WARNING: CNV polymorphism file not set! (burden_test_cnp_regions in settings ini)" << Qt::endl;
+			}
+			else
+			{
+				cnv_polymorphism_region_.load(filepath, false);
+				cnv_polymorphism_region_.sort();
+			}
+		}
+
+
 	}
 
 	//create container for analysis
@@ -671,8 +690,19 @@ QList<BurdenTestResult> GeneBurdenTest::run_burden_test()
 
 void GeneBurdenTest::initCCR()
 {
+	QElapsedTimer timer;
+	timer.start();
+
 	//read CCR gene list and update the gene names
-	ccr_genes_ = db_.genesToApproved(GeneSet::createFromFile(":/resources/CCR_supported_genes.txt"));
+	ccr_genes_ = GeneSet::createFromFile(":/resources/CCR_supported_genes.txt");
+	//debug output
+	if (debug_) QTextStream(stdout) << "CCR gene file loading took " << Helper::elapsedTime(timer) << Qt::endl;
+
+	//convert to approved in non-test mode (too slow for testing)
+	if (!test_) ccr_genes_ = db_.genesToApproved(ccr_genes_);
+
+	//debug output
+	if (debug_) QTextStream(stdout) << "CCR gene validation took " << Helper::elapsedTime(timer) << Qt::endl;
 
 	//create CCR region for each gene
 	BedFile combined_ccr;
@@ -681,11 +711,16 @@ void GeneBurdenTest::initCCR()
 	for (int i=0; i<combined_ccr.count(); i++)
 	{
 		const BedLine& line = combined_ccr[i];
-		QByteArray gene = db_.geneToApproved(line.annotations().at(1));
+		QByteArray gene = line.annotations().at(1).trimmed();
+		//skip gene validation in test mode
+		if (!test_) gene = db_.geneToApproved(line.annotations().at(1));
 		//skip invalid genes
 		if(gene.isEmpty()) continue;
 		ccr80_region_[gene].append(BedLine(line.chr(), line.start(), line.end()));
 	}
+
+	//debug output
+	if (debug_) QTextStream(stdout) << "CCR initialisation took " << Helper::elapsedTime(timer) << Qt::endl;
 }
 
 
