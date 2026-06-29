@@ -5,6 +5,7 @@
 #include <QVector>
 #include <QPair>
 
+//handles row assignment for intervals
 class CPPVISUALSHARED_EXPORT RowPacker
 {
 public:

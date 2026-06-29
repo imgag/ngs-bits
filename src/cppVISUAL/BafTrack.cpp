@@ -3,6 +3,7 @@
 #include "GenomeVisualizationWidget.h"
 #include "SharedData.h"
 
+#include <QActionGroup>
 #include <QApplication>
 #include <QPainter>
 #include <QMenu>
@@ -277,24 +278,35 @@ int BafTrack::bafToY(float baf, int draw_height)
 void BafTrack::populateContextMenu(QMenu& menu)
 {
 	QMenu* sub_menu = menu.addMenu("Type Of Graph");
-	opts[0] = sub_menu->addAction("Heatmap");
-	opts[1] = sub_menu->addAction("Bar Chart");
-	opts[2] = sub_menu->addAction("Points");
-	opts[3] = sub_menu->addAction("Line Plot");
 
-	for (int i =0; i < 4; ++i) opts[i]->setCheckable(true);
-	opts[static_cast<int>(graph_mode_)]->setChecked(true);
+	QAction* heat_map  = sub_menu->addAction("Heatmap");
+	QAction* bar_chart = sub_menu->addAction("Bar Chart");
+	QAction* points    = sub_menu->addAction("Points");
+	QAction* line_plot = sub_menu->addAction("Line Plot");
+
+	heat_map->setData(HEATMAP);
+	bar_chart->setData(BAR_CHART);
+	points->setData(POINTS);
+	line_plot->setData(LINE_PLOT);
+
+	auto* group = new QActionGroup(sub_menu);
+	group->setExclusive(true);
+
+	for (QAction* a : {heat_map, bar_chart, points, line_plot}) {
+		a->setCheckable(true);
+		group->addAction(a);
+	}
+
+	group->actions().at(static_cast<int>(graph_mode_))->setChecked(true);
+
+	connect(group, &QActionGroup::triggered, this,
+			[this](QAction* action)
+			{
+				graph_mode_ = static_cast<GraphType>(action->data().toInt());
+				update();
+			});
+
 	TrackWidget::populateContextMenu(menu);
-}
-
-void BafTrack::handleContextMenuAction(QAction* action)
-{
-	if (action == opts[0]) graph_mode_ = HEATMAP;
-	else if (action == opts[1]) graph_mode_ = BAR_CHART;
-	else if (action == opts[2]) graph_mode_ = POINTS;
-	else if (action == opts[3]) graph_mode_ = LINE_PLOT;
-	else TrackWidget::handleContextMenuAction(action);
-	update();
 }
 
 void BafTrack::mousePressEvent(QMouseEvent* event)

@@ -36,6 +36,7 @@ struct CPPVISUALSHARED_EXPORT BaseCoverage // stores coverage at a given genome 
 	int max() const {return std::max({a(), c(), g(), t()});}
 };
 
+//Track that displays the coverage of alignments for every genome pos
 class CPPVISUALSHARED_EXPORT BamCoverageTrack
 	: public TrackWidget
 {

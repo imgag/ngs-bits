@@ -9,6 +9,8 @@
 #include <QDomElement>
 #include <QXmlStreamWriter>
 
+//class for handling the operations related to panels, holds every TrackGroup inside of it
+// and creates a new split for every TrackGroup
 class CPPVISUALSHARED_EXPORT PanelManager:
 	public QSplitter
 {

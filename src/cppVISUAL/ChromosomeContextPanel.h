@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <QWidget>
 
+//Panel that shows the current region of the chromosome
 class CPPVISUALSHARED_EXPORT ChromosomeContextPanel
 	: public QWidget
 {

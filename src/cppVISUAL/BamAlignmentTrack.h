@@ -9,14 +9,18 @@
 
 #include <QSharedPointer>
 
+// struct for storing a pair of reads
 struct CPPVISUALSHARED_EXPORT ReadPair
 {
-	int first =-1;
-	int second =-1;
-	int start = INT_MAX;
-	int end = INT_MIN;
+	// after initialization, first will never be -1; however, second may
+	// be -1 if no pair is found
+	int first =-1; // index of the first alignment
+	int second =-1; // index of the second alignment
+	int start = INT_MAX; // min of the starts of the two alignments
+	int end = INT_MIN; // max of the ends of the two alignments
 };
 
+//Track that displays alignmnets in a BAM/CRAM file
 class CPPVISUALSHARED_EXPORT BamAlignmentTrack
 	: public TrackWidget
 {
@@ -41,7 +45,6 @@ public:
 protected:
 	void paintEvent(QPaintEvent*) override;
 	void populateContextMenu(QMenu&) override;
-	void handleContextMenuAction(QAction*) override;
 	void mousePressEvent(QMouseEvent*) override;
 	void mouseReleaseEvent(QMouseEvent*) override;
 
@@ -60,7 +63,7 @@ private:
 	// assigns rows to pairs for pair mode
 	void calculateRowsPairMode();
 
-	void drawNormalMode(QPainter& painter, const BedLine&);
+	void drawNormalMode(QPainter& painter);
 	void drawPairMode(QPainter& painter, const BedLine& region);
 
 	void drawAlignmentAndMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y);
@@ -99,9 +102,6 @@ private:
 	int num_rows_ = 1;
 	bool view_as_pairs_ = false;
 	bool show_all_bases_ = false;
-
-	QAction* pairs_action_;
-	QAction* all_bases_action_;
 
 	QPoint mouse_press_pos_;
 	QSize cached_char_size_;

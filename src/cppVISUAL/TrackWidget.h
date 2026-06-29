@@ -5,6 +5,7 @@
 #include "TrackManager.h"
 #include "BedFile.h"
 
+#include <QUuid>
 #include <QVector>
 #include <QDomElement>
 #include <QHash>
@@ -25,6 +26,7 @@ struct CPPVISUALSHARED_EXPORT Viewport
 	bool isOutOfDrawRegion(int x_pos) const;
 };
 
+// A generic Track, all tracks must inherit from this and implement the getType() function
 class CPPVISUALSHARED_EXPORT TrackWidget
 	: public QWidget
 {
@@ -32,7 +34,7 @@ class CPPVISUALSHARED_EXPORT TrackWidget
 
 public:
 	explicit TrackWidget(QWidget* parent, QString file_path, QString name);
-	~TrackWidget();
+	// ~TrackWidget();
 
 	const QUuid& id() {return id_;}
 	// writes properties in XML
@@ -53,7 +55,6 @@ public:
 	// creates a TrackWidget from a given type, e.g. "BED".
 	static TrackWidget* fromType(QString type, QWidget* parent, QString file_path, QString display_name);
 	virtual void populateContextMenu(QMenu&);
-	virtual void handleContextMenuAction(QAction*);
 
 signals:
 	void trackDeleted();
@@ -61,16 +62,16 @@ signals:
 
 public slots:
 	virtual void regionChanged();
+	void handleTrackRename();
 
 protected:
 	virtual void mousePressEvent(QMouseEvent* event) override;
 	virtual void mouseMoveEvent(QMouseEvent* event) override;
-	// creates a pop up at global_pos and display info text on that
+	// creates a pop up at global_pos and displays the info text on that
 	virtual void showInfoPopup(QPointF global_pos, QString info);
 	// draws the name of the widget on the left side
 	void drawLabel(QPainter&);
 	// called when rename is clicked
-	void handleTrackRename();
 	// returns the current viewport
 	virtual Viewport getViewport();
 
@@ -78,8 +79,6 @@ protected:
 
 	QPoint drag_start_pos_;
 	bool is_dragging_;
-	QAction *opts_[3];
-
 
 	QUuid id_;
 	QString file_path_;

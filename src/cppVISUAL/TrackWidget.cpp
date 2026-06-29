@@ -21,12 +21,6 @@
 TrackWidget::TrackWidget(QWidget* parent, QString file_path, QString name)
 	:QWidget(parent), id_(QUuid::createUuid()), file_path_(file_path), name_(name)
 {
-	TrackManager::addTrackWidget(id_, this);
-}
-
-TrackWidget::~TrackWidget()
-{
-	TrackManager::removeTrackWidget(id_);
 }
 
 void TrackWidget::regionChanged()
@@ -37,41 +31,27 @@ void TrackWidget::regionChanged()
 
 void TrackWidget::populateContextMenu(QMenu& menu)
 {
-	opts_[0] = menu.addAction("Reload Track");
+	QAction* reload = menu.addAction("Reload Track");
+	connect(reload, &QAction::triggered,
+			this, &TrackWidget::reloadTrack);
 
 	menu.addSeparator();
 
-	opts_[1] = menu.addAction("Remove Track");
+	QAction* remove = menu.addAction("Remove Track");
+	connect(remove, &QAction::triggered,
+			this, &TrackWidget::trackDeleted);
 
-	opts_[2] = menu.addAction("Rename Track..");
-}
-
-void TrackWidget::handleContextMenuAction(QAction* action)
-{
-	if (action == opts_[0])
-	{
-		reloadTrack();
-	}
-	else if (action == opts_[1])
-	{
-		emit trackDeleted();
-	}
-	else if (action == opts_[2]) // rename track
-	{
-		handleTrackRename();
-	}
+	QAction* rename = menu.addAction("Rename Track...");
+	connect(rename, &QAction::triggered,
+			this, &TrackWidget::handleTrackRename);
 }
 
 void TrackWidget::handleTrackRename()
 {
 	bool ok;
-
 	QString new_name = QInputDialog::getText(this, tr("Enter Track Name"), "", QLineEdit::Normal, name_, &ok);
-	if (ok && !new_name.isEmpty()) {
-		// Process the text
-		qDebug() << "NAME: " << new_name << Qt::endl;
-		name_ = new_name;
-	}
+
+	if (ok && !new_name.isEmpty()) name_ = new_name;
 }
 
 

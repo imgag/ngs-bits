@@ -2,6 +2,7 @@
 #include "GenomeVisualizationWidget.h"
 #include "TrackGroup.h"
 
+#include <QApplication>
 #include <QMenu>
 #include <QMessageBox>
 #include <QMimeData>
@@ -106,8 +107,6 @@ void TrackGroup::reloadTracks()
 
 void TrackGroup::contextMenu(QPoint pos)
 {
-	cur_context_track_ = nullptr;
-
 	QMenu menu(this);
 
 	TrackWidget* track = getTrackUnderMouse(pos);
@@ -116,31 +115,27 @@ void TrackGroup::contextMenu(QPoint pos)
 		QMenu* track_menu = new QMenu("Track", this);
 		track->populateContextMenu(*track_menu);
 		menu.addMenu(track_menu);
-		cur_context_track_ = track;
 	}
 
-	QAction* opt1 = menu.addAction("Load file");
+	QAction* load_file = menu.addAction("Load file");
 
 	menu.addSeparator();
 
-	QAction* opt2 = menu.addAction("Clear Panel");
-	QAction* opt3 = menu.addAction("Remove Panel");
+	QAction* clear_panel = menu.addAction("Clear Panel");
+	QAction* remove_panel = menu.addAction("Remove Panel");
 
 	menu.addSeparator();
 
-	QAction* opt4 = menu.addAction("Add Panel Above");
-	QAction* opt5 = menu.addAction("Add Panel Below");
+	QAction* add_panel_above = menu.addAction("Add Panel Above");
+	QAction* add_panel_below = menu.addAction("Add Panel Below");
 
-	QAction* action = menu.exec(mapToGlobal(pos));
+	connect(load_file, &QAction::triggered, this, &TrackGroup::loadTracksFromFile);
+	connect(clear_panel, &QAction::triggered, this, &TrackGroup::clearLayout);
+	connect(remove_panel, &QAction::triggered, this, &TrackGroup::clearLayoutAndDelete);
+	connect(add_panel_above, &QAction::triggered, this, &TrackGroup::addPanelAbove);
+	connect(add_panel_below, &QAction::triggered, this, &TrackGroup::addPanelBelow);
 
-	if (action == opt1)		 loadTracksFromFile(); // load file opt
-	else if (action == opt2) clearLayout(); // Clear Panel opt
-	else if (action == opt3) clearLayoutAndDelete(); // Remove Panel opt
-	else if (action == opt4) emit addPanelAbove(); // Add Panel Above
-	else if (action == opt5) emit addPanelBelow(); // Add Panel Below
-	else if (cur_context_track_) cur_context_track_->handleContextMenuAction(action);
-
-	cur_context_track_ = nullptr;
+	menu.exec(mapToGlobal(pos));
 }
 
 void TrackGroup::clearLayout()
@@ -197,43 +192,44 @@ TrackWidget* TrackGroup::getTrackUnderMouse(QPoint pos)
 
 void TrackGroup::dropEvent(QDropEvent* event)
 {
-	if (event->mimeData()->hasFormat("application/track-data"))
+	TrackWidget* track = qobject_cast<TrackWidget*>(event->source());
+	if (!track) return;
+
+	QWidget* old_panel = track->parentWidget();
+	if (!old_panel)
 	{
-		QByteArray track_data = event->mimeData()->data("application/track-data");
-		QUuid track_id = QUuid(track_data);
-
-		if (TrackManager::hasTrackWidget(track_id))
-		{
-			TrackWidget* source = TrackManager::getTrackWidget(track_id);
-			if (!source) return;
-
-			QWidget* old_panel = source->parentWidget();
-			if (!old_panel)
-			{
-				qDebug() << "Parent widget was not found for source on drop!" << Qt::endl;
-				return;
-			}
-
-			if (old_panel && old_panel != content_widget_)
-			{
-				emit source->trackMoved();
-
-				connect(source, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
-				connect(source, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
-			}
-			else
-			{
-				layout_->removeWidget(source);
-			}
-
-			int drop_index = getDropIndex(event->position().y());
-
-			// this changes the parent of the source
-			layout_->insertWidget(drop_index, source);
-			layout_->update();
-		}
+		qDebug() << "Parent widget was not found for source on drop!" << Qt::endl;
+		return;
 	}
+
+	if (old_panel != content_widget_) // came from a different Track
+	{
+		emit track->trackMoved(); //disconnects the old signals to the old TrackGroup
+
+		connect(track, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
+		connect(track, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
+	}
+	else // dropped in the same track
+	{
+		layout_->removeWidget(track);
+	}
+
+	int drop_index = getDropIndex(event->position().y());
+
+	// this changes the parent of the source track
+	layout_->insertWidget(drop_index, track);
+	layout_->update();
+
 	event->acceptProposedAction();
+}
+
+void TrackGroup::wheelEvent(QWheelEvent* event)
+{
+	if (event->modifiers() & Qt::ControlModifier)
+	{
+		event->ignore();
+	}
+	else QScrollArea::wheelEvent(event);
 }
 
 void TrackGroup::writeToXml(QXmlStreamWriter& writer)

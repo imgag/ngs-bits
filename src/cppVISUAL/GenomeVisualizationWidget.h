@@ -36,6 +36,10 @@ public slots:
 	// load session from file, triggers 'open file dialog' and loads the session
 	void loadSession();
 
+protected:
+	// handles zoom in/out
+	void wheelEvent(QWheelEvent* event) override;
+
 protected slots:
 	//Perform search based on input field (chromosome, region, gene, transcript, ...)
 	void search();

@@ -11,7 +11,7 @@
 #include <QMouseEvent>
 #include <QWidget>
 
-
+//Track that displays a BedFile
 class CPPVISUALSHARED_EXPORT BedTrack
 	: public TrackWidget
 {
@@ -45,7 +45,6 @@ protected:
 	void mousePressEvent(QMouseEvent* event) override;
 	void mouseReleaseEvent(QMouseEvent* event) override;
 	void populateContextMenu(QMenu& menu) override;
-	void handleContextMenuAction(QAction* action) override;
 
 private:
 	// band data in row
@@ -104,7 +103,6 @@ private:
 	};
 
 	DrawMode draw_mode_ = COLLAPSED;
-	QAction* opts_[2];
 };
 
 #endif // BEDTRACK_H

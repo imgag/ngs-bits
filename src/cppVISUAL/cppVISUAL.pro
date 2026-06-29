@@ -47,7 +47,6 @@ SOURCES += \
     RowPacker.cpp \
     SharedData.cpp \
     TrackGroup.cpp \
-    TrackManager.cpp \
     TrackWidget.cpp
 
 HEADERS += \
@@ -66,7 +65,6 @@ HEADERS += \
     RowPacker.h \
     SharedData.h \
     TrackGroup.h \
-    TrackManager.h \
     TrackWidget.h
 
 FORMS += \

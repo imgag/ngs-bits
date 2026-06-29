@@ -7,7 +7,8 @@
 #include <QMenu>
 
 // #define DRAW_TRANSPARENT
-#define CACHE_ROW_ASSIGNMENTS
+// #define CACHE_ROW_ASSIGNMENTS
+// #define ENABLE_ANTIALIASING
 
 //constants
 static constexpr int ROW_HEIGHT = 10;
@@ -77,8 +78,13 @@ void BamAlignmentTrack::fullLoad()
 
 void BamAlignmentTrack::dataReady()
 {
-	makePairs();
-	calculateRows();
+	const BedLine& region = SharedData::region();
+	int max_region_len = SharedData::settings().bam_max_region_len;
+	if (region.length() <= max_region_len)
+	{
+		makePairs();
+		calculateRows();
+	}
 	updateGeometry();
 	update();
 }
@@ -191,6 +197,11 @@ void BamAlignmentTrack::reloadTrack()
 void BamAlignmentTrack::paintEvent(QPaintEvent*)
 {
 	QPainter painter(this);
+
+	#ifdef ENABLE_ANTIALIASING
+	painter.setRenderHint(QPainter::Antialiasing);
+	#endif
+
 	painter.fillRect(rect(), Qt::white);
 	drawLabel(painter);
 	const BedLine& region = SharedData::region();
@@ -199,7 +210,7 @@ void BamAlignmentTrack::paintEvent(QPaintEvent*)
 	else
 	{
 		if (view_as_pairs_) drawPairMode(painter, region);
-		else drawNormalMode(painter, region);
+		else drawNormalMode(painter);
 	}
 }
 
@@ -221,7 +232,7 @@ void BamAlignmentTrack::drawAlignmentAndMismatches(QPainter& painter, const BamA
 	else drawAllBases(painter, al, row_y);
 }
 
-void BamAlignmentTrack::drawNormalMode(QPainter& painter, const BedLine&)
+void BamAlignmentTrack::drawNormalMode(QPainter& painter)
 {
 	const QVector<BamAlignmentWrapper>& alns = track_data_->getAlignments();
 	for (int i =0; i < alns.size(); ++i)
@@ -387,13 +398,17 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 
 	//draw the arrows
 	int st = std::max(al_w.start(), viewport.region.start());
+	int en = std::min(al_w.end(), viewport.region.end());
 	int x_start = viewport.genomePosToScreen(st);
+	int width = viewport.genomeWidthToScreen(en - st + 1);
 
 	painter.setPen(Qt::NoPen);
 	painter.setBrush(color);
 
 	int mid = row_y + ROW_HEIGHT / 2;
-	int tri_w = 6;
+	// int tri_w = std::max(1, ROW_HEIGHT / 2);
+
+	int tri_w = std::clamp(ROW_HEIGHT / 2, 1, std::max(1, width / 15));
 
 	if (!al_w.isReverseStrand() && last_x > 0)
 	{
@@ -569,32 +584,27 @@ void BamAlignmentTrack::makePairs()
 
 void BamAlignmentTrack::populateContextMenu(QMenu& menu)
 {
-	pairs_action_ = menu.addAction("View As Pairs");
-	pairs_action_->setCheckable(true);
-	pairs_action_->setChecked(view_as_pairs_);
+	QAction* pairs_action = menu.addAction("View As Pairs");
+	pairs_action->setCheckable(true);
+	pairs_action->setChecked(view_as_pairs_);
 
-	all_bases_action_ = menu.addAction("Show all bases");
-	all_bases_action_->setCheckable(true);
-	all_bases_action_->setChecked(show_all_bases_);
-	TrackWidget::populateContextMenu(menu);
-}
+	QAction* all_bases_action = menu.addAction("Show all bases");
+	all_bases_action->setCheckable(true);
+	all_bases_action->setChecked(show_all_bases_);
 
-void BamAlignmentTrack::handleContextMenuAction(QAction* action)
-{
-	if (action == pairs_action_)
-	{
+	connect(pairs_action, &QAction::triggered, this, [this](){
 		view_as_pairs_ = !view_as_pairs_;
-		// trigger update
 		calculateRows();
 		updateGeometry();
 		update();
-	}
-	else if (action == all_bases_action_)
-	{
+	});
+
+	connect(all_bases_action, &QAction::triggered, this, [this](){
 		show_all_bases_ = !show_all_bases_;
 		update();
-	}
-	else TrackWidget::handleContextMenuAction(action);
+	});
+
+	TrackWidget::populateContextMenu(menu);
 }
 
 void BamAlignmentTrack::mousePressEvent(QMouseEvent* event)

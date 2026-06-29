@@ -89,13 +89,23 @@ void BamTrackData::updateRegion()
 
 		ref_start_ = ref_fetch_start;
 
-		if (p_start < old_start) fetchRegion({loaded_region_.chr(), p_start, old_start});
+		// load left alignments seperately and add them at the start of alignments_
+		// so that the alignments_ vector remains sorted
+
+		QVector<BamAlignmentWrapper> left_aligns;
+
+		if (p_start < old_start) fetchRegion({loaded_region_.chr(), p_start, old_start}, &left_aligns);
 		if (p_end > old_end) fetchRegion({loaded_region_.chr(), old_end, p_end});
+
+		if (!left_aligns.empty())
+		{
+			left_aligns += std::move(alignments_);
+			alignments_ = std::move(left_aligns);
+		}
 
 		loaded_region_.setStart(p_start);
 		loaded_region_.setEnd(p_end);
 		is_loading_ = false;
-
 		// TODO: need to check if this is too slow
 		// std::sort(alignments_.begin(), alignments_.end(),
 		// 		  [](const BamAlignmentWrapper& a, const BamAlignmentWrapper&b){
@@ -160,7 +170,7 @@ void BamTrackData::fullLoad(const BedLine& region)
 	emit onDataUpdate();
 }
 
-void BamTrackData::fetchRegion(const BedLine& region)
+void BamTrackData::fetchRegion(const BedLine& region, QVector<BamAlignmentWrapper>* dest)
 {
 	bam_reader_->setRegion(region.chr(), region.start(), region.end());
 
@@ -174,7 +184,8 @@ void BamTrackData::fetchRegion(const BedLine& region)
 		loaded_ids_.insert(wrapped_alignment.id);
 
 		wrapped_alignment.storeCigarData(al, ref_seq_, ref_start_);
-		alignments_.push_back(std::move(wrapped_alignment));
+		if (dest) dest->push_back(std::move(wrapped_alignment));
+		else alignments_.push_back(std::move(wrapped_alignment));
 	}
 }
 

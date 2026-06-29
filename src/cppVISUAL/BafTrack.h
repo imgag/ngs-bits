@@ -6,7 +6,7 @@
 #include "BedFile.h"
 #include "ChromosomalIndex.h"
 
-
+//Track that shows the BAF/IGV data file
 class CPPVISUALSHARED_EXPORT BafTrack
 	: public TrackWidget
 {
@@ -34,7 +34,6 @@ protected:
 	void mousePressEvent(QMouseEvent*) override;
 	void mouseReleaseEvent(QMouseEvent*) override;
 	void populateContextMenu(QMenu&) override;
-	void handleContextMenuAction(QAction* action) override;
 
 private:
 	QSharedPointer<BedFile> bed_file_;

@@ -142,6 +142,23 @@ void GenomeVisualizationWidget::zoomOut()
 	SharedData::setRegion(reg.chr(), reg.start()-reg.length()/2, reg.end()+reg.length()/2);
 }
 
+void GenomeVisualizationWidget::wheelEvent(QWheelEvent* event)
+{
+	if (event->modifiers() & Qt::ControlModifier)
+	{
+		int num_deg = event->angleDelta().y() / 8;
+		int num_steps = num_deg / 15;
+		if (num_steps > 0) zoomIn();
+		else zoomOut();
+
+		event->accept();
+	}
+	else
+	{
+		QWidget::wheelEvent(event);
+	}
+}
+
 void GenomeVisualizationWidget::updateRegion()
 {
 	const BedLine& reg = SharedData::region();

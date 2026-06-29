@@ -27,6 +27,7 @@ inline size_t qHash(const AlignmentKey& k, size_t seed = 0)
 	return qHashMulti(seed, k.a, k.b);
 }
 
+// wrapper around BamAlignment, used for storing the alignment data in a paint friendly way
 struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 {
 	enum Event // Cigar Op
@@ -54,7 +55,7 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 
 	AlignmentKey id; // for hashing
 	// uncomment if features needed in future
-	// BamAlignment alignment; // no longer stored (because of data duplication)
+	// BamAlignment alignment; // not stored currently because of data duplication
 	QVector<MismatchInfo> mismatches; // cached mismatches
 	QVector<EventData> events;
 
@@ -183,7 +184,7 @@ private:
 
 	void fullLoad(const BedLine& region);
 
-	void fetchRegion(const BedLine& region);
+	void fetchRegion(const BedLine& region, QVector<BamAlignmentWrapper>* dest = nullptr);
 
 	void pruneAlignments(int keep_start, int keep_end);
 };

@@ -98,6 +98,7 @@ void ChromosomeContextPanel::drawTicks(QPainter* painter, int label_width, int t
 
 	int first = (region.start()/interval + 1)*interval;
 	bool drawText = true;
+	int last_text_end = -1;
 	for (int coord = first; coord < region.end(); coord += interval)
 	{
 		float frac = float(coord - region.start())/range;
@@ -109,11 +110,13 @@ void ChromosomeContextPanel::drawTicks(QPainter* painter, int label_width, int t
 		int text_w = fm.horizontalAdvance(tick_label);
 		int text_x = x - text_w/2;
 
-		if (text_x < x_start || text_x + text_w > x_start + total_width) drawText = false;
+		if (text_x < x_start || text_x + text_w > x_start + total_width ||
+			text_x <= last_text_end) drawText = false;
 
 		if (drawText){
 			painter->setPen(Qt::black);
 			painter->drawText(text_x, y_tick - fm.ascent() + 6, tick_label);
+			last_text_end = text_x + text_w;
 		}
 
 		drawText = !drawText;

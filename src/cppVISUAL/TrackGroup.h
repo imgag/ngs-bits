@@ -13,6 +13,7 @@
 #include <QPointer>
 #include <QXmlStreamWriter>
 
+// a single panel (collection of TrackWidgets)
 class CPPVISUALSHARED_EXPORT TrackGroup
 	: public QScrollArea
 {
@@ -43,28 +44,32 @@ public slots:
 
 protected:
 	void dragEnterEvent(QDragEnterEvent*) override;
+	// check which TrackWidget sent the event, moves that TrackWidget into this TrackGroup
 	void dropEvent(QDropEvent*) override;
+	// ignores event if it is modified (so that gvw can zoom/out)
+	void wheelEvent(QWheelEvent* event) override;
 
 private:
 	QVBoxLayout* layout_;
 	QWidget* content_widget_;
 	QPointer<TrackWidget> cur_context_track_ = nullptr;
 
-	// removes all tracks inside TrackGroup and deletes them
-	void clearLayout();
-	// delets all the tracks inside TrackGroup and deletes the TrackGroup
-	void clearLayoutAndDelete();
-	// opens the FileDialogue and loads tracks from it into the TrackGroup
-	void loadTracksFromFile();
 	// adds track widgets to TrackGroup, called by loadTracksFromFile or the static function fromFile
 	void addTrackWidgets(TrackWidgetList widgets);
 	// gives the index of the track on top of which the drop happend
 	inline int getDropIndex(int y);
 	// gives the TrackWidget which is at the specified pos, if none this returns nullptr
 	TrackWidget* getTrackUnderMouse(QPoint pos);
-
 	// opens a FileDialogue and creates TrackWidgets using FileLoader
 	static TrackWidgetList loadTrackWidgetsFromFile();
+
+private slots:
+	// removes all tracks inside TrackGroup and deletes them
+	void clearLayout();
+	// delets all the tracks inside TrackGroup and deletes the TrackGroup
+	void clearLayoutAndDelete();
+	// opens the FileDialogue and loads tracks from it into the TrackGroup
+	void loadTracksFromFile();
 };
 
 

@@ -6,7 +6,7 @@
 #include "BedFile.h"
 #include <QWidget>
 
-//Panel that shows gene transcripts and nucleotides
+//Panel that shows the full chromosome
 class CPPVISUALSHARED_EXPORT ChromosomePanel
 	: public QWidget
 {
