@@ -79,7 +79,7 @@ INSERT INTO `repeat_expansion` (id, name, region, repeat_unit, ref_size, max_nor
 (50, 'YEATS2', 'chr3:183712187-183712222', 'TTTYA', '7', '0', '221', NULL, 'AD', 'FAME4', '615127', 'HP:0007359, HP:0002197, HP:0001336, HP:0001250', 'Intronic', 'diagnostic', '0', 'https://strchive.org/loci/FAME4_YEATS2'),
 (85, 'ARX_2_SGC', 'chrX:25013529-25013565', 'SGC', '12', '12', '20', NULL, 'XLR', 'DEE1, PRTS, MRXARX', '308350, 300419', 'HP:0100543, HP:0011463', 'Coding', 'diagnostic', '0', 'https://strchive.org/loci/prts_arx/'),
 (86, 'GOLGA8A', 'chr15:34419425-34419451', 'TYTC', '7', NULL, '95', NULL, NULL, 'aFTLD-U', '616180', 'HP:0002145, HP:0012083', 'Intronic', 'low evidence', '0', 'https://strchive.org/loci/aftld-u_golga8a/'),
-(87, 'TBC1D7', 'chr6:13328476-13328603', 'GCC', '43', '60', '83', NULL, 'AD', 'OPDM', '612655', NULL, '5\' UTR', 'low evidence', '0', 'https://strchive.org/loci/opdm_tbc1d7/'),
+(87, 'TBC1D7', 'chr6:13328476-13328603', 'CCG', '43', '60', '83', NULL, 'AD', 'OPDM', '612655', NULL, '5\' UTR', 'low evidence', '0', 'https://strchive.org/loci/opdm_tbc1d7/'),
 (88, 'CHD3', 'chr17:7885307-7885345', 'CCG', '13', '200', '650', NULL, NULL, 'SNIBCPS', NULL, NULL, '5\' UTR', 'low evidence', '0', NULL);
 
 INSERT INTO `repeat_expansion` (id, name, region, repeat_unit, ref_size, disease_names, disease_ids_omim, hpo_terms, type, inhouse_testing, strchive_link) VALUES

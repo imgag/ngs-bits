@@ -83,6 +83,7 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
     {
         displayRepeats();
         loadMetaDataFromNGSD();
+		createMissingTableCells();
         GUIHelper::resizeTableCellWidths(ui_.table, 300);
         GUIHelper::resizeTableCellHeightsToMinimum(ui_.table);
         colorRepeatCountBasedOnCutoffs();
@@ -693,6 +694,20 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
             setCell(row, "statistical cutoff", cutoff);
         }
     }
+}
+
+void RepeatExpansionWidget::createMissingTableCells()
+{
+	for (int r=0; r<ui_.table->rowCount(); ++r)
+	{
+		for (int c=0; c<ui_.table->columnCount(); ++c)
+		{
+			if (ui_.table->item(r, c)==nullptr)
+			{
+				ui_.table->setItem(r, c, GUIHelper::createTableItem(""));
+			}
+		}
+	}
 }
 
 void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
