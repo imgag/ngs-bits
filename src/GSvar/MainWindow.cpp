@@ -534,6 +534,19 @@ void MainWindow::userSpecificDebugFunction()
 		}
 		else if (user=="ahschul1")
 		{
+			//methylation track
+			FileLocation methylation_track = GlobalServiceProvider::fileLocationProvider().getMethylationTrackFile();
+			qDebug() << methylation_track.filename << methylation_track.exists;
+			methylation_track = GlobalServiceProvider::fileLocationProvider().getMethylationTrackFileHP1();
+			qDebug() << methylation_track.filename << methylation_track.exists;
+			methylation_track = GlobalServiceProvider::fileLocationProvider().getMethylationTrackFileHP2();
+			qDebug() << methylation_track.filename << methylation_track.exists;
+			//phasing track
+			FileLocation phasing_track = GlobalServiceProvider::fileLocationProvider().getPhasingTrackFile();
+			qDebug() << phasing_track.filename << phasing_track.exists;
+			//epigen track
+			FileLocation epigen_file= GlobalServiceProvider::fileLocationProvider().getPhasingTrackFile();
+			qDebug() << epigen_file.filename << epigen_file.exists;
 		}
 		else if (user=="ahott1a1")
 		{
