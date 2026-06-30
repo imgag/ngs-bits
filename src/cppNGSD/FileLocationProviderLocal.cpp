@@ -121,26 +121,34 @@ FileLocation FileLocationProviderLocal::getMethylationCohortImage(QString locus)
 	return FileLocation(ps_, PathType::METHYLATION_COHORT_IMAGE, file, QFile::exists(file));
 }
 
-FileLocation FileLocationProviderLocal::getMethylationTrack(QString haplotype) const
+FileLocation FileLocationProviderLocal::getMethylationTrackFile() const
 {
 	QString file = ps_folder_ + ps_ + "_modkit_track.bed.gz";
-	if (!haplotype.isEmpty() && (haplotype != "all"))
-	{
-		file = ps_folder_ + ps_ + "_modkit_track_" + haplotype + ".bed.gz";
-	}
 	return FileLocation{ps_, PathType::METHYLATION_TRACK, file, QFile::exists(file)};
 }
 
-FileLocation FileLocationProviderLocal::getPhasingTrack() const
+FileLocation FileLocationProviderLocal::getMethylationTrackFileHP1() const
 {
-	QString file = ps_folder_ + "methylartist" + "/" + ps_  + "_phasing_track.bed";
+	QString file = ps_folder_ + ps_ + "_modkit_track_hp1.bed.gz";
+	return FileLocation{ps_, PathType::METHYLATION_TRACK, file, QFile::exists(file)};
+}
+
+FileLocation FileLocationProviderLocal::getMethylationTrackFileHP2() const
+{
+	QString file = ps_folder_ + ps_ + "_modkit_track_hp2.bed.gz";
+	return FileLocation{ps_, PathType::METHYLATION_TRACK, file, QFile::exists(file)};
+}
+
+FileLocation FileLocationProviderLocal::getPhasingTrackFile() const
+{
+	QString file = ps_folder_  + ps_  + "_phasing_track.bed";
 
 	return FileLocation(ps_, PathType::PHASING_TRACK, file, QFile::exists(file));
 }
 
 FileLocation FileLocationProviderLocal::getEpigenFile() const
 {
-	QString file = ps_folder_ + "methylartist" + "/" + ps_  + "_epigen.tsv";
+	QString file = ps_folder_  + ps_  + "_epigen.tsv";
 
 	return FileLocation(ps_, PathType::EPIGEN, file, QFile::exists(file));
 }

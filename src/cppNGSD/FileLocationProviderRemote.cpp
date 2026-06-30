@@ -71,12 +71,22 @@ FileLocation FileLocationProviderRemote::getMethylationCohortImage(QString locus
 	return getOneFileLocationByType(PathType::METHYLATION_COHORT_IMAGE, locus);
 }
 
-FileLocation FileLocationProviderRemote::getMethylationTrack(QString haplotype) const
+FileLocation FileLocationProviderRemote::getMethylationTrackFile() const
 {
-	return getOneFileLocationByType(PathType::METHYLATION_TRACK, haplotype);
+	return getOneFileLocationByType(PathType::METHYLATION_TRACK, "");
 }
 
-FileLocation FileLocationProviderRemote::getPhasingTrack() const
+FileLocation FileLocationProviderRemote::getMethylationTrackFileHP1() const
+{
+	return getOneFileLocationByType(PathType::METHYLATION_TRACK_HP1, "");
+}
+
+FileLocation FileLocationProviderRemote::getMethylationTrackFileHP2() const
+{
+	return getOneFileLocationByType(PathType::METHYLATION_TRACK_HP2, "");
+}
+
+FileLocation FileLocationProviderRemote::getPhasingTrackFile() const
 {
 	return getOneFileLocationByType(PathType::PHASING_TRACK, "");
 }

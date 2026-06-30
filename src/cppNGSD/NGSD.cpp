@@ -1482,6 +1482,11 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	}
 	else if (type==PathType::METHYLATION) output += ps_name + "_var_methylation.tsv";
 	else if (type==PathType::PARAPHASE_EVIDENCE) output += "paraphase/" + ps_name + ".paraphase.bam";
+	else if (type==PathType::METHYLATION_TRACK) output += ps_name + "_modkit_track.bed.gz";
+	else if (type==PathType::METHYLATION_TRACK_HP1) output += ps_name + "_modkit_track_hp1.bed.gz";
+	else if (type==PathType::METHYLATION_TRACK_HP2) output += ps_name + "_modkit_track_hp2.bed.gz";
+	else if (type==PathType::PHASING_TRACK) output += ps_name + "_phasing_track.bed";
+	else if (type==PathType::EPIGEN) output += ps_name + "_epigen.tsv";
 	else if (type==PathType::SAMPLE_FOLDER)
 	{
 		//nothing to do: output is the sample folder

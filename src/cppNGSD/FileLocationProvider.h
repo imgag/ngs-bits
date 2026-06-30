@@ -38,10 +38,12 @@ public:
 	virtual FileLocation getMethylationImage(QString locus) const = 0;
 	//Returns the methylation image of a given locus
 	virtual FileLocation getMethylationCohortImage(QString locus) const = 0;
-	//Returns the methylation track of a given locus
-	virtual FileLocation getMethylationTrack(QString haplotype) const = 0;
+	//Returns the methylation track (for each haplotype)
+	virtual FileLocation getMethylationTrackFile() const = 0;
+	virtual FileLocation getMethylationTrackFileHP1() const = 0;
+	virtual FileLocation getMethylationTrackFileHP2() const = 0;
 	//Returns the phasing track
-	virtual FileLocation getPhasingTrack() const = 0;
+	virtual FileLocation getPhasingTrackFile() const = 0;
 	//Returns the methylation track of a given locus
 	virtual FileLocation getEpigenFile() const = 0;
 

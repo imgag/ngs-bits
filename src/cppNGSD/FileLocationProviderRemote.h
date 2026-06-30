@@ -27,8 +27,10 @@ public:
 	FileLocation getMethylationFile() const override;
 	FileLocation getMethylationImage(QString locus) const override;
 	FileLocation getMethylationCohortImage(QString locus) const override;
-	FileLocation getMethylationTrack(QString haplotype) const override;
-	FileLocation getPhasingTrack() const override;
+	FileLocation getMethylationTrackFile() const override;
+	FileLocation getMethylationTrackFileHP1() const override;
+	FileLocation getMethylationTrackFileHP2() const override;
+	FileLocation getPhasingTrackFile() const override;
 	FileLocation getEpigenFile() const override;
 
 	FileLocationList getBamFiles(bool return_if_missing) const override;
