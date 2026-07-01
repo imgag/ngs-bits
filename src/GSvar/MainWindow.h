@@ -198,6 +198,8 @@ public slots:
 	void exportHerediCareVCF();
 	///GSvar export
 	void exportGSvar();
+	///Epigen export
+	void exportEpigen();
 	///Preferred transcript list
 	void on_actionPreferredTranscripts_triggered();
 	///Somatic gene roles

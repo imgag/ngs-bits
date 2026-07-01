@@ -263,7 +263,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.actionEncrypt->setEnabled(Helper::runningInQtCreator());
 
 	//signals and slots
-    connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(closeAndLogout()));
+	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(closeAndLogout()));
 
 	connect(ui_.filters, SIGNAL(filtersChanged()), this, SLOT(refreshVariantTable()));
 	connect(ui_.vars, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
@@ -287,6 +287,7 @@ MainWindow::MainWindow(QWidget *parent)
 	{
 		ui_.vars_export_btn->menu()->addAction("Export VCF for HerediCare", this, SLOT(exportHerediCareVCF()));
 	}
+	ui_.vars_export_btn->menu()->addAction("Export methylation for EpigenCentral", this, SLOT(exportEpigen()));
 
 	ui_.report_btn->setMenu(new QMenu());
 	ui_.report_btn->menu()->addAction(QIcon(":/Icons/Report_add_causal.png"), "Add/edit other causal variant", this, SLOT(editOtherCausalVariant()));
@@ -331,10 +332,10 @@ MainWindow::MainWindow(QWidget *parent)
 
 	//toolbar: add IGV history icon
 	igv_history_label_->setScaledContents(true);
-    igv_history_label_->setMaximumSize(16,16);
-    igv_history_label_->setPixmap(QPixmap(":/Icons/IGV.png"));
-    igv_history_label_->setToolTip("Show the history of IGV commands");
-    ui_.statusBar->addPermanentWidget(igv_history_label_);
+	igv_history_label_->setMaximumSize(16,16);
+	igv_history_label_->setPixmap(QPixmap(":/Icons/IGV.png"));
+	igv_history_label_->setToolTip("Show the history of IGV commands");
+	ui_.statusBar->addPermanentWidget(igv_history_label_);
 	connect(igv_history_label_, SIGNAL(clicked(QPoint)), this, SLOT(displayIgvHistoryTable()));
 
 	//toolbar: add background job
@@ -2715,7 +2716,7 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 			GlobalServiceProvider::setFileLocationProvider(QSharedPointer<FileLocationProviderLocal>(new FileLocationProviderLocal(filename, variants_.getSampleHeader(), variants_.type())));
 			mode_title = " (local mode)";
 		}
-        lazyLoadIGVfiles(filename);
+		lazyLoadIGVfiles(filename);
 
 		//load CNVs
 		timer.restart();
@@ -5382,6 +5383,44 @@ void MainWindow::exportGSvar()
 		QApplication::restoreOverrideCursor();
 
 		QMessageBox::warning(this, "GSvar export error", e.message());
+	}
+}
+
+void MainWindow::exportEpigen()
+{
+	try
+	{
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+
+		FileLocation file = GlobalServiceProvider::fileLocationProvider().getEpigenFile();
+
+		if (!file.exists) THROW(ArgumentException, "Epigen file does not exist!");
+
+		//Load TSV file
+		VersatileFile epigen_tsv(file.filename);
+		epigen_tsv.open();
+
+		QString file_name = QFileInfo(filename_).baseName() + "_Epigen_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".tsv";
+
+		file_name = QFileDialog::getSaveFileName(this, "Export TSV", file_name, "TSV (*.tsv);;All files (*.*)");
+		if (file_name!="")
+		{
+			QSharedPointer<QFile> out = Helper::openFileForWriting(file_name, false, false);
+			out->write(epigen_tsv.readAll());
+			out->close();
+			QApplication::restoreOverrideCursor();
+			QMessageBox::information(this, "TSV export", "Exported Epigen TSV to " + file_name + ".");
+		}
+		else
+		{
+			QApplication::restoreOverrideCursor();
+		}
+	}
+	catch(Exception& e)
+	{
+		QApplication::restoreOverrideCursor();
+
+		QMessageBox::warning(this, "Epigen export error", e.message());
 	}
 }
 

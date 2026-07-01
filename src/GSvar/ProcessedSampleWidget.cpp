@@ -150,6 +150,8 @@ void ProcessedSampleWidget::delayedInitialization()
 		menu->addSeparator();
 		addIgvMenuEntry(menu, PathType::PARAPHASE_EVIDENCE);
 		menu->addSeparator();
+		addIgvMenuEntry(menu, PathType::PHASING_TRACK);
+		menu->addSeparator();
     }
 	ui_->igv_btn->setMenu(menu);
 

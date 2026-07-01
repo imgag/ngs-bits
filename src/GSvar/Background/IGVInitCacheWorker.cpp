@@ -122,14 +122,19 @@ void IGVInitCacheWorker::process()
             }
 
 
-            //Paraphase evidence file
+			// Files specific for lrGS samples
             if (db.getProcessedSampleData(db.processedSampleId(current_filename_)).processing_system_type == "lrGS")
             {
+				//Paraphase evidence file
                 FileLocationList paraphase_files = GlobalServiceProvider::fileLocationProvider().getParaphaseEvidenceFiles(true);
                 foreach(const FileLocation& file, paraphase_files)
                 {
                     IgvSessionManager::get(0).addLocationToCache(file, false);
                 }
+
+				//phasing block file
+				FileLocation phasing_track_file = GlobalServiceProvider::fileLocationProvider().getPhasingTrackFile();
+				if (phasing_track_file.exists) IgvSessionManager::get(0).addLocationToCache(phasing_track_file, false);
             }
         }
     }
