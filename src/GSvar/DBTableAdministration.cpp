@@ -140,9 +140,9 @@ void DBTableAdministration::edit(int row)
 
 	auto dlg = GUIHelper::createDialog(editor, "Edit " + table_display_name_, "", true);
 	if (dlg->exec()==QDialog::Accepted)
-	{		
+	{
+		//special handling for folder override in "project"
 		QString folder_override_value = "";
-
 		if (table_=="project")
 		{
 			QSet<QString> changed_fields = editor->getChangedFields();
@@ -230,11 +230,9 @@ void DBTableAdministration::changeUserPermissions()
 
 		//check user role
 		int user_id = ui_.table->getId(row).toInt();
-		QString user_role = NGSD().getUserRole(user_id);
-		if (user_role!="user_restricted")
-		{
-			INFO(ArgumentException, "Setting permissions is availabe for the users with role 'user_restricted' only!");
-		}
+		QByteArray user_role = NGSD().getUserRole(user_id);
+		// Only restricted users have editable permissions (regular users and admins have "hard-coded" permissions)
+		if (user_role!="user_restricted") INFO(ArgumentException, "Setting access and action permissions is availabe for the users with role 'user_restricted' only!");
 
 		//show dialog
 		UserPermissionsEditor* widget = new UserPermissionsEditor("user_permissions", ui_.table->getId(row), this);
@@ -268,7 +266,7 @@ void DBTableAdministration::remove()
 	{
 		foreach(int row, rows)
 		{
-			 query.exec("DELETE FROM " + table_ + " WHERE id=" + ui_.table->getId(row));
+			query.exec("DELETE FROM " + table_ + " WHERE id=" + ui_.table->getId(row));
 		}
 	}
 	catch (DatabaseException e)

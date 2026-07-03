@@ -20,7 +20,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Annotates VCF variants with allele frequency from a BAM/CRAM file.");
+		setDescription("Annotates VCF variants with allele frequency and depth from a BAM/CRAM file.");
 		addInfile("in", "Input variant list to annotate in VCF(.GZ) format.", false, true);
 		addInfile("bam", "Input BAM/CRAM file.", false, true);
 		addOutfile("out", "Output variant list file in VCF format.", false, true);

@@ -1,13 +1,9 @@
 # *ngs-bits* - Short-read and long-read sequencing tools for diagnostics
 
-![Linux build status](https://github.com/imgag/ngs-bits/workflows/Linux%20build/badge.svg)
-![MacOS build status](https://github.com/imgag/ngs-bits/workflows/MacOS%20build/badge.svg)
-![Windows build status](https://github.com/imgag/ngs-bits/workflows/Windows%20build/badge.svg)  
-[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/ngs-bits/README.html)
-
 ## Downloading ngs-bits
 
-Binaries and Docker containers of *ngs-bits* are available via [Bioconda](https://bioconda.github.io/recipes/ngs-bits/README.html).
+Binaries and Docker containers of *ngs-bits* are available via Bioconda:  
+[![install with bioconda](https://img.shields.io/badge/install%20with-bioconda-brightgreen.svg?style=flat-square)](http://bioconda.github.io/recipes/ngs-bits/README.html)
 
 Apptainer/Singularity containers are available for the [megSAP server](https://megsap.de/download/container/ngs-bits.php).
 
@@ -18,7 +14,7 @@ Use git to clone the most recent release (the source code package of GitHub does
 
 	> git clone --recursive https://github.com/imgag/ngs-bits.git
 	> cd ngs-bits
-	> git checkout 2025_12
+	> git checkout 2026_06
 	> git submodule update --recursive --init
 
 Depending on your operating system, building instructions vary slightly:
@@ -32,7 +28,8 @@ Depending on your operating system, building instructions vary slightly:
 
 ## Support
 
-Please report any issues or questions to the [ngs-bits issue tracker](https://github.com/imgag/ngs-bits/issues).
+Please report any issues or questions to the [ngs-bits issue tracker](https://github.com/imgag/ngs-bits/issues).  
+Please make sure to inculde the output of [NgsBitsInfo](doc/tools/NgsBitsInfo.md) when reporting bugs or issues.
 
 ## Documentation
 
@@ -58,8 +55,9 @@ Change log is available on the [releases](https://github.com/imgag/ngs-bits/rele
 
 You can cite ngs-bits in using Zenodo DOIs:
 
-* 2025_12: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17877407.svg)](https://zenodo.org/records/17877407)
-* 2025_09: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17201254.svg)](https://zenodo.org/records/17201254)
+
+* [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20699528.svg)](https://zenodo.org/records/20699528)  
+* [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17877407.svg)](https://zenodo.org/records/17877407)  
 
 A list of all releases/DOIs can be found [here](https://zenodo.org/search?q=parent.id%3A14216718&f=allversions%3Atrue&l=list&p=1&s=10&sort=version).
 
@@ -77,7 +75,6 @@ Installation instructions for the NGSD can be found [here](doc/install_ngsd.md).
 * [SampleIdentity](doc/tools/SampleIdentity.md) - Tries to identify datasets that are from the same patient based on BAM/CRAM files of WGS/WES/lrGS/RNA sequencing.
 * [SampleGender](doc/tools/SampleGender.md) - Determines sample gender based on a BAM file.
 * [SampleAncestry](doc/tools/SampleAncestry/index.md) - Estimates the ancestry of a sample based on variants.
-* [CnvHunter](doc/tools/CnvHunter/index.md) - CNV detection from targeted resequencing data using non-matched control samples.
 * [RohHunter](doc/tools/RohHunter/index.md) - ROH detection based on a variant list annotated with AF values.
 * [UpdHunter](doc/tools/UpdHunter.md) - UPD detection from trio variant data.
 
@@ -101,7 +98,6 @@ You can open the a qcML file in Firefox and to show a human-readable version of 
 * [BamDownsample](doc/tools/BamDownsample.md) - Downsamples a BAM file to the given percentage of reads.
 * [BamExtract](doc/tools/BamExtract.md) - Extract reads from BAM/CRAM by read name.
 * [BamFilter](doc/tools/BamFilter.md) - Filters a BAM file by multiple criteria.
-* [BamHighCoverage](doc/tools/BamHighCoverage.md) - Determines high-coverage regions in a BAM file.
 * [BamInfo](doc/tools/BamInfo.md) - Basic BAM information.
 * [BamToFastq](doc/tools/BamToFastq.md) - Converts a coordinate-sorted BAM file to FASTQ files.
 * [FastaFromBam](doc/tools/FastaFromBam.md) - Download the reference genome FASTA file for a BAM/CRAM file.
@@ -148,6 +144,7 @@ You can open the a qcML file in Firefox and to show a human-readable version of 
 
 * [VcfAdd](doc/tools/VcfAdd.md) - Merges several VCF files into one VCF by appending one to the other.
 * [VcfAnnotateConsequence](doc/tools/VcfAnnotateConsequence.md) - Adds transcript-specific consequence predictions to a VCF file (similar to Ensembl VEP).
+* [VcfAnnotateFrequency](doc/tools/VcfAnnotateFrequency.md) - Annotates VCF variants with allele frequency and depth from a BAM/CRAM file.
 * [VcfAnnotateFromBed](doc/tools/VcfAnnotateFromBed.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfAnnotateFromBigWig](doc/tools/VcfAnnotateFromBigWig.md) - Annotates the INFO column of a VCF with data from a BED file.
 * [VcfAnnotateFromVcf](doc/tools/VcfAnnotateFromVcf/index.md) - Annotates a VCF file with data from one or more source VCF files.
@@ -159,6 +156,7 @@ You can open the a qcML file in Firefox and to show a human-readable version of 
 * [VcfExtractSamples](doc/tools/VcfExtractSamples.md) - Extract one or several samples from a VCF file. Can also be used to re-order sample columns.
 * [VcfFilter](doc/tools/VcfFilter.md) - Filters a VCF based on the given criteria.
 * [VcfLeftNormalize](doc/tools/VcfLeftNormalize.md) - Normalizes all variants and shifts indels to the left in a VCF file.
+* [VcfMerge](doc/tools/VcfMerge.md) - Merges several VCF files into a multi-sample VCF file.
 * [VcfReplaceSamples](doc/tools/VcfReplaceSamples.md) - Replaces sample identifiers in the VCF header.
 * [VcfSort](doc/tools/VcfSort.md) - Sorts variant lists according to chromosomal position.
 * [VcfSplit](doc/tools/VcfSplit.md) - Splits a VCF into several chunks.
@@ -169,7 +167,6 @@ You can open the a qcML file in Firefox and to show a human-readable version of 
 * [VcfToBedpe](doc/tools/VcfToBedpe.md) - Converts a VCF file containing structural variants to BEDPE format.
 * [VcfToTsv](doc/tools/VcfToTsv.md) - Converts a VCF file to a tab-separated text file.
 
-
 ### BEDPE tools (structural variants)
 
 * [BedpeAnnotateFromBed](doc/tools/BedpeAnnotateFromBed.md) - Annotates a BEDPE file with information from a BED file.
@@ -179,7 +176,7 @@ You can open the a qcML file in Firefox and to show a human-readable version of 
 * [BedpeToBed](doc/tools/BedpeToBed.md) - Converts a BEDPE file into BED file.
 * [SvFilterAnnotations](doc/tools/SvFilterAnnotations.md) - Filter a structural variant list in BEDPE format based on variant annotations.
 
-### Gene handling tools
+### Gene/transcript handling tools
 
 * [GenePrioritization](doc/tools/GenePrioritization.md): Performs gene prioritization based on list of known disease genes and a PPI graph (see also GraphStringDb).
 * [GraphStringDb](doc/tools/GraphStringDb.md): Creates simple representation of String-DB interaction graph.
@@ -187,7 +184,9 @@ You can open the a qcML file in Firefox and to show a human-readable version of 
 * [GenesToBed](doc/tools/GenesToBed.md) - Converts a text file with gene names to a BED file (needs [NGSD](doc/install_ngsd.md)).
 * [GenesToTranscripts](doc/tools/GenesToTranscripts.md) - Converts a text file with gene names to transcript names (needs [NGSD](doc/install_ngsd.md)).
 * [NGSDExportGenes](doc/tools/NGSDExportGenes.md) - Lists genes from NGSD (needs [NGSD](doc/install_ngsd.md)).
+* [TranscriptComparison](doc/tools/TranscriptComparison.md) - Compares transcripts from Ensembl and RefSeq/CCDS (needs [NGSD](doc/install_ngsd.md)).
 * [TranscriptsToBed](doc/tools/TranscriptsToBed.md) - Converts a text file with transcript names to a BED file (needs [NGSD](doc/install_ngsd.md)).
+* [TranscriptToProtein](doc/tools/TranscriptToProtein.md) - Computes the protein sequence for each transcript name given (needs [NGSD](doc/install_ngsd.md)).
 
 ### Phenotype handling tools
 
@@ -196,10 +195,9 @@ You can open the a qcML file in Firefox and to show a human-readable version of 
 
 ### Misc tools
 
-* [FastqFromBam](doc/tools/FastqFromBam.md) - Download the reference genome FASTA file for a BAM/CRAM file.
 * [FastaChecksumUpdate](doc/tools/FastaChecksumUpdate.md) - Fixes MD5 checksums in FASTA sequence headers.
 * [FastaInfo](doc/tools/FastaInfo.md) - Basic info on a FASTA file containing DNA sequences.
 * [FastaMask](doc/tools/FastaMask.md) - Mask regions in a FASTA file with N bases.
 * [HgvsToVcf](doc/tools/HgvsToVcf.md) - Transforms a TSV file with transcript ID and HGVS.c change into a VCF file (needs [NGSD](doc/install_ngsd.md)).
+* [NgsBitsInfo](doc/tools/NgsBitsInfo.md) - Writes general information about ngs-bits to STDOUT.
 * [VariantRanking](doc/tools/VariantRanking/index.md) - Rankes small variants in the context of a patients phenotype using an evidence-based model (needs [NGSD](doc/install_ngsd.md)).
-

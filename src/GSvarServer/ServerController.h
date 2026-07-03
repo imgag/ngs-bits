@@ -53,8 +53,6 @@ public:
 	static HttpResponse getAnalysisJobLog(const HttpRequest& request);
 	/// Saves changes to a GSvar file
 	static HttpResponse saveProjectFile(const HttpRequest& request);
-	/// Saves qbic files in the folder on the server
-	static HttpResponse saveQbicFiles(const HttpRequest& request);
 	/// Uploads a file to the sample folder (via multipart form POST request)
 	static HttpResponse uploadFile(const HttpRequest& request);
 	/// Uploads a VCF file, annotates it, and converts into GSvar

@@ -46,16 +46,16 @@ projects_folder_test = "";
 projects_folder_external = "";
 data_folder = ""
 
+#burden test cli
+burden_test_cnp_regions = ""
+
 #setting for variant scoring/ranking
 ranking_variant_blacklist=
 
-#python executable for plotting (set if the python exe is not in the PATH)
-python_exe = ""
-
 #NovaSeqX
 sample_sheet_path = 
-nova_seq_x_sw_version = "4.3.16"
-nova_seq_x_app_version = "1.3.13"
+nova_seq_x_sw_version = "4.4.52"
+nova_seq_x_app_version = "1.4.12"
 nova_seq_x_keep_fastq = 1
 
 #location, used to enable site-specific adaptations, e.g. UKT, MHH
@@ -63,3 +63,6 @@ location = ""
 
 #SSL certificate authorities to validate a connection to the database server
 db_ssl_ca = ""
+
+#URL (with the port number) that is used to start a mock server for cppCORE tests
+mock_server_url = "http://localhost:8000"

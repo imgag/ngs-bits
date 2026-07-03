@@ -163,6 +163,9 @@ void RepeatLocusList::load(QString filename)
 		}
 	}
 
+	//mark if VCF has annotation of insertions
+	contains_insertion_annotation_ = repeat_expansions.vcfHeader().infoIdDefined("OVERLAPPING_INS");
+
 	// fill table widget with variants/repeat expansions
 	for(int row_idx=0; row_idx<repeat_expansions.count(); ++row_idx)
 	{
@@ -186,6 +189,15 @@ void RepeatLocusList::load(QString filename)
 
 			//filters
 			rl.setFilters(re.filters());
+
+			//additional annotations
+			QByteArrayList overlapping_insertions = re.info("OVERLAPPING_INS").trimmed().split(',');
+			overlapping_insertions.removeAll("");
+			rl.setOverlappingInsertions(overlapping_insertions);
+
+			//ref size
+			QByteArray ref_size = re.info("REF_SIZE").trimmed();
+			if (!ref_size.isEmpty()) rl.setRefSize((int) Helper::toDouble(ref_size, "REF_SIZE entry in INFO", "Repeat locus " + repeat_id));
 
 			if (caller_version_ == "V1.5.0" || caller_version_ == "V1.5.1")
 			{

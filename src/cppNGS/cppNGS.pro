@@ -61,6 +61,7 @@ SOURCES += BedFile.cpp \
     VariantType.cpp \
     SomaticCnvInterpreter.cpp \
     PrsTable.cpp \
+    QcRuleMatcher.cpp \
     RtfDocument.cpp \
     GenomeBuild.cpp \
     ChainFileReader.cpp \
@@ -112,6 +113,7 @@ HEADERS += BedFile.h \
     VariantType.h \
     SomaticCnvInterpreter.h \
     PrsTable.h \
+    QcRuleMatcher.h \
     RtfDocument.h \
     Graph.h \
     GraphNode.h \

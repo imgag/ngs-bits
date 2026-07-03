@@ -112,8 +112,7 @@ CONSTRAINT `fk_transcript_id2`
   REFERENCES `gene_transcript` (`id` )
   ON DELETE NO ACTION
   ON UPDATE NO ACTION,
-KEY `start` (`start`),
-KEY `end` (`end`)
+KEY `idx_start_end_transcript` (`start`, `end`, `transcript_id`)
 )
 ENGINE=InnoDB DEFAULT
 CHARSET=utf8
@@ -175,7 +174,7 @@ CREATE  TABLE IF NOT EXISTS `processing_system`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name_short` VARCHAR(50) NOT NULL,
   `name_manufacturer` VARCHAR(100) NOT NULL,
-  `platform` ENUM('n/a','Illumina','MGI','ONT','PacBio') NOT NULL DEFAULT 'n/a',
+  `platform` ENUM('n/a','Illumina','MGI','ONT','PacBio', 'Roche') NOT NULL DEFAULT 'n/a',
   `adapter1_p5` VARCHAR(45) NULL DEFAULT NULL,
   `adapter2_p7` VARCHAR(45) NULL DEFAULT NULL,
   `type` ENUM('WGS','WGS (shallow)','WES','Panel','Panel Haloplex','Panel MIPs','RNA','ChIP-Seq', 'cfDNA (patient-specific)', 'cfDNA', 'lrGS') NOT NULL,
@@ -202,7 +201,7 @@ DEFAULT CHARACTER SET = utf8;
 CREATE  TABLE IF NOT EXISTS `device`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NovaSeq5000','NovaSeq6000', 'MGI-2000','SequelII','PromethION', 'NovaSeqXPlus', 'Revio', 'DNBSEQ-T7') NOT NULL,
+  `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NovaSeq5000','NovaSeq6000', 'MGI-2000','SequelII','PromethION', 'NovaSeqXPlus', 'Revio', 'DNBSEQ-T7', 'AXELIOS 1') NOT NULL,
   `name` VARCHAR(45) NOT NULL,
   `comment` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -402,6 +401,28 @@ CREATE  TABLE IF NOT EXISTS `user_permissions`
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8;
 
+
+-- -----------------------------------------------------
+-- Table `user_action_permissions`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `user_action_permissions`
+(
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `user_id` INT(11) NOT NULL,
+  `change_ngsd_data` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Allows changing the database: report config, classification, VICC, comments, variant validation, ...',
+  `perform_variant_search` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Allows performing variant search for small variants, CNVs, REs, SVs',
+  `perform_burden_test` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Allows performing burden test',
+  `start_analysis_jobs` BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Allows starting sample analyisis jobs',
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `idx_user_id` (`user_id`),
+  CONSTRAINT `fk_user_action_permissions_user`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `user` (`id`)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+)
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8;
 
 -- -----------------------------------------------------
 -- Table `sample`
@@ -2732,6 +2753,7 @@ CREATE  TABLE IF NOT EXISTS `repeat_expansion`
   `name` VARCHAR(50) NOT NULL COMMENT 'Used for displaying only! Do not used this to identify a RE!',
   `region` VARCHAR(25) NOT NULL COMMENT 'Used to check the the repeat is the correct one during import',
   `repeat_unit` VARCHAR(50) NOT NULL COMMENT 'Used to check the the repeat is the correct one during import',
+  `ref_size` INT(10) DEFAULT NULL,
   `max_normal` INT(10) DEFAULT NULL,
   `min_pathogenic` INT(10) DEFAULT NULL,
   `min_pathogenic_hom` INT(10) DEFAULT NULL COMMENT 'Additional pathogenicity cutoff in case the RE is homozygous (lower then default cutoff).',

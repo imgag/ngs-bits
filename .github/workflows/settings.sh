@@ -27,8 +27,8 @@ echo "liftover_hg38_hg19 = ../src/cppNGS-TEST/data_in/hg38ToHg19.over.chain.gz" 
 echo "threads = 1" >> ./bin/settings.ini
 echo "server_port = 8443" >> ./bin/settings.ini
 echo "sample_sheet_path =" >> ./bin/settings.ini
-echo "nova_seq_x_sw_version = \"4.3.16\"" >> ./bin/settings.ini
-echo "nova_seq_x_app_version = \"1.3.13\"" >> ./bin/settings.ini
+echo "nova_seq_x_sw_version = \"4.4.52\"" >> ./bin/settings.ini
+echo "nova_seq_x_app_version = \"1.4.12\"" >> ./bin/settings.ini
 echo "nova_seq_x_keep_fastq = 1" >> ./bin/settings.ini
 echo "thread_timeout = 10"  >> ./bin/settings.ini
 echo "thread_count = 2" >> ./bin/settings.ini
@@ -36,6 +36,7 @@ echo "socket_read_timeout = 10" >> ./bin/settings.ini
 echo "socket_write_timeout = 10" >> ./bin/settings.ini
 echo "socket_encryption_timeout = 5" >> ./bin/settings.ini
 echo "location = \"UKT\"" >> ./bin/settings.ini
+echo "mock_server_url = \"http://localhost:8088\"" >> ./bin/settings.ini
 
 touch ./bin/GSvarServer-TEST.ini
 echo "url_lifetime = 5" >> ./bin/GSvarServer-TEST.ini

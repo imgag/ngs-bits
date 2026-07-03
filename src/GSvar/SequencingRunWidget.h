@@ -29,7 +29,8 @@ protected slots:
 	void openSampleTab(int row);
 	void updateReadQualityTable();
 	void updateRunSampleTable();
-	void setQuality();
+	void setQualityManually();
+	void setQualityAutomatically();
 	void toggleScheduleForResequencing();
 	void showPlot();
 	void edit();

@@ -51,6 +51,7 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 
 		//hide lrGS column
 		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads supporting"), true);
+		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "overlapping insertions"), true);
 
 	}
 	else if (sys_type_=="lrGS")
@@ -69,16 +70,20 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 
 		//hide lrGS column
 		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "reads supporting"), true);
+		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "overlapping insertions"), true);
 	}
 	if (sys_type_cutoff_col_.isEmpty())
 	{
 		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "statistical cutoff"), true);
 	}
+	//show annotation column only if annotation exists
+	ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "overlapping insertions"), !res.ContainsInsertionAnnotation());
 
     if (!res_.isEmpty())
     {
         displayRepeats();
         loadMetaDataFromNGSD();
+		createMissingTableCells();
         GUIHelper::resizeTableCellWidths(ui_.table, 300);
         GUIHelper::resizeTableCellHeightsToMinimum(ui_.table);
         colorRepeatCountBasedOnCutoffs();
@@ -308,8 +313,16 @@ void RepeatExpansionWidget::showContextMenu(QPoint pos)
 	}
 	else if (action==a_delete)
 	{
-		report_config_->remove(VariantType::RES, row);
-		updateReportConfigHeaderIcon(row);
+		try
+		{
+			report_config_->remove(VariantType::RES, row);
+		}
+		catch(AccessDeniedException& e)
+		{
+			QMessageBox::information(this, "Access denied", e.message());
+			return;
+		}
+		updateReportConfigHeaderIcon(row);		
 	}
 	else if (action==a_google)
 	{
@@ -515,6 +528,9 @@ void RepeatExpansionWidget::displayRepeats()
 		{
 			setCellDecoration(row_idx, "reads spanning", "Less than 3 spanning reads", yellow_);
 		}
+
+		//additional annotations
+		setCell(row_idx, "overlapping insertions", re.overlappingInsertions().join(", "));
 	}
 }
 
@@ -550,6 +566,9 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
             setCellDecoration(row, "repeat ID", "Repeat not found in NGSD", orange_);
             continue;
         }
+		//ref_size
+		QString ref_size = getRepeatExpansionFieldById(re_table, "ref_size", id);
+		setCell(row, "ref. size", ref_size);
 
         //max_normal
         QString max_normal = getRepeatExpansionFieldById(re_table, "max_normal", id);
@@ -579,7 +598,7 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
         QStringList disease_ids_omim = getRepeatExpansionFieldById(re_table, "disease_ids_omim", id).split(",");
         QString omim_like_clause = "";
         QString omim_when_clause = "";
-        for (const QString &id : disease_ids_omim)
+		for (const QString &id : std::as_const(disease_ids_omim))
         {
             QString disease_id = id.trimmed();
             if (disease_id.isEmpty()) continue;
@@ -633,7 +652,7 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
         //HPO terms
         QStringList hpo_terms = getRepeatExpansionFieldById(re_table, "hpo_terms", id).split(",");
         QString hpo_like_clause = "";
-        for (const QString &term : hpo_terms)
+		for (const QString &term : std::as_const(hpo_terms))
         {
             if (!hpo_like_clause.isEmpty()) hpo_like_clause += " OR ";
             hpo_like_clause += "hpo_id LIKE '" + term.trimmed() + "'";
@@ -675,6 +694,20 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
             setCell(row, "statistical cutoff", cutoff);
         }
     }
+}
+
+void RepeatExpansionWidget::createMissingTableCells()
+{
+	for (int r=0; r<ui_.table->rowCount(); ++r)
+	{
+		for (int c=0; c<ui_.table->columnCount(); ++c)
+		{
+			if (ui_.table->item(r, c)==nullptr)
+			{
+				ui_.table->setItem(r, c, GUIHelper::createTableItem(""));
+			}
+		}
+	}
 }
 
 void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
@@ -719,7 +752,7 @@ void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
 		{
 			setCellDecoration(row, "genotype", "Above min. pathogenic cutoff!", red_);
 		}
-		if (min_pathogenic_hom!=-1 && min>=min_pathogenic_hom)
+		else if (min_pathogenic_hom!=-1 && min>=min_pathogenic_hom)
 		{
 			setCellDecoration(row, "genotype", "Above min. pathogenic cutoff!", red_);
 		}
@@ -730,6 +763,35 @@ void RepeatExpansionWidget::colorRepeatCountBasedOnCutoffs()
 		else if (statistical_cutoff!=-1.0 && max>=statistical_cutoff)
 		{
 			setCellDecoration(row, "genotype", "Above statistical cutoff!", yellow_);
+		}
+
+		//determine color for INS
+		QString insertions = getCell(row, "overlapping insertions");
+		if (!insertions.trimmed().isEmpty())
+		{
+			//get max expansion
+			double max_ins = 0.0;
+			for (const QString& ins : insertions.split(','))
+			{
+				max_ins = std::max(max_ins, Helper::toDouble(ins.split('(').at(0), "Insertion size", getCell(row, "repeat ID")));
+			}
+
+			if (min_pathogenic!=-1 && max_ins>=min_pathogenic)
+			{
+				setCellDecoration(row, "overlapping insertions", "Insertion above min. pathogenic cutoff!", red_);
+			}
+			else if (min_pathogenic_hom!=-1 && max_ins>=min_pathogenic_hom)
+			{
+				setCellDecoration(row, "overlapping insertions", "Insertion above min. pathogenic cutoff!", red_);
+			}
+			else if (max_normal!=-1 && max_ins>max_normal)
+			{
+				setCellDecoration(row, "overlapping insertions", "Insertion above max. normal cutoff!", orange_);
+			}
+			else if (statistical_cutoff!=-1.0 && max_ins>=statistical_cutoff)
+			{
+				setCellDecoration(row, "overlapping insertions", "Insertion above statistical cutoff!", yellow_);
+			}
 		}
 	}
 }
@@ -776,7 +838,7 @@ void RepeatExpansionWidget::colorRepeatCountConfidenceInterval()
 
 void RepeatExpansionWidget::setReportConfigHeaderIcons()
 {
-	if(report_config_==NULL) return;
+	if(report_config_==nullptr) return;
 
     QSet<int> report_variant_indices = Helper::listToSet(report_config_->variantIndices(VariantType::RES, false));
 	for(int r=0; r<res_.count(); ++r)
@@ -837,19 +899,27 @@ void RepeatExpansionWidget::updateRowVisibility()
 	//expansion status
 	if (ui_.filter_expanded->currentText()=="possibly expanded")
 	{
-		int col = GUIHelper::columnIndex(ui_.table, "genotype");
+		int col_gt = GUIHelper::columnIndex(ui_.table, "genotype");
+		int col_oi = GUIHelper::columnIndex(ui_.table, "overlapping insertions");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-            QColor color = ui_.table->item(row, col)->background().color();
-			if (color!=red_ && color!=orange_ && color!=yellow_) hidden[row] = true;
+			QColor color_gt = ui_.table->item(row, col_gt)->background().color();
+			QColor color_oi = ui_.table->item(row, col_oi)->background().color();
+			if (color_gt!=red_ && color_gt!=orange_ && color_gt!=yellow_ && color_oi!=red_
+				&& color_oi!=orange_ && color_oi!=yellow_)
+			{
+				hidden[row] = true;
+			}
 		}
 	}
 	if (ui_.filter_expanded->currentText()=="pathogenic")
 	{
-		int col = GUIHelper::columnIndex(ui_.table, "genotype");
+		int col_gt = GUIHelper::columnIndex(ui_.table, "genotype");
+		int col_oi = GUIHelper::columnIndex(ui_.table, "overlapping insertions");
 		for (int row=0; row<ui_.table->rowCount(); ++row)
 		{
-            if (ui_.table->item(row, col)->background().color()!=red_) hidden[row] = true;
+			if ((ui_.table->item(row, col_gt)->background().color()!=red_)
+				&& (ui_.table->item(row, col_oi)->background().color()!=red_)) hidden[row] = true;
 		}
 	}
 
@@ -952,7 +1022,15 @@ void RepeatExpansionWidget::svHeaderContextMenu(QPoint pos)
 	}
 	else if (action==a_delete)
 	{
-		report_config_->remove(VariantType::RES, row);
+		try
+		{
+			report_config_->remove(VariantType::RES, row);
+		}
+		catch(AccessDeniedException& e)
+		{
+			QMessageBox::information(this, "Access denied", e.message());
+			return;
+		}
 		updateReportConfigHeaderIcon(row);
 	}
 }
