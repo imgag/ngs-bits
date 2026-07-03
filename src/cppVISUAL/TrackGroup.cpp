@@ -159,7 +159,7 @@ void TrackGroup::clearLayoutAndDelete()
 
 void TrackGroup::dragEnterEvent(QDragEnterEvent* event)
 {
-	if (event->mimeData()->hasFormat("application/track-data"))
+	if (event->mimeData()->hasFormat("application/track-name"))
 	{
 		event->acceptProposedAction();
 	}

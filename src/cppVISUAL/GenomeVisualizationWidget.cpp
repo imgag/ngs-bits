@@ -142,15 +142,52 @@ void GenomeVisualizationWidget::zoomOut()
 	SharedData::setRegion(reg.chr(), reg.start()-reg.length()/2, reg.end()+reg.length()/2);
 }
 
+void GenomeVisualizationWidget::zoomIn(int x)
+{
+	const BedLine& reg = SharedData::region();
+	int current_len = reg.length();
+	int new_len = current_len / 2;
+
+	double ratio = (current_len > 0) ? (double)(x - reg.start()) / current_len : 0.5;
+
+	int new_start = x - (new_len * ratio);
+	int new_end = new_start + new_len;
+
+	SharedData::setRegion(reg.chr(), new_start, new_end);
+}
+
+void GenomeVisualizationWidget::zoomOut(int x)
+{
+	const BedLine& reg = SharedData::region();
+	int current_len = reg.length();
+	int new_len = current_len * 2;
+
+	double ratio = (current_len > 0) ? (double)(x - reg.start()) / current_len : 0.5;
+
+	int new_start = x - (new_len * ratio);
+	int new_end = new_start + new_len;
+
+	SharedData::setRegion(reg.chr(), new_start, new_end);
+}
+
 void GenomeVisualizationWidget::wheelEvent(QWheelEvent* event)
 {
 	if (event->modifiers() & Qt::ControlModifier)
 	{
 		int num_deg = event->angleDelta().y() / 8;
 		int num_steps = num_deg / 15;
-		if (num_steps > 0) zoomIn();
-		else zoomOut();
+		if (num_steps != 0)
+		{
+			int x = event->position().x();
+			int label_width = SharedData::settings().label_width;
+			const BedLine& region = SharedData::region();
+			int w = (width() - label_width - 4);
+			float frac = (float)(x - label_width - 2) / w;
+			int region_coord = region.start() + frac * region.length();
 
+			if (num_steps > 0) zoomIn(region_coord);
+			else zoomOut(region_coord);
+		}
 		event->accept();
 	}
 	else

@@ -1,7 +1,6 @@
 #include "BedTrack.h"
 #include "FileLoader.h"
 #include "SharedData.h"
-#include "TrackManager.h"
 
 #include <QApplication>
 #include <QActionGroup>

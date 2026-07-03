@@ -2,7 +2,6 @@
 #define TRACKWIDGET_H
 
 #include "cppVISUAL_global.h"
-#include "TrackManager.h"
 #include "BedFile.h"
 
 #include <QUuid>
@@ -34,9 +33,8 @@ class CPPVISUALSHARED_EXPORT TrackWidget
 
 public:
 	explicit TrackWidget(QWidget* parent, QString file_path, QString name);
-	// ~TrackWidget();
 
-	const QUuid& id() {return id_;}
+	// const QUuid& id() {return id_;}
 	// writes properties in XML
 	void writeToXml(QXmlStreamWriter&);
 	// settings that should be written into XML
@@ -80,7 +78,7 @@ protected:
 	QPoint drag_start_pos_;
 	bool is_dragging_;
 
-	QUuid id_;
+	// QUuid id_;
 	QString file_path_;
 	QString name_;
 };

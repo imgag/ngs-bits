@@ -1,6 +1,5 @@
 #include "TrackWidget.h"
 #include "SharedData.h"
-#include "TrackManager.h"
 #include "BafTrack.h"
 #include "BedTrack.h"
 #include "BamAlignmentTrack.h"
@@ -19,7 +18,7 @@
 #include <QVBoxLayout>
 
 TrackWidget::TrackWidget(QWidget* parent, QString file_path, QString name)
-	:QWidget(parent), id_(QUuid::createUuid()), file_path_(file_path), name_(name)
+	:QWidget(parent), file_path_(file_path), name_(name)
 {
 }
 
@@ -81,7 +80,8 @@ void TrackWidget::mouseMoveEvent(QMouseEvent* event)
 
 	QDrag* drag = new QDrag(this);
 	QMimeData* mime_data = new QMimeData;
-	mime_data->setData("application/track-data", id_.toByteArray());
+	// mime_data->setData("application/track-data", id_.toByteArray());
+	mime_data->setData("application/track-name", name_.toUtf8());
 	drag->setMimeData(mime_data);
 
 	//draw the drag block

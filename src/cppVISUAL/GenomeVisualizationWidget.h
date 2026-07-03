@@ -47,6 +47,10 @@ protected slots:
 	void zoomIn();
 	//Zoom out
 	void zoomOut();
+	//Zoom in centered at x
+	void zoomIn(int x);
+	//Zoom out centered at x
+	void zoomOut(int x);
 	//Updates the region displayed by this widget
 	void updateRegion();
 	//Update the label that shows the genomic coordinate under the cursor
