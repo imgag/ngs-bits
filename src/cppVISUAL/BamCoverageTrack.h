@@ -14,12 +14,14 @@ struct CPPVISUALSHARED_EXPORT BaseCoverage // stores coverage at a given genome 
 	int forward_c =0;
 	int forward_g =0;
 	int forward_t =0;
+	int forward_n =0;
 
 	// bases read in reverse strands
 	int reverse_a =0;
 	int reverse_c =0;
 	int reverse_g =0;
 	int reverse_t =0;
+	int reverse_n =0;
 
 	int insertions =0;
 	int deletions =0;
@@ -28,12 +30,13 @@ struct CPPVISUALSHARED_EXPORT BaseCoverage // stores coverage at a given genome 
 	int c() const {return forward_c + reverse_c;}
 	int g() const {return forward_g + reverse_g;}
 	int t() const {return forward_t + reverse_t;}
+	int n() const {return forward_n + reverse_n;}
 
 	bool is_variant =false; // set to true when a significant number of bases differ from the reference base
 
-	int total() const {return a() + c() + g() + t();}
+	int total() const {return a() + c() + g() + t() + n();}
 
-	int max() const {return std::max({a(), c(), g(), t()});}
+	int max() const {return std::max({a(), c(), g(), t(), n()});}
 };
 
 //Track that displays the coverage of alignments for every genome pos
@@ -71,6 +74,8 @@ private:
 
 	void drawZoomInText(QPainter&);
 	void drawCoverage(QPainter&);
+	// draws the current max coverage text on the top left
+	void drawCurrentMaxText(QPainter&);
 
 	// displays info at global_pos that was request at local_pos
 	void handlePopupRequest(QPointF local_pos, QPointF global_pos);

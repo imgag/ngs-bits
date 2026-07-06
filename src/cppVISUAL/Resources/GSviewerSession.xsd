@@ -68,10 +68,10 @@
 										</xs:annotation>
 										<xs:simpleType>
 											<xs:restriction base="xs:string">
-											        <xs:enumeration value="BAF"/>
 												<xs:enumeration value="BED"/>
 												<xs:enumeration value="BAM/CRAM"/>
 												<xs:enumeration value="BAM/CRAM_COVERAGE"/>
+												<xs:enumeration value="IGV"/>
 												<xs:enumeration value="VCF_SMALL"/>
 												<xs:enumeration value="VCF_SV"/>
 											</xs:restriction>

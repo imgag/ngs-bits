@@ -1,6 +1,6 @@
 #include "TrackWidget.h"
 #include "SharedData.h"
-#include "BafTrack.h"
+#include "IgvTrack.h"
 #include "BedTrack.h"
 #include "BamAlignmentTrack.h"
 #include "BamCoverageTrack.h"
@@ -8,6 +8,7 @@
 #include "QInputDialog"
 
 #include <QApplication>
+#include <QFileInfo>
 #include <QDrag>
 #include <QDialog>
 #include <QLabel>
@@ -167,6 +168,11 @@ void TrackWidget::showInfoPopup(QPointF global_pos, QString info)
 	popup->show();
 }
 
+QString TrackWidget::getDisplayNameFromFilePath(QString file_path)
+{
+	return QFileInfo(file_path).fileName();
+}
+
 void TrackWidget::writeToXml(QXmlStreamWriter& writer)
 {
 	writer.writeStartElement("Track");
@@ -203,7 +209,7 @@ TrackWidget* TrackWidget::fromType(QString type, QWidget* parent, QString file_p
 	if (type == BedTrack::staticType()) return BedTrack::createTrack(parent, file_path, display_name);
 	if (type == BamAlignmentTrack::staticType()) return BamAlignmentTrack::createTrack(parent, file_path, display_name);
 	if (type == BamCoverageTrack::staticType()) return BamCoverageTrack::createTrack(parent, file_path, display_name);
-	if (type == BafTrack::staticType()) return BafTrack::createTrack(parent, file_path, display_name);
+	if (type == IgvTrack::staticType()) return IgvTrack::createTrack(parent, file_path, display_name);
 
 	GenomeVisualizationWidget::displayError("Track type: " + type + " not supported.");
 	return nullptr;

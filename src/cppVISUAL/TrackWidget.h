@@ -73,6 +73,8 @@ protected:
 	// returns the current viewport
 	virtual Viewport getViewport();
 
+	static QString getDisplayNameFromFilePath(QString file_path);
+
 	virtual QString getType() = 0;
 
 	QPoint drag_start_pos_;

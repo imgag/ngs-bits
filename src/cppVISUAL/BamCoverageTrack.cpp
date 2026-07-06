@@ -7,11 +7,12 @@
 
 static constexpr int TRACK_HEIGHT = 50;
 static constexpr int SPACING_BELOW = 4;
+static constexpr unsigned int MINIMUM_MAX_COVERAGE = 10;
 
 BamCoverageTrack::BamCoverageTrack(QWidget* parent, QString file_path, QString name)
 	: TrackWidget(parent, file_path, name)
 {
-	max_coverage_ = 0;
+	max_coverage_ = MINIMUM_MAX_COVERAGE;
 	int max_region_length = SharedData::settings().bam_max_region_len;
 	coverage_.fill(BaseCoverage(), max_region_length);
 }
@@ -59,7 +60,7 @@ void BamCoverageTrack::dataReady()
 // (it's here for now because coverage is not needed if BamCoverageTrack does not exist)
 void BamCoverageTrack::storeCoverage()
 {
-	max_coverage_ = 0;
+	max_coverage_ = MINIMUM_MAX_COVERAGE;
 	int max_region_len = SharedData::settings().bam_max_region_len;
 	coverage_.clear();
 	coverage_.fill(BaseCoverage(), max_region_len);
@@ -98,6 +99,7 @@ void BamCoverageTrack::storeCoverage()
 						case 'C': case 'c': ++cov.forward_c; break;
 						case 'G': case 'g': ++cov.forward_g; break;
 						case 'T': case 't': ++cov.forward_t; break;
+						case 'N': case 'n': ++cov.forward_n; break;
 						}
 					}
 					else
@@ -108,6 +110,7 @@ void BamCoverageTrack::storeCoverage()
 						case 'C': case 'c': ++cov.reverse_c; break;
 						case 'G': case 'g': ++cov.reverse_g; break;
 						case 'T': case 't': ++cov.reverse_t; break;
+						case 'N': case 'n': ++cov.reverse_n; break;
 						}
 					}
 					max_coverage_ = std::max(max_coverage_, cov.total());
@@ -158,13 +161,26 @@ void BamCoverageTrack::paintEvent(QPaintEvent*)
 	drawLabel(painter);
 	int max_region_length = SharedData::settings().bam_max_region_len;
 	if (region.length() > max_region_length) drawZoomInText(painter);
-	else drawCoverage(painter);
+	else
+	{
+		drawCoverage(painter);
+		drawCurrentMaxText(painter);
+	}
 }
 
 void BamCoverageTrack::drawZoomInText(QPainter& painter)
 {
 	painter.setPen(Qt::gray);
 	painter.drawText(rect(), Qt::AlignCenter, "Zoom In To See Coverage");
+}
+
+void BamCoverageTrack::drawCurrentMaxText(QPainter& painter)
+{
+	Viewport viewport = getViewport();
+
+	painter.setPen(Qt::black);
+	QRect rec(viewport.x0, 0, width(), height());
+	painter.drawText(rec, Qt::AlignLeft, "[0," + QString::number(max_coverage_) + "]");
 }
 
 void BamCoverageTrack::drawCoverage(QPainter& painter)
@@ -178,6 +194,7 @@ void BamCoverageTrack::drawCoverage(QPainter& painter)
 	else painter.setPen(Qt::gray);
 
 
+	// first pass for normal
 	for (int idx =0; idx < region.length(); ++idx)
 	{
 		const BaseCoverage& cov = coverage_[idx];
@@ -195,7 +212,22 @@ void BamCoverageTrack::drawCoverage(QPainter& painter)
 			painter.setBrush(Qt::gray);
 			painter.drawRect(pX, draw_height - bar_h, dX, bar_h);
 		}
-		else
+	}
+
+	// second pass for variants s.t. they are always drawn on top
+	for (int idx =0; idx < region.length(); ++idx)
+	{
+		const BaseCoverage& cov = coverage_[idx];
+		int total_count = cov.total();
+		if (total_count ==0) continue;
+
+		int pX = viewport.genomePosToScreen(region.start() + idx);
+		int endX = viewport.genomePosToScreen(region.start() + idx + 1);
+		int dX = std::max(1, endX - pX);
+		float norm = (float)total_count/max_coverage_;
+		int bar_h = norm * draw_height;
+
+		if (cov.is_variant)
 		{
 			QPen pen = painter.pen();
 			int a_height = bar_h * ((float)cov.a() / total_count);
@@ -250,7 +282,8 @@ QString BamCoverageTrack::getCoverageText(const BaseCoverage& cov, int coverage_
 		{'A', cov.a(), cov.forward_a, cov.reverse_a},
 		{'C', cov.c(), cov.forward_c, cov.reverse_c},
 		{'G', cov.g(), cov.forward_g, cov.reverse_g},
-		{'T', cov.t(), cov.forward_t, cov.reverse_t}
+		{'T', cov.t(), cov.forward_t, cov.reverse_t},
+		{'N', cov.n(), cov.forward_n, cov.reverse_n}
 	};
 
 	for (const auto& b : bases) {

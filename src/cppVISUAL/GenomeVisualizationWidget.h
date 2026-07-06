@@ -47,9 +47,9 @@ protected slots:
 	void zoomIn();
 	//Zoom out
 	void zoomOut();
-	//Zoom in centered at x
+	//Zoom in centered at genome pos x
 	void zoomIn(int x);
-	//Zoom out centered at x
+	//Zoom out centered at genome pos x
 	void zoomOut(int x);
 	//Updates the region displayed by this widget
 	void updateRegion();
