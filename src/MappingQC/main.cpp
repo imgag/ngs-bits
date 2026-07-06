@@ -36,7 +36,7 @@ public:
 		addFlag("cfdna", "Add additional QC parameters for cfDNA samples. Only supported mit '-roi'.");
 		addInfile("somatic_custom_bed", "Somatic custom region of interest (subpanel of actual roi). If specified, additional depth metrics will be calculated.", true, true);
 		addOutfile("read_qc", "If set, a read QC file in qcML format is created (just like ReadQC/SeqPurge).", true);
-		addFlag("long_read", "Support long reads (> 1kb).");
+		addFlag("long_read", "Support long reads (> 1kb). Also use for single-end short read platforms, e.g. Roche AXELIOS1.");
 
 		//changelog
 		changeLog(2023, 11,  8, "Added long_read support.");

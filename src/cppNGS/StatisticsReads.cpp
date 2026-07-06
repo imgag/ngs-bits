@@ -83,9 +83,8 @@ void StatisticsReads::update(const BamAlignment& al)
 
 	//update read counts
 	bool is_forward;
-	if(long_read_)
+	if(long_read_) //long reads have no R2
 	{
-		//LongReads are neuther R1 nor R2
 		is_forward = true;
 		++c_forward_;
 	}
@@ -224,8 +223,8 @@ QCCollection StatisticsReads::getResult()
 			it.next();
 			bases += it.key() * it.value();
 
-			// break if 50% of bases_sequenced is reached
-			if(bases > (double) 0.95*bases_sequenced_)
+			// break if 95% of bases_sequenced is reached
+			if(bases > 0.95*bases_sequenced_)
 			{
 				n95 = it.key();
 				break;
@@ -319,10 +318,9 @@ QCCollection StatisticsReads::getResult()
 	output.insert(QCValue::ImageFromFile("read Q score distribution", plotname2b, "Distrubition of the mean forward/reverse Q score for each read.", "QC:2000138"));
 	QFile::remove(plotname2b);
 
-	//calculate long read QC values:
+	//calculate QC metrics specific for long reads
 	if(long_read_)
 	{
-
 		//create read length histogram
 		QMapIterator<int,long long> it(read_lengths_);
 		int hist_min = std::max(0, read_lengths_.firstKey() - 20);
@@ -427,10 +425,6 @@ QCCollection StatisticsReads::getResult()
 		output.insert(QCValue("median read Q score", median_read_q_score, "Median Q score of all reads of the sample.", "QC:2000146"));
 		output.insert(QCValue("mode read Q score", mode_read_q_score, "Most frequent Q score of all reads of the sample.", "QC:2000147"));
 	}
-
-
-
-
 
 	return output;
 }
