@@ -207,6 +207,12 @@ void DBTableAdministration::edit(int row)
 			editor->store();
 			if (!folder_override_value.isEmpty()) NGSD().getQuery().exec("UPDATE project SET folder_override='"+folder_override_value+"' WHERE id=" + QString::number(id));
 			updateTable();
+
+			//clear user caches in case the a user role was changed
+			if (table_=="user")
+			{
+				NGSD().clearUserCaches();
+			}
 		}
 		catch (DatabaseException e)
 		{
@@ -220,6 +226,7 @@ void DBTableAdministration::changeUserPermissions()
 	//check
 	try
 	{
+		NGSD db;
 		//check selection
 		QSet<int> rows = ui_.table->selectedRows();
 		if (rows.count()!=1)
@@ -230,7 +237,7 @@ void DBTableAdministration::changeUserPermissions()
 
 		//check user role
 		int user_id = ui_.table->getId(row).toInt();
-		QByteArray user_role = NGSD().getUserRole(user_id);
+		QByteArray user_role = db.getUserRole(user_id);
 		// Only restricted users have editable permissions (regular users and admins have "hard-coded" permissions)
 		if (user_role!="user_restricted") INFO(ArgumentException, "Setting access and action permissions is availabe for the users with role 'user_restricted' only!");
 
@@ -238,6 +245,9 @@ void DBTableAdministration::changeUserPermissions()
 		UserPermissionsEditor* widget = new UserPermissionsEditor("user_permissions", ui_.table->getId(row), this);
 		auto dlg = GUIHelper::createDialog(widget, "User permissions", "", false);
 		dlg->exec();
+
+		//we have to clear the cache after changing permissions
+		db.clearUserCaches();
 	}
 	catch (Exception& e)
 	{
