@@ -418,15 +418,15 @@ QCCollection StatisticsReads::getResult()
 		long long reads_checked = 0;
 		for (int i = 0; i < read_qualities_.size(); ++i)
 		{
-
-			if (read_qualities_[i] >= max_count)
+			long long read_count = read_qualities_[i];
+			if (read_count >= max_count)
 			{
-				max_count = read_qualities_[i];
+				max_count = read_count;
 				mode_read_q_score = i;
 			}
 
 			// get median q score
-			reads_checked += read_qualities_[i];
+			reads_checked += read_count;
 			if (median_read_q_score==-1 && reads_checked*2 >= c_forward_)
 			{
 				median_read_q_score = i;
