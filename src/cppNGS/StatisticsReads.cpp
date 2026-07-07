@@ -4,8 +4,9 @@
 #include "BarPlot.h"
 
 
-StatisticsReads::StatisticsReads(bool long_read)
-	: c_forward_(0)
+StatisticsReads::StatisticsReads(bool single_end)
+	: single_end_(single_end)
+	, c_forward_(0)
 	, c_reverse_(0)
 	, read_lengths_()
     , bases_sequenced_(0)
@@ -17,10 +18,8 @@ StatisticsReads::StatisticsReads(bool long_read)
 	, qualities2_()
 	, qscore_dist_r1(0, 60, 1)
 	, qscore_dist_r2(0, 60, 1)
-	, long_read_(long_read)
 	, base_qualities_(100)
 	, read_qualities_(100)
-
 {
 }
 
@@ -70,10 +69,15 @@ void StatisticsReads::update(const FastqEntry& entry, ReadDirection direction)
 		}
 	}
 	double mean_qscore = q_sum/cycles;
-	if (mean_qscore == mean_qscore) read_qualities_[std::round(mean_qscore)]++; //skip nan q score
-	if (direction==FORWARD) qscore_dist_r1.inc(mean_qscore, true);
-	else qscore_dist_r2.inc(mean_qscore, true);
-	if (mean_qscore>=20.0) ++c_read_q20_;
+	if (BasicStatistics::isValidFloat(mean_qscore))
+	{
+		read_qualities_[std::round(mean_qscore)]++;
+
+		if (direction==FORWARD) qscore_dist_r1.inc(mean_qscore, true);
+		else qscore_dist_r2.inc(mean_qscore, true);
+
+		if (mean_qscore>=20.0) ++c_read_q20_;
+	}
 }
 
 void StatisticsReads::update(const BamAlignment& al)
@@ -83,7 +87,7 @@ void StatisticsReads::update(const BamAlignment& al)
 
 	//update read counts
 	bool is_forward;
-	if(long_read_) //long reads have no R2
+	if(single_end_)
 	{
 		is_forward = true;
 		++c_forward_;
@@ -172,7 +176,8 @@ QCCollection StatisticsReads::getResult()
 	output.insert(QCValue("read count", total_reads, "Total number of reads (forward and reverse reads of paired-end sequencing count as two reads).", "QC:2000005"));
 	QString lengths = "";
 	QList<int> tmp = read_lengths_.keys();
-	std::sort(tmp.begin(), tmp.end());
+	int longest_read = tmp.last();
+	bool is_longread = single_end_ && longest_read>=10000;
 	if (tmp.size()<4)
 	{
 		lengths = QString::number(tmp[0]);
@@ -183,7 +188,7 @@ QCCollection StatisticsReads::getResult()
 	}
     else
 	{
-		lengths = QString::number(tmp[0]) + "-" + QString::number(tmp[tmp.size()-1]);
+		lengths = QString::number(tmp[0]) + "-" + QString::number(longest_read);
 	}
 	output.insert(QCValue("read length", lengths, "Raw read length of a single read before trimming. Comma-separated list of lenghs or length range, if reads have different lengths.", "QC:2000006"));
 	output.insert(QCValue("bases sequenced (MB)", (double)bases_sequenced_/1000000.0, "Bases sequenced in total (in megabases).", "QC:2000049"));
@@ -193,13 +198,12 @@ QCCollection StatisticsReads::getResult()
 	output.insert(QCValue("no base call percentage", 100.0*c_base_n/bases_total, "The percentage of bases without base call (N).", "QC:2000009"));
 	output.insert(QCValue("gc content percentage", 100.0*c_base_gc/(bases_total-c_base_n), "The percentage of bases that are called to be G or C.", "QC:2000010"));
 
-	int n95 = 0;
-	if (long_read_)
+	//determine N50
+	if (single_end_)
 	{
 		//calculate N50 value
 		long long bases = 0;
 		int n50 = 0;
-
 		QMapIterator<int,long long> it(read_lengths_);
 		it.toBack();
 		while(it.hasPrevious())
@@ -215,15 +219,20 @@ QCCollection StatisticsReads::getResult()
 			}
 		}
 		output.insert(QCValue("N50 read length (bp)", n50, "Minimum read length to reach 50% of sequenced bases.", "QC:2000131"));
+	}
 
-		bases = 0;
-		it.toFront();
+	//determine N95 to exclude reads with excessive length from plots for long-read
+	int n95 = -1;
+	if (is_longread)
+	{
+		long long bases = 0;
+		QMapIterator<int,long long> it(read_lengths_);
 		while (it.hasNext())
 		{
 			it.next();
 			bases += it.key() * it.value();
 
-			// break if 95% of bases_sequenced is reached
+			//break if 95% of bases_sequenced is reached
 			if(bases > 0.95*bases_sequenced_)
 			{
 				n95 = it.key();
@@ -231,14 +240,20 @@ QCCollection StatisticsReads::getResult()
 			}
 		}
 
-
-		//ceil n95 to next 10k
-		n95 = std::ceil(n95/10000.0) * 10000;
+		//round depending on size to get nicer plots
+		if (longest_read<=100000)
+		{
+			n95 = std::ceil(n95/1000.0) * 1000;
+		}
+		else
+		{
+			n95 = std::ceil(n95/10000.0) * 10000;
+		}
 	}
 
 	//create output base distribution plot
-	int cycles = pileups_.count();
-	if (long_read_) cycles = std::min(n95, cycles);
+	int cycles = longest_read;
+	if (is_longread) cycles = std::min(n95, cycles);
 	QVector<double> line_a(cycles), line_c(cycles), line_g(cycles), line_t(cycles), line_n(cycles), line_gc(cycles), line_x(cycles);
 	int i=0;
 	foreach(const Pileup& pileup, pileups_)
@@ -252,7 +267,7 @@ QCCollection StatisticsReads::getResult()
 		line_gc[i] = line_g[i] + line_c[i];
 		line_x[i] = i+1;
 		++i;
-		if(long_read_ && i >= cycles) break;
+		if(is_longread && i >= cycles) break;
 	}
 	LinePlot plot;
 	plot.setXLabel("cycle");
@@ -270,7 +285,6 @@ QCCollection StatisticsReads::getResult()
 	output.insert(QCValue::ImageFromFile("base distribution plot", plotname, "Base distribution plot per cycle.", "QC:2000011"));
 	QFile::remove(plotname);
 
-
 	//create output quality distribution plot
 	for(int j=0; j<qualities1_.count(); ++j)
 	{
@@ -280,7 +294,7 @@ QCCollection StatisticsReads::getResult()
 		qualities1_[j] /= depth;
 		qualities2_[j] /= depth;
 	}
-	if (long_read_)
+	if (is_longread)
 	{
 		//short quality lines
 		qualities1_ = qualities1_.mid(0, cycles);
@@ -305,26 +319,26 @@ QCCollection StatisticsReads::getResult()
 	// plot Q score distribution
 	LinePlot plot2b;
 	plot2b.setXLabel("read Q score");
-	plot2b.setYLabel("read density");
-	plot2b.setYRange(1, 1.1*std::max(qscore_dist_r1.maxValue(), qscore_dist_r2.maxValue()));
+	plot2b.setYLabel("reads [%]");
+	plot2b.setYRange(0, 100);
 	plot2b.setXValues(qscore_dist_r1.xCoords());
-	plot2b.addLine(qscore_dist_r1.yCoords(), "forward reads");
+	plot2b.addLine(qscore_dist_r1.yCoords(true), "forward reads");
 	if (c_reverse_>0)
 	{
-		plot2b.addLine(qscore_dist_r2.yCoords(), "reverse reads");
+		plot2b.addLine(qscore_dist_r2.yCoords(true), "reverse reads");
 	}
 	QString plotname2b = Helper::tempFileName(".png");
 	plot2b.store(plotname2b);
 	output.insert(QCValue::ImageFromFile("read Q score distribution", plotname2b, "Distrubition of the mean forward/reverse Q score for each read.", "QC:2000138"));
 	QFile::remove(plotname2b);
 
-	//calculate QC metrics specific for long reads
-	if(long_read_)
+	//calculate QC metrics specific for single-end and or long-read
+	if(single_end_)
 	{
 		//create read length histogram
 		QMapIterator<int,long long> it(read_lengths_);
 		int hist_min = std::max(0, read_lengths_.firstKey() - 20);
-		int hist_max = n95 + 20; //ignore super-long reads
+		int hist_max = (is_longread ? n95 : longest_read) + 20;
 		Histogram read_length_hist = Histogram(hist_min, hist_max, (hist_max-hist_min)/60);
 		it.toFront();
 		while(it.hasNext())
@@ -336,8 +350,8 @@ QCCollection StatisticsReads::getResult()
 		//add read length histogram
 		BarPlot plot3;
 		plot3.setXLabel("read length (bp)");
-		plot3.setYLabel("read counts");
-		plot3.setYRange(0, (int) ((read_length_hist.maxValue() + 1) * 1.2));
+		plot3.setYLabel("reads [%]");
+		plot3.setYRange(0, 100);
 		plot3.setXRange(-2, read_length_hist.binCount() + 2);
 		QList<QString> bins;
 		foreach (double x, read_length_hist.xCoords())
@@ -351,43 +365,42 @@ QCCollection StatisticsReads::getResult()
 				bins << "";
 			}
 		}
-        plot3.setValues(read_length_hist.yCoords().toList(), bins);
+		plot3.setValues(read_length_hist.yCoords(true).toList(), bins);
 		QString plotname3 = Helper::tempFileName(".png");
 		plot3.store(plotname3);
 		output.insert(QCValue::ImageFromFile("Read length histogram", plotname3, "Histogram of read lengths", "QC:2000132"));
 		QFile::remove(plotname3);
 
-		//create QScore histogram
-		//prepare data
+		//median/mode base q score and base q score histogram
 		QList<QString> labels;
 		QList<double> values;
-		double max_count = 0;
+		long long max_count = 0;
 		int mode_base_q_score = 0;
-		int median_base_q_score = 0;
-		bool median_found = false;
-		long long bases_checked = 0;
+		int median_base_q_score = -1;
+		long long bases_checked = 0.0;
 		for (int i = 0; i <= 60; ++i) //limit plot to 60
 		{
 			labels << QString::number(i);
-			values << base_qualities_[i];
+			long long base_count = base_qualities_[i];
+			values << (100.0 * base_count) / bases_sequenced_;
 
-			if (base_qualities_[i] >= max_count)
+			//determine mode
+			if (base_count>=max_count)
 			{
-				max_count = base_qualities_[i];
+				max_count = base_count;
 				if (i < 50) mode_base_q_score = i; //ignore peak at 50
 			}
 
-			// get median q score
-			bases_checked += base_qualities_[i];
-			if (!median_found && (bases_checked >= (bases_sequenced_ / 2)))
+			//get median q score
+			bases_checked += base_count;
+			if (median_base_q_score==-1 && bases_checked*2 >= bases_sequenced_)
 			{
 				median_base_q_score = i;
-				median_found = true;
 			}
 		}
 		BarPlot plot4;
 		plot4.setXLabel("Q score");
-		plot4.setYLabel("base counts");
+		plot4.setYLabel("bases [%]");
 		plot4.setYRange(0, ((max_count + 1) * 1.1));
 		plot4.setXRange(0, 60);
 		plot4.setValues(values, labels);
@@ -398,11 +411,10 @@ QCCollection StatisticsReads::getResult()
 		output.insert(QCValue("median base Q score", median_base_q_score, "Median Q score of all bases of the sample.", "QC:2000144"));
 		output.insert(QCValue("mode base Q score", mode_base_q_score, "Most frequent Q score of all bases of the sample.", "QC:2000145"));
 
-		//get median/mode read q score
+		//median/mode read q score
 		max_count = 0;
 		int mode_read_q_score = 0;
-		int median_read_q_score = 0;
-		median_found = false;
+		int median_read_q_score = -1;
 		long long reads_checked = 0;
 		for (int i = 0; i < read_qualities_.size(); ++i)
 		{
@@ -415,10 +427,9 @@ QCCollection StatisticsReads::getResult()
 
 			// get median q score
 			reads_checked += read_qualities_[i];
-			if (!median_found && (reads_checked >= (c_forward_ / 2)))
+			if (median_read_q_score==-1 && reads_checked*2 >= c_forward_)
 			{
 				median_read_q_score = i;
-				median_found = true;
 			}
 		}
 

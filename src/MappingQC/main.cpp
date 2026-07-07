@@ -36,9 +36,10 @@ public:
 		addFlag("cfdna", "Add additional QC parameters for cfDNA samples. Only supported mit '-roi'.");
 		addInfile("somatic_custom_bed", "Somatic custom region of interest (subpanel of actual roi). If specified, additional depth metrics will be calculated.", true, true);
 		addOutfile("read_qc", "If set, a read QC file in qcML format is created (just like ReadQC/SeqPurge).", true);
-		addFlag("long_read", "Support long reads (> 1kb). Also use for single-end short read platforms, e.g. Roche AXELIOS1.");
+		addFlag("single_end", "Enable single-end mode. Use for ONT, PacBio and Roche. Illumina single-end data is auto-detected based on paired reads.");
 
 		//changelog
+		changeLog(2026,  7,  7, "Added support for short-read single-end (Roche). Renamed long_read parameter to single_end.");
 		changeLog(2023, 11,  8, "Added long_read support.");
 		changeLog(2023,  5, 12, "Added 'read_qc' parameter.");
 		changeLog(2022,  5, 25, "Added new QC metrics to WGS mode.");
@@ -62,7 +63,7 @@ public:
 		bool cfdna = getFlag("cfdna");
 		int min_mapq = getInt("min_mapq");
 		bool debug = getFlag("debug");
-		bool long_read = getFlag("long_read");
+		bool single_end = getFlag("single_end");
 		QTextStream debug_stream(stdout);
 
 		// check that just one of roi_file, wgs, rna is set
@@ -82,7 +83,7 @@ public:
 		QString read_qc = getOutfile("read_qc").trimmed();
 		if (!read_qc.isEmpty())
 		{
-			StatisticsReads stats(long_read);
+			StatisticsReads stats(single_end);
 
 			BamAlignment al;
 			BamReader reader(in, ref_file);
@@ -145,7 +146,7 @@ public:
 		if (!getFlag("no_cont") && getEnum("build") != "non_human")
 		{
 			GenomeBuild build = stringToBuild(getEnum("build"));
-			metrics_cont = Statistics::contamination(build, in, ref_file, roi_file, debug, 20, 50, long_read);
+			metrics_cont = Statistics::contamination(build, in, ref_file, roi_file, debug, 20, 50, single_end);
             if (debug) debug_stream << "Performing contamination check took: " << Helper::elapsedTime(timer) << Qt::endl;
 		}
 
@@ -163,10 +164,10 @@ public:
             if (debug) debug_stream << "Performing somatic special QC took: " << Helper::elapsedTime(timer) << Qt::endl;
 		}
 
-		//post-processing long_read
-		if (long_read)
+		//post-processing single_end
+		if (single_end)
 		{
-			parameters << "-long_read";
+			parameters << "-single_end";
 		}
 
 		//store output

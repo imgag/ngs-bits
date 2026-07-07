@@ -1245,7 +1245,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 
 	//output
 	QCCollection output;
-	addQcValue(output, "QC:2000019", "trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length);
+	if (paired_end) addQcValue(output, "QC:2000019", "trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length);
 	addQcValue(output, "QC:2000052", "clipped base percentage", 100.0 * bases_clipped / bases_mapped);
 	addQcValue(output, "QC:2000020", "mapped read percentage", 100.0 * al_mapped / al_total);
 	addQcValue(output, "QC:2000021", "on-target read percentage", 100.0 * al_ontarget / al_total);

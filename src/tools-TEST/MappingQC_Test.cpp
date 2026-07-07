@@ -130,7 +130,7 @@ private:
 		SKIP_IF_NO_HG38_GENOME();
 
 		QString ref_file = Settings::string("reference_genome", true);
-		EXECUTE("MappingQC", "-long_read -in " + TESTDATA("data_in/MappingQC_in6.bam") + " -wgs -build hg38" + " -out out/MappingQC_test12_out.qcML -read_qc out/MappingQC_test13_out.qcML -ref " + ref_file);
+		EXECUTE("MappingQC", "-single_end -in " + TESTDATA("data_in/MappingQC_in6.bam") + " -wgs -build hg38" + " -out out/MappingQC_test12_out.qcML -read_qc out/MappingQC_test13_out.qcML -ref " + ref_file);
         REMOVE_LINES("out/MappingQC_test12_out.qcML", QRegularExpression("creation "));
         REMOVE_LINES("out/MappingQC_test12_out.qcML", QRegularExpression("<binary>"));
 		COMPARE_FILES("out/MappingQC_test12_out.qcML", TESTDATA("data_out/MappingQC_test12_out.qcML"));
