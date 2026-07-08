@@ -12,7 +12,7 @@ Index1Cycles,19
 Index2Cycles,10
 
 [BCLConvert_Settings]
-SoftwareVersion,4.4.52
+SoftwareVersion,4.4.12
 FastqCompressionFormat,dragen
 
 [BCLConvert_Data]
@@ -26,8 +26,8 @@ Lane,Sample_ID,Index,Index2,OverrideCycles,BarcodeMismatchesIndex1,BarcodeMismat
 4,DX000001_02,CGATCGATCG,ATCGATCGAT,Y151;I10N9;I10;Y151,1,1
 
 [DragenGermline_Settings]
-SoftwareVersion,4.4.52
-AppVersion,1.4.12
+SoftwareVersion,4.4.12
+AppVersion,1.4.52
 KeepFastq,true
 MapAlignOutFormat,cram
 ReferenceGenomeDir,GRCh38
