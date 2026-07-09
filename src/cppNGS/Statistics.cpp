@@ -783,9 +783,10 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	LinePlot plot3;
 	plot3.setXLabel("GC bin");
 	plot3.setYLabel("count [%]");
-	plot3.setXValues(BasicStatistics::range(0.0, 100.0, 1.0));
+	plot3.setXValues(BasicStatistics::range(100, 0.0, 1.0));
 	plot3.addLine(gc_roi_percentages, "target region");
 	plot3.addLine(gc_read_percentages, "reads");
+
 	plotname = Helper::tempFileName(".png");
 	plot3.store(plotname);
 	addQcPlot(output, "QC:2000061","GC bias plot", plotname);
@@ -1245,7 +1246,14 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 
 	//output
 	QCCollection output;
-	if (paired_end) addQcValue(output, "QC:2000019", "trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length);
+	if (paired_end)
+	{
+		addQcValue(output, "QC:2000019", "trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length);
+	}
+	else
+	{
+		addQcValue(output, "QC:2000019", "trimmed base percentage", "n/a (single end)");
+	}
 	addQcValue(output, "QC:2000052", "clipped base percentage", 100.0 * bases_clipped / bases_mapped);
 	addQcValue(output, "QC:2000020", "mapped read percentage", 100.0 * al_mapped / al_total);
 	addQcValue(output, "QC:2000021", "on-target read percentage", 100.0 * al_ontarget / al_total);
@@ -1331,7 +1339,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		LinePlot plot3;
 		plot3.setXLabel("GC bin");
 		plot3.setYLabel("count [%]");
-		plot3.setXValues(BasicStatistics::range(0.0, 100.0, 1.0));
+		plot3.setXValues(BasicStatistics::range(100, 0.0, 1.0));
 		plot3.addLine(gc_roi_percentages, "target region");
 		plot3.addLine(gc_read_percentages, "reads");
 		QString plotname = Helper::tempFileName(".png");

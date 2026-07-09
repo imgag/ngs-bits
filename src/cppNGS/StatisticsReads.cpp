@@ -351,7 +351,7 @@ QCCollection StatisticsReads::getResult()
 		BarPlot plot3;
 		plot3.setXLabel("read length (bp)");
 		plot3.setYLabel("reads [%]");
-		plot3.setYRange(0, 100);
+		plot3.setYRange(0, read_length_hist.maxValue(true) + 1);
 		plot3.setXRange(-2, read_length_hist.binCount() + 2);
 		QList<QString> bins;
 		foreach (double x, read_length_hist.xCoords())
@@ -401,7 +401,7 @@ QCCollection StatisticsReads::getResult()
 		BarPlot plot4;
 		plot4.setXLabel("Q score");
 		plot4.setYLabel("bases [%]");
-		plot4.setYRange(0, ((max_count + 1) * 1.1));
+		plot4.setYRange(0, 100);
 		plot4.setXRange(0, 60);
 		plot4.setValues(values, labels);
 		QString plotname4 = Helper::tempFileName(".png");
