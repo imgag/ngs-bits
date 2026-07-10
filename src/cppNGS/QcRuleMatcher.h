@@ -2,36 +2,33 @@
 #define QCRULEMATCHER_H
 
 #include "cppNGS_global.h"
-#include "XmlHelper.h"
 #include "QCCollection.h"
-#include <QString>
 #include <QSet>
 
-// This class is needed to handle QC cutoff values globally for GSvar: instead of having hardcoded values in several places across the repository
-// now we can store rules for different QC terms in a single XML file (which is validated against a schema automatically), based on
-// the QC values the system decides which quality should be assigned (good, medium, bad)
+//Calcualtes quality classes (good, medium, bad) based on QC metrics
 class CPPNGSSHARED_EXPORT QcRuleMatcher
 {
 public:
-	// Default constructor where we read the XML and cache it
-	QcRuleMatcher(QString cutoff_config_file);
-	// Checks a given QC term against the rules and assignes a corresponding label: good, medium, bad or n\a
-	QString evaluate(const QString& name_short, const QString& sys_type, const QString& term_name, double value, bool is_tumor);
-	// Checks all QCs in given QC collection and assignes a corresponding label: good, medium, bad or n\a
-	QString evaluate(const QString& name_short, const QString& sys_type, const QCCollection& qc_data, bool is_tumor);
-	// Returns true if the XML config has been cached
-	bool hasRules();
-	// Returns true if the given QCCollection has all the rules listed in the corresponding rule inside the config
-	bool hasAllQcMetrics(QSet<QString>& term_names, const QString& rule_type, bool needs_sys_override, bool is_tumor);
+	//default constructor
+	QcRuleMatcher(QString rules_xml_file);
+
+	//checks a QC term against the rules and assignes a corresponding label: good, medium, bad or "" (if no rule matched)
+	QString evaluate(const QString& term_name, double value, const QString& name_short, const QString& sys_type, bool is_tumor);
+	//checks a QC collection and assignes a corresponding label: good, medium, bad, "" (if no rule matched) or n/a (if not all required QC terms are present)
+	QString evaluate(const QCCollection& qc_data, const QString& sys_type, const QString& name_short, bool is_tumor);
 
 private:
-	QDomElement xml_root_; // caching the XML config to avoid reading it for each rule validation
-	QSet<QString> available_qc_names_; // a list of unuque QC values found in the XML config
-	double toNumber(const QString& str);
+	QDomElement xml_root_;
+	QSet<QString> used_qc_term_names_; //cache all used QC terms to improve runtime
+
+	// Returns true if the given QCCollection has all the rules listed in the corresponding rule inside the config
+	bool hasAllQcMetrics(const QCCollection& qc_data, const QString& name_short, const QString& sys_type, bool is_tumor);
+
+	//Returns the rule set to be used for the given processing system
+	QDomNodeList getRules(const QString& name_short, const QString& sys_type, bool is_tumor);
 
 	bool matches(const QString& operation, double value, double cutoff);
-	QString checkQcRule(const QString &sys_name, const QString &term_name, double value, QString expected_tumor_value, bool needs_sys_override);	
-	bool has_rules_;
+	QString checkQcRule(const QString &sys_name, const QString &term_name, double value, bool is_tumor, bool needs_sys_override);
 };
 
 #endif // QCRULEMATCHER_H
