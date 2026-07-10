@@ -219,8 +219,9 @@ void TrackWidget::loadSettingsFromXml(const QDomNodeList& settings)
 {
 	for (int i =0; i < settings.count(); ++i)
 	{
-		QDomElement item =  settings.at(i).toElement();
+		QDomElement item = settings.at(i).toElement();
 		QString key = item.attribute("key");
-		loadKeyValueFromXml(key, item);
+		QString value = item.attribute("value");
+		loadKeyValueFromXml(key, value);
 	}
 }

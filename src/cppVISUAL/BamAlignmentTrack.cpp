@@ -42,9 +42,9 @@ QMap<QString, QVariant> BamAlignmentTrack::getSettings()
 	return settings;
 }
 
-void BamAlignmentTrack::loadKeyValueFromXml(QString key, const QDomElement& item)
+void BamAlignmentTrack::loadKeyValueFromXml(QString key, QString value)
 {
-	if (key == "view_as_pairs") view_as_pairs_ = (item.attribute("value") == "true");
+	if (key == "view_as_pairs") view_as_pairs_ = (value == "true");
 	if (view_as_pairs_)
 	{
 		calculateRows();

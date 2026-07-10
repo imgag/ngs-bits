@@ -30,6 +30,8 @@ public:
 	void loadFromXml(const QDomElement&);
 	// opens a file dialog and creates a TrackGroup with Tracks if file is valid
 	static TrackGroup* fromFile();
+	// reads <Track> elements in the dom and creates Tracks based on the properties, if no Track elements were created, returns null ptr
+	static TrackGroup* fromXml(const QDomElement&);
 
 signals:
 	void addPanelAbove();

@@ -5,7 +5,7 @@
 #include "TrackWidget.h"
 #include "BedFile.h"
 #include "ChromosomalIndex.h"
-
+#include "IgvTrackSettings.h"
 
 //Track that shows the IGV data file
 class CPPVISUALSHARED_EXPORT IgvTrack
@@ -26,15 +26,7 @@ public:
 	static IgvTrack* createTrack(QWidget* parent, QString file_path, QString name = "");
 
 	QMap<QString, QVariant> getSettings() override;
-	void loadKeyValueFromXml(QString key, const QDomElement& item) override;
-
-	enum GraphType
-	{
-		HEATMAP,
-		BAR_CHART,
-		POINTS,
-		LINE_PLOT
-	};
+	void loadKeyValueFromXml(QString key, QString value) override;
 
 protected:
 	void paintEvent(QPaintEvent*) override;
@@ -53,26 +45,21 @@ private:
 	void drawLinePlot(QPainter&, const QVector<int>& idxes);
 	void drawHeatMap(QPainter&, const QVector<int>& idxes);
 	void drawBarChart(QPainter&, const QVector<int>& idxes);
-	void drawReferenceLine(QPainter&, float baf_value, int x0, int total_width, int draw_height);
+	void drawReferenceLine(QPainter&, float baf_value);
 	void drawScaleText(QPainter&);
 
 	// handles right click by user
 	void handlePopupRequest(QPoint local_pos, QPointF global_pos);
 
 	// utility funcitons
-	inline int valueToY(float value, int draw_height);
+	inline int valueToY(float value);
 	// converts a BedLine to text for the pop up info box
 	QString getIgvText(const BedLine& bd);
 
 	// file functions
 	static QString getTrackNameFromIgvFile(QSharedPointer<BedFile> bed_file);
 
-	GraphType graph_mode_ = POINTS;
-	int track_height_ = 100;
-	float view_min_ = 0.0f;
-	float view_max_ = 1.0f;
-
-	void parseTrackHeader(QSharedPointer<BedFile> bed_file);
+	QSharedPointer<IgvTrackSettings> settings;
 };
 
 

@@ -38,7 +38,7 @@ public:
 	QString getType() override {return staticType();}
 
 	QMap<QString, QVariant> getSettings() override;
-	void loadKeyValueFromXml(QString, const QDomElement&) override;
+	void loadKeyValueFromXml(QString, QString) override;
 
 protected:
 	void paintEvent(QPaintEvent* event) override;

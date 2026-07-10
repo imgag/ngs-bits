@@ -55,12 +55,13 @@ QMap<QString, QVariant> BedTrack::getSettings()
 	return settings;
 }
 
-void BedTrack::loadKeyValueFromXml(QString key, const QDomElement& item)
+void BedTrack::loadKeyValueFromXml(QString key, QString value)
 {
+	bool ok;
 	if (key == "draw_mode")
 	{
-		int value = item.attribute("value").toInt();
-		if (value != -1) draw_mode_ = static_cast<DrawMode>(value);
+		int draw_mode = value.toInt(&ok);
+		if (ok && draw_mode != -1) draw_mode_ = static_cast<DrawMode>(draw_mode);
 	}
 }
 

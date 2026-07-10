@@ -142,6 +142,10 @@ void PanelManager::writeToXml(QXmlStreamWriter& writer)
 
 void PanelManager::loadFromXml(const QDomElement& dom_element)
 {
+	/*
+	 * this keeps the panel intact even if the file loading inside it failed
+	 * TODO: if that's not desired, TrackGroup* panel = TrackGroup::fromXml should be used
+	 */
 	QDomNodeList elements = dom_element.elementsByTagName("TrackGroup");
 	for (int i =0; i < elements.count(); ++i)
 	{

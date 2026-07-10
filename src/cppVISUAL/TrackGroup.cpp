@@ -263,4 +263,24 @@ void TrackGroup::loadFromXml(const QDomElement& dom_element)
 	}
 }
 
+TrackGroup* TrackGroup::fromXml(const QDomElement& dom_element)
+{
+	QDomNodeList elements = dom_element.elementsByTagName("Track");
+	TrackWidgetList tracks;
+	for (int i =0; i < elements.count(); ++i)
+	{
+		const QDomElement& track_element = elements.at(i).toElement();
+
+		QString type = track_element.attribute("type");
+		TrackWidget* track = TrackWidget::fromXml(track_element, nullptr);
+		if (track) tracks.append(track);
+	}
+
+	if (elements.count() > 0 && tracks.empty()) return nullptr;
+
+	TrackGroup* tr = new TrackGroup;
+	tr->addTrackWidgets(tracks);
+	return tr;
+}
+
 

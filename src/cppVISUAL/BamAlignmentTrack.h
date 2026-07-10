@@ -36,7 +36,7 @@ public:
 	QString getType() override {return staticType();}
 
 	virtual QMap<QString, QVariant> getSettings() override;
-	virtual void loadKeyValueFromXml(QString key, const QDomElement&) override;
+	virtual void loadKeyValueFromXml(QString key, QString value) override;
 
 	virtual void reloadTrack() override;
 

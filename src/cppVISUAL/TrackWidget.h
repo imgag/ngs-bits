@@ -46,7 +46,7 @@ public:
 	// function that should be overriden by child classes (re reading the file)
 	virtual void reloadTrack() {};
 	// mathod for loading a setting from XML
-	virtual void loadKeyValueFromXml(QString, const QDomElement&){}
+	virtual void loadKeyValueFromXml(QString, QString){}
 
 	// creates TrackWidget by parsing XML
 	static TrackWidget* fromXml(const QDomElement&, QWidget* parent);
