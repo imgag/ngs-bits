@@ -287,7 +287,7 @@ int IgvTrack::valueToY(float value)
 	return margin + (int)((1.0f - normalized_val) * usable_height);
 }
 
-void IgvTrack::populateContextMenu(QMenu& menu)
+void IgvTrack::populateContextMenu(QMenu& menu, const QPoint& local_pos)
 {
 	QMenu* sub_menu = menu.addMenu("Type Of Graph");
 
@@ -318,7 +318,7 @@ void IgvTrack::populateContextMenu(QMenu& menu)
 				update();
 			});
 
-	TrackWidget::populateContextMenu(menu);
+	TrackWidget::populateContextMenu(menu, local_pos);
 }
 
 void IgvTrack::mousePressEvent(QMouseEvent* event)
@@ -427,7 +427,6 @@ QString IgvTrack::getTrackNameFromIgvFile(QSharedPointer<BedFile> bed_file)
 
 	foreach (QByteArray header, bed_file->headers())
 	{
-		qDebug() << header << Qt::endl;
 		if (header.startsWith("#track"))
 		{
 			QList<QByteArray> kv_pairs = header.split(' ');
@@ -443,7 +442,7 @@ QString IgvTrack::getTrackNameFromIgvFile(QSharedPointer<BedFile> bed_file)
 			}
 			// could not find name key
 		}
-		else
+		else if (!header.startsWith("#"))
 		{
 			// fall back, use fourth column as name
 			QList<QByteArray> columns = header.split('\t');

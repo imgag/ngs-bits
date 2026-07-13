@@ -44,7 +44,7 @@ public:
 
 protected:
 	void paintEvent(QPaintEvent*) override;
-	void populateContextMenu(QMenu&) override;
+	void populateContextMenu(QMenu&, const QPoint&) override;
 	void mousePressEvent(QMouseEvent*) override;
 	void mouseReleaseEvent(QMouseEvent*) override;
 
@@ -69,6 +69,8 @@ private:
 	void drawAlignmentAndMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y);
 
 	void drawAlignment(QPainter&, const BamAlignmentWrapper& al, int row_y);
+	void drawBase(QPainter&, const Viewport& view_port, int genome_pos,
+				  char base, int qual, int row_y);
 	// draws bases in BamAlignment that do not match the reference base
 	// which are pre calculated in the AlignmentWrapper
 	void drawMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y);
@@ -84,6 +86,7 @@ private:
 	static QColor strandColor(bool is_reverse);
 	static QSize characterSize(QFont font);
 	void handlePopupRequest(QPoint local_pos, QPointF global_pos);
+	int getAlnIndexFromLocalPos(QPoint local_pos);
 
 
 	/*TODO: all of these need to be stored as LRUCache*/
@@ -100,12 +103,15 @@ private:
 	QVector<ReadPair> read_pairs_; // vector of pairs
 
 	int num_rows_ = 1;
-	bool view_as_pairs_ = false;
-	bool show_all_bases_ = false;
-
 	QPoint mouse_press_pos_;
 	QSize cached_char_size_;
 	QFont cached_font_;
+
+	//settings
+	bool view_as_pairs_ = false;
+	bool show_all_bases_ = false;
+	bool show_soft_clip_bases_ = false;
+
 
 private slots:
 	void dataReady();

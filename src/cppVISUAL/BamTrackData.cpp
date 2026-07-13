@@ -1,6 +1,7 @@
 #include "BamTrackData.h"
 #include "FileLoader.h"
 
+#include <GenomeVisualizationWidget.h>
 #include <QtConcurrent/QtConcurrent>
 
 #define BAM_OPTIMIZATION
@@ -181,6 +182,7 @@ void BamTrackData::fetchRegion(const BedLine& region, QVector<BamAlignmentWrappe
 
 		BamAlignmentWrapper wrapped_alignment(al);
 		if (loaded_ids_.contains(wrapped_alignment.id)) continue;
+		wrapped_alignment.mate_chr = bam_reader_->chromosome(al.mateChrosomeID());
 		loaded_ids_.insert(wrapped_alignment.id);
 
 		wrapped_alignment.storeCigarData(al, ref_seq_, ref_start_);
@@ -245,8 +247,10 @@ void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Se
 				genome_pos += len;
 				break;
 			case BAM_CSOFT_CLIP:
-				read_pos += len;
-				continue;
+				c_data.event = SOFT_CLIP;
+				break;
+				// read_pos += len;
+				// continue;
 			case BAM_CREF_SKIP:
 				genome_pos += len;
 				continue;
@@ -284,7 +288,7 @@ void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Se
 				++read_pos;
 			}
 		}
-		else if (c_data.event == INSERTION)
+		else if (c_data.event == INSERTION || c_data.event == SOFT_CLIP)
 		{
 			for (uint32_t j =0; j < len; ++j)
 			{
@@ -293,6 +297,25 @@ void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Se
 				c_data.bases.append(base);
 				c_data.qualities << qual;
 				++read_pos;
+			}
+		}
+
+		if (c_data.event == SOFT_CLIP)
+		{
+			// qDebug() << genome_pos << ' ' << len << ' ' << start() << ' ' << end() << Qt::endl;
+			if (genome_pos == alignment.start())
+			{
+				c_data.genome_pos = genome_pos - len;
+				st_with_soft_clip_ = std::min(st_with_soft_clip_, c_data.genome_pos);
+			}
+			else if (genome_pos == alignment.end() + 1)// at the end
+			{
+				en_with_soft_clip_ = std::max(en_with_soft_clip_, (int)(genome_pos + len - 1));
+			}
+			else
+			{
+				qDebug() << "DATA BUG: SOFTCLIP NOT AT END OR START" << genome_pos << " " << end() << Qt::endl;
+				// GenomeVisualizationWidget::displayError("Alignment " + name() + " contains soft clip between start/end");
 			}
 		}
 		events << c_data;
@@ -310,6 +333,8 @@ void BamTrackData::updateData()
 	{
 		if (al.isUnmapped() || al.isDuplicate() || al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		BamAlignmentWrapper wrapped_alignment(al);
+		wrapped_alignment.mate_chr = bam_reader_->chromosome(al.mateChrosomeID());
+		qDebug() << wrapped_alignment.mate_chr.str() << Qt::endl;
 		wrapped_alignment.storeCigarData(al, ref_seq_, region.start());
 		alignments_ << wrapped_alignment;
 	}

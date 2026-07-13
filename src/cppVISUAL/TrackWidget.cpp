@@ -29,7 +29,7 @@ void TrackWidget::regionChanged()
 	update();
 }
 
-void TrackWidget::populateContextMenu(QMenu& menu)
+void TrackWidget::populateContextMenu(QMenu& menu, const QPoint&)
 {
 	QAction* reload = menu.addAction("Reload Track");
 	connect(reload, &QAction::triggered,

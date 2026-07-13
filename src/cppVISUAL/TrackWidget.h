@@ -52,7 +52,7 @@ public:
 	static TrackWidget* fromXml(const QDomElement&, QWidget* parent);
 	// creates a TrackWidget from a given type, e.g. "BED".
 	static TrackWidget* fromType(QString type, QWidget* parent, QString file_path, QString display_name);
-	virtual void populateContextMenu(QMenu&);
+	virtual void populateContextMenu(QMenu&, const QPoint&);
 
 signals:
 	void trackDeleted();

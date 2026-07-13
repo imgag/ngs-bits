@@ -32,7 +32,7 @@ protected:
 	void paintEvent(QPaintEvent*) override;
 	void mousePressEvent(QMouseEvent*) override;
 	void mouseReleaseEvent(QMouseEvent*) override;
-	void populateContextMenu(QMenu&) override;
+	void populateContextMenu(QMenu&, const QPoint&) override;
 
 private:
 	QSharedPointer<BedFile> bed_file_;

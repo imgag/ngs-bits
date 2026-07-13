@@ -113,7 +113,7 @@ void TrackGroup::contextMenu(QPoint pos)
 	if (track)
 	{
 		QMenu* track_menu = new QMenu("Track", this);
-		track->populateContextMenu(*track_menu);
+		track->populateContextMenu(*track_menu, track->mapFrom(this, pos));
 		menu.addMenu(track_menu);
 	}
 

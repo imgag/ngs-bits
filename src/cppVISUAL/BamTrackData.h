@@ -34,7 +34,8 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 	{
 		MATCH, // CMATCH, CEQUAL, CDIFF
 		INSERTION, // CINS
-		DELETION // CDEL
+		DELETION, // CDEL
+		SOFT_CLIP, // C_SOFT_CLIP
 	};
 
 	struct EventData // event data from cigar
@@ -58,6 +59,7 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 	// BamAlignment alignment; // not stored currently because of data duplication
 	QVector<MismatchInfo> mismatches; // cached mismatches
 	QVector<EventData> events;
+	Chromosome mate_chr;
 
 	BamAlignmentWrapper(BamAlignment aln)
 		: id(AlignmentKey::makeKey(aln))
@@ -88,25 +90,40 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 		return id == other.id;
 	}
 
-	int start() const { return st_; }
+	int start(bool soft_clip = false) const { return (soft_clip) ? st_with_soft_clip_ : st_; }
 
-	int end() const { return en_; }
+	int end(bool soft_clip = false) const { return (soft_clip) ? en_with_soft_clip_ :  en_; }
 
 	bool isReverseStrand() const {return is_reverse_;}
+
+	int mateStart() const {return mate_start_;}
+	int mateChrId() const {return mat_chr_id_;}
+
+	bool isMateMapped() const {return mate_is_mapped_;}
 
 	QString name() const {return name_;}
 
 private:
 	int st_;
 	int en_;
+	int st_with_soft_clip_;
+	int en_with_soft_clip_;
 	bool is_reverse_;
+	bool mate_is_mapped_;
+	int mat_chr_id_;
+	int mate_start_;
 	QString name_;
 
 	void storeAlignmentInfo(const BamAlignment& al)
 	{
 		st_ = al.start();
 		en_ = al.end();
+		st_with_soft_clip_ = st_;
+		en_with_soft_clip_ = en_;
 		is_reverse_ = al.isReverseStrand();
+		mate_is_mapped_ = !al.isMateUnmapped();
+		mate_start_ = al.mateStart();
+		mat_chr_id_ = al.mateChrosomeID();
 		name_ = al.name();
 	}
 };

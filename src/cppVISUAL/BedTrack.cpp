@@ -65,7 +65,7 @@ void BedTrack::loadKeyValueFromXml(QString key, QString value)
 	}
 }
 
-void BedTrack::populateContextMenu(QMenu& menu)
+void BedTrack::populateContextMenu(QMenu& menu, const QPoint& local_pos)
 {
 	QAction* collapsed = menu.addAction("Collapsed");
 	QAction* expanded = menu.addAction("Expanded");
@@ -94,7 +94,7 @@ void BedTrack::populateContextMenu(QMenu& menu)
 	});
 
 	menu.addSeparator();
-	TrackWidget::populateContextMenu(menu);
+	TrackWidget::populateContextMenu(menu, local_pos);
 }
 
 
