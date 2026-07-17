@@ -333,7 +333,14 @@ void BamTrackData::updateData()
 	{
 		if (al.isUnmapped() || al.isDuplicate() || al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
 		BamAlignmentWrapper wrapped_alignment(al);
-		wrapped_alignment.mate_chr = bam_reader_->chromosome(al.mateChrosomeID());
+		try
+		{
+			wrapped_alignment.mate_chr = bam_reader_->chromosome(al.mateChrosomeID());
+		}
+		catch (const Exception&)
+		{
+			// TODO: decide what to do here, give the user an error? Don't display mate?
+		}
 		qDebug() << wrapped_alignment.mate_chr.str() << Qt::endl;
 		wrapped_alignment.storeCigarData(al, ref_seq_, region.start());
 		alignments_ << wrapped_alignment;

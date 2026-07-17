@@ -7,11 +7,11 @@
 #include <QMenu>
 
 // #define DRAW_TRANSPARENT
-// #define CACHE_ROW_ASSIGNMENTS
+#define CACHE_ROW_ASSIGNMENTS
 // #define ENABLE_ANTIALIASING
 
 //constants
-static constexpr int ROW_HEIGHT = 10;
+static constexpr int ROW_HEIGHT = 12;
 static constexpr int ROW_PADDING = 2;
 static constexpr int SPACING_BELOW = 4;
 static constexpr int MAX_QUALITY = 41;
@@ -134,7 +134,8 @@ void BamAlignmentTrack::calculateRowsNormalMode()
 		row_idxes_[alns[i].id] = row;
 	}
 
-	if (num_rows_ < row_packer_.rowCount()) num_rows_ = row_packer_.rowCount();
+	// if (num_rows_ < row_packer_.rowCount()) num_rows_ = row_packer_.rowCount();
+	num_rows_ = std::max(ROW_HEIGHT, row_packer_.rowCount());
 }
 
 void BamAlignmentTrack::calculateRowsPairMode()
@@ -311,6 +312,7 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 	Viewport viewport = getViewport();
 	int last_x = -1.0f;
 	QColor color = strandColor(al_w.isReverseStrand());
+	if (!selected_name_.isEmpty() && al_w.name() == selected_name_) color = QColor(255, 100, 0);
 
 	// first pass for matches and deletions
 	foreach (const auto& data, al_w.getEvents())
@@ -354,21 +356,21 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 		}
 	}
 
-	// second pass for insertions
+	// second pass for insertions so that they are on top
 	foreach (const auto& data, al_w.getEvents())
 	{
-		int st = std::max(data.genome_pos, viewport.region.start());
-		int en = std::min(data.genome_pos + data.length - 1 , viewport.region.end() + 1);
-
-		if (en <= viewport.region.start()) continue;
-
-		float x_start = viewport.genomePosToScreen(st);
-		float width = viewport.genomeWidthToScreen(en - st + 1);
-
-		if (width < 0) continue;
-
 		if (data.event == BamAlignmentWrapper::INSERTION)
 		{
+			int st = std::max(data.genome_pos, viewport.region.start());
+			int en = std::min(data.genome_pos + data.length - 1 , viewport.region.end() + 1);
+
+			if (en <= viewport.region.start()) continue;
+
+			float x_start = viewport.genomePosToScreen(st);
+			float width = viewport.genomeWidthToScreen(en - st + 1);
+
+			if (width < 0) continue;
+
 			float marker_w = std::clamp(
 				(float)(viewport.pixels_per_base * 0.5f),
 				4.0f,   // minimum
@@ -430,6 +432,24 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 		<< QPoint(x_start, row_y + ROW_HEIGHT);
 		painter.drawPolygon(arrow);
 	}
+
+	// if (!selected_name_.isEmpty() && al_w.name() == selected_name_) drawHighlight(painter, al_w, row_y);
+}
+
+void BamAlignmentTrack::drawHighlight(QPainter& painter, const BamAlignmentWrapper& al_w, int row_y)
+{
+
+	const Viewport& viewport = getViewport();
+	int st = std::max(al_w.start(show_soft_clip_bases_), viewport.region.start());
+	int en = std::min(al_w.end(show_soft_clip_bases_), viewport.region.end());
+	int x_start = viewport.genomePosToScreen(st);
+	int width = viewport.genomeWidthToScreen(en - st + 1);
+
+	QRect draw_rect(x_start - 1, row_y - 2, width + 2, ROW_HEIGHT);
+	painter.fillRect(draw_rect, QColor(255, 30, 0, 150));
+	painter.setPen(QPen(QColor(200, 130, 0), 1));
+	painter.setBrush(Qt::NoBrush);
+	painter.drawRect(draw_rect);
 }
 
 QColor BamAlignmentTrack::baseColor(QChar base)
@@ -467,7 +487,8 @@ QSize BamAlignmentTrack::characterSize(QFont font)
 void BamAlignmentTrack::updateFontCache()
 {
 	QFont font;
-	font.setPointSize(ROW_HEIGHT);
+	font.setPixelSize(ROW_HEIGHT);
+	// font.setPointSize(ROW_HEIGHT);
 	font.setBold(true);
 
 	cached_font_ = font;
@@ -485,16 +506,17 @@ void BamAlignmentTrack::drawBase(QPainter& painter, const Viewport& viewport, in
 
 	QColor color = baseColor(base);
 	color = QColor(color.red(), color.green(), color.blue(), ((float)qual/MAX_QUALITY)*255);
-	painter.setPen(color);
 
 	if (viewport.pixels_per_base >= cached_char_size_.width())
 	{
 		painter.setFont(cached_font_);
-		QRectF text_rect(x_start, row_y - 5, dX, ROW_HEIGHT + 10);
+		QRectF text_rect(x_start, row_y - 2, dX, ROW_HEIGHT + 2);
+		painter.setPen(color);
 		painter.drawText(text_rect, Qt::AlignHCenter, QString(base).toUpper());
 	}
 	else
 	{
+		painter.setPen(Qt::NoPen);
 		painter.setBrush(color);
 		QRectF rect(x_start, row_y, dX, ROW_HEIGHT);
 		painter.drawRect(rect);
@@ -599,10 +621,13 @@ void BamAlignmentTrack::populateContextMenu(QMenu& menu, const QPoint& local_pos
 	});
 
 	int aln_idx = getAlnIndexFromLocalPos(local_pos);
+	// add go_to_mate action, select/deselect action
 	if (aln_idx != -1)
 	{
 		QAction* go_to_mate_action = menu.addAction("Go to mate");
 		const auto& alns = track_data_->getAlignments();
+
+
 		if (view_as_pairs_)
 		{
 			const ReadPair& rp = read_pairs_[aln_idx];
@@ -611,12 +636,33 @@ void BamAlignmentTrack::populateContextMenu(QMenu& menu, const QPoint& local_pos
 
 		const Chromosome& chr = alns[aln_idx].mate_chr;
 		const int mate_start = alns[aln_idx].mateStart();
+
+		go_to_mate_action->setEnabled(chr.isValid());
+
 		if (chr.isValid())
 		{
+			/*
+			 * TODO: scroll to row_y of mate
+			 * a simple solution to try:
+			 * add mate_name_ as private var and set it here (need to store mate_start_ too actually)
+			 * when data is recieved, in calculateRows after calculation is done we can get row_y
+			 * of mate_name_ (with mate_start_ we get a unqiue match) and then either send a signal to TrackGroup
+			 * to change the scroll_area value or find a parent that is scroll area and change it manually
+			 * unset mate_name_, mate_start_
+			*/
 			connect(go_to_mate_action, &QAction::triggered, this, [chr, mate_start](){
-				SharedData::setRegion(chr, mate_start, mate_start + 100);
+				SharedData::setRegion(chr, mate_start - 100, mate_start + 100);
 			});
 		}
+
+		QString name = alns[aln_idx].name();
+		bool deselect = (!selected_name_.isEmpty() && name == selected_name_);
+		QAction* select_action = menu.addAction(deselect ? "Deselect" : "Select");
+		connect(select_action, &QAction::triggered, this, [this, deselect, name](){
+			if (deselect) selected_name_ = "";
+			else selected_name_ = name;
+			update();
+		});
 	}
 
 	TrackWidget::populateContextMenu(menu, local_pos);
@@ -707,7 +753,6 @@ QString BamAlignmentTrack::getBamAlignmentText(const BamAlignmentWrapper& al_w, 
 
 void BamAlignmentTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 {
-
 	const Viewport& viewport = getViewport();
 	int y = local_pos.y();
 	int row = y / (ROW_HEIGHT + ROW_PADDING);

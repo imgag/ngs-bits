@@ -59,7 +59,7 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 	// BamAlignment alignment; // not stored currently because of data duplication
 	QVector<MismatchInfo> mismatches; // cached mismatches
 	QVector<EventData> events;
-	Chromosome mate_chr;
+	Chromosome mate_chr; //needs to be set on creation, cannot be taken as argument because bam_reader_->chromosome might fail
 
 	BamAlignmentWrapper(BamAlignment aln)
 		: id(AlignmentKey::makeKey(aln))
@@ -110,7 +110,7 @@ private:
 	int en_with_soft_clip_;
 	bool is_reverse_;
 	bool mate_is_mapped_;
-	int mat_chr_id_;
+	int mat_chr_id_ = -1;
 	int mate_start_;
 	QString name_;
 

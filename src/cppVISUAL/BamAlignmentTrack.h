@@ -74,7 +74,11 @@ private:
 	// draws bases in BamAlignment that do not match the reference base
 	// which are pre calculated in the AlignmentWrapper
 	void drawMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y);
+	// draws all bases (only if show_all_bases_ flag is true), draws soft clip bases too
+	// if the corresponding flag is set
 	void drawAllBases(QPainter&, const BamAlignmentWrapper& al, int row_y);
+	// draws a highlight on the given alignment
+	void drawHighlight(QPainter&, const BamAlignmentWrapper& al, int row_y);
 
 	QString getBamAlignmentText(const BamAlignmentWrapper& al, int genome_pos);
 	// iterates through the alignments and stores pairs as ReadPair in read_pairs_
@@ -111,6 +115,7 @@ private:
 	bool view_as_pairs_ = false;
 	bool show_all_bases_ = false;
 	bool show_soft_clip_bases_ = false;
+	QString selected_name_ = ""; // name of selected alignment
 
 
 private slots:
