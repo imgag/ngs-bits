@@ -957,7 +957,7 @@ void BurdenTestWidget::performBurdenTest()
 		column_idx = 0;
 
 		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(gene_result.gene));
-		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(gene_result.p_value, -1));
+		ui_->tw_gene_table->setItem(row_idx, column_idx++, GUIHelper::createTableItem(gene_result.p_value, 7));
 
 		ui_->tw_gene_table->setItem(row_idx, column_idx, GUIHelper::createTableItem(static_cast<int>(gene_result.hits_cases.size())));
 		ui_->tw_gene_table->item(row_idx, column_idx++)->setToolTip(gene_result.hits_cases.keys().join(", "));

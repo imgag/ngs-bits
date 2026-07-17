@@ -587,9 +587,8 @@ QList<BurdenTestResult> GeneBurdenTest::run_burden_test()
 			while(cnv_callset_query.next())
 			{
 				int callset_id = cnv_callset_query.value(0).toInt();
-				QJsonDocument quality_metrics = QJsonDocument::fromJson(cnv_callset_query.value(1).toByteArray());
-				double ref_correlation = quality_metrics.object().value("mean correlation to reference samples").toDouble();
-
+				QMap<QString, QVariant> quality_metrics = QJsonDocument::fromJson(cnv_callset_query.value(1).toByteArray()).object().toVariantMap();
+				double ref_correlation = quality_metrics.value("mean correlation to reference samples").toDouble();
 				if (ref_correlation >= min_correlation) callset_ids_controls_ << callset_id;
 			}
 		}

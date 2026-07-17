@@ -247,11 +247,14 @@ INSERT INTO `detected_variant` (`processed_sample_id`, `variant_id`, `genotype`)
 
 --CNVs`
 INSERT INTO `cnv_callset` (`id`, `processed_sample_id`, `caller`, `caller_version`, `quality_metrics`) VALUES 
-(1, 109, 'ClinCNV', '1.16.2', '{"mean correlation to reference samples":"0.91"}');
+(1, 109, 'ClinCNV', '1.16.2', '{"mean correlation to reference samples":"0.91"}'),
+(2, 208, 'ClinCNV', '1.15.2', '{"mean correlation to reference samples":"0.95"}');
 
 INSERT INTO `cnv` (`id`, `cnv_callset_id`, `chr`, `start`, `end`, `cn`, `quality_metrics`) VALUES
 (1, 1, 'chr19', 54810000, 54820000, 0, '{"loglikelihood":"150","regions":"10"}'),
 (2, 1, 'chr8', 143560000, 143566000, 1, '{"loglikelihood":"50","regions":"3"}'),
 (3, 1, 'chr9', 92474000, 92479000, 0, '{"loglikelihood":"140","regions":"10"}'),
-(4, 1, 'chr1', 120140000, 120180000, 1, '{"loglikelihood":"180","regions":"5"}');
+(4, 1, 'chr1', 120140000, 120180000, 1, '{"loglikelihood":"180","regions":"5"}'),
+(5, 2, 'chr9', 92464000, 92480000, 0, '{"loglikelihood":"140","regions":"10"}'),
+(6, 2, 'chr1', 120130000, 120181000, 1, '{"loglikelihood":"180","regions":"5"}');
 
