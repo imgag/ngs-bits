@@ -90,7 +90,7 @@ Now you can open a `CMD` terminal and execute the following commands:
 	> cd ngs-bits/tools/
 	> C:\PHP\php.exe deploy.php 
 
-After running the script, the portable executables are located in `ngs-bits/tools/deploy/`.
+After running the script, the portable executables are located in `ngs-bits/tools/deploy_[version]/`.
 
 *Attention: The script assumes that you have installed all software accoring to the documentation above. If you have installed different versions or changed the installations paths, you may have to adapt the script!*
 
