@@ -6316,7 +6316,7 @@ QString NGSD::createSampleSheet(int run_id, QStringList& warnings, const NsxAnal
 	}
 
 	// check if all lanes are used
-	if ((flowcell_type == "Illumina NovaSeqX 25B") || (flowcell_type == "Illumina NovaSeqX 10B"))
+	if ((flowcell_type == "Illumina NovaSeqX 25B") || (flowcell_type == "Illumina NovaSeqX 10B") || (flowcell_type == "Illumina NovaSeqX 5B"))
 	{
 		if (used_lanes.size() != 8) warnings << "WARNING: The number of lanes covered by samples (" + QString::number(used_lanes.size()) + ") and the number of lanes on the flow cell (8) does not match!";
 	}

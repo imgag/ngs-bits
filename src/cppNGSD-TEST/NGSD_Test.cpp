@@ -3374,6 +3374,19 @@ private:
 
 		COMPARE_FILES("out/NovaSeqX_samplesheet2.csv",  TESTDATA("data_out/NovaSeqX_samplesheet2.csv") );
 
+		//third run with 5B flowcell
+		warnings.clear();
+		sample_sheet = db.createSampleSheet(3, warnings, NsxAnalysisSettings());
+		S_EQUAL(warnings.at(0), "WARNING: The number of lanes covered by samples (6) and the number of lanes on the flow cell (8) does not match!");
+
+		//write to file
+		output_file = Helper::openFileForWriting("out/NovaSeqX_samplesheet3.csv");
+		output_file->write(sample_sheet.toLatin1());
+		output_file->flush();
+		output_file->close();
+
+		COMPARE_FILES("out/NovaSeqX_samplesheet3.csv",  TESTDATA("data_out/NovaSeqX_samplesheet3.csv") );
+
 	}
 
     TEST_METHOD(test_export_sample_data)
