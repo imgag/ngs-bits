@@ -26,6 +26,7 @@
 #include "ColumnConfig.h"
 #include "SettingsDialog.h"
 #include <QtCharts/QChartView>
+#include "VariantTable.h"
 
 CnvWidget::CnvWidget(QWidget* parent)
 	: QWidget(parent)
@@ -471,7 +472,6 @@ void CnvWidget::showContextMenu(QPoint p)
 				somatic_report_config_->remove(VariantType::CNVS, selected_row.row());
 				updateReportConfigHeaderIcon(selected_row.row());
 			}
-			emit storeSomaticReportConfiguration();
 		}
 		updateReportConfigHeaderIcon(row);
 	}
@@ -706,8 +706,6 @@ void CnvWidget::cnvHeaderContextMenu(QPoint pos)
 				somatic_report_config_->remove(VariantType::CNVS, selected_row.row());
 				updateReportConfigHeaderIcon(selected_row.row());
 			}
-
-			emit storeSomaticReportConfiguration();
 		}
 	}
 }
@@ -877,7 +875,6 @@ void CnvWidget::editSomaticReportConfiguration(int row)
 
 	somatic_report_config_->addSomaticVariantConfiguration(var_config);
 	updateReportConfigHeaderIcon(row);
-	emit storeSomaticReportConfiguration();
 }
 
 void CnvWidget::editCnvValidation(int row)
@@ -961,8 +958,6 @@ void CnvWidget::flagInvisibleSomaticCnvsAsArtefacts()
 			updateReportConfigHeaderIcon(r);
 		}
 	}
-
-	emit storeSomaticReportConfiguration();
 }
 
 void CnvWidget::flagVisibleSomaticCnvsAsArtefacts()
@@ -986,7 +981,6 @@ void CnvWidget::flagVisibleSomaticCnvsAsArtefacts()
 			updateReportConfigHeaderIcon(r);
 		}
 	}
-	emit storeSomaticReportConfiguration();
 }
 
 void CnvWidget::openColumnSettings()

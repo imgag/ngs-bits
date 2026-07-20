@@ -27,8 +27,6 @@ public:
 protected:
 	void showEvent(QShowEvent* e);
 
-signals:
-	void storeSomaticReportConfiguration();
 
 private slots:
 	void cnvDoubleClicked(QTableWidgetItem* item);
@@ -67,10 +65,11 @@ private:
 	void updateStatus(int shown);
 	void editGermlineReportConfiguration(int row);
 	void editSomaticReportConfiguration(int row);
-	///Edit validation status of current cnv
-	void editCnvValidation(int row);
 	///Handles somatic report configuration if multiple rows are selected;
 	void editSomaticReportConfiguration(const QList<int>& rows);
+	///Edit validation status of current cnv
+	void editCnvValidation(int row);
+
 	///Upload CNV to ClinVar
 	void uploadToClinvar(int index1, int index2=-1);
 

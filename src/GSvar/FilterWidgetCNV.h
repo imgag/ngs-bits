@@ -33,19 +33,24 @@ protected slots:
 	///Sets the target region by name file (without the type prefix). Returns if the target region name was found and set.
 	bool setTargetRegionByName(QString name);
 
-	void updateFilterName();
-	void updateFilterCascade();
-	void updateTargetRegionFilter(int index);
-	void updateTargetRegionFilter(const TargetRegionInfo& new_target);
-	void updateRegionFilter();
-	void updatePhenotypes();
-	void updateGeneFilter();
-	void updateTextFilter();
-	void updateReportConfigfilter();
-
-	void phenotypesChanged();
-
+	void updateStateFilterName();
+	void updateStateFilterCascade();
+	void updateStateTargetRegionFilter(int index);
+	void updateStateRegionFilter();
 	void editPhenotypes();
+	void updateStateGeneFilter();
+	void updateStateTextFilter();
+	void updateStateReportConfigfilter();
+
+	void updateGuiFilterName();
+	void updateGuiFilterCascade();
+	void updateGuiTargetRegionFilter();
+	void updateGuiRegionFilter();
+	void updateGuiPhenotypes();
+	void updateGuiGeneFilter();
+	void updateGuiTextFilter();
+	void updateGuiReportConfigfilter();
+
 	void showPhenotypeContextMenu(QPoint pos);
 	void showRoiContextMenu(QPoint pos);
 	void importHPO();
