@@ -24,66 +24,54 @@ public:
 	SvWidget(QWidget* parent);
 	~SvWidget();
 
-signals:
-	void updateSomaticReportConfiguration();
-
-protected slots:
+private slots:
+	void svDoubleClicked(QTableWidgetItem* item);
 	///copy filtered SV table to clipboard
 	void copyToClipboard();
-
-	///update SV table if filter for types was changed
-	void applyFilters(bool debug_time = false);
-
-	void svDoubleClicked(QTableWidgetItem* item);
-
-	///update SV details and INFO widgets
-	void updateFormatAndInfoTables();
-
 	///Context menu that shall appear if right click on variant
 	void showContextMenu(QPoint pos);
 
+
+	void updateReportConfigHeaderIcon(int row);
+	///Edit report config
+	void svHeaderDoubleClicked(int row);
+	///Show context menu to add/remove SV to/from report config
+	void svHeaderContextMenu(QPoint pos);
+	void editReportConfiguration(int row);
 	///Import phenotypes from NGSD
 	void importPhenotypesFromNGSD();
 
-	///Edit report config
-	void svHeaderDoubleClicked(int row);
-
-	///Show context menu to add/remove SV to/from report config
-	void svHeaderContextMenu(QPoint pos);
-
-	void openColumnSettings();
-	void adaptColumnWidthsAndHeights();
-	void showAllColumns();
-
-private slots:
-	void updateReportConfigHeaderIcon(int row);
-	void editReportConfiguration(int row);
 	///Loads the gene file to a given target region BED file
 	void annotateTargetRegionGeneOverlap();
 	///Removes the calculated gene overlap tooltips
 	void clearTooltips();
 
-private:
+	///update SV table if filter for types was changed
+	void applyFilters(bool debug_time = false);
+	///update SV details and INFO widgets
+	void updateFormatAndInfoTables();
 
+	void openColumnSettings();
+	void adaptColumnWidthsAndHeights();
+	void showAllColumns();
+
+
+private:
 	///set up user interface
 	void setupUI();
-
 	///load bedpe data file and set display
 	void initGUI();
-
+	///resize widgets to cell content
+	void resizeTableContent(QTableWidget* table_widget);
 	void disableGUI(const QString& message);
+	///resets all filters in widget
+	void clearGUI();
 
 	///Fill widgets with data from INFO_A and INFO_B column
 	void setInfoWidgets(const QByteArray& name, int row, QTableWidget* widget);
 
 	///Fill widgets with somatic infos for better overview
 	void setSomaticInfos(int row);
-
-	///resets all filters in widget
-	void clearGUI();
-
-	///resize widgets to cell content
-	void resizeTableContent(QTableWidget* table_widget);
 
 	///calculate AF of SV, either by paired end reads ("PR") or split reads ("SR");
 	double alleleFrequency(int row, QByteArray sample, QByteArray read_type);
@@ -99,6 +87,7 @@ private:
 
 	Ui::SvWidget* ui;
     AnalysisDataController& data_controller_;
+	FilterState& state_;
     BedpeFile svs_;
     QSharedPointer<ReportConfiguration> report_config_;
     QSharedPointer<SomaticReportConfiguration> somatic_report_config_;

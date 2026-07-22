@@ -1,7 +1,4 @@
 #include "FilterWidgetCNV.h"
-#include "Helper.h"
-#include "NGSD.h"
-#include "Log.h"
 #include "PhenotypeSelectionWidget.h"
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
@@ -27,29 +24,30 @@ FilterWidgetCNV::FilterWidgetCNV(QWidget *parent)
 	ui_.cascade_widget->setSubject(VariantType::CNVS);
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateStateFilterName()));
 	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateStateFilterCascade()));
-	connect(ui_.cascade_widget, SIGNAL(customFilterLoaded()), this, SLOT(customFilterLoaded()));
-	connect(ui_.filters, SIGNAL(currentIndexChanged(int)), this, SLOT(setFilter(int)));
 	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(updateStateGeneFilter()));
 	connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(updateStateTextFilter()));
 	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(updateStateRegionFilter()));
 	connect(ui_.report_config, SIGNAL(currentIndexChanged(int)), this, SLOT(updateStateReportConfigfilter()));
 	connect(ui_.hpo, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
+	connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(updateStateTargetRegionFilter(int)));
 
 	// connect changes in state to the gui
 	connect(&state_, SIGNAL(filterNameChanged(const QString&)), this, SLOT(updateGuiFilterName()));
 	connect(&state_, SIGNAL(filterCascadeChanged(const FilterCascade&)), this, SLOT(updateGuiFilterCascade()));
 	connect(&state_, SIGNAL(targetRegionChanged(const TargetRegionInfo&)), this, SLOT(updateGuiTargetRegionFilter()));
-	connect(&state_, SIGNAL(genesChanged(const GeneSet&)), this, SLOT(updateGuiFilterName()));
+	connect(&state_, SIGNAL(genesChanged(const GeneSet&)), this, SLOT(updateGuiGeneFilter()));
 	connect(&state_, SIGNAL(regionFilterChanged(const BedLine&)), this, SLOT(updateGuiRegionFilter()));
 	connect(&state_, SIGNAL(phenotypesChanged(PhenotypeList)), this, SLOT(updateGuiPhenotypes()));
 	connect(&state_, SIGNAL(reportConfigFilterChanged(const ReportConfigFilter&)), this, SLOT(updateGuiReportConfigfilter()));
+
+	connect(ui_.cascade_widget, SIGNAL(customFilterLoaded()), this, SLOT(customFilterLoaded()));
+	connect(ui_.filters, SIGNAL(currentIndexChanged(int)), this, SLOT(setFilter(int)));
 
 	connect(ui_.hpo_import, SIGNAL(clicked(bool)), this, SLOT(importHPO()));
 	connect(ui_.roi_import, SIGNAL(clicked(bool)), this, SLOT(importROI()));
 	connect(ui_.region_import, SIGNAL(clicked(bool)), this, SLOT(importRegion()));
 	connect(ui_.gene_import, SIGNAL(clicked(bool)), this, SLOT(importGene()));
 	connect(ui_.text_import, SIGNAL(clicked(bool)), this, SLOT(importText()));
-	connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(updateStateTargetRegionFilter(int)));
 	connect(ui_.calculate_gene_overlap, SIGNAL(clicked(bool)), this, SIGNAL(calculateGeneTargetRegionOverlap()));
 	connect(ui_.hpo, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
 	connect(ui_.roi, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showRoiContextMenu(QPoint)));
@@ -238,9 +236,7 @@ void FilterWidgetCNV::updateStateRegionFilter()
 
 void FilterWidgetCNV::updateGuiRegionFilter()
 {
-	QString region_filter = state_.getRegionFilter().toString(true);
-	ui_.region->clear();
-	ui_.region->insert(region_filter);
+	ui_.region->setText(state_.getRegionFilter().toString(true));
 }
 
 void FilterWidgetCNV::updateStateGeneFilter()

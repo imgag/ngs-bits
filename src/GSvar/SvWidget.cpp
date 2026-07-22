@@ -29,6 +29,7 @@ SvWidget::SvWidget(QWidget* parent)
 	: QWidget(parent)
 	, ui(new Ui::SvWidget)
 	, data_controller_(AnalysisDataController::instance())
+	, state_(data_controller_.getSvFilterState())
 	, svs_(data_controller_.getSvList())
 	, report_config_(data_controller_.getGermlineReportConfig())
 	, somatic_report_config_(data_controller_.getSomaticReportConfig())
@@ -83,13 +84,15 @@ void SvWidget::setupUI()
 	connect(ui->svs,SIGNAL(itemDoubleClicked(QTableWidgetItem*)),this,SLOT(svDoubleClicked(QTableWidgetItem*)));
 	connect(ui->svs,SIGNAL(itemSelectionChanged()),this,SLOT(updateFormatAndInfoTables()));
 	connect(ui->svs,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showContextMenu(QPoint)));
-	connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
-	connect(ui->filter_widget, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
-	connect(ui->filter_widget, SIGNAL(targetRegionChanged()), this, SLOT(clearTooltips()));
+
+	connect(&state_, SIGNAL(targetRegionChanged()), this, SLOT(clearTooltips()));
 	connect(ui->filter_widget, SIGNAL(calculateGeneTargetRegionOverlap()), this, SLOT(annotateTargetRegionGeneOverlap()));
 	connect(ui->svs->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(svHeaderDoubleClicked(int)));
 	ui->svs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(ui->svs->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(svHeaderContextMenu(QPoint)));
+
+	//connect(ui->filter_widget, SIGNAL(filtersChanged()), this, SLOT(applyFilters()));
+	//connect(ui->filter_widget, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
 
 	ui->resize_btn->setMenu(new QMenu());
 	ui->resize_btn->menu()->addAction("Open column settings", this, SLOT(openColumnSettings()));
@@ -531,7 +534,7 @@ void SvWidget::editSvValidation(int row)
 
 void SvWidget::editGermlineReportConfiguration(int row)
 {
-    if(data_controller_.germlineReportSupported())
+	if(! data_controller_.germlineReportSupported())
 	{
 		THROW(ProgrammingException, "ReportConfiguration in SvWidget is nullpointer.");
 	}
@@ -614,7 +617,6 @@ void SvWidget::editSomaticReportConfiguration(int row)
 
 	//update config, GUI and NGSD
     somatic_report_config_->addSomaticVariantConfiguration(var_config);
-	emit updateSomaticReportConfiguration();
 	updateReportConfigHeaderIcon(row);
 }
 
@@ -801,7 +803,6 @@ void SvWidget::svHeaderContextMenu(QPoint pos)
 		else
 		{
             somatic_report_config_->remove(VariantType::SVS, row);
-			emit updateSomaticReportConfiguration();
 		}
 		updateReportConfigHeaderIcon(row);
 	}
@@ -1185,7 +1186,6 @@ void SvWidget::showContextMenu(QPoint pos)
 		else
 		{
             somatic_report_config_->remove(VariantType::SVS, row);
-			emit updateSomaticReportConfiguration();
 		}
 		updateReportConfigHeaderIcon(row);
 	}

@@ -85,6 +85,8 @@ public:
 
     ///return the valid filter entries for the small variant list
     QStringList getValidFilterEntries() const;
+	///return the valid filter entries for the structural variant list
+	QStringList getValidSvFilterEntries();
     ///
     QList<KeyValuePair> inheritanceByGene(int variant_idx);
 	///Prepares and returns the data for the Clinvar upload

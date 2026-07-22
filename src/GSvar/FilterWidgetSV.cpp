@@ -1,56 +1,62 @@
 #include "FilterWidgetSV.h"
-#include "Helper.h"
-#include "NGSD.h"
-#include "Log.h"
 #include "PhenotypeSelectionWidget.h"
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
 #include "LoginManager.h"
-#include "GlobalServiceProvider.h"
 #include <QCompleter>
 #include <QMenu>
 #include <QDialog>
 #include <QMessageBox>
 #include <QSortFilterProxyModel>
+#include "FilterWidgetHelper.h"
 
 FilterWidgetSV::FilterWidgetSV(QWidget *parent)
 	: QWidget(parent)
 	, ui_()
+	, data_controller_(AnalysisDataController::instance())
+	, state_(data_controller_.getSvFilterState())
 {
 	ui_.setupUi(this);
 	ui_.cascade_widget->setSubject(VariantType::SVS);
-	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateFilterName()));
-	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SIGNAL(filtersChanged()));
-	connect(ui_.cascade_widget, SIGNAL(customFilterLoaded()), this, SLOT(customFilterLoaded()));
-	connect(ui_.filters, SIGNAL(currentIndexChanged(int)), this, SLOT(setFilter(int)));
-	ui_.lab_modified->setHidden(true);
+	//connect gui changes to filter state
+	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateStateFilterName()));
+	connect(ui_.cascade_widget, SIGNAL(filterCascadeChanged()), this, SLOT(updateStateFilterCascade()));
+	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(updateStateGeneFilter()));
+	connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(updateStateTextFilter()));
+	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(updateStateRegionFilter()));
+	connect(ui_.report_config, SIGNAL(currentIndexChanged(int)), this, SLOT(updateStateReportConfigfilter()));
+	connect(ui_.hpo, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
+	connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(updateStateTargetRegionFilter(int)));
 
-	connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(roiSelectionChanged(int)));
-	connect(ui_.gene, SIGNAL(editingFinished()), this, SLOT(geneChanged()));
-	connect(ui_.text, SIGNAL(editingFinished()), this, SLOT(textChanged()));
-	connect(ui_.region, SIGNAL(editingFinished()), this, SLOT(regionChanged()));
-	connect(ui_.hpo, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
-	connect(ui_.roi, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showRoiContextMenu(QPoint)));
+	// connect changes in state to the gui
+	connect(&state_, SIGNAL(filterNameChanged(const QString&)), this, SLOT(updateGuiFilterName()));
+	connect(&state_, SIGNAL(filterCascadeChanged(const FilterCascade&)), this, SLOT(updateGuiFilterCascade()));
+	connect(&state_, SIGNAL(targetRegionChanged(const TargetRegionInfo&)), this, SLOT(updateGuiTargetRegionFilter()));
+	connect(&state_, SIGNAL(genesChanged(const GeneSet&)), this, SLOT(updateGuiGeneFilter()));
+	connect(&state_, SIGNAL(regionFilterChanged(const BedLine&)), this, SLOT(updateGuiRegionFilter()));
+	connect(&state_, SIGNAL(phenotypesChanged(PhenotypeList)), this, SLOT(updateGuiPhenotypes()));
+	connect(&state_, SIGNAL(reportConfigFilterChanged(const ReportConfigFilter&)), this, SLOT(updateGuiReportConfigfilter()));
+
+	ui_.lab_modified->setHidden(true);
 
 	connect(ui_.hpo_import, SIGNAL(clicked(bool)), this, SLOT(importHPO()));
 	connect(ui_.roi_import, SIGNAL(clicked(bool)), this, SLOT(importROI()));
 	connect(ui_.region_import, SIGNAL(clicked(bool)), this, SLOT(importRegion()));
 	connect(ui_.gene_import, SIGNAL(clicked(bool)), this, SLOT(importGene()));
 	connect(ui_.text_import, SIGNAL(clicked(bool)), this, SLOT(importText()));
-	connect(ui_.report_config, SIGNAL(currentIndexChanged(int)), this, SIGNAL(filtersChanged()));
+	connect(ui_.roi, SIGNAL(currentIndexChanged(int)), this, SLOT(updateTargetRegionFilter(int)));
 	connect(ui_.calculate_gene_overlap, SIGNAL(clicked(bool)), this, SIGNAL(calculateGeneTargetRegionOverlap()));
+	connect(ui_.hpo, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showPhenotypeContextMenu(QPoint)));
+	connect(ui_.roi, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showRoiContextMenu(QPoint)));
 
-	connect(ui_.hpo, SIGNAL(clicked(QPoint)), this, SLOT(editPhenotypes()));
 	ui_.hpo->setEnabled(LoginManager::active());
 
-	FilterWidget::loadTargetRegions(ui_.roi);
+	//set available filter column values
+	ui_.cascade_widget->setValidFilterEntries(data_controller_.getValidSvFilterEntries());
+
+	FilterWidgetHelper::loadTargetRegions(ui_.roi);
 	loadFilters();
 	reset(true);
-}
-
-void FilterWidgetSV::setValidFilterEntries(const QStringList& filter_entries)
-{
-	ui_.cascade_widget->setValidFilterEntries(filter_entries);
 }
 
 void FilterWidgetSV::resetSignalsUnblocked(bool clear_roi)
@@ -63,18 +69,12 @@ void FilterWidgetSV::resetSignalsUnblocked(bool clear_roi)
 	if (clear_roi)
 	{
 		ui_.roi->setCurrentIndex(1);
-		roi_.clear();
 	}
 
 	//gene
-	last_genes_.clear();
 	ui_.gene->clear();
 	ui_.text->clear();
 	ui_.region->clear();
-
-	//phenotype
-	phenotypes_.clear();
-	phenotypesChanged();
 }
 
 QString FilterWidgetSV::filterFileName() const
@@ -87,69 +87,11 @@ void FilterWidgetSV::reset(bool clear_roi)
 	blockSignals(true);
 	resetSignalsUnblocked(clear_roi);
 	blockSignals(false);
-
-	if (clear_roi) emit targetRegionChanged();
-}
-
-const FilterCascade& FilterWidgetSV::filters() const
-{
-	return ui_.cascade_widget->filters();
 }
 
 void FilterWidgetSV::markFailedFilters()
 {
 	ui_.cascade_widget->markFailedFilters();
-}
-
-const TargetRegionInfo& FilterWidgetSV::targetRegion() const
-{
-	return roi_;
-}
-
-GeneSet FilterWidgetSV::genes() const
-{
-	return GeneSet::createFromText(ui_.gene->text().toUtf8(), ',');
-}
-
-QByteArray FilterWidgetSV::text() const
-{
-	return ui_.text->text().trimmed().toUtf8();
-}
-
-QString FilterWidgetSV::region() const
-{
-	return ui_.region->text().trimmed();
-}
-
-void FilterWidgetSV::setRegion(QString region)
-{
-	ui_.region->setText(region);
-	regionChanged();
-}
-
-const PhenotypeList& FilterWidgetSV::phenotypes() const
-{
-	return phenotypes_;
-}
-
-void FilterWidgetSV::setPhenotypes(const PhenotypeList& phenotypes)
-{
-	phenotypes_ = phenotypes;
-	phenotypesChanged();
-}
-
-ReportConfigFilter FilterWidgetSV::reportConfigurationFilter() const
-{
-	if (ui_.report_config->currentIndex()==1)
-	{
-		return ReportConfigFilter::HAS_RC;
-	}
-	else if (ui_.report_config->currentIndex()==2)
-	{
-		return ReportConfigFilter::NO_RC;
-	}
-
-	return ReportConfigFilter::NONE;
 }
 
 void FilterWidgetSV::setTargetRegionByDisplayName(QString name)
@@ -167,7 +109,61 @@ void FilterWidgetSV::setTargetRegionByDisplayName(QString name)
 	}
 }
 
-void FilterWidgetSV::roiSelectionChanged(int index)
+bool FilterWidgetSV::setTargetRegionByName(QString name)
+{
+	return FilterWidgetHelper::setTargetRegionByName(name, ui_.roi);
+}
+
+void FilterWidgetSV::updateStateFilterName()
+{
+	if (ui_.filters->currentText()=="[none]")
+	{
+		state_.setFilterName("", false);
+	}
+	else
+	{
+		state_.setFilterName(ui_.filters->currentText(), false);
+	}
+
+	ui_.lab_modified->setHidden(false);
+}
+
+void FilterWidgetSV::updateGuiFilterName()
+{
+	if (state_.getFilterName() == "")
+	{
+		ui_.filters->setCurrentText("[none]");
+		ui_.lab_modified->setHidden(true);
+	}
+	else
+	{
+		int idx = ui_.filters->findText(state_.getFilterName(), Qt::MatchExactly);
+		if (idx == -1)
+		{
+			THROW(ProgrammingException, "SV filter state name was set to '" + state_.getFilterName() + "' this is not an option in the ui_.filters Combobox.");
+		}
+
+		ui_.filters->setCurrentIndex(idx);
+
+		FilterCascade base_filters = FilterCascadeFile::load(filterFileName(), ui_.filters->currentText());
+		if (state_.getFilterCascade() != base_filters)
+		{
+			ui_.lab_modified->setHidden(false);
+		}
+	}
+}
+
+void FilterWidgetSV::updateStateFilterCascade()
+{
+	state_.setFilterCascade(ui_.cascade_widget->filters(), false);
+}
+
+void FilterWidgetSV::updateGuiFilterCascade()
+{
+	ui_.cascade_widget->setFilters(state_.getFilterCascade());
+}
+
+void FilterWidgetSV::updateStateTargetRegionFilter(int index)
 {
 	//delete old completer
 	QCompleter* completer_old = ui_.roi->completer();
@@ -181,16 +177,16 @@ void FilterWidgetSV::roiSelectionChanged(int index)
 	{
 		ui_.roi->setEditable(true);
 
-        QSortFilterProxyModel *proxy_model = new QSortFilterProxyModel(ui_.roi);
-        proxy_model->setSourceModel(ui_.roi->model());
-        proxy_model->setFilterCaseSensitivity(Qt::CaseInsensitive);
+		QSortFilterProxyModel *proxy_model = new QSortFilterProxyModel(ui_.roi);
+		proxy_model->setSourceModel(ui_.roi->model());
+		proxy_model->setFilterCaseSensitivity(Qt::CaseInsensitive);
 
-        QCompleter *completer = new QCompleter(proxy_model, ui_.roi);
-        completer->setCompletionMode(QCompleter::PopupCompletion);
-        completer->setFilterMode(Qt::MatchContains);
+		QCompleter *completer = new QCompleter(proxy_model, ui_.roi);
+		completer->setCompletionMode(QCompleter::PopupCompletion);
+		completer->setFilterMode(Qt::MatchContains);
 		completer->setCaseSensitivity(Qt::CaseInsensitive);
-        completer->setCompletionRole(Qt::DisplayRole);
-        ui_.roi->setCompleter(completer);
+		completer->setCompletionRole(Qt::DisplayRole);
+		ui_.roi->setCompleter(completer);
 	}
 	else
 	{
@@ -201,52 +197,115 @@ void FilterWidgetSV::roiSelectionChanged(int index)
 	QString roi_name = ui_.roi->itemData(index).toString().trimmed();
 	try
 	{
-		FilterWidget::loadTargetRegionData(roi_, roi_name);
+		state_.setTargetRegionInfoByName(roi_name, false);
 	}
 	catch(Exception& e)
 	{
-		QMessageBox::warning(this, "Error loading target region '" + roi_.name + "'", e.message());
+		QMessageBox::warning(this, "Error loading target region '" + roi_name + "'", e.message());
 		clearTargetRegion();
 	}
 
 	//enable annotation button if annotation is possible
-	ui_.calculate_gene_overlap->setEnabled(LoginManager::active() && !roi_.genes.isEmpty());
+	ui_.calculate_gene_overlap->setEnabled(LoginManager::active() && !state_.getTargetRegionInfo().genes.isEmpty());
+}
 
-	if(index!=0)
+void FilterWidgetSV::updateGuiTargetRegionFilter()
+{
+	FilterWidgetHelper::setTargetRegionByName(state_.getTargetRegionInfo().name, ui_.roi);
+}
+
+void FilterWidgetSV::updateStateRegionFilter()
+{
+	BedLine region_filter = BedLine::fromString(ui_.region->displayText());
+	if (!region_filter.isValid()) //check if valid chr
 	{
-		emit filtersChanged();
-		emit targetRegionChanged();
+		Chromosome chr(ui_.region->displayText());
+		if (chr.isNonSpecial())
+		{
+			region_filter.setChr(chr);
+			region_filter.setStart(1);
+			region_filter.setEnd(999999999);
+		}
+	}
+
+	if (region_filter.isValid()) state_.setRegionFilter(region_filter, false);
+}
+
+void FilterWidgetSV::updateGuiRegionFilter()
+{
+	ui_.region->setText(state_.getRegionFilter().toString(true));
+}
+
+void FilterWidgetSV::updateStateGeneFilter()
+{
+	state_.setGenes(GeneSet::createFromText(ui_.gene->displayText().toUtf8(), ','), false);
+}
+
+void FilterWidgetSV::updateGuiGeneFilter()
+{
+	ui_.gene->setText(state_.getGenes().toString(", "));
+}
+
+void FilterWidgetSV::updateStateTextFilter()
+{
+	state_.setTextFilter(ui_.text->displayText(), false);
+}
+
+void FilterWidgetSV::updateGuiTextFilter()
+{
+	ui_.text->setText(state_.getTextFilter());
+}
+
+void FilterWidgetSV::updateStateReportConfigfilter()
+{
+	if (ui_.report_config->currentIndex() == 0)
+	{
+		state_.setReportConfigFilter(ReportConfigFilter::NONE, false);
+	}
+	else if (ui_.report_config->currentIndex() == 1)
+	{
+		state_.setReportConfigFilter(ReportConfigFilter::HAS_RC, false);
+	}
+	else  if (ui_.report_config->currentIndex() == 2)
+	{
+		state_.setReportConfigFilter(ReportConfigFilter::NO_RC, false);
+	}
+	else
+	{
+		THROW(ArgumentException, "Value in report config QComboBox coundn't be translated to a ReportConfigFilter type");
 	}
 }
 
-void FilterWidgetSV::geneChanged()
+void FilterWidgetSV::updateGuiReportConfigfilter()
 {
-	if (genes()!=last_genes_)
+	ReportConfigFilter current_state = state_.getReportConfigFilter();
+
+	if (current_state == ReportConfigFilter::NONE)
 	{
-		last_genes_ = genes();
-		FilterWidget::checkGeneNames(last_genes_, ui_.gene);
-		emit filtersChanged();
+		ui_.report_config->setCurrentIndex(0);
+	}
+	else if (current_state == ReportConfigFilter::HAS_RC)
+	{
+		ui_.report_config->setCurrentIndex(1);
+	}
+	else  if (current_state == ReportConfigFilter::NO_RC)
+	{
+		ui_.report_config->setCurrentIndex(2);
+	}
+	else
+	{
+		THROW(ArgumentException, "Value in report config QComboBox coundn't be translated to a ReportConfigFilter type");
 	}
 }
 
-void FilterWidgetSV::textChanged()
-{
-	emit filtersChanged();
-}
-
-void FilterWidgetSV::regionChanged()
-{
-	emit filtersChanged();
-}
-
-void FilterWidgetSV::phenotypesChanged()
+void FilterWidgetSV::updateGuiPhenotypes()
 {
 	//update phenotype history
-	GSvarHelper::updatePhenotypeHistory(phenotypes_);
+	FilterWidgetHelper::updatePhenotypeHistory(state_.getPhenotypes());
 
 	//update GUI
 	QByteArrayList tmp;
-    for (const Phenotype& pheno : phenotypes_)
+	for (const Phenotype& pheno : std::as_const(state_.getPhenotypes()))
 	{
 		tmp << pheno.name();
 	}
@@ -254,32 +313,60 @@ void FilterWidgetSV::phenotypesChanged()
 	ui_.hpo->setText(tmp.join("; "));
 
 	QString tooltip = "Phenotype/inheritance filter based on HPO terms.<br><br>Notes:<br>- This functionality is only available when NGSD is enabled.<br>- Filters based on the phenotype-associated gene loci including 5000 flanking bases.";
-	if (!phenotypes_.isEmpty())
+	if (!state_.getPhenotypes().isEmpty())
 	{
-		tooltip += "<br><br><nobr>Currently selected HPO terms:</nobr>";
-        for (const Phenotype& pheno : phenotypes_)
+		tooltip += "<br><br><nobr>Selected HPO terms:</nobr>";
+		for (const Phenotype& pheno : state_.getPhenotypes())
 		{
 			tooltip += "<br><nobr>" + pheno.toString() + "</nobr>";
 		}
+
+		tooltip += "<br><br><nobr>Selected phenotype-gene sources:</nobr>";
+		tooltip += "<br><nobr>";
+		for (const PhenotypeSource& s : state_.getPhenotypeSettings().sources)
+		{
+			tooltip += Phenotype::sourceToString(s) + ", ";
+		}
+		tooltip.chop(2);
+		tooltip += "</nobr>";
+
+		tooltip += "<br><br><nobr>Selected phenotype-gene evidence levels:</nobr>";
+		tooltip += "<br><nobr>";
+		foreach(const PhenotypeEvidenceLevel& e, state_.getPhenotypeSettings().evidence_levels)
+		{
+			tooltip += Phenotype::evidenceToString(e) + ", ";
+		}
+		tooltip.chop(2);
+		tooltip += "</nobr>";
+
+		tooltip += "<br><br><nobr>Selected phenotype combination mode:</nobr>";
+		tooltip += QString("<br>") + (state_.getPhenotypeSettings().mode==PhenotypeCombimnationMode::MERGE ? "merge" : "intersect");
 	}
 	ui_.hpo->setToolTip(tooltip);
 
-	emit filtersChanged();
+	//show icon if settings are changed
+	static QAction* settings_action = new QAction(QIcon(":/Icons/settings.png"), "");
+	if (state_.getPhenotypeSettings() != PhenotypeSettings())
+	{
+		ui_.hpo->addAction(settings_action, QLineEdit::TrailingPosition);
+	}
+	else
+	{
+		ui_.hpo->removeAction(settings_action);
+	}
 }
-
 
 void FilterWidgetSV::editPhenotypes()
 {
 	//edit
 	PhenotypeSelectionWidget* selector = new PhenotypeSelectionWidget(this);
-	selector->setPhenotypes(phenotypes_);
+	selector->setPhenotypes(state_.getPhenotypes());
 	auto dlg = GUIHelper::createDialog(selector, "Select HPO terms", "", true);
 
 	//update
 	if (dlg->exec()==QDialog::Accepted)
 	{
-		phenotypes_ = selector->selectedPhenotypes();
-		phenotypesChanged();
+		state_.setPhenotypes(selector->selectedPhenotypes(), false);
 	}
 }
 
@@ -290,7 +377,7 @@ void FilterWidgetSV::showPhenotypeContextMenu(QPoint pos)
 	QAction* a_load = menu.addAction(QIcon(":/Icons/NGSD_sample.png"), "load from sample");
 	a_load->setEnabled(LoginManager::active());
 	QMenu* history_menu = menu.addMenu("history");
-	foreach(const PhenotypeList& entry, GSvarHelper::phenotypeHistory())
+	foreach(const PhenotypeList& entry, FilterWidgetHelper::phenotypeHistory())
 	{
 		history_menu->addAction(entry.toString());
 	}
@@ -302,18 +389,17 @@ void FilterWidgetSV::showPhenotypeContextMenu(QPoint pos)
 
 	if (action==a_load)
 	{
-		emit phenotypeImportNGSDRequested();
+		state_.setPhenotypes(data_controller_.getSamplePhenotypes());
 	}
 	else if (action==a_clear)
 	{
-		phenotypes_.clear();
-		phenotypesChanged();
+		state_.clearPhenotypeFilter();
 	}
 	else if (action->parent()==history_menu)
 	{
-		foreach(const PhenotypeList& entry, GSvarHelper::phenotypeHistory())
+		foreach(const PhenotypeList& entry, FilterWidgetHelper::phenotypeHistory())
 		{
-			if (action->text()==entry.toString()) setPhenotypes(entry);
+			if (action->text()==entry.toString()) state_.setPhenotypes(entry);
 		}
 	}
 }
@@ -323,7 +409,7 @@ void FilterWidgetSV::showRoiContextMenu(QPoint pos)
 	//set up
 	QMenu menu;
 	QMenu* history_menu = menu.addMenu("history");
-	foreach(const QString& entry, GSvarHelper::roiHistory())
+	foreach(const QString& entry, FilterWidgetHelper::roiHistory())
 	{
 		history_menu->addAction(entry);
 	}
@@ -339,7 +425,7 @@ void FilterWidgetSV::showRoiContextMenu(QPoint pos)
 	}
 	else if (action->parent()==history_menu)
 	{
-		foreach(const QString& entry, GSvarHelper::roiHistory())
+		foreach(const QString& entry, FilterWidgetHelper::roiHistory())
 		{
 			if (action->text()==entry) setTargetRegionByDisplayName(entry);
 		}
@@ -348,39 +434,27 @@ void FilterWidgetSV::showRoiContextMenu(QPoint pos)
 
 void FilterWidgetSV::importHPO()
 {
-	setPhenotypes(GlobalServiceProvider::filterWidget()->phenotypes());
-	phenotypesChanged();
+	state_.setPhenotypes(data_controller_.getSmallVariantsFilterState().getPhenotypes());
 }
 
 void FilterWidgetSV::importROI()
 {
-	ui_.roi->setCurrentText(GlobalServiceProvider::filterWidget()->targetRegionDisplayName());
-	emit filtersChanged();
+	ui_.roi->setCurrentText(data_controller_.getSmallVariantsFilterState().getTargetRegionInfo().name);
 }
 
 void FilterWidgetSV::importRegion()
 {
-	ui_.region->setText(GlobalServiceProvider::filterWidget()->region());
-	emit filtersChanged();
+	ui_.region->setText(data_controller_.getSmallVariantsFilterState().getRegionFilter().toString(true));
 }
 
 void FilterWidgetSV::importGene()
 {
-	ui_.gene->setText(GlobalServiceProvider::filterWidget()->genes().join(", "));
-	emit filtersChanged();
+	ui_.gene->setText(data_controller_.getSmallVariantsFilterState().getGenes().join(", "));
 }
 
 void FilterWidgetSV::importText()
 {
-	ui_.text->setText(GlobalServiceProvider::filterWidget()->text());
-	emit filtersChanged();
-}
-
-void FilterWidgetSV::updateFilterName()
-{
-	if (ui_.filters->currentText()=="[none]") return;
-
-	ui_.lab_modified->setHidden(false);
+	ui_.text->setText(data_controller_.getSmallVariantsFilterState().getTextFilter());
 }
 
 void FilterWidgetSV::customFilterLoaded()
@@ -390,8 +464,6 @@ void FilterWidgetSV::customFilterLoaded()
 	ui_.filters->blockSignals(false);
 
 	ui_.lab_modified->setHidden(false);
-
-	emit filtersChanged();
 }
 
 void FilterWidgetSV::setFilter(int index)

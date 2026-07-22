@@ -1005,7 +1005,198 @@ const FilterResult& AnalysisDataController::applyCnvFilter(bool debug_time)
 
 const FilterResult& AnalysisDataController::applySvFilter(bool debug_time)
 {
+	//skip if not necessary
+	int row_count = svs_.count();
+	if (row_count==0)
+	{
+		svs_filter_result_ = FilterResult(svs_.count(), false);
+		return svs_filter_result_;
+	}
 
+	// filters based on FilterWidgetSV
+	svs_filter_result_ = FilterResult(row_count);
+	try
+	{
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+
+		QElapsedTimer timer;
+		timer.start();
+
+		// filter by FilterCascade
+		const FilterCascade& filter_cascade = svs_filter_state_.getFilterCascade();
+
+		//set comp-het gene list the first time the filter is applied
+		for(int i=0; i<filter_cascade.count(); ++i)
+		{
+			const FilterSvCompHet* comphet_filter = dynamic_cast<const FilterSvCompHet*>(filter_cascade[i].data());
+			if (comphet_filter!=nullptr && comphet_filter->hetHitGenes().count()!=var_het_genes_.count())
+			{
+				comphet_filter->setHetHitGenes(var_het_genes_);
+			}
+		}
+
+		// apply filters of the filter cascade
+		svs_filter_result_ = filter_cascade.apply(svs_, false, debug_time);
+		emit markSvFilters();
+
+		if (debug_time)
+		{
+			Log::perf("Applying annotation filters took ", timer);
+			timer.start();
+		}
+
+		//filter by report config
+		ReportConfigFilter rc_filter = svs_filter_state_.getReportConfigFilter();
+		if (rc_filter!=ReportConfigFilter::NONE)
+		{
+			for(int row=0; row<row_count; ++row)
+			{
+				if (!svs_filter_result_.flags()[row]) continue;
+
+				if (rc_filter==ReportConfigFilter::HAS_RC)
+				{
+					if(somaticReportSupported())
+					{
+						svs_filter_result_.flags()[row] = getSomaticReportConfig()->exists(VariantType::SVS, row);
+					}
+					else
+					{
+						svs_filter_result_.flags()[row] = getGermlineReportConfig()->exists(VariantType::SVS, row);
+					}
+				}
+				else if (rc_filter==ReportConfigFilter::NO_RC)
+				{
+					if(somaticReportSupported())
+					{
+						svs_filter_result_.flags()[row] = !getSomaticReportConfig()->exists(VariantType::SVS, row);
+					}
+					else
+					{
+						svs_filter_result_.flags()[row] = !getGermlineReportConfig()->exists(VariantType::SVS, row);
+					}
+				}
+			}
+		}
+
+		//filter by ROI
+		if (svs_filter_state_.getTargetRegionInfo().isValid())
+		{
+			for(int row=0; row<row_count; ++row)
+			{
+				if(!svs_filter_result_.flags()[row]) continue;
+
+				if (!svs_[row].intersectsWith(svs_filter_state_.getTargetRegionInfo().regions, true)) filter_result.flags()[row] = false;
+			}
+		}
+
+		//filter by region
+		BedLine region = svs_filter_state_.getRegionFilter();
+		if (region.isValid()) //valid region (chr,start, end or only chr)
+		{
+			for(int row=0; row<row_count; ++row)
+			{
+				if (!svs_filter_result_.flags()[row]) continue;
+
+				const BedpeLine& sv = svs_[row];
+				svs_filter_result_.flags()[row] = sv.intersectsWith(BedFile(region.chr(), region.start(), region.end()), true);
+			}
+		}
+
+
+		//filter by phenotype (via genes, not genomic regions)
+		PhenotypeList phenotypes = svs_filter_state_.getPhenotypes();
+		if (!phenotypes.isEmpty())
+		{
+			for(int row=0; row<row_count; ++row)
+			{
+				if (!svs_filter_result_.flags()[row]) continue;
+
+				svs_filter_result_.flags()[row] = svs_[row].intersectsWith(svs_filter_state_.getPhenotypeRoi(), true);
+			}
+		}
+
+		//filter by genes
+		GeneSet gene_whitelist = svs_filter_state_.getGenes();
+		if (!gene_whitelist.isEmpty())
+		{
+			QByteArray genes_joined = gene_whitelist.join('|');
+
+			// get column index of 'GENES' column
+			int i_genes = svs_.annotationIndexByName("GENES", false);
+			if (i_genes == -1)
+			{
+				thrownWarning("Filtering error", "BEDPE files does not contain a 'GENES' column! \nFiltering based on genes is not possible. Please reannotate the structural variant file.");
+			}
+			else
+			{
+				if (genes_joined.contains("*")) //with wildcards
+				{
+					QRegularExpression reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
+					for(int row=0; row<row_count; ++row)
+					{
+						if (!svs_filter_result_.flags()[row]) continue;
+
+						// generate GeneSet from column text
+						GeneSet sv_genes = GeneSet::createFromText(svs_[row].annotations()[i_genes], ',');
+
+						bool match_found = false;
+						for (const QByteArray& sv_gene : std::as_const(sv_genes))
+						{
+							if (reg.match(sv_gene).hasMatch())
+							{
+								match_found = true;
+								break;
+							}
+						}
+						svs_filter_result_.flags()[row] = match_found;
+					}
+				}
+				else //without wildcards
+				{
+					for(int row=0; row<row_count; ++row)
+					{
+						if (!svs_filter_result_.flags()[row]) continue;
+
+						// generate GeneSet from column text
+						GeneSet sv_genes = GeneSet::createFromText(svs_[row].annotations()[i_genes], ',');
+
+						svs_filter_result_.flags()[row] = sv_genes.intersectsWith(gene_whitelist);
+					}
+				}
+			}
+		}
+
+		//filter annotations by text
+		QByteArray text = svs_filter_state_.getTextFilter().toUtf8().trimmed().toLower();
+		if (text!="")
+		{
+			for(int row=0; row<row_count; ++row)
+			{
+				if (!svs_filter_result_.flags()[row]) continue;
+
+				bool match = false;
+				foreach(const QByteArray& anno, svs_[row].annotations())
+				{
+					if (anno.toLower().contains(text))
+					{
+						match = true;
+						break;
+					}
+				}
+				svs_filter_result_.flags()[row] = match;
+			}
+		}
+	}
+	catch(Exception& e)
+	{
+		thrownWarning("Filtering error", e.message() + "\nA possible reason for this error is an outdated variant list.\nTry re-annotating the NGSD columns.\n If re-annotation does not help, please re-analyze the sample (starting from annotation) in the sample information dialog!");
+		svs_filter_result_ = FilterResult(row_count, false);
+
+		QApplication::restoreOverrideCursor();
+	}
+
+	QApplication::restoreOverrideCursor();
+	return svs_filter_result_;
 }
 
 
@@ -2112,6 +2303,19 @@ QStringList AnalysisDataController::getValidFilterEntries() const
     if (!valid_filter_entries.contains("mosaic")) valid_filter_entries << "mosaic";
 
     return valid_filter_entries;
+}
+
+QStringList AnalysisDataController::getValidSvFilterEntries()
+{
+	QStringList valid_sv_filter_entries;
+	foreach (const QByteArray& entry, svs_.metaInfoDescriptionByID("FILTER").keys())
+	{
+		valid_sv_filter_entries.append(entry);
+	}
+	valid_sv_filter_entries.removeAll("PASS");
+	valid_sv_filter_entries.prepend("PASS");
+
+	return valid_sv_filter_entries;
 }
 
 QList<KeyValuePair> AnalysisDataController::inheritanceByGene(int variant_idx)
