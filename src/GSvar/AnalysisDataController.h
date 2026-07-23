@@ -174,6 +174,7 @@ public:
     QString getActiveRnaPsName() const;
     QSet<int> getRelatedRnaSampleIds() const;
     QSet<int> getRelatedRnaProcessedSampleIds() const;
+	QStringList getRelatedRnaProcessedSampleNames() const;
     FileLocation getRnaSplicing(int rna_id=-1) const;
     FileLocation getRnaFusions(int rna_id=-1) const;
     FileLocation getRnaExpressionGenes(int rna_id=-1) const;

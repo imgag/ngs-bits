@@ -13,10 +13,10 @@ ReportVariantSelectionDialog::ReportVariantSelectionDialog(QString ps_id, int ig
 	: QDialog(parent)
 	, ui_(new Ui::ReportVariantSelectionDialog)
 	, ps_id_(ps_id)
-	, variants_(GlobalServiceProvider::getSmallVariantList())
-	, cnvs_(GlobalServiceProvider::getCnvList())
-	, svs_(GlobalServiceProvider::getSvList())
-	, res_(GlobalServiceProvider::getReList())
+	, variants_(AnalysisDataController::instance().getSmallVariantList())
+	, cnvs_(AnalysisDataController::instance().getCnvList())
+	, svs_(AnalysisDataController::instance().getSvList())
+	, res_(AnalysisDataController::instance().getReList())
 {
 	if (!LoginManager::active())
 	{
@@ -51,7 +51,7 @@ SelectedReportVariant ReportVariantSelectionDialog::getSelectedReportVariant()
 	else if (selected_report_variant_.variant_type == VariantType::SVS)
 	{
 		report_variant.sv = svs_[selected_report_variant_.variant_index];
-		report_variant.variant_id = db.svId(report_variant.sv, sv_callset_id_, svs_).toInt();
+		report_variant.variant_id = db.svId(report_variant.sv, sv_callset_id_, svs_);
 	}
 	else if (selected_report_variant_.variant_type == VariantType::RES)
 	{
@@ -136,13 +136,13 @@ void ReportVariantSelectionDialog::initTable(int ignored_rcv_id)
 		else if(rvc.variant_type == VariantType::SVS)
 		{
 			BedpeLine sv = svs_[rvc.variant_index];
-			QString sv_id = db.svId(sv, sv_callset_id_, svs_);
-			if (sv_id == "")
+			int sv_id = db.svId(sv, sv_callset_id_, svs_);
+			if (sv_id == -1)
 			{
 				messages << "(SV) " + sv.toString();
 				continue;
 			}
-			int rvc_id = db.getValue("SELECT id FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(rc_id) + " AND "  + db.svTableName(sv.type()) + "_id=" + sv_id, false).toInt();
+			int rvc_id = db.getValue("SELECT id FROM report_configuration_sv WHERE report_configuration_id=" + QString::number(rc_id) + " AND "  + db.svTableName(sv.type()) + "_id=" + QString::number(sv_id), false).toInt();
 			// skip already selected variant
 			if (ignored_rcv_id == rvc_id) continue;
 			ui_->tw_report_variants->setItem(row_idx, col_idx++, GUIHelper::createTableItem(variantTypeToString(rvc.variant_type)));

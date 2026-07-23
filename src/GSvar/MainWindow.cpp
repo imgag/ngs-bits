@@ -268,7 +268,6 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(&data_controller_, SIGNAL(smallVariantsFilterResultChanged()), this, SLOT(refreshVariantTable()));
 	connect(&data_controller_, SIGNAL(smallVariantsChanged()), this, SLOT(refreshVariantTable()));
-	connect(&data_controller_, SIGNAL(smallVariantsChanged()), this, SLOT(refreshVariantTable()));
 	connect(&data_controller_, SIGNAL(chooseGermlineReportSample(QStringList)), this, SLOT(chooseGermlineReportSample(QStringList)));
 
 
@@ -1310,9 +1309,13 @@ void MainWindow::delayedInitialization()
 			int sep_pos = arg.indexOf(':');
 			QString filter_name = arg.mid(sep_pos+1).trimmed();
 
-			if (!ui_.filters->setFilter(filter_name))
+			try
 			{
-				qDebug() << "Filter name " << arg << " not found. Ignoring it!";
+				data_controller_.getSmallVariantsFilterState().setFilterName(filter_name);
+			}
+				catch (Exception& e)
+			{
+				qDebug() << "Couldn't set filter to " << arg << ". Ignoring it!\nError message: " << e.message() << "\nFile:" << e.file() << "\nLine:" << e.line() ;
 			}
 		}
 		else if (arg.startsWith("roi:")) //target region (by name)
@@ -4387,7 +4390,7 @@ void MainWindow::variantRanking()
 		//update variant list
         data_controller_.annotateVariantRankingScores(result, true);
 		ui_.filters->reset(true);
-		ui_.filters->setFilter("GSvar score/rank");
+		data_controller_.getSmallVariantsFilterState().setFilterName("GSvar score/rank");
 
 		QApplication::restoreOverrideCursor();
 

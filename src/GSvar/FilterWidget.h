@@ -35,10 +35,9 @@ public:
 	///Returns the filter INI file name
 	static QString filterFileName();
 	///Sets the filter by name. Returns if the filter name was found and set.
-	bool setFilter(QString name);
-	///Sets filterCascade
-	void setFilterCascade(const FilterCascade& filter_cascade);
 	void editColumnFilter(QString col);
+
+	QComboBox* targetRegionBox();
 
 
 	//Updates widgets according to NGSD support

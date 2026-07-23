@@ -57,10 +57,11 @@ private slots:
 	void adaptColumnWidthsAndHeights();
 	void showAllColumns();
 
-private:
-	void initGUI();
 	void updateGUI();
 	void disableGUI();
+
+private:
+	void initGUI();
 	void addInfoLine(QString text);
 	void updateStatus(int shown);
 	void editGermlineReportConfiguration(int row);

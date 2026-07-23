@@ -47,7 +47,7 @@ private slots:
 	void clearTooltips();
 
 	///update SV table if filter for types was changed
-	void applyFilters(bool debug_time = false);
+	void applyFilterResult();
 	///update SV details and INFO widgets
 	void updateFormatAndInfoTables();
 

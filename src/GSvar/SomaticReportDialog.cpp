@@ -54,17 +54,18 @@ SomaticReportDialog::SomaticReportDialog(AnalysisDataController& data_controller
 	: QDialog(parent)
 	, ui_()
 	, db_()
-	, settings_(settings)
-	, germl_variants_(germl_variants)
-	, target_region_(settings.report_config->targetRegionName())
+	, data_controller_(data_controller)
+	, settings_(data_controller.getSomaticReportSettings())
+	, germl_variants_(data_controller.getControlTissueSmallVariants())
+	, target_region_(settings_.report_config->targetRegionName())
 	, tum_cont_snps_(std::numeric_limits<double>::quiet_NaN())
 	, tum_cont_max_clonality_(std::numeric_limits<double>::quiet_NaN())
 	, tum_cont_histological_(std::numeric_limits<double>::quiet_NaN())
 	, limitations_()
-	, project_filename_(project_filename)
+	, gsvar_filename_(data_controller_.getFilename())
 {
 
-	cnvs_ = SomaticReportSettings::filterCnvs(cnvs, settings_);
+	cnvs_ = SomaticReportSettings::filterCnvs(data_controller_.getCnvList(), settings_);
 
 
 	ui_.setupUi(this);
@@ -85,7 +86,7 @@ SomaticReportDialog::SomaticReportDialog(AnalysisDataController& data_controller
 
 
 	//Resolve tumor content estimate from NGSD
-	QCCollection res = db_.getQCData(db_.processedSampleId(settings.tumor_ps, true));
+	QCCollection res = db_.getQCData(db_.processedSampleId(settings_.tumor_ps, true));
 	try
 	{
 		tum_cont_snps_ = res.value("QC:2000054", true).asDouble();
@@ -94,7 +95,7 @@ SomaticReportDialog::SomaticReportDialog(AnalysisDataController& data_controller
 	catch(TypeConversionException){} //nothing to do
 
 	//Resolve histological tumor content (if available in NGSD)
-	QList<SampleDiseaseInfo> disease_infos = db_.getSampleDiseaseInfo(db_.sampleId(settings.tumor_ps), "tumor fraction");
+	QList<SampleDiseaseInfo> disease_infos = db_.getSampleDiseaseInfo(db_.sampleId(settings_.tumor_ps), "tumor fraction");
 	foreach(const auto& entry, disease_infos)
 	{
 		if(entry.type == "tumor fraction")
@@ -171,7 +172,7 @@ SomaticReportDialog::SomaticReportDialog(AnalysisDataController& data_controller
 
 
 	//load control tissue snps (NGSD class 4/5 only) into widget
-	int i_co_sp = germl_variants.annotationIndexByName("coding_and_splicing", true, false);
+	int i_co_sp = germl_variants_.annotationIndexByName("coding_and_splicing", true, false);
 
 	BamReader bam_reader(GlobalServiceProvider::database().processedSamplePath(db_.processedSampleId(settings_.tumor_ps), PathType::BAM).filename);
 	FastaFileIndex fasta_idx(Settings::string("reference_genome"));
@@ -241,9 +242,9 @@ SomaticReportDialog::SomaticReportDialog(AnalysisDataController& data_controller
 	}
 
 	//limitations
-	if(settings.report_config->limitations() != "")
+	if(settings_.report_config->limitations() != "")
 	{
-		ui_.limitations_text->setPlainText(settings.report_config->limitations());
+		ui_.limitations_text->setPlainText(settings_.report_config->limitations());
 		ui_.limitations_check->setChecked(true);
 	}
 	else
@@ -257,7 +258,7 @@ SomaticReportDialog::SomaticReportDialog(AnalysisDataController& data_controller
 
 
 	//Update GUI
-	ui_.include_msi_status->setText(ui_.include_msi_status->text() + " (" + (!BasicStatistics::isValidFloat(settings.get_msi_value(db_)) ? "n/a" : QByteArray::number(settings.get_msi_value(db_),'f',2)) + ")");
+	ui_.include_msi_status->setText(ui_.include_msi_status->text() + " (" + (!BasicStatistics::isValidFloat(settings_.get_msi_value(db_)) ? "n/a" : QByteArray::number(settings_.get_msi_value(db_),'f',2)) + ")");
 
 	if(BasicStatistics::isValidFloat(tum_cont_snps_))
 	{
@@ -378,9 +379,10 @@ SomaticReportDialog::SomaticReportDialog(AnalysisDataController& data_controller
 
 	updateIgvText();
 
-    setRNAids(data_controller_.getRelatedRnaProcessedSampleIds())
+	setRNAids(data_controller_.getRelatedRnaProcessedSampleNames());
 
-        dlg.enableChoicecfDnaReportType(data_controller.getRelatedcfDNAProcessedSamples().count() > 0);
+	enableChoicecfDnaReportType(data_controller_.getRelatedCfdnaSampleIds().count() > 0);
+	enableChoiceRnaReportType(data_controller_.getRelatedRnaSampleIds().count() > 0);
 }
 
 void SomaticReportDialog::disableGUI()
@@ -666,7 +668,7 @@ void SomaticReportDialog::createIgvScreenshot()
 	// Upload screenshot to the server, if the client-server mode is activated
 	if (!GlobalServiceProvider::fileLocationProvider().isLocal())
 	{
-		QList<QString> filename_parts = project_filename_.split("/");
+		QList<QString> filename_parts = gsvar_filename_.split("/");
 		if (filename_parts.size()<=3)
 		{
 			QMessageBox::warning(this, "Processed sample error", "Could not find find the location of the processed sample!");

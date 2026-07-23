@@ -1000,6 +1000,7 @@ const FilterResult& AnalysisDataController::applyCnvFilter(bool debug_time)
 	}
 
 	QApplication::restoreOverrideCursor();
+	emit CnvFilterResultChanged();
 	return cnvs_filter_result_;
 }
 
@@ -1085,7 +1086,7 @@ const FilterResult& AnalysisDataController::applySvFilter(bool debug_time)
 			{
 				if(!svs_filter_result_.flags()[row]) continue;
 
-				if (!svs_[row].intersectsWith(svs_filter_state_.getTargetRegionInfo().regions, true)) filter_result.flags()[row] = false;
+				if (!svs_[row].intersectsWith(svs_filter_state_.getTargetRegionInfo().regions, true)) svs_filter_result_.flags()[row] = false;
 			}
 		}
 
@@ -1196,6 +1197,7 @@ const FilterResult& AnalysisDataController::applySvFilter(bool debug_time)
 	}
 
 	QApplication::restoreOverrideCursor();
+	emit SvFilterResultChanged();
 	return svs_filter_result_;
 }
 
@@ -3452,6 +3454,22 @@ QSet<int> AnalysisDataController::getRelatedRnaProcessedSampleIds() const
         }
     }
     return ps_ids;
+}
+
+QStringList AnalysisDataController::getRelatedRnaProcessedSampleNames() const
+{
+	QSet<int> related_ps_ids = getRelatedRnaProcessedSampleIds();
+
+	QStringList names;
+	NGSD db;
+
+	foreach (int ps_id, related_ps_ids)
+	{
+		names << db.processedSampleName(QString::number(ps_id));
+	}
+
+	return names;
+
 }
 
 FileLocation AnalysisDataController::getRnaSplicing(int rna_ps_id) const

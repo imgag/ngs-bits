@@ -33,7 +33,6 @@ SOURCES += main.cpp\
     DatabaseServiceRemote.cpp \
     FilterState.cpp \
     FilterWidgetHelper.cpp \
-    GHGAUploadDialog.cpp \
     GeneInterpretabilityDialog.cpp \
     GlobalServiceProvider.cpp \
     HerediVarImportDialog.cpp \
@@ -175,7 +174,6 @@ HEADERS += MainWindow.h \
     DatabaseServiceRemote.h \
     ExternalToolDialog.h \
     FilterWidgetHelper.h \
-    GHGAUploadDialog.h \
     GeneInterpretabilityDialog.h \
     GlobalServiceProvider.h \
     HerediVarImportDialog.h \

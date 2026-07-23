@@ -6,6 +6,7 @@
 #include "NGSD.h"
 #include "Settings.h"
 #include "LoginManager.h"
+#include "AnalysisDataController.h"
 
 GeneSelectionDialog::GeneSelectionDialog(QWidget *parent) :
 	QDialog(parent),
@@ -84,7 +85,7 @@ void GeneSelectionDialog::importHPO()
 {
 	if(variant_filter_widget_!=nullptr)
 	{
-		phenotypes_ = variant_filter_widget_->phenotypes();
+		phenotypes_ = AnalysisDataController::instance().getSmallVariantsFilterState().getPhenotypes();
 		phenotypesChanged();
 	}
 }
@@ -93,7 +94,7 @@ void GeneSelectionDialog::importROI()
 {
 	if(variant_filter_widget_!=nullptr)
 	{
-		ui_->cb_target_region->setCurrentText(variant_filter_widget_->targetRegionDisplayName());
+		ui_->cb_target_region->setCurrentText(AnalysisDataController::instance().getSmallVariantsFilterState().getTargetRegionInfo().name);
 	}
 }
 
@@ -118,8 +119,7 @@ void GeneSelectionDialog::determineGenes()
 		QString selected_target_region = ui_->cb_target_region->currentText();
 		if (!((selected_target_region == "") || (selected_target_region == "none")))
 		{
-			TargetRegionInfo target_region_info;
-			FilterWidget::loadTargetRegionData(target_region_info, selected_target_region);
+			TargetRegionInfo target_region_info = AnalysisDataController::instance().getSmallVariantsFilterState().getTargetRegionInfo();
 			if (target_region_info.genes.count() > 0)
 			{
 				if(genes.count() > 0)

@@ -86,6 +86,7 @@ void SvWidget::setupUI()
 	connect(ui->svs,SIGNAL(customContextMenuRequested(QPoint)),this,SLOT(showContextMenu(QPoint)));
 
 	connect(&state_, SIGNAL(targetRegionChanged()), this, SLOT(clearTooltips()));
+	connect(&data_controller_, SIGNAL(applyFilterResult()), this, SLOT(SvFilterResultChanged()));
 	connect(ui->filter_widget, SIGNAL(calculateGeneTargetRegionOverlap()), this, SLOT(annotateTargetRegionGeneOverlap()));
 	connect(ui->svs->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(svHeaderDoubleClicked(int)));
 	ui->svs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -250,7 +251,6 @@ void SvWidget::initGUI()
 	}
 	valid_filter_entries.removeAll("PASS");
 	valid_filter_entries.prepend("PASS");
-	ui->filter_widget->setValidFilterEntries(valid_filter_entries);
 
 	//adapt cells to contents
 	adaptColumnWidthsAndHeights();
@@ -259,7 +259,7 @@ void SvWidget::initGUI()
 	config.applyHidden(ui->svs);
 
 	//filter rows according default filter values
-	applyFilters();
+	data_controller_.applySvFilter();
 }
 
 
@@ -287,231 +287,16 @@ void SvWidget::resizeTableContent(QTableWidget* table_widget)
 }
 
 
-void SvWidget::applyFilters(bool debug_time)
+void SvWidget::applyFilterResult()
 {
-	//skip if not necessary
-	int row_count = ui->svs->rowCount();
-	if (row_count==0) return;
-
-	// filters based on FilterWidgetSV
-	FilterResult filter_result(row_count);
-	try
-	{
-		QApplication::setOverrideCursor(Qt::BusyCursor);
-
-        QElapsedTimer timer;
-		timer.start();
-
-		// filter by FilterCascade
-		const FilterCascade& filter_cascade = ui->filter_widget->filters();
-
-		//set comp-het gene list the first time the filter is applied
-		for(int i=0; i<filter_cascade.count(); ++i)
-		{
-			const FilterSvCompHet* comphet_filter = dynamic_cast<const FilterSvCompHet*>(filter_cascade[i].data());
-			if (comphet_filter!=nullptr && comphet_filter->hetHitGenes().count()!=var_het_genes_.count())
-			{
-				comphet_filter->setHetHitGenes(var_het_genes_);
-			}
-		}
-
-		// apply filters of the filter cascade
-		filter_result = filter_cascade.apply(svs_, false, debug_time);
-		ui->filter_widget->markFailedFilters();
-
-		if (debug_time)
-		{
-			Log::perf("Applying annotation filters took ", timer);
-			timer.start();
-		}
-
-		//filter by report config
-		ReportConfigFilter rc_filter = ui->filter_widget->reportConfigurationFilter();
-		if (rc_filter!=ReportConfigFilter::NONE)
-		{
-			for(int row=0; row<row_count; ++row)
-			{
-				if (!filter_result.flags()[row]) continue;
-
-				if (rc_filter==ReportConfigFilter::HAS_RC)
-				{
-					if(is_somatic_)
-					{
-                        filter_result.flags()[row] = somatic_report_config_->exists(VariantType::SVS, row);
-					}
-					else
-					{
-                        filter_result.flags()[row] = report_config_->exists(VariantType::SVS, row);
-					}
-				}
-				else if (rc_filter==ReportConfigFilter::NO_RC)
-				{
-					if(is_somatic_)
-					{
-                        filter_result.flags()[row] = !somatic_report_config_->exists(VariantType::SVS, row);
-					}
-					else
-					{
-                        filter_result.flags()[row] = !report_config_->exists(VariantType::SVS, row);
-					}
-				}
-			}
-		}
-
-		//filter by ROI
-		if (ui->filter_widget->targetRegion().isValid())
-		{
-			for(int row=0; row<row_count; ++row)
-			{
-				if(!filter_result.flags()[row]) continue;
-
-				if (!svs_[row].intersectsWith(ui->filter_widget->targetRegion().regions, true)) filter_result.flags()[row] = false;
-			}
-		}
-
-		//filter by region
-		QString region_text = ui->filter_widget->region();
-		BedLine region = BedLine::fromString(region_text);
-		if (!region.isValid()) //check if valid chr
-		{
-			Chromosome chr(region_text);
-			if (chr.isNonSpecial())
-			{
-				region.setChr(chr);
-				region.setStart(1);
-				region.setEnd(999999999);
-			}
-		}
-		if (region.isValid()) //valid region (chr,start, end or only chr)
-		{
-			for(int row=0; row<row_count; ++row)
-			{
-				if (!filter_result.flags()[row]) continue;
-
-				const BedpeLine& sv = svs_[row];
-				filter_result.flags()[row] = sv.intersectsWith(BedFile(region.chr(), region.start(), region.end()), true);
-			}
-		}
-
-
-		//filter by phenotype (via genes, not genomic regions)
-		PhenotypeList phenotypes = ui->filter_widget->phenotypes();
-		if (!phenotypes.isEmpty())
-		{
-			NGSD db;
-			//convert phenotypes to genes
-			GeneSet pheno_genes;
-            for (const Phenotype& pheno : phenotypes)
-			{
-				pheno_genes << db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
-			}
-
-			//convert genes to ROI (using a cache to speed up repeating queries)
-			BedFile pheno_roi;
-			for (const QByteArray& gene : std::as_const(pheno_genes))
-
-			{
-				pheno_roi.add(GlobalServiceProvider::geneToRegions(gene, db));
-			}
-			pheno_roi.merge();
-
-			for(int row=0; row<row_count; ++row)
-			{
-				if (!filter_result.flags()[row]) continue;
-
-				filter_result.flags()[row] = svs_[row].intersectsWith(pheno_roi, true);
-			}
-		}
-
-		//filter by genes
-		GeneSet gene_whitelist = ui->filter_widget->genes();
-		if (!gene_whitelist.isEmpty())
-		{
-			QByteArray genes_joined = gene_whitelist.join('|');
-
-			// get column index of 'GENES' column
-			int i_genes = svs_.annotationIndexByName("GENES", false);
-			if (i_genes == -1)
-			{
-				QMessageBox::warning(this, "Filtering error", "BEDPE files does not contain a 'GENES' column! \nFiltering based on genes is not possible. Please reannotate the structural variant file.");
-			}
-			else
-			{
-				if (genes_joined.contains("*")) //with wildcards
-				{
-                    QRegularExpression reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
-					for(int row=0; row<row_count; ++row)
-					{
-						if (!filter_result.flags()[row]) continue;
-
-						// generate GeneSet from column text
-						GeneSet sv_genes = GeneSet::createFromText(svs_[row].annotations()[i_genes], ',');
-
-						bool match_found = false;
-						for (const QByteArray& sv_gene : std::as_const(sv_genes))
-						{
-                            if (reg.match(sv_gene).hasMatch())
-							{
-								match_found = true;
-								break;
-							}
-						}
-						filter_result.flags()[row] = match_found;
-					}
-				}
-				else //without wildcards
-				{
-					for(int row=0; row<row_count; ++row)
-					{
-						if (!filter_result.flags()[row]) continue;
-
-						// generate GeneSet from column text
-						GeneSet sv_genes = GeneSet::createFromText(svs_[row].annotations()[i_genes], ',');
-
-						filter_result.flags()[row] = sv_genes.intersectsWith(gene_whitelist);
-					}
-				}
-			}
-		}
-
-		//filter annotations by text
-		QByteArray text = ui->filter_widget->text().trimmed().toLower();
-		if (text!="")
-		{
-			for(int row=0; row<row_count; ++row)
-			{
-				if (!filter_result.flags()[row]) continue;
-
-				bool match = false;
-				foreach(const QByteArray& anno, svs_[row].annotations())
-				{
-					if (anno.toLower().contains(text))
-					{
-						match = true;
-						break;
-					}
-				}
-				filter_result.flags()[row] = match;
-			}
-		}
-
-		QApplication::restoreOverrideCursor();
-	}
-	catch(Exception& e)
-	{
-		GUIHelper::showException(this, e, "Filtering error");
-
-		filter_result = FilterResult(row_count, false);
-	}
-
 	//hide rows not passing filters
-	for(int row=0; row<row_count; ++row)
+	for(int row=0; row<svs_.count(); ++row)
 	{
-		ui->svs->setRowHidden(row, !filter_result.flags()[row]);
+		ui->svs->setRowHidden(row, !data_controller_.getSVFilterResult().flags()[row]);
 	}
 
 	//Set number of filtered / total SVs
-	ui->number_of_svs->setText(QByteArray::number(filter_result.flags().count(true)) + "/" + QByteArray::number(row_count));
+	ui->number_of_svs->setText(QByteArray::number(data_controller_.getSVFilterResult().flags().count(true)) + "/" + QByteArray::number(svs_.count()));
 }
 
 void SvWidget::editSvValidation(int row)
@@ -754,7 +539,7 @@ void SvWidget::importPhenotypesFromNGSD()
 	QString sample_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id=:0", false, ps_id_).toString();
 	PhenotypeList phenotypes = db.getSampleData(sample_id).phenotypes;
 
-	ui->filter_widget->setPhenotypes(phenotypes);
+	data_controller_.getSvFilterState().setPhenotypes(phenotypes);
 }
 
 void SvWidget::svHeaderDoubleClicked(int row)
@@ -845,9 +630,9 @@ void SvWidget::showAllColumns()
 void SvWidget::updateReportConfigHeaderIcon(int row)
 {
 	//report config-based filter is on => update whole variant list
-	if (ui->filter_widget->reportConfigurationFilter()!=ReportConfigFilter::NONE)
+	if (data_controller_.getSvFilterState().getReportConfigFilter()!=ReportConfigFilter::NONE)
 	{
-		applyFilters();
+		data_controller_.applySvFilter();
 	}
 	else //no filter => refresh icon only
 	{
@@ -1127,7 +912,7 @@ void SvWidget::showContextMenu(QPoint pos)
 	for (const QByteArray& g : GeneSet::createFromText(svs_[row].annotations()[i_genes], ','))
 	{
 		sub_menu->addAction(g + " AND (\"mutation\" OR \"variant\")");
-		for (const Phenotype& p : ui->filter_widget->phenotypes())
+		for (const Phenotype& p : data_controller_.getSvFilterState().getPhenotypes())
 		{
 			sub_menu->addAction(g + " AND \"" + p.name().trimmed() + "\"");
 		}
@@ -1265,7 +1050,7 @@ void SvWidget::showContextMenu(QPoint pos)
 		else if (db_name=="Google")
 		{
 			QString query = gene + " AND (mutation";
-            for (const Phenotype& pheno : ui->filter_widget->phenotypes())
+			for (const Phenotype& pheno : data_controller_.getSvFilterState().getPhenotypes())
 			{
 				query += " OR \"" + pheno.name() + "\"";
 			}

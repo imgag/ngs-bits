@@ -121,28 +121,14 @@ QString FilterWidget::filterFileName()
 	return GSvarHelper::applicationBaseName() + "_filters.ini";
 }
 
-bool FilterWidget::setFilter(QString name)
-{
-	for (int i=0; i<ui_.filters->count(); ++i)
-	{
-		if (ui_.filters->itemText(i)==name)
-		{
-			ui_.filters->setCurrentIndex(i);
-			return true;
-		}
-	}
-
-	return false;
-}
-
-void FilterWidget::setFilterCascade(const FilterCascade& filter_cascade)
-{
-	ui_.cascade_widget->setFilters(filter_cascade);
-}
-
 void FilterWidget::editColumnFilter(QString col)
 {
 	ui_.cascade_widget->editColumnFilter(col);
+}
+
+QComboBox* FilterWidget::targetRegionBox()
+{
+	return ui_.roi;
 }
 
 void FilterWidget::updateNGSDSupport()

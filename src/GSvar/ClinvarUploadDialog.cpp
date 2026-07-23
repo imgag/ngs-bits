@@ -16,6 +16,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QInputDialog>
+#include "AnalysisDataController.h"
 
 
 const bool test_run = false;

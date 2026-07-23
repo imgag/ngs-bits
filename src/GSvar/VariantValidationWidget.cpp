@@ -3,6 +3,7 @@
 #include "GUIHelper.h"
 #include "Settings.h"
 #include "ValidationDialog.h"
+#include "GlobalServiceProvider.h"
 #include <QMessageBox>
 #include <QDesktopServices>
 #include <QAction>
@@ -133,7 +134,7 @@ void VariantValidationWidget::edit()
 		return;
 	}
 
-    edit(rows.values().first());
+	edit(rows.values()[0]);
 }
 
 void VariantValidationWidget::edit(int row)
@@ -144,7 +145,7 @@ void VariantValidationWidget::edit(int row)
 
 	if (dlg.exec())
 	{
-		data_controller_.storeVariantValidation(dlg.getValidation());
+		AnalysisDataController::instance().storeVariantValidation(dlg.getValidation());
 	}
 
 	updateTable();

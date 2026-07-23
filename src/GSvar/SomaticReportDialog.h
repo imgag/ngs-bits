@@ -39,6 +39,7 @@ public:
 private:
 	Ui::SomaticReportDialog ui_;
 	NGSD db_;
+	AnalysisDataController& data_controller_;
 	SomaticReportSettings& settings_;
 	CnvList cnvs_;
 	const VariantList& germl_variants_;
@@ -49,7 +50,7 @@ private:
 	double tum_cont_histological_;
 
 	QString limitations_;
-	QString project_filename_;
+	QString gsvar_filename_;
 
 
 public slots:

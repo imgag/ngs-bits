@@ -48,7 +48,10 @@ CnvWidget::CnvWidget(QWidget* parent)
 	connect(ui->flag_invisible_cnvs_artefacts, SIGNAL(clicked(bool)), this, SLOT(flagInvisibleSomaticCnvsAsArtefacts()) );
 	connect(ui->flag_visible_cnvs_artefacts, SIGNAL(clicked(bool)), this, SLOT(flagVisibleSomaticCnvsAsArtefacts()) );
 	connect(ui->copy_clipboard, SIGNAL(clicked(bool)), this, SLOT(copyToClipboard()));
+
 	connect(&state_, SIGNAL(targetRegionChanged()), this, SLOT(clearTooltips()));
+	connect(&data_controller_, SIGNAL(CnvFilterResultChanged()), this, SLOT(updateGUI()));
+
 	connect(ui->filter_widget, SIGNAL(calculateGeneTargetRegionOverlap()), this, SLOT(annotateTargetRegionGeneOverlap()));
 	connect(ui->cnvs->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(cnvHeaderDoubleClicked(int)));
 	ui->cnvs->verticalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -339,6 +342,13 @@ void CnvWidget::updateGUI()
 
 	//update quality from NGSD
 	updateQuality();
+
+	//update GUI by filter
+	for(int r=0; r<cnvs_.count(); ++r)
+	{
+		ui->cnvs->setRowHidden(r, !data_controller_.getCnvFilterResult().flags()[r]);
+	}
+	updateStatus(data_controller_.getCnvFilterResult().countPassing());
 }
 
 void CnvWidget::copyToClipboard()
