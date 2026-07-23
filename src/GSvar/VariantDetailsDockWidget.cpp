@@ -582,13 +582,13 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			else
 			{
 				QString value_str = QString::number(value, 'f', 2);
-				if (value >= 0.5)
-				{
-					text = formatText(value_str, ORANGE);
-				}
-				else if (value >= 0.8)
+				if (value >= 0.8)
 				{
 					text = formatText(value_str, RED);
+				}
+				else if (value >= 0.5)
+				{
+					text = formatText(value_str, ORANGE);
 				}
 				else
 				{
