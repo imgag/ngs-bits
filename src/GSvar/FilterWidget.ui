@@ -151,16 +151,13 @@
       <item>
        <widget class="QComboBox" name="roi">
         <property name="contextMenuPolicy">
-         <enum>Qt::CustomContextMenu</enum>
+         <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
         </property>
         <property name="maxVisibleItems">
          <number>30</number>
         </property>
         <property name="insertPolicy">
-         <enum>QComboBox::NoInsert</enum>
-        </property>
-        <property name="sizeAdjustPolicy">
-         <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+         <enum>QComboBox::InsertPolicy::NoInsert</enum>
         </property>
         <item>
          <property name="text">
@@ -177,7 +174,7 @@
         <item>
          <widget class="QPushButton" name="roi_add_temp">
           <property name="focusPolicy">
-           <enum>Qt::NoFocus</enum>
+           <enum>Qt::FocusPolicy::NoFocus</enum>
           </property>
           <property name="toolTip">
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add target region temporarily&lt;br/&gt;(until GSvar is closed)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -194,14 +191,14 @@
         <item>
          <widget class="Line" name="line_2">
           <property name="orientation">
-           <enum>Qt::Vertical</enum>
+           <enum>Qt::Orientation::Vertical</enum>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QPushButton" name="roi_add">
           <property name="focusPolicy">
-           <enum>Qt::NoFocus</enum>
+           <enum>Qt::FocusPolicy::NoFocus</enum>
           </property>
           <property name="toolTip">
            <string>Add target region permanently</string>
@@ -218,7 +215,7 @@
         <item>
          <widget class="QPushButton" name="roi_remove">
           <property name="focusPolicy">
-           <enum>Qt::NoFocus</enum>
+           <enum>Qt::FocusPolicy::NoFocus</enum>
           </property>
           <property name="toolTip">
            <string>Remove current target region permanently</string>
@@ -235,7 +232,7 @@
         <item>
          <spacer name="horizontalSpacer">
           <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+           <enum>Qt::Orientation::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -279,7 +276,7 @@
         <item>
          <widget class="QToolButton" name="roi_btn">
           <property name="focusPolicy">
-           <enum>Qt::NoFocus</enum>
+           <enum>Qt::FocusPolicy::NoFocus</enum>
           </property>
           <property name="toolTip">
            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Show detail information about the selected target region.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -292,7 +289,7 @@
             <normaloff>:/Icons/settings.png</normaloff>:/Icons/settings.png</iconset>
           </property>
           <property name="popupMode">
-           <enum>QToolButton::InstantPopup</enum>
+           <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
           </property>
          </widget>
         </item>
@@ -312,9 +309,9 @@
        </widget>
       </item>
       <item>
-       <widget class="ClickableLineEdit" name="hpo_terms">
+       <widget class="ClickableLineEdit" name="hpo">
         <property name="contextMenuPolicy">
-         <enum>Qt::CustomContextMenu</enum>
+         <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
         </property>
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;This text is overwritten at runtime!&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -357,7 +354,7 @@
       <item>
        <widget class="QLineEdit" name="gene">
         <property name="contextMenuPolicy">
-         <enum>Qt::CustomContextMenu</enum>
+         <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
         </property>
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Comma-separated list of gene names.&lt;br/&gt;&lt;br/&gt;Notes:&lt;br/&gt;- You can use '*' as a wildcard. &lt;br/&gt;- Press return to finish entering text.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -423,7 +420,7 @@
       <item row="2" column="3">
        <widget class="QToolButton" name="clearn_btn">
         <property name="focusPolicy">
-         <enum>Qt::NoFocus</enum>
+         <enum>Qt::FocusPolicy::NoFocus</enum>
         </property>
         <property name="text">
          <string>...</string>
@@ -433,7 +430,7 @@
           <normaloff>:/Icons/Filter_clear.png</normaloff>:/Icons/Filter_clear.png</iconset>
         </property>
         <property name="popupMode">
-         <enum>QToolButton::InstantPopup</enum>
+         <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
         </property>
        </widget>
       </item>

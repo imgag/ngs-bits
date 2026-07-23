@@ -21,8 +21,6 @@ class FilterWidget
 public:
 	/// Default constructor
 	FilterWidget(QWidget *parent = 0);
-	/// Set entries of the 'filter' column valid in the open file
-	void setValidFilterEntries(const QStringList& filter_entries);
 
 	/// Resets to initial state (uncheck boxes, no ROI)
 	void reset(bool clear_roi);
@@ -30,9 +28,6 @@ public:
 	/// Visually marks filters that failed.
 	void markFailedFilters();
 
-	///Returns the target region display name or an empty string if unset.
-	QString targetRegionDisplayName() const;
-    QComboBox* targetRegionBox();
     /// Loads filter target regions (Processing systems from NGSD, Sub-panels from file system and additional target regions from INI file)
 	void loadTargetRegions();
 
@@ -45,27 +40,32 @@ public:
 	void setFilterCascade(const FilterCascade& filter_cascade);
 	void editColumnFilter(QString col);
 
-	///Returns current filter name
-	QString filterName() const;
 
 	//Updates widgets according to NGSD support
 	void updateNGSDSupport();
 
 public slots:
-    ///Sets the target region by name file (without the type prefix). Returns if the target region name was found and set.
-    bool setTargetRegionByName(QString name);
+	//Sets the target region by name file (without the type prefix). Returns if the target region name was found and set.
+	bool setTargetRegionByName(QString name);
 
-    void updateFilterName();
-    void updateFilterCascade();
-    void updateTargetRegionFilter(int index);
-    void updateTargetRegionFilter(const TargetRegionInfo& new_target);
-    void updateRegionFilter();
-    void updatePhenotypes();
-    void updateGeneFilter();
-    void updateTextFilter();
-    void updateReportConfigfilter();
+	void updateStateFilterName();
+	void updateStateFilterCascade();
+	void updateStateTargetRegionFilter(int index);
+	void updateStateRegionFilter();
+	void editPhenotypes();
+	void updateStateGeneFilter();
+	void updateStateTextFilter();
+	void updateStateReportConfigfilter();
 
-	void phenotypesChanged();
+	void updateGuiFilterName();
+	void updateGuiFilterCascade();
+	void updateGuiTargetRegionFilter();
+	void updateGuiRegionFilter();
+	void updateGuiPhenotypes();
+	void updateGuiGeneFilter();
+	void updateGuiTextFilter();
+	void updateGuiReportConfigfilter();
+
 
 	void addRoi();
 	void addRoiTemp();
@@ -77,7 +77,6 @@ public slots:
 	void copyGenesToClipboard();
 	void openTargetRegionInIGV();
 	void updateGeneWarning();
-	void editPhenotypes();
 	void showPhenotypeContextMenu(QPoint pos);
 	void showGeneContextMenu(QPoint pos);
 	void showRoiContextMenu(QPoint pos);

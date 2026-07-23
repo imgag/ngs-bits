@@ -2030,8 +2030,6 @@ void MainWindow::loadFile(QString filename)
 
         QMessageBox::warning(this, "Error loading analysis:", errors.join("\n"));
 
-        ui_.filters->setValidFilterEntries(data_controller_.getValidFilterEntries());
-
         //update GUI
         QString mode_title = data_controller_.isLocal() ? "(local mode)" : "";
         setWindowTitle(appName() + " - " + data_controller_.getAnalysisName() + mode_title);
