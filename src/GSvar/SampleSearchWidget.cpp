@@ -12,7 +12,6 @@
 SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	: TabBaseClass(parent)
 	, ui_()
-	, db_()
 {
 	ui_.setupUi(this);
 	connect(ui_.sample_table, SIGNAL(rowDoubleClicked(int)), this, SLOT(openProcessedSampleTab(int)));
@@ -36,32 +35,33 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 
 	//init search criteria
 	//sample
-	ui_.s_name->fill(db_.createTable("sample", "SELECT id, name FROM sample"), true);
-	ui_.s_species->fill(db_.createTable("species", "SELECT id, name FROM species"), true);
+	NGSD db;
+	ui_.s_name->fill(db.createTable("sample", "SELECT id, name FROM sample"), true);
+	ui_.s_species->fill(db.createTable("species", "SELECT id, name FROM species"), true);
 	ui_.s_type->addItem("");
-	ui_.s_type->addItems(db_.getEnum("sample", "sample_type"));
-	ui_.s_sender->fill(db_.createTable("sender", "SELECT id, name FROM sender"), true);
-	ui_.s_study->fill(db_.createTable("study", "SELECT id, name FROM study"), true);
+	ui_.s_type->addItems(db.getEnum("sample", "sample_type"));
+	ui_.s_sender->fill(db.createTable("sender", "SELECT id, name FROM sender"), true);
+	ui_.s_study->fill(db.createTable("study", "SELECT id, name FROM study"), true);
 	ui_.s_disease_group->addItem("");
-	ui_.s_disease_group->addItems(db_.getEnum("sample", "disease_group"));
+	ui_.s_disease_group->addItems(db.getEnum("sample", "disease_group"));
 	ui_.s_disease_status->addItem("");
-	ui_.s_disease_status->addItems(db_.getEnum("sample", "disease_status"));
+	ui_.s_disease_status->addItems(db.getEnum("sample", "disease_status"));
 	ui_.s_tissue->addItem("");
-	ui_.s_tissue->addItems(db_.getEnum("sample", "tissue"));
+	ui_.s_tissue->addItems(db.getEnum("sample", "tissue"));
 	ui_.s_ancestry->addItem("");
-	ui_.s_ancestry->addItems(db_.getEnum("processed_sample_ancestry", "population"));
+	ui_.s_ancestry->addItems(db.getEnum("processed_sample_ancestry", "population"));
 
 	//project
-	ui_.p_name->fill(db_.createTable("project", "SELECT id, name FROM project"), true);
+	ui_.p_name->fill(db.createTable("project", "SELECT id, name FROM project"), true);
 	ui_.p_type->addItem("");
-	ui_.p_type->addItems(db_.getEnum("project", "type"));
+	ui_.p_type->addItems(db.getEnum("project", "type"));
 	//system
-	ui_.sys_name->fill(db_.createTable("processing_system", "SELECT id, name_manufacturer FROM processing_system"), true);
+	ui_.sys_name->fill(db.createTable("processing_system", "SELECT id, name_manufacturer FROM processing_system"), true);
 	ui_.sys_type->addItem("");
-	ui_.sys_type->addItems(db_.getEnum("processing_system", "type"));
+	ui_.sys_type->addItems(db.getEnum("processing_system", "type"));
 	//run
-	ui_.r_name->fill(db_.createTable("sequencing_run", "SELECT id, name FROM sequencing_run"), true);
-	ui_.r_device_name->fill(db_.createTable("device", "SELECT id, name FROM device"), true);
+	ui_.r_name->fill(db.createTable("sequencing_run", "SELECT id, name FROM sequencing_run"), true);
+	ui_.r_device_name->fill(db.createTable("device", "SELECT id, name FROM device"), true);
 
 	//signals/slots
 	connect(ui_.s_name, SIGNAL(returnPressed()), this, SLOT(search()));
@@ -151,13 +151,14 @@ void SampleSearchWidget::search()
 		params.add_lab_columns = ui_.add_lab_columns->isChecked();
 		params.add_study_column = ui_.add_study_column->isChecked();
 
-		if (db_.getUserRole(LoginManager::userId())=="user_restricted")
+		NGSD db;
+		if (db.getUserRole(LoginManager::userId())=="user_restricted")
 		{
 			params.restricted_user = LoginManager::userLogin();
 		}
 
 		//execute query
-		DBTable ps_table = db_.processedSampleSearch(params);
+		DBTable ps_table = db.processedSampleSearch(params);
 		ps_table.formatBooleanColumn(ps_table.columnIndex("is_tumor"));
 		ps_table.formatBooleanColumn(ps_table.columnIndex("is_ffpe"));
 
@@ -182,22 +183,25 @@ void SampleSearchWidget::search()
 
 void SampleSearchWidget::openProcessedSampleTab()
 {
+	NGSD db;
 	QSet<int> rows = ui_.sample_table->selectedRows();
 	foreach(int row, rows)
 	{
 		QString ps_id = ui_.sample_table->getId(row);
-		GlobalServiceProvider::openProcessedSampleTab(db_.processedSampleName(ps_id));
+		GlobalServiceProvider::openProcessedSampleTab(db.processedSampleName(ps_id));
 	}
 }
 
 void SampleSearchWidget::openProcessedSampleTab(int row)
 {
+	NGSD db;
 	QString ps_id = ui_.sample_table->getId(row);
-	GlobalServiceProvider::openProcessedSampleTab(db_.processedSampleName(ps_id));
+	GlobalServiceProvider::openProcessedSampleTab(db.processedSampleName(ps_id));
 }
 
 void SampleSearchWidget::openVariantList()
 {
+	NGSD db;
 	QSet<int> rows = ui_.sample_table->selectedRows();
 	if (rows.count()>1)
 	{
@@ -207,7 +211,7 @@ void SampleSearchWidget::openVariantList()
 	foreach(int row, rows)
 	{
 		QString ps_id = ui_.sample_table->getId(row);
-		GlobalServiceProvider::openGSvarViaNGSD(db_.processedSampleName(ps_id), true);
+		GlobalServiceProvider::openGSvarViaNGSD(db.processedSampleName(ps_id), true);
 	}
 }
 
@@ -263,13 +267,15 @@ void SampleSearchWidget::amendSampleComments()
 
 void SampleSearchWidget::queueAnalysis()
 {
+	NGSD db;
+
 	//prepare sample list
 	QList<AnalysisJobSample> samples;
 	QSet<int> rows = ui_.sample_table->selectedRows();
 	foreach(int row, rows)
 	{
 		QString ps_id = ui_.sample_table->getId(row);
-		samples << AnalysisJobSample {db_.processedSampleName(ps_id), ""};
+		samples << AnalysisJobSample {db.processedSampleName(ps_id), ""};
 	}
 
 	//queue analysis
