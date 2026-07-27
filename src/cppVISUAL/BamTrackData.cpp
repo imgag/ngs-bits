@@ -182,7 +182,15 @@ void BamTrackData::fetchRegion(const BedLine& region, QVector<BamAlignmentWrappe
 
 		BamAlignmentWrapper wrapped_alignment(al);
 		if (loaded_ids_.contains(wrapped_alignment.id)) continue;
-		wrapped_alignment.mate_chr = bam_reader_->chromosome(al.mateChrosomeID());
+		try
+		{
+			wrapped_alignment.mate_chr = bam_reader_->chromosome(al.mateChrosomeID());
+		}
+		catch (const Exception& e)
+		{
+			//TODO: decide what to do here
+			// for now the mate_chr remains invalid, so go_to_mate and mate info won't be available
+		}
 		loaded_ids_.insert(wrapped_alignment.id);
 
 		wrapped_alignment.storeCigarData(al, ref_seq_, ref_start_);
