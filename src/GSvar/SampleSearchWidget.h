@@ -26,7 +26,6 @@ protected slots:
 
 private:
 	Ui::SampleSearchWidget ui_;
-	NGSD db_;
 	PhenotypeList phenotypes_;
 };
 

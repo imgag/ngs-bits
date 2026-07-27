@@ -210,26 +210,19 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 	}
 }
 
-bool GSvarHelper::colorQcItem(QTableWidgetItem* item, const QString& qc_class)
+void GSvarHelper::colorQcItem(QTableWidgetItem* item, const QString& qc_class)
 {
-	//init
-	static QColor orange = QColor(255,150,0,125);
 	static QColor red = QColor(255,0,0,125);
+	static QColor orange = QColor(255,150,0,125);
 
-	//determine color
-	QColor* color = nullptr;
-
-	if (qc_class == "bad") color = &red;
-	if (qc_class == "medium") color = &orange;
-	// "good" QC values are not highlighted
-
-	//set color
-	if (color!=nullptr)
+	if (qc_class=="bad")
 	{
-        item->setBackground(QBrush(QColor(*color)));
+		item->setBackground(QBrush(red));
 	}
-
-	return color!=nullptr;
+	if (qc_class=="medium")
+	{
+		item->setBackground(QBrush(orange));
+	}
 }
 
 void GSvarHelper::limitLines(QLabel* label, QString text, int max_lines)
@@ -820,6 +813,11 @@ void GSvarHelper::updateRoiHistory(QString name)
 const QStringList& GSvarHelper::roiHistory()
 {
 	return instance().history_roi;
+}
+
+QcRuleMatcher GSvarHelper::qcRuleMatcher()
+{
+	return QcRuleMatcher(QApplication::applicationDirPath() + QDir::separator() + "GSvar_qc_cutoffs.xml");
 }
 
 GSvarHelper::GSvarHelper()

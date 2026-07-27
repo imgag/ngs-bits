@@ -729,8 +729,8 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			//calcualte z-score - mean and standard deviation are taken from https://canrisk.atlassian.net/wiki/spaces/FAQS/pages/35979266/What+variants+are+used+in+the+PRS
 			if (id=="BRIDGES_306")
 			{
-				double mean = -0.422;
-				double stdev = 0.608;
+				double mean = -0.421862361518865;
+				double stdev = 0.607541543780287;
 				double zscore_num = (Helper::toDouble(score, "PRS score") - mean) / stdev;
 				zscore = formatFloat(zscore_num, 3);
 				if (zscore_num>=1.6 && population==NGSHelper::populationCodeToHumanReadable("EUR"))
@@ -744,8 +744,8 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			}
 			if (id=="OCAC_36")
 			{
-				double mean = -0.259;
-				double stdev = 0.315;
+				double mean = -0.250;
+				double stdev = 0.322;
 				double zscore_num = (Helper::toDouble(score, "PRS score") - mean) / stdev;
 				zscore = formatFloat(zscore_num, 3);
 				if (zscore_num>=1.6 && population==NGSHelper::populationCodeToHumanReadable("EUR"))

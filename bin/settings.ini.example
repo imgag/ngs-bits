@@ -54,8 +54,8 @@ ranking_variant_blacklist=
 
 #NovaSeqX
 sample_sheet_path = 
-nova_seq_x_sw_version = "4.4.52"
-nova_seq_x_app_version = "1.4.12"
+nova_seq_x_sw_version = "4.4.12"
+nova_seq_x_app_version = "1.4.52"
 nova_seq_x_keep_fastq = 1
 
 #location, used to enable site-specific adaptations, e.g. UKT, MHH

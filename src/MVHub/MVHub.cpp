@@ -1589,7 +1589,7 @@ QByteArray MVHub::parseJsonDataPseudo(QByteArray reply, QByteArray context)
 		QString url = Settings::string("pseudo_decrypt_webservice");
 
 		QFile file(Settings::string("pseudo_key_"+context));
-		file.open(QIODevice::ReadOnly);
+		if (!file.open(QIODevice::ReadOnly)) THROW(FileAccessException, "Could not open file " + file.fileName());
 		QByteArray data = file.readAll();
 		file.close();
 

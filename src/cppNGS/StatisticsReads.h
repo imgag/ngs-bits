@@ -22,7 +22,7 @@ public:
 	};
 
 	///Constructor.
-	StatisticsReads(bool long_read=false);
+	StatisticsReads(bool single_end=false);
 	///Updates the statistics based on the given read
 	void update(const FastqEntry& entry, ReadDirection direction);
 	///Updates the statistics based on the given alignment
@@ -32,6 +32,7 @@ public:
 	QCCollection getResult();
 
 private:
+	bool single_end_;
 	long long c_forward_;
 	long long c_reverse_;
 	QMap<int,long long> read_lengths_;
@@ -44,7 +45,6 @@ private:
 	QVector<double> qualities2_;
 	Histogram qscore_dist_r1;
 	Histogram qscore_dist_r2;
-	bool long_read_;
 	QVector<long long> base_qualities_;
 	QVector<long long> read_qualities_;
 };

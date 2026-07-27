@@ -1,5 +1,15 @@
 # GSvar change log
 
+## 2026_06-76 (24.07.2026)
+
+- general: added handling for new Illumina 5B flowcell
+- burden test: format p-value as float to prevent problems with copy into Excel
+- run tab: speed-up of QC term rules application
+- bug fixes:
+  - fixed SpliceAI coloring in variant details
+  - clearing user-specific caches after changing user data
+  - fixed possible crashes in RE dialog
+
 ## 2026_06-48 (26.06.2026)
 
 - repeat expansion dialog: added column with inserterion calls at repeat locus for long-read
@@ -1227,6 +1237,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

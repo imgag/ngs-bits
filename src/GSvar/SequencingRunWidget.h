@@ -48,6 +48,14 @@ private:
 	void setQCMetricAccessions(const QSet<QString>& sample_types, const QSet<QString>& system_types);
 
 	static void highlightItem(QTableWidgetItem* item);
+
+	//cache long names to avoid repeated NGSD queries
+	QHash<QString, QString> sys_long_to_short_;
+	QString systemShortName(NGSD &db, const QString& long_name);
+
+	//cache QT term names to avoid repeated NGSD queries
+	QHash<QString, QString> qc_accession_to_name_;
+	QString qcTermName(NGSD &db, const QString& accession);
 };
 
 #endif // SEQUENCINGRUNWIDGET_H

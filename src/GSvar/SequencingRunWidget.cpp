@@ -261,7 +261,6 @@ void SequencingRunWidget::updateGUI()
 
 		//#### sample table ####
 		updateRunSampleTable();
-
 	}
 	catch (Exception& e)
 	{
@@ -415,6 +414,7 @@ void SequencingRunWidget::updateRunSampleTable()
 	QColor orange = QColor(255,150,0,125);
 	QColor red = QColor(255,0,0,125);
 	int tumor_column = ui_->samples->columnIndex("is_tumor");
+	QcRuleMatcher qc_rule_matcher = GSvarHelper::qcRuleMatcher();
 	if (ui_->show_qc_cols->isChecked())
 	{
 		foreach(const QString& accession, qc_metric_accessions_)
@@ -425,7 +425,6 @@ void SequencingRunWidget::updateRunSampleTable()
 			for (int r=0; r<ui_->samples->rowCount(); ++r)
 			{
 				QString ps_name_manufacturer = ui_->samples->item(r,ps)->text();
-				QString name_short = db.getValue("SELECT name_short FROM processing_system WHERE name_manufacturer=:0", true, ps_name_manufacturer).toString();
 
 				bool is_tumor = false;
 				if (tumor_column>-1) is_tumor = ui_->samples->item(r,tumor_column)->text()=="yes" ? true : false;
@@ -433,7 +432,7 @@ void SequencingRunWidget::updateRunSampleTable()
 				bool ok = false;
 				double qc_value = ui_->samples->item(r,c)->text().toDouble(&ok);
 				if (!ok) continue;
-				QString qc_class = QcRuleMatcher(QApplication::applicationDirPath()+QDir::separator()+"GSvar_qc_cutoffs.xml").evaluate(name_short, sys_types[r], db.getQCTermNameByAccession(accession), qc_value, is_tumor);
+				QString qc_class = qc_rule_matcher.evaluate(qcTermName(db, accession), qc_value, systemShortName(db, ps_name_manufacturer), sys_types[r], is_tumor);
 				GSvarHelper::colorQcItem(ui_->samples->item(r,c), qc_class);
 			}
 		}
@@ -484,6 +483,7 @@ void SequencingRunWidget::setQualityAutomatically()
 		int tumor_column = ui_->samples->columnIndex("is_tumor");
 		int ps_column = ui_->samples->columnIndex("processing system");
 		NGSD db;
+		QcRuleMatcher qc_rule_matcher = GSvarHelper::qcRuleMatcher();
 
 		QList<int> selected_rows = ui_->samples->selectedRows().values();
 		int good_count = 0;
@@ -498,11 +498,9 @@ void SequencingRunWidget::setQualityAutomatically()
 			bool is_tumor = false;
 			if (tumor_column>-1) is_tumor = ui_->samples->item(row,tumor_column)->text()=="yes" ? true : false;
 			QString ps_name_manufacturer = ui_->samples->item(row,ps_column)->text();
-			QString name_short = db.getValue("SELECT name_short FROM processing_system WHERE name_manufacturer=:0", true, ps_name_manufacturer).toString();
 			QString sys_type = db.getValue("SELECT type FROM processing_system WHERE name_manufacturer=:0", true, ps_name_manufacturer).toString();
 			QCCollection qc_data = db.getQCData(ps_id);
-			QString qc_class = QcRuleMatcher(QApplication::applicationDirPath() + QDir::separator() + "GSvar_qc_cutoffs.xml").evaluate(name_short, sys_type, qc_data, is_tumor);
-
+			QString qc_class = qc_rule_matcher.evaluate(qc_data, systemShortName(db, ps_name_manufacturer), sys_type, is_tumor);
 			if (qc_class == "good") good_count++;
 			if (qc_class == "medium") medium_count++;
 			if (qc_class == "bad") bad_count++;
@@ -1101,4 +1099,25 @@ void SequencingRunWidget::openSampleTab(int row)
 	int col = ui_->samples->columnIndex("sample");
 	QString ps = ui_->samples->item(row, col)->text();
 	GlobalServiceProvider::openProcessedSampleTab(ps);
+}
+
+QString SequencingRunWidget::systemShortName(NGSD& db, const QString& long_name)
+{
+	if (!sys_long_to_short_.contains(long_name))
+	{
+		sys_long_to_short_[long_name] = db.getValue("SELECT name_short FROM processing_system WHERE name_manufacturer=:0", true, long_name).toString();
+	}
+
+	return sys_long_to_short_[long_name];
+}
+
+QString SequencingRunWidget::qcTermName(NGSD &db, const QString &accession)
+{
+
+	if (!qc_accession_to_name_.contains(accession))
+	{
+		qc_accession_to_name_[accession] = db.getQCTermNameByAccession(accession);
+	}
+
+	return qc_accession_to_name_[accession];
 }
