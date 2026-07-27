@@ -146,6 +146,8 @@ public:
 
 	const QVector<BamAlignmentWrapper>& getAlignments()
 	{
+		// returns empty alignments when region is bigger than max size
+		// so that downstream tasks don't accidentally process new data
 		return (return_empty_) ? dummy_alignments_ : alignments_;
 	}
 

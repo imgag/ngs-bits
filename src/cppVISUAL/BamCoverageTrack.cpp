@@ -326,6 +326,13 @@ void BamCoverageTrack::mousePressEvent(QMouseEvent* event)
 	TrackWidget::mousePressEvent(event);
 }
 
+bool BamCoverageTrack::isCurrentRegionValid()
+{
+	const BedLine& region = SharedData::region();
+	int max_region_len = SharedData::settings().bam_max_region_len;
+	return (region.length() <= max_region_len);
+}
+
 void BamCoverageTrack::mouseReleaseEvent(QMouseEvent* event)
 {
 	if (event->button() != Qt::LeftButton)
@@ -335,7 +342,7 @@ void BamCoverageTrack::mouseReleaseEvent(QMouseEvent* event)
 	}
 	bool dragging =	((event->pos() - mouse_press_pos_).manhattanLength() >= QApplication::startDragDistance());
 
-	if (!dragging)
+	if (!dragging && isCurrentRegionValid())
 	{
 		handlePopupRequest(event->pos(), event->globalPosition());
 	}

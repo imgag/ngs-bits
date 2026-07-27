@@ -79,6 +79,8 @@ private:
 
 	// displays info at global_pos that was request at local_pos
 	void handlePopupRequest(QPointF local_pos, QPointF global_pos);
+	// returns true if current region size <= max_region_len
+	bool isCurrentRegionValid();
 
 	// converts BaseCoverage into a string for the pop up info (TODO: this can also be HTML)
 	QString getCoverageText(const BaseCoverage& coverage, int coverage_idx);

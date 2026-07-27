@@ -78,11 +78,16 @@ void BamAlignmentTrack::fullLoad()
 	pair_row_store_.squeeze();
 }
 
-void BamAlignmentTrack::dataReady()
+bool BamAlignmentTrack::isCurrentRegionValid()
 {
 	const BedLine& region = SharedData::region();
 	int max_region_len = SharedData::settings().bam_max_region_len;
-	if (region.length() <= max_region_len)
+	return (region.length() <= max_region_len);
+}
+
+void BamAlignmentTrack::dataReady()
+{
+	if (isCurrentRegionValid())
 	{
 		makePairs();
 		calculateRows();
@@ -589,82 +594,108 @@ void BamAlignmentTrack::makePairs()
 
 void BamAlignmentTrack::populateContextMenu(QMenu& menu, const QPoint& local_pos)
 {
-	QAction* pairs_action = menu.addAction("View As Pairs");
-	pairs_action->setCheckable(true);
-	pairs_action->setChecked(view_as_pairs_);
-
-	QAction* all_bases_action = menu.addAction("Show all bases");
-	all_bases_action->setCheckable(true);
-	all_bases_action->setChecked(show_all_bases_);
-
-	QAction* soft_clip_bases_action = menu.addAction("Show soft clip bases");
-	soft_clip_bases_action->setCheckable(true);
-	soft_clip_bases_action->setChecked(show_soft_clip_bases_);
-
-	connect(pairs_action, &QAction::triggered, this, [this](){
-		view_as_pairs_ = !view_as_pairs_;
-		calculateRows();
-		updateGeometry();
-		update();
-	});
-
-	connect(all_bases_action, &QAction::triggered, this, [this](){
-		show_all_bases_ = !show_all_bases_;
-		update();
-	});
-
-	connect(soft_clip_bases_action, &QAction::triggered, this, [this](){
-		show_soft_clip_bases_ = !show_soft_clip_bases_;
-		calculateRows();
-		updateGeometry();
-		update();
-	});
-
-	int aln_idx = getAlnIndexFromLocalPos(local_pos);
-	// add go_to_mate action, select/deselect action
-	if (aln_idx != -1)
+	if (isCurrentRegionValid())
 	{
-		QAction* go_to_mate_action = menu.addAction("Go to mate");
-		const auto& alns = track_data_->getAlignments();
+		QAction* pairs_action = menu.addAction("View As Pairs");
+		pairs_action->setCheckable(true);
+		pairs_action->setChecked(view_as_pairs_);
 
+		QAction* all_bases_action = menu.addAction("Show all bases");
+		all_bases_action->setCheckable(true);
+		all_bases_action->setChecked(show_all_bases_);
 
-		if (view_as_pairs_)
-		{
-			const ReadPair& rp = read_pairs_[aln_idx];
-			aln_idx = rp.first;
-		}
+		QAction* soft_clip_bases_action = menu.addAction("Show soft clip bases");
+		soft_clip_bases_action->setCheckable(true);
+		soft_clip_bases_action->setChecked(show_soft_clip_bases_);
 
-		const Chromosome& chr = alns[aln_idx].mate_chr;
-		const int mate_start = alns[aln_idx].mateStart();
-
-		go_to_mate_action->setEnabled(chr.isValid());
-
-		if (chr.isValid())
-		{
-			/*
-			 * TODO: scroll to row_y of mate
-			 * a simple solution to try:
-			 * add mate_name_ as private var and set it here (need to store mate_start_ too actually)
-			 * when data is recieved, in calculateRows after calculation is done we can get row_y
-			 * of mate_name_ (with mate_start_ we get a unqiue match) and then either send a signal to TrackGroup
-			 * to change the scroll_area value or find a parent that is scroll area and change it manually
-			 * unset mate_name_, mate_start_
-			*/
-			connect(go_to_mate_action, &QAction::triggered, this, [chr, mate_start](){
-				SharedData::setRegion(chr, mate_start - 100, mate_start + 100);
-			});
-		}
-
-		QString name = alns[aln_idx].name();
-		bool deselect = (!selected_name_.isEmpty() && name == selected_name_);
-		QAction* select_action = menu.addAction(deselect ? "Deselect" : "Select");
-		connect(select_action, &QAction::triggered, this, [this, deselect, name](){
-			if (deselect) selected_name_ = "";
-			else selected_name_ = name;
+		connect(pairs_action, &QAction::triggered, this, [this](){
+			view_as_pairs_ = !view_as_pairs_;
+			calculateRows();
+			updateGeometry();
 			update();
 		});
-	}
 
+		connect(all_bases_action, &QAction::triggered, this, [this](){
+			show_all_bases_ = !show_all_bases_;
+			update();
+		});
+
+		connect(soft_clip_bases_action, &QAction::triggered, this, [this](){
+			show_soft_clip_bases_ = !show_soft_clip_bases_;
+			calculateRows();
+			updateGeometry();
+			update();
+		});
+
+		int aln_idx = getAlnIndexFromLocalPos(local_pos);
+		// add go_to_mate action, select/deselect action
+		if (aln_idx != -1)
+		{
+			QAction* go_to_mate_action = menu.addAction("Go to mate");
+			const auto& alns = track_data_->getAlignments();
+
+			Chromosome mate_chr;
+			int mate_start;
+
+			if (view_as_pairs_)
+			{
+				// check which pair was clicked
+				const ReadPair& rp = read_pairs_[aln_idx];
+				aln_idx = rp.first;
+				mate_chr = alns[aln_idx].mate_chr;
+				mate_start = alns[aln_idx].mateStart();
+
+				// if the other part in the pair does not exist, only the first one was picked
+
+				if (rp.second > 0)
+				{
+					// check if rp.second was clicked
+					const BamAlignmentWrapper& aln = alns[rp.second];
+					const Viewport& viewport = getViewport();
+					int g_pos = viewport.screenXToGenomePos(local_pos.x());
+					if (g_pos >= aln.start() && g_pos <= aln.end())
+					{
+						//set mate_chr, mate_start to rp.first's corresponding properties
+						mate_chr = aln.mate_chr;
+						mate_start = aln.mateStart();
+					}
+				}
+			}
+			// normal mode
+			else
+			{
+				mate_chr = alns[aln_idx].mate_chr;
+				mate_start = alns[aln_idx].mateStart();
+			}
+
+			go_to_mate_action->setEnabled(mate_chr.isValid());
+
+			if (mate_chr.isValid())
+			{
+				/*
+				 * TODO: scroll to row_y of mate
+				 * a simple solution to try:
+				 * add mate_name_ as private var and set it here (need to store mate_start_ too actually)
+				 * when data is recieved, in calculateRows after calculation is done we can get row_y
+				 * of mate_name_ (with mate_start_ we get a unqiue match) and then either send a signal to TrackGroup
+				 * to change the scroll_area value or find a parent that is scroll area and change it manually
+				 * unset mate_name_, mate_start_
+				*/
+				connect(go_to_mate_action, &QAction::triggered, this, [mate_chr, mate_start](){
+					SharedData::setRegion(mate_chr, mate_start - 100, mate_start + 100);
+				});
+			}
+
+			QString name = alns[aln_idx].name();
+			bool deselect = (!selected_name_.isEmpty() && name == selected_name_);
+			QAction* select_action = menu.addAction(deselect ? "Deselect" : "Select");
+			connect(select_action, &QAction::triggered, this, [this, deselect, name](){
+				if (deselect) selected_name_ = "";
+				else selected_name_ = name;
+				update();
+			});
+		}
+	}
 	TrackWidget::populateContextMenu(menu, local_pos);
 }
 
@@ -765,7 +796,7 @@ void BamAlignmentTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 
 	const auto& alns = track_data_->getAlignments();
 
-	if (aln_idx != -1)
+	if (aln_idx != -1 && !alns.empty())
 	{
 		if (view_as_pairs_)
 		{
@@ -803,7 +834,7 @@ void BamAlignmentTrack::mouseReleaseEvent(QMouseEvent* event)
 
 	bool dragging = (event->pos() - mouse_press_pos_).manhattanLength() >= QApplication::startDragDistance();
 
-	if (!dragging)
+	if (!dragging && isCurrentRegionValid())
 	{
 		handlePopupRequest(event->pos(), event->globalPosition());
 	}

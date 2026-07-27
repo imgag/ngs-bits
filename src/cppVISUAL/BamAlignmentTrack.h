@@ -91,6 +91,7 @@ private:
 	static QSize characterSize(QFont font);
 	void handlePopupRequest(QPoint local_pos, QPointF global_pos);
 	int getAlnIndexFromLocalPos(QPoint local_pos);
+	bool isCurrentRegionValid(); // returns true if size of region < max_region_len
 
 
 	/*TODO: all of these need to be stored as LRUCache*/
