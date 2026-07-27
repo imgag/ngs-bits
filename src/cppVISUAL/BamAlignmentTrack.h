@@ -89,9 +89,19 @@ private:
 	static QColor baseColor(QChar base);
 	static QColor strandColor(bool is_reverse);
 	static QSize characterSize(QFont font);
+	// display info of Alignment that was at local pos
 	void handlePopupRequest(QPoint local_pos, QPointF global_pos);
+	// gives the index of alignment that is being display at localpos
+	// for pair_mode this gives the index in the read_pairs_ list, from which
+	// pair.first, pair.second can be used for getting the exact index
 	int getAlnIndexFromLocalPos(QPoint local_pos);
-	bool isCurrentRegionValid(); // returns true if size of region < max_region_len
+	// returns true if size of region < max_region_len
+	bool isCurrentRegionValid();
+	// gives the start and end point of the alignments
+	// if current mode is show_clip_bases_, this gives start and end with that
+	// TODO: insertation can also be expanded in the future
+	int getAlignmentStart(const BamAlignmentWrapper&);
+	int getAlignmentEnd(const BamAlignmentWrapper&);
 
 
 	/*TODO: all of these need to be stored as LRUCache*/

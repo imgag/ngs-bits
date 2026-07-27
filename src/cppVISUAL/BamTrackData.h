@@ -90,22 +90,28 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 		return id == other.id;
 	}
 
-	int start(bool soft_clip = false) const { return (soft_clip) ? st_with_soft_clip_ : st_; }
+	int start() const { return st_; }
 
-	int end(bool soft_clip = false) const { return (soft_clip) ? en_with_soft_clip_ :  en_; }
+	int end() const { return en_; }
 
-	bool isReverseStrand() const {return is_reverse_;}
+	int startWithSoftClip() const { return st_with_soft_clip_; }
 
-	int mateStart() const {return mate_start_;}
-	int mateChrId() const {return mat_chr_id_;}
+	int endWithSoftClip() const { return en_with_soft_clip_; }
 
-	bool isMateMapped() const {return mate_is_mapped_;}
+	bool isReverseStrand() const { return is_reverse_; }
 
-	QString name() const {return name_;}
+	int mateStart() const { return mate_start_; }
+	int mateChrId() const { return mat_chr_id_; }
+
+	bool isMateMapped() const { return mate_is_mapped_; }
+
+	QString name() const { return name_; }
+
+	bool isValid() const { return (st_ >= 0 && en_ >= 0); }
 
 private:
-	int st_;
-	int en_;
+	int st_ = -1;
+	int en_ = -1;
 	int st_with_soft_clip_;
 	int en_with_soft_clip_;
 	bool is_reverse_;

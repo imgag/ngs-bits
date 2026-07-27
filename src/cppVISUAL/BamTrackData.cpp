@@ -194,6 +194,9 @@ void BamTrackData::fetchRegion(const BedLine& region, QVector<BamAlignmentWrappe
 		loaded_ids_.insert(wrapped_alignment.id);
 
 		wrapped_alignment.storeCigarData(al, ref_seq_, ref_start_);
+
+		if (!wrapped_alignment.isValid()) continue; // has st/en < -1
+
 		if (dest) dest->push_back(std::move(wrapped_alignment));
 		else alignments_.push_back(std::move(wrapped_alignment));
 	}
@@ -257,8 +260,6 @@ void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Se
 			case BAM_CSOFT_CLIP:
 				c_data.event = SOFT_CLIP;
 				break;
-				// read_pos += len;
-				// continue;
 			case BAM_CREF_SKIP:
 				genome_pos += len;
 				continue;

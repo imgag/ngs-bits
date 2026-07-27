@@ -103,6 +103,18 @@ void BamAlignmentTrack::calculateRows()
 	else calculateRowsNormalMode();
 }
 
+int BamAlignmentTrack::getAlignmentStart(const BamAlignmentWrapper& al)
+{
+	if (show_soft_clip_bases_) return al.startWithSoftClip();
+	return al.start();
+}
+
+int BamAlignmentTrack::getAlignmentEnd(const BamAlignmentWrapper& al)
+{
+	if (show_soft_clip_bases_) return al.endWithSoftClip();
+	return al.end();
+}
+
 void BamAlignmentTrack::calculateRowsNormalMode()
 {
 	const QVector<BamAlignmentWrapper>& alns = track_data_->getAlignments();
@@ -118,11 +130,11 @@ void BamAlignmentTrack::calculateRowsNormalMode()
 		const BamAlignmentWrapper& w = alns[i];
 		const auto& aln_id = w.id;
 		if (row_idxes_.contains(aln_id) && row_packer_.canRestore(row_idxes_[aln_id],
-																  w.start(show_soft_clip_bases_),
-																  w.end(show_soft_clip_bases_)))
+																  getAlignmentStart(w),
+																  getAlignmentEnd(w)))
 		{
-			row_packer_.restore(row_idxes_[aln_id], w.start(show_soft_clip_bases_),
-								w.end(show_soft_clip_bases_), i);
+			row_packer_.restore(row_idxes_[aln_id], getAlignmentStart(w) ,
+								getAlignmentEnd(w), i);
 			restored.insert(i);
 		}
 	}
@@ -135,7 +147,7 @@ void BamAlignmentTrack::calculateRowsNormalMode()
 		#ifdef CACHE_ROW_ASSIGNMENTS
 		if (restored.contains(i)) continue;
 		#endif
-		int row = row_packer_.insert(alns[i].start(show_soft_clip_bases_), alns[i].end(show_soft_clip_bases_), i);
+		int row = row_packer_.insert(getAlignmentStart(alns[i]), getAlignmentEnd(alns[i]), i);
 		row_idxes_[alns[i].id] = row;
 	}
 
@@ -235,8 +247,8 @@ void BamAlignmentTrack::drawAlignmentAndMismatches(QPainter& painter, const BamA
 
 	const BedLine& region = SharedData::region();
 
-	if (al.end(show_soft_clip_bases_) < region.start() ||
-		al.start(show_soft_clip_bases_) > region.end()) return;
+	if (getAlignmentEnd(al) < region.start() ||
+		getAlignmentStart(al) > region.end()) return;
 
 	drawAlignment(painter, al, row_y);
 	if (!show_all_bases_) drawMismatches(painter, al, row_y);
@@ -281,8 +293,8 @@ void BamAlignmentTrack::drawPairMode(QPainter& painter, const BedLine& region)
 			const BamAlignmentWrapper& al1 = alns[read_pair.first];
 			const BamAlignmentWrapper& al2 = alns[read_pair.second];
 
-			int st = std::clamp(al1.end(show_soft_clip_bases_) + 1, region.start(), region.end() + 1);
-			int en = std::clamp(al2.start(show_soft_clip_bases_), region.start(), region.end() + 1);
+			int st = std::clamp(getAlignmentEnd(al1) + 1, region.start(), region.end() + 1);
+			int en = std::clamp(getAlignmentStart(al2), region.start(), region.end() + 1);
 
 			float p0 = viewport.genomePosToScreen(st);
 			float p1 = viewport.genomePosToScreen(en);
@@ -408,8 +420,8 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 	}
 
 	//draw the arrows
-	int st = std::max(al_w.start(show_soft_clip_bases_), viewport.region.start());
-	int en = std::min(al_w.end(show_soft_clip_bases_), viewport.region.end());
+	int st = std::max(getAlignmentStart(al_w), viewport.region.start());
+	int en = std::min(getAlignmentEnd(al_w), viewport.region.end());
 	int x_start = viewport.genomePosToScreen(st);
 	int width = viewport.genomeWidthToScreen(en - st + 1);
 
@@ -445,8 +457,8 @@ void BamAlignmentTrack::drawHighlight(QPainter& painter, const BamAlignmentWrapp
 {
 
 	const Viewport& viewport = getViewport();
-	int st = std::max(al_w.start(show_soft_clip_bases_), viewport.region.start());
-	int en = std::min(al_w.end(show_soft_clip_bases_), viewport.region.end());
+	int st = std::max(getAlignmentStart(al_w), viewport.region.start());
+	int en = std::min(getAlignmentEnd(al_w), viewport.region.end());
 	int x_start = viewport.genomePosToScreen(st);
 	int width = viewport.genomeWidthToScreen(en - st + 1);
 
@@ -576,16 +588,16 @@ void BamAlignmentTrack::makePairs()
 			int j = pending.take(name);
 
 			read_pairs_[j].second = i;
-			read_pairs_[j].start = std::min(read_pairs_[j].start, al.start(show_soft_clip_bases_));
-			read_pairs_[j].end = std::max(read_pairs_[j].end, al.end(show_soft_clip_bases_));
+			read_pairs_[j].start = std::min(read_pairs_[j].start, getAlignmentStart(al));
+			read_pairs_[j].end = std::max(read_pairs_[j].end, getAlignmentEnd(al));
 		}
 		else
 		{
 			ReadPair p;
 			p.first = i;
 			p.second = -1;
-			p.start = al.start(show_soft_clip_bases_);
-			p.end = al.end(show_soft_clip_bases_);
+			p.start = getAlignmentStart(al);
+			p.end = getAlignmentEnd(al);
 			pending[name] = read_pairs_.count();
 			read_pairs_.append(p);
 		}
@@ -730,7 +742,7 @@ QString BamAlignmentTrack::getBamAlignmentText(const BamAlignmentWrapper& al_w, 
 					   .arg(al_w.end())
 					   .arg(al_w.isReverseStrand() ? "Reverse" : "Forward");
 
-	if (genome_pos < al_w.start(show_soft_clip_bases_) || genome_pos > al_w.end(show_soft_clip_bases_))
+	if (genome_pos < getAlignmentStart(al_w) || genome_pos > getAlignmentEnd(al_w))
 	{
 		return text;
 	}
