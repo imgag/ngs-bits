@@ -126,7 +126,7 @@ build_server_release_noclean:
 clean:
 	find src -name "*.user" | xargs rm -rf
 	rm -rf $(PROJECT_BUILD_DIR)build-* $(PROJECT_BUILD_DIR)bin/out
-	find $(PROJECT_BUILD_DIR)bin -type f -or -type l | grep -v ".ini" | grep -v "GSvar_" | grep -v "libhts" | xargs -l1 rm -rf
+	find bin -type f -or -type l | grep -v ".ini" | grep -v "GSvar_" | grep -v "libhts" | xargs -l1 rm -rf
 
 test_lib:
 	cd ./bin && ./cppCORE-TEST && ./cppXML-TEST && ./cppNGS-TEST && ./cppNGSD-TEST && ./cppREST-TEST
