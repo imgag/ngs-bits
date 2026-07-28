@@ -100,6 +100,7 @@ public:
 
 		ProcessedSampleSearchParameters params;
 		QStringList ps_samples = genlab.samplesWithSapID(sap_id, params);
+		ps_samples.sort();
 		QSet<QString> pat_ids_set;
 		foreach(const QString& ps, ps_samples)
 		{

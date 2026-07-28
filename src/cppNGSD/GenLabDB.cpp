@@ -356,6 +356,11 @@ QStringList GenLabDB::samplesWithSapID(QString sap_id, ProcessedSampleSearchPara
 		QString dna_nr = query.value(0).toString().trimmed();
 		if (!dna_nr.isEmpty())
 		{
+			//in case processed sample IDs were entered into genlab
+			if (dna_nr.contains("_"))
+			{
+				dna_nr = dna_nr.split("_")[0];
+			}
 			dna_nrs << dna_nr;
 		}
 	}
