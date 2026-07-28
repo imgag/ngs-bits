@@ -76,6 +76,8 @@ protected:
 protected slots:
 	void copySelectionToClipboard();
 	void copyTableToClipboard();
+	void copySelectionToClipboardLocale();
+	void copyTableToClipboardLocale();
 	void processDoubleClick(int row, int column);
 
 protected:
