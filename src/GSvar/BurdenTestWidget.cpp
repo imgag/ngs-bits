@@ -1066,7 +1066,7 @@ void BurdenTestWidget::copyToClipboard()
 		comments << "CNV_copy_number=0";
 	}
 
-	GUIHelper::copyToClipboard(ui_->tw_gene_table, false, comments);
+	GUIHelper::copyToClipboard(ui_->tw_gene_table, false, false, comments);
 }
 
 void BurdenTestWidget::copyWarningsToClipboard()

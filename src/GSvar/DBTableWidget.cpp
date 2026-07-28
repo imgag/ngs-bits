@@ -20,9 +20,15 @@ DBTableWidget::DBTableWidget(QWidget* parent)
 	QAction* copy_action = new QAction(QIcon(":/Icons/CopyClipboard.png"), "Copy selection", this);
 	addAction(copy_action);
 	connect(copy_action, SIGNAL(triggered(bool)), this, SLOT(copySelectionToClipboard()));
+	copy_action = new QAction(QIcon(":/Icons/CopyClipboard.png"), "Copy selection (numbers to locale)", this);
+	addAction(copy_action);
+	connect(copy_action, SIGNAL(triggered(bool)), this, SLOT(copySelectionToClipboardLocale()));
 	copy_action = new QAction(QIcon(":/Icons/CopyClipboard.png"), "Copy all", this);
 	addAction(copy_action);
 	connect(copy_action, SIGNAL(triggered(bool)), this, SLOT(copyTableToClipboard()));
+	copy_action = new QAction(QIcon(":/Icons/CopyClipboard.png"), "Copy all (numbers to locale)", this);
+	addAction(copy_action);
+	connect(copy_action, SIGNAL(triggered(bool)), this, SLOT(copyTableToClipboardLocale()));
 }
 
 void DBTableWidget::setData(const DBTable& table, int max_col_width, QSet<QString> cols_double, QSet<QString> cols_int)
@@ -50,13 +56,13 @@ void DBTableWidget::setData(const DBTable& table, int max_col_width, QSet<QStrin
 		QString col = table.headers()[c];
 		if (cols_double.contains(col))
 		{
-			col_type << QVariant::Double;
+			col_type << QMetaType::Double;
 		}
 		else if (cols_int.contains(col))
 		{
-			col_type << QVariant::Int;
+			col_type << QMetaType::Int;
 		}
-		else col_type << QVariant::String;
+		else col_type << QMetaType::QString;
 	}
 
 	//content
@@ -72,11 +78,11 @@ void DBTableWidget::setData(const DBTable& table, int max_col_width, QSet<QStrin
 			{
 				setItem(r, c, GUIHelper::createTableItem(""));
 			}
-			else if (col_type[c]==QVariant::Double)
+			else if (col_type[c]==QMetaType::Double)
 			{
 				setItem(r, c, GUIHelper::createTableItem(row.value(c).toDouble()));
 			}
-			else if (col_type[c]==QVariant::Int)
+			else if (col_type[c]==QMetaType::Int)
 			{
 				setItem(r, c, GUIHelper::createTableItem(row.value(c).toInt()));
 			}
@@ -262,6 +268,16 @@ void DBTableWidget::copySelectionToClipboard()
 void DBTableWidget::copyTableToClipboard()
 {
 	GUIHelper::copyToClipboard(this, false);
+}
+
+void DBTableWidget::copySelectionToClipboardLocale()
+{
+	GUIHelper::copyToClipboard(this, true, true);
+}
+
+void DBTableWidget::copyTableToClipboardLocale()
+{
+	GUIHelper::copyToClipboard(this, false, true);
 }
 
 void DBTableWidget::processDoubleClick(int row, int /*column*/)
