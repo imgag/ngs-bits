@@ -204,6 +204,19 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
+						"prolong_url",
+						QMap<QString, ParamProps> {
+							{"ps_url_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "An id of a temporary URL pointing to a specific processed sample"}},
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::GET,
+						ContentType::TEXT_PLAIN,
+						AuthType::USER_TOKEN,
+						"Refreshes lifetimes for all URLs related to the given processed sample",
+						&ServerController::prolongUrl
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
 						"processed_sample_path",
 						QMap<QString, ParamProps> {
 						   {"ps_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processed sample id"}},

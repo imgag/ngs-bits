@@ -260,7 +260,7 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 {
     // Check all parameters
-    if (!request.getUrlParams().contains("ps_url_id"))
+	if (!request.getUrlParams().contains("ps_url_id"))
     {
         return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Sample id has not been provided"));
 	}
@@ -323,7 +323,7 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 					QString cached_filename = cached_object.value("filename").toString();
 					if (!cached_filename.isEmpty())
 					{
-						cached_object.insert("filename", createTempUrl(cached_filename, request.getUrlParams()["token"]));
+						cached_object.insert("filename", createTempUrl(ps_url_id, cached_filename, request.getUrlParams()["token"]));
 						updated_cached_array.append(cached_object);
 					}
 				}
@@ -532,7 +532,7 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 		{
 			try
             {
-                cur_json_item.insert("filename", createTempUrl(file_list[i].filename, request.getUrlParams()["token"]));
+				cur_json_item.insert("filename", createTempUrl(ps_url_id, file_list[i].filename, request.getUrlParams()["token"]));
             }
 			catch (Exception& e)
             {
@@ -562,6 +562,20 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 	response_data.content_type = request.getContentType();
 	response_data.is_downloadable = false;
 	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
+HttpResponse ServerController::prolongUrl(const HttpRequest &request)
+{
+	if (!request.getUrlParams().contains("ps_url_id"))
+	{
+		return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Sample id has not been provided"));
+	}
+	QString ps_url_id = request.getUrlParams()["ps_url_id"];
+	if(UrlManager::extendActiveUrls(ps_url_id))
+	{
+		return HttpResponse(ResponseStatus::OK, request.getContentType(), "Lifetimes for the given URLs have been extended: " + ps_url_id);
+	}
+	return HttpResponse(ResponseStatus::OK, request.getContentType(), "No URLs related to the given sample have been found: " + ps_url_id);
 }
 
 HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request)
@@ -599,7 +613,7 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
     }
 
     FastFileInfo file_info(found_file_path);
-    FileLocation project_file = FileLocation(ps_name, type, createTempUrl(file_info, request.getUrlParams()["token"]), file_info.lastModified(), file_info.exists());
+	FileLocation project_file = FileLocation(ps_name, type, createTempUrl(file_info, request.getUrlParams()["token"], true), file_info.lastModified(), file_info.exists());
 
 	QJsonDocument json_doc_output;
 	QJsonArray file_location_as_json_list;
@@ -1840,10 +1854,19 @@ QString ServerController::createTempUrl(const QString& file, const QString& toke
     return ClientHelper::serverApiUrl() + "temp/" + id + "/" + info->fileName() + "?token=" + token;
 }
 
-QString ServerController::createTempUrl(FastFileInfo& file_info, const QString& token)
+QString ServerController::createTempUrl(const QString &ps_folder, const QString &file, const QString &token)
+{
+	QString id = ServerHelper::generateUniqueStr();
+	QSharedPointer<FastFileInfo> info = QSharedPointer<FastFileInfo>(new FastFileInfo(file));
+	UrlManager::addNewUrl(UrlEntity(id, info->fileName(), info->absolutePath(), file, id, info->size(), info->exists(), QDateTime::currentDateTime(), ps_folder));
+	return ClientHelper::serverApiUrl() + "temp/" + id + "/" + info->fileName() + "?token=" + token;
+}
+
+QString ServerController::createTempUrl(FastFileInfo& file_info, const QString& token, bool id_as_ps_folder)
 {
     QString id = ServerHelper::generateUniqueStr();
-    UrlManager::addNewUrl(UrlEntity(id, file_info.fileName(), file_info.absolutePath(), file_info.absoluteFilePath(), id, file_info.size(), file_info.exists(), QDateTime::currentDateTime()));
+	if (id_as_ps_folder) UrlManager::addNewUrl(UrlEntity(id, file_info.fileName(), file_info.absolutePath(), file_info.absoluteFilePath(), id, file_info.size(), file_info.exists(), QDateTime::currentDateTime(), id));
+	else UrlManager::addNewUrl(UrlEntity(id, file_info.fileName(), file_info.absolutePath(), file_info.absoluteFilePath(), id, file_info.size(), file_info.exists(), QDateTime::currentDateTime()));
     return ClientHelper::serverApiUrl() + "temp/" + id + "/" + file_info.fileName() + "?token=" + token;
 }
 
