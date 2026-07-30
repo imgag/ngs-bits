@@ -3,6 +3,7 @@
 
 #include "cppNGSD_global.h"
 #include "NGSD.h"
+#include <QObject>
 
 enum class Inheritance
 {
@@ -52,7 +53,7 @@ struct CPPNGSDSHARED_EXPORT BurdenTestParameters
 		text << "max_ngsd_count=" + QByteArray::number(max_ngsd_count);
 		text << "max_gnomad_af=" + QByteArray::number(max_gnomad_af);
 		QByteArrayList impact_str;
-		for (VariantImpact impact : impacts)
+		for (VariantImpact impact : std::as_const(impacts))
 		{
 			impact_str << variantImpactToString(impact);
 		}
@@ -71,15 +72,26 @@ struct CPPNGSDSHARED_EXPORT BurdenTestParameters
 	};
 };
 
-class WorkerGeneBurdenTest : public QRunnable
+class WorkerGeneBurdenTest
+	: public QObject
+	, public QRunnable
+
 {
+	Q_OBJECT
+
 public:
-	WorkerGeneBurdenTest(BurdenTestResult& gene_result, const BurdenTestParameters& parameters, const QMap<QByteArray,BedFile>& ccr80_region, const QSet<int>& ps_ids_cases, const QSet<int>& ps_ids_controls,
+	WorkerGeneBurdenTest(const QByteArray& gene, const BurdenTestParameters& parameters, const QMap<QByteArray,BedFile>& ccr80_region, const QSet<int>& ps_ids_cases, const QSet<int>& ps_ids_controls,
 						 const QByteArrayList& ps_ids, const QSet<int>& callset_ids_cases, const QSet<int>& callset_ids_controls, const BedFile& cnv_polymorphism_region, bool test, bool debug);
 	virtual void run() override;
 
+	BurdenTestResult result()
+	{
+		return gene_result_;
+	}
+
+
 private:
-	BurdenTestResult& gene_result_;
+	BurdenTestResult gene_result_;
 	const BurdenTestParameters& parameters_;
 	const QMap<QByteArray,BedFile>& ccr80_region_;
 
@@ -102,8 +114,9 @@ private:
 
 
 
-class CPPNGSDSHARED_EXPORT GeneBurdenTest
+class CPPNGSDSHARED_EXPORT GeneBurdenTest : public QObject
 {
+	Q_OBJECT
 
 public:
 	GeneBurdenTest(const QSet<int>& ps_ids_cases, const QSet<int>& ps_ids_controls, const GeneSet& genes, BurdenTestParameters parameters, int threads, bool test=false, bool debug=false, bool skip_errors=false);
@@ -134,6 +147,9 @@ private:
 	GeneSet ccr_genes_;
 	QMap<QByteArray,BedFile> ccr80_region_;
 	void initCCR();
+
+	//List to store results
+	QList<BurdenTestResult> results_;
 
 };
 
