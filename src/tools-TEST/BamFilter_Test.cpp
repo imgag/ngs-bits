@@ -22,4 +22,13 @@ private:
 		COMPARE_FILES("out/BamFilter_out2.bam.txt", "out/BamFilter_out2.expected.txt");
 	}
 
+	TEST_METHOD(max_mq_filter)
+	{
+		EXECUTE("BamFilter", "-in " + TESTDATA("data_in/BamFilter_in2.bam") + " -out out/BamFilter_out3.bam -maxMQ 50");
+
+		BAM_TO_TEXT("out/BamFilter_out3.bam", "out/BamFilter_out3.bam.txt");
+		BAM_TO_TEXT(TESTDATA("data_out/BamFilter_out3.bam"), "out/BamFilter_out3.expected.txt");
+		COMPARE_FILES("out/BamFilter_out3.bam.txt", "out/BamFilter_out3.expected.txt");
+	}
+
 };

@@ -361,14 +361,19 @@ MainWindow::MainWindow(QWidget *parent)
 	{
 		// renew existing session, if it is about to expire
 		// a new token will be requested slightly in advance
-        QTimer *login_timer = new QTimer(this);
-        connect(login_timer, SIGNAL(timeout()), this, SLOT(updateSecureToken()));
-        login_timer->start(20 * 60 * 1000); // every 20 minutes
+		QTimer *login_timer = new QTimer(this);
+		connect(login_timer, SIGNAL(timeout()), this, SLOT(updateSecureToken()));
+		login_timer->start(20 * 60 * 1000); // every 20 minutes
 
 		//check if the server is running
 		QTimer *server_ping_timer = new QTimer(this);
 		connect(server_ping_timer, SIGNAL(timeout()), this, SLOT(checkServerAvailability()));
 		server_ping_timer->start(10 * 60 * 1000); // every 10 minutes
+
+		//check if the server is running
+		QTimer *active_url_update_timer = new QTimer(this);
+		connect(active_url_update_timer, SIGNAL(timeout()), this, SLOT(updateActiveUrls()));
+		active_url_update_timer->start(30 * 60 * 1000); // every 30 minutes
 
 
 		//check if there are new notifications for the users
@@ -450,6 +455,35 @@ void MainWindow::checkServerAvailability()
 	if (!isServerRunning())
 	{
 		close();
+	}
+}
+
+void MainWindow::updateActiveUrls()
+{
+	if (filename_.isEmpty()) return;
+
+	QList<QString> filename_parts = filename_.split("/");
+	QString ps_url_id;
+	if (filename_parts.size()>3) ps_url_id = filename_parts[filename_parts.size()-2];
+
+	if (ps_url_id.isEmpty()) return;
+	HttpHeaders add_headers;
+	add_headers.insert("Accept", "text/plain");
+	add_headers.insert("Content-Type", "text/plain");
+
+	try
+	{
+		QByteArray response = HttpRequestHandler().get(ClientHelper::serverApiUrl() + "prolong_url?ps_url_id=" + ps_url_id + "&token=" + LoginManager::userToken(), add_headers).body;
+		Log::info("Reset the URL expiration time for the currently opened sample: " + ps_url_id);
+		Log::info(response);
+	}
+	catch (HttpException& e)
+	{
+		Log::error("Could not reset the URLs lifetime due to the HTTP error: " + e.message());
+	}
+	catch (...)
+	{
+		Log::error("Could not reset the URLs lifetime due to unknown error");
 	}
 }
 

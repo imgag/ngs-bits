@@ -4,8 +4,18 @@
 #include "Log.h"
 
 UrlManager::UrlManager()
-    : url_storage_()
+	: url_storage_()
+	, current_url_lifetime_(0)
 {
+	try
+	{
+		current_url_lifetime_ = Settings::integer("url_lifetime");
+	}
+	catch(ProgrammingException& e)
+	{
+		current_url_lifetime_ = DEFAULT_URL_LIFETIME;
+		Log::warn(e.message() + " Using the default value for setting the URL lifetime: " + QString::number(current_url_lifetime_));
+	}
 }
 
 UrlManager& UrlManager::instance()
@@ -62,43 +72,21 @@ QList<UrlEntity> UrlManager::getAllUrls()
 
 bool UrlManager::isValidUrl(QString token)
 {
-    UrlEntity cur_url = instance().getURLById(token);
-    if (cur_url.isEmpty())
-    {
-        return false;
-    }
+	UrlEntity cur_url = instance().getURLById(token);
+	if (cur_url.isEmpty())
+	{
+		return false;
+	}
 
-    int url_lifetime = 0;
-    try
-    {
-        url_lifetime = Settings::integer("url_lifetime");
-    }
-    catch(ProgrammingException& e)
-    {
-        url_lifetime = DEFAULT_URL_LIFETIME;
-        Log::warn(e.message() + " Using the default value: " + QString::number(url_lifetime));
-    }
-
-    if (cur_url.created.addSecs(url_lifetime).toSecsSinceEpoch() <= QDateTime::currentDateTime().toSecsSinceEpoch())
-    {
-        return false;
-    }
-    return true;
+	if (cur_url.created.addSecs(instance().current_url_lifetime_).toSecsSinceEpoch() <= QDateTime::currentDateTime().toSecsSinceEpoch())
+	{
+		return false;
+	}
+	return true;
 }
 
 void UrlManager::removeExpiredUrls()
 {
-    int url_lifetime = 0;
-    try
-    {
-        url_lifetime = Settings::integer("url_lifetime");
-    }
-    catch(ProgrammingException& e)
-    {
-        url_lifetime = DEFAULT_URL_LIFETIME;
-        Log::warn(e.message() + " Using the default value: " + QString::number(url_lifetime));
-    }
-
     Log::info("Starting to cleanup URLs");
     QList<QString> to_be_removed {};
     QList<UrlEntity> to_be_backedup {};
@@ -106,7 +94,7 @@ void UrlManager::removeExpiredUrls()
     QList<QString> keys = instance().url_storage_.keys();
     for (int i = 0; i < keys.count(); i++)
     {
-        if (instance().url_storage_.value(keys[i]).created.toSecsSinceEpoch() < (QDateTime::currentDateTime().toSecsSinceEpoch()-url_lifetime))
+	if (instance().url_storage_.value(keys[i]).created.toSecsSinceEpoch() < (QDateTime::currentDateTime().toSecsSinceEpoch()-instance().current_url_lifetime_))
         {
             to_be_removed.append(keys[i]);
         }
@@ -121,4 +109,21 @@ void UrlManager::removeExpiredUrls()
     }
 
     Log::info("Number of removed URLs: " + QString::number(to_be_removed.length()));
+}
+
+bool UrlManager::extendActiveUrls(QString ps_folder)
+{
+	QList<QString> keys = instance().url_storage_.keys();
+	bool has_active_urls = false;
+	for (int i = 0; i < keys.count(); i++)
+	{
+		if (instance().url_storage_.value(keys[i]).ps_folder == ps_folder)
+		{
+			has_active_urls = true;
+			UrlEntity url_to_be_updated = instance().url_storage_.value(keys[i]);
+			url_to_be_updated.created =  QDateTime::currentDateTime();
+			instance().url_storage_.updateValue(keys[i], url_to_be_updated);
+		}
+	}
+	return has_active_urls;
 }

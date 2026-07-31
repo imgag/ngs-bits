@@ -5,10 +5,9 @@
 #include <Settings.h>
 
 
-WorkerGeneBurdenTest::WorkerGeneBurdenTest(BurdenTestResult& gene_result, const BurdenTestParameters& parameters, const QMap<QByteArray,BedFile>& ccr80_region, const QSet<int>& ps_ids_cases, const QSet<int>& ps_ids_controls,
+WorkerGeneBurdenTest::WorkerGeneBurdenTest(const QByteArray &gene, const BurdenTestParameters& parameters, const QMap<QByteArray,BedFile>& ccr80_region, const QSet<int>& ps_ids_cases, const QSet<int>& ps_ids_controls,
 										   const QByteArrayList& ps_ids, const QSet<int>& callset_ids_cases, const QSet<int>& callset_ids_controls, const BedFile &cnv_polymorphism_region, bool test,  bool debug)
 	: QRunnable()
-	, gene_result_(gene_result)
 	, parameters_(parameters)
 	, ccr80_region_(ccr80_region)
 	, ps_ids_cases_(ps_ids_cases)
@@ -21,6 +20,7 @@ WorkerGeneBurdenTest::WorkerGeneBurdenTest(BurdenTestResult& gene_result, const 
 	, debug_(debug)
 {
 	// db_ = new NGSD(test);
+	gene_result_.gene = gene;
 }
 
 void WorkerGeneBurdenTest::run()
@@ -193,17 +193,19 @@ void WorkerGeneBurdenTest::run()
 	}
 	catch(Exception& e)
 	{
+		if (debug_) QTextStream(stdout) << e.message();
 		gene_result_.error = e.message();
 	}
 	catch(std::exception& e)
 	{
+		if (debug_) QTextStream(stdout) << e.what();
 		gene_result_.error = e.what();
 	}
 	catch(...)
 	{
+		if (debug_) QTextStream(stdout) << "Unknown exception!";
 		gene_result_.error = "Unknown exception!";
 	}
-
 }
 
 QMap<int, Variant> WorkerGeneBurdenTest::getVariantsForRegion(const BedFile &regions)
@@ -237,61 +239,7 @@ QMap<int, Variant> WorkerGeneBurdenTest::getVariantsForRegion(const BedFile &reg
 
 		variants.insert(variant_id, variant);
 
-		// //filter by impact
-		// bool at_least_one_part_matches = false;
-		// foreach(const QString& part, query.value("coding").toString().split(","))
-		// {
-		// 	//skip empty enties
-		// 	int index = part.indexOf(':');
-		// 	if (index==-1)
-		// 	{
-		// 		n_skipped_empty++;
-		// 		continue;
-		// 	}
-
-		// 	//skip all entries which doesn't describe the current gene
-		// 	if(!part.trimmed().startsWith(gene_symbol))
-		// 	{
-		// 		n_skipped_gene++;
-		// 		continue;
-		// 	}
-
-		// 	//filter by impact
-		// 	bool match = false;
-		// 	foreach(const QString& impact, parameters_.impacts)
-		// 	{
-		// 		if (part.contains(impact))
-		// 		{
-		// 			if (parameters_.predict_pathogenic && (impact != "HIGH") && (query.value("cadd").toDouble() < 20) && (query.value("spliceai").toDouble() < 0.5))
-		// 			{
-		// 				n_skipped_non_pathogenic++;
-		// 				continue;
-		// 			}
-		// 			match = true;
-		// 			break;
-		// 		}
-		// 	}
-		// 	if (match)
-		// 	{
-		// 		at_least_one_part_matches = true;
-		// 		break;
-		// 	}
-
-		// 	//TODO: filter by live-calculated impact?
-		// }
-
-		// if (!at_least_one_part_matches)
-		// {
-		// 	n_skipped_impact++;
-		// 	continue;
-		// }
-
-		// // return variant id
-		// variant_ids.insert(query.value("id").toInt());
 	}
-
-	// if (debug_) QTextStream(stdout) << "\t skipped empty|wrong gene|wrong impact|non-pathogenic prediction: " << n_skipped_empty << "|" << n_skipped_gene
-	// 						<< "|" << n_skipped_impact << "|" << n_skipped_non_pathogenic << "\n\t\t -> remaining variants:" << variant_ids.size() << Qt::endl;
 
 	return variants;
 }
@@ -301,26 +249,6 @@ QString WorkerGeneBurdenTest::createGeneQuery(const BedFile &regions)
 	//prepare db queries
 	QString query_text = "SELECT id, chr, start, end, ref, obs, cadd, spliceai FROM variant WHERE (germline_het>0 OR germline_hom>0) AND germline_het+germline_hom<=" + QString::number(parameters_.max_ngsd_count)
 						 + " AND (gnomad IS NULL OR gnomad<=" + QString::number(parameters_.max_gnomad_af) + ")";
-
-	//impacts
-	// if(parameters_.impacts.size() > 0)
-	// {
-	// 	query_text += " AND (";
-	// 	QStringList impact_query_statement;
-	// 	foreach (const QString& impact, parameters_.impacts)
-	// 	{
-	// 		if (!parameters_.predict_pathogenic || impact == "HIGH")
-	// 		{
-	// 			impact_query_statement << "(coding LIKE '%" + impact + "%')";
-	// 		}
-	// 		else
-	// 		{
-	// 			impact_query_statement << "(coding LIKE '%" + impact + "%' AND (cadd>=20 OR spliceai>=0.5))";
-	// 		}
-	// 	}
-	// 	query_text += impact_query_statement.join(" OR ");
-	// 	query_text += ")";
-	// }
 
 	//gene regions
 	QStringList chr_ranges;
@@ -466,7 +394,7 @@ QMap<QByteArray, QByteArray> WorkerGeneBurdenTest::getOccurencesCNV(const QSet<i
 		if  (cn > 1) continue; // in dominant/de-novo case
 
 		//filter by logll
-		QJsonDocument json = QJsonDocument::fromJson(db.getValue("SELECT cn FROM cnv WHERE id=:0", false, QString::number(cnv_id)).toByteArray());
+		QJsonDocument json = QJsonDocument::fromJson(db.getValue("SELECT quality_metrics FROM cnv WHERE id=:0", false, QString::number(cnv_id)).toByteArray());
 		int ll = json.object().value("loglikelihood").toInt();
 		int n_regions = (json.object().contains("regions"))?json.object().value("regions").toInt():json.object().value("no_of_regions").toInt();
 		double scaled_ll = (double) ll / n_regions;
@@ -531,7 +459,8 @@ GeneBurdenTest::GeneBurdenTest(const QSet<int> &ps_ids_cases, const QSet<int> &p
 
 QList<BurdenTestResult> GeneBurdenTest::run_burden_test()
 {
-
+	//clear previous results
+	results_.clear();
 
 	QElapsedTimer timer;
 	timer.start();
@@ -623,23 +552,17 @@ QList<BurdenTestResult> GeneBurdenTest::run_burden_test()
 
 	}
 
-	//create container for analysis
-	QList<BurdenTestResult> result;
-	for (const QByteArray& gene : std::as_const(genes_))
-	{
-		BurdenTestResult gene_result;
-		gene_result.gene = gene;
-		result << gene_result;
-	}
-
 	//create thread pool
 	QThreadPool thread_pool;
 	thread_pool.setMaxThreadCount(threads_);
 
 	//start analysis chunks
-	for (int i=0; i<result.count(); ++i)
+	QList<WorkerGeneBurdenTest*> workers;
+	for (const QByteArray& gene : std::as_const(genes_))
 	{
-		WorkerGeneBurdenTest* worker = new WorkerGeneBurdenTest(result[i], parameters_, ccr80_region_, ps_ids_cases_, ps_ids_controls_, ps_ids_, callset_ids_cases_, callset_ids_controls_, cnv_polymorphism_region_, test_, debug_);
+		WorkerGeneBurdenTest* worker = new WorkerGeneBurdenTest(gene, parameters_, ccr80_region_, ps_ids_cases_, ps_ids_controls_, ps_ids_, callset_ids_cases_, callset_ids_controls_, cnv_polymorphism_region_, test_, debug_);
+		worker->setAutoDelete(false);
+		workers << worker;
 		thread_pool.start(worker);
 	}
 
@@ -647,44 +570,51 @@ QList<BurdenTestResult> GeneBurdenTest::run_burden_test()
 	if (debug_) QTextStream(stdout) << "Waiting for workers to finish..." << Qt::endl;
 	thread_pool.waitForDone();
 
+	//get results from all workers:
+	for (int i = 0; i < workers.size(); ++i)
+	{
+		results_ <<workers[i]->result();
+		delete workers[i];
+	}
+
 
 	//debug output
 	if (debug_) QTextStream(stdout) << "Processing genes took " << Helper::elapsedTime(timer) << Qt::endl;
 
 	//check for errors
 	QList<int> gene_indices_to_remove;
-	for (int i=0; i<result.count(); ++i)
+	for (int i=0; i<results_.count(); ++i)
 	{
-		if (!result[i].error.isEmpty())
+		if (!results_[i].error.isEmpty())
 		{
 			if (skip_errors_)
 			{
-				QTextStream(stdout) << "ERROR in processing gene " + result[i].gene + ":\t" + result[i].error << "\t Removed from output!" << Qt::endl;
+				QTextStream(stdout) << "ERROR in processing gene " + results_[i].gene + ":\t" + results_[i].error << "\t Removed from output!" << Qt::endl;
 				gene_indices_to_remove << i;
 			}
 			else
 			{
-				THROW(Exception, "ERROR in processing gene " + result[i].gene + ":\t" + result[i].error);
+				THROW(Exception, "ERROR in processing gene " + results_[i].gene + ":\t" + results_[i].error);
 			}
 
 		}
-		if (!result[i].warning.isEmpty()) QTextStream(stdout) << "WARNING in processing gene " << result[i].gene << ":\t" << result[i].warning << Qt::endl;
+		if (!results_[i].warning.isEmpty()) QTextStream(stdout) << "WARNING in processing gene " << results_[i].gene << ":\t" << results_[i].warning << Qt::endl;
 	}
 
 	//remove failed genes
 	std::reverse(gene_indices_to_remove.begin(), gene_indices_to_remove.end());
 	for (int i : std::as_const(gene_indices_to_remove))
 	{
-		result.removeAt(i);
+		results_.removeAt(i);
 	}
 
 	// sort result by pValue
-	std::sort(result.begin(), result.end());
+	std::sort(results_.begin(), results_.end());
 
 	//debug output
 	if (debug_) QTextStream(stdout) << "Burden test took " << Helper::elapsedTime(timer) << Qt::endl;
 
-	return result;
+	return results_;
 }
 
 void GeneBurdenTest::initCCR()
