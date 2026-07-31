@@ -5,10 +5,14 @@
 #include <QApplication>
 #include <QPainter>
 #include <QMenu>
+#include "ChromosomeColors.h"
 
 // #define DRAW_TRANSPARENT
-#define CACHE_ROW_ASSIGNMENTS
 // #define ENABLE_ANTIALIASING
+
+// un comment this for FASTER processing (albeit at the cost of some quirky row assignments)
+// #define CACHE_ROW_ASSIGNMENTS
+
 
 //constants
 static constexpr int ROW_HEIGHT = 12;
@@ -41,6 +45,7 @@ QMap<QString, QVariant> BamAlignmentTrack::getSettings()
 	settings["view_as_pairs"] = view_as_pairs_;
 	settings["show_all_bases"] = show_all_bases_;
 	settings["show_soft_clip_bases"] = show_soft_clip_bases_;
+	settings["coloring_scheme"] = coloring_scheme_;
 	return settings;
 }
 
@@ -49,6 +54,12 @@ void BamAlignmentTrack::loadKeyValueFromXml(QString key, QString value)
 	if (key == "view_as_pairs") view_as_pairs_ = (value == "true");
 	else if (key == "show_all_bases") show_all_bases_ = (value == "true");
 	else if (key == "show_soft_clip_bases") show_soft_clip_bases_ = (value == "true");
+	else if (key == "coloring_scheme")
+	{
+		bool ok;
+		int coloring_scheme = value.toInt(&ok);
+		if (ok && coloring_scheme != -1) coloring_scheme_ = static_cast<ColoringScheme>(coloring_scheme);
+	}
 
 	calculateRows();
 	updateGeometry();
@@ -324,12 +335,49 @@ QColor BamAlignmentTrack::strandColor(bool is_reversed)
 	return is_reversed ? QColor(175, 175, 235, 200) : QColor(235, 175, 175, 200);
 }
 
+QColor BamAlignmentTrack::insertSizeColor(const BamAlignmentWrapper& al_w)
+{
+	Chromosome mate_chr = al_w.mate_chr;
+	const BedLine& region = SharedData::region();
+	if (mate_chr.isValid() && mate_chr == region.chr())
+	{
+		if (al_w.isMateMapped())
+		{
+			InsertSizeStats i_stats = track_data_->getInsertSizeStats();
+			int i_size = std::abs(al_w.insertSize());
+			if (i_size > i_stats.insert_size_max) return QColor(200, 0, 0);
+			if (i_size < i_stats.insert_size_min) return QColor(0, 0, 150);
+		}
+		return QColor(202, 202, 202, 150); //gray
+	}
+	else if (mate_chr.isValid())
+	{
+		return ChromosomeColors::getColor(mate_chr.str());
+	}
+	else
+	{
+		return QColor(0, 0, 0); // faulty
+	}
+}
+
+QColor BamAlignmentTrack::getAlignmentColor(const BamAlignmentWrapper& al_w)
+{
+	//selected always takes priority
+	if (!selected_name_.isEmpty() && al_w.name() == selected_name_) return QColor(255, 100, 0);
+
+	if (coloring_scheme_ == READ_STRAND) return strandColor(al_w.isReverseStrand());
+
+	else if (coloring_scheme_ == INSERT_SIZE) return insertSizeColor(al_w);
+
+	return QColor(202, 202, 202, 150); //gray
+}
+
 void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapper& al_w, int row_y)
 {
 	Viewport viewport = getViewport();
 	int last_x = -1.0f;
-	QColor color = strandColor(al_w.isReverseStrand());
-	if (!selected_name_.isEmpty() && al_w.name() == selected_name_) color = QColor(255, 100, 0);
+
+	QColor color = getAlignmentColor(al_w);
 
 	// first pass for matches and deletions
 	foreach (const auto& data, al_w.getEvents())
@@ -604,6 +652,98 @@ void BamAlignmentTrack::makePairs()
 	}
 }
 
+void BamAlignmentTrack::addAlignmentOptionsToCtxtMenu(QMenu& menu, const QPoint& local_pos)
+{
+	int aln_idx = getAlnIndexFromLocalPos(local_pos);
+	// add go_to_mate action, select/deselect action
+	if (aln_idx != -1)
+	{
+		QAction* go_to_mate_action = menu.addAction("Go to mate");
+		const auto& alns = track_data_->getAlignments();
+
+		Chromosome mate_chr;
+		int mate_start;
+
+		if (view_as_pairs_)
+		{
+			// check which pair was clicked
+			const ReadPair& rp = read_pairs_[aln_idx];
+			aln_idx = rp.first;
+			mate_chr = alns[aln_idx].mate_chr;
+			mate_start = alns[aln_idx].mateStart();
+
+			// if the other part in the pair does not exist, only the first one was picked
+
+			if (rp.second > 0)
+			{
+				// check if rp.second was clicked
+				const BamAlignmentWrapper& aln = alns[rp.second];
+				const Viewport& viewport = getViewport();
+				int g_pos = viewport.screenXToGenomePos(local_pos.x());
+				if (g_pos >= aln.start() && g_pos <= aln.end())
+				{
+					//set mate_chr, mate_start to rp.first's corresponding properties
+					mate_chr = aln.mate_chr;
+					mate_start = aln.mateStart();
+				}
+			}
+		}
+		// normal mode
+		else
+		{
+			mate_chr = alns[aln_idx].mate_chr;
+			mate_start = alns[aln_idx].mateStart();
+		}
+
+		go_to_mate_action->setEnabled(mate_chr.isValid());
+
+		if (mate_chr.isValid())
+		{
+			/*
+				 * TODO: scroll to row_y of mate
+				 * a simple solution to try:
+				 * add mate_name_ as private var and set it here (need to store mate_start_ too actually)
+				 * when data is recieved, in calculateRows after calculation is done we can get row_y
+				 * of mate_name_ (with mate_start_ we get a unqiue match) and then either send a signal to TrackGroup
+				 * to change the scroll_area value or find a parent that is scroll area and change it manually
+				 * unset mate_name_, mate_start_
+				*/
+			connect(go_to_mate_action, &QAction::triggered, this, [mate_chr, mate_start](){
+				SharedData::setRegion(mate_chr, mate_start - 100, mate_start + 100);
+			});
+		}
+
+		QString name = alns[aln_idx].name();
+		bool deselect = (!selected_name_.isEmpty() && name == selected_name_);
+		QAction* select_action = menu.addAction(deselect ? "Deselect" : "Select");
+		connect(select_action, &QAction::triggered, this, [this, deselect, name](){
+			if (deselect) selected_name_ = "";
+			else selected_name_ = name;
+			update();
+		});
+	}
+}
+
+
+void BamAlignmentTrack::addColorOptionToCtxtMenu(QMenu& menu, const QPoint&)
+{
+	//TODO: this should be written in a more generalized way (using an action group for instance)
+	QMenu* sub_menu = menu.addMenu("Color by");
+	QAction* insert_size_action = sub_menu->addAction("Insert Size");
+	QAction* read_strand_action = sub_menu->addAction("Read Strand");
+
+	connect(insert_size_action, &QAction::triggered, this, [this](){
+		coloring_scheme_ = INSERT_SIZE;
+		update();
+	});
+
+	connect(read_strand_action, &QAction::triggered, this, [this](){
+		coloring_scheme_ = READ_STRAND;
+		update();
+	});
+}
+
+
 void BamAlignmentTrack::populateContextMenu(QMenu& menu, const QPoint& local_pos)
 {
 	if (isCurrentRegionValid())
@@ -639,74 +779,10 @@ void BamAlignmentTrack::populateContextMenu(QMenu& menu, const QPoint& local_pos
 			update();
 		});
 
-		int aln_idx = getAlnIndexFromLocalPos(local_pos);
-		// add go_to_mate action, select/deselect action
-		if (aln_idx != -1)
-		{
-			QAction* go_to_mate_action = menu.addAction("Go to mate");
-			const auto& alns = track_data_->getAlignments();
+		addAlignmentOptionsToCtxtMenu(menu, local_pos);
 
-			Chromosome mate_chr;
-			int mate_start;
+		addColorOptionToCtxtMenu(menu, local_pos);
 
-			if (view_as_pairs_)
-			{
-				// check which pair was clicked
-				const ReadPair& rp = read_pairs_[aln_idx];
-				aln_idx = rp.first;
-				mate_chr = alns[aln_idx].mate_chr;
-				mate_start = alns[aln_idx].mateStart();
-
-				// if the other part in the pair does not exist, only the first one was picked
-
-				if (rp.second > 0)
-				{
-					// check if rp.second was clicked
-					const BamAlignmentWrapper& aln = alns[rp.second];
-					const Viewport& viewport = getViewport();
-					int g_pos = viewport.screenXToGenomePos(local_pos.x());
-					if (g_pos >= aln.start() && g_pos <= aln.end())
-					{
-						//set mate_chr, mate_start to rp.first's corresponding properties
-						mate_chr = aln.mate_chr;
-						mate_start = aln.mateStart();
-					}
-				}
-			}
-			// normal mode
-			else
-			{
-				mate_chr = alns[aln_idx].mate_chr;
-				mate_start = alns[aln_idx].mateStart();
-			}
-
-			go_to_mate_action->setEnabled(mate_chr.isValid());
-
-			if (mate_chr.isValid())
-			{
-				/*
-				 * TODO: scroll to row_y of mate
-				 * a simple solution to try:
-				 * add mate_name_ as private var and set it here (need to store mate_start_ too actually)
-				 * when data is recieved, in calculateRows after calculation is done we can get row_y
-				 * of mate_name_ (with mate_start_ we get a unqiue match) and then either send a signal to TrackGroup
-				 * to change the scroll_area value or find a parent that is scroll area and change it manually
-				 * unset mate_name_, mate_start_
-				*/
-				connect(go_to_mate_action, &QAction::triggered, this, [mate_chr, mate_start](){
-					SharedData::setRegion(mate_chr, mate_start - 100, mate_start + 100);
-				});
-			}
-
-			QString name = alns[aln_idx].name();
-			bool deselect = (!selected_name_.isEmpty() && name == selected_name_);
-			QAction* select_action = menu.addAction(deselect ? "Deselect" : "Select");
-			connect(select_action, &QAction::triggered, this, [this, deselect, name](){
-				if (deselect) selected_name_ = "";
-				else selected_name_ = name;
-				update();
-			});
-		}
 	}
 	TrackWidget::populateContextMenu(menu, local_pos);
 }
@@ -752,6 +828,7 @@ QString BamAlignmentTrack::getBamAlignmentText(const BamAlignmentWrapper& al_w, 
 	text += QString("Map is mapped = %1<br/>").arg(al_w.isMateMapped() ? "yes" : "no");
 	text += QString("Mate start = %1:%2<br/>").arg(al_w.mate_chr.str(),
 												   QString::number(al_w.mateStart()));
+	text += QString("Insert size = %1<br/>").arg(al_w.insertSize());
 
 	// base info
 	const BedLine& region = SharedData::region();

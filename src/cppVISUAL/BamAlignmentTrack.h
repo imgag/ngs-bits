@@ -62,6 +62,10 @@ private:
 	void calculateRowsNormalMode();
 	// assigns rows to pairs for pair mode
 	void calculateRowsPairMode();
+	// computes the stats for insertsize
+	void computeInsertSizeStats();
+	// iterates through the alignments and stores pairs as ReadPair in read_pairs_
+	void makePairs();
 
 	void drawNormalMode(QPainter& painter);
 	void drawPairMode(QPainter& painter, const BedLine& region);
@@ -81,13 +85,13 @@ private:
 	void drawHighlight(QPainter&, const BamAlignmentWrapper& al, int row_y);
 
 	QString getBamAlignmentText(const BamAlignmentWrapper& al, int genome_pos);
-	// iterates through the alignments and stores pairs as ReadPair in read_pairs_
-	void makePairs();
 
 	void updateFontCache();
 
 	static QColor baseColor(QChar base);
 	static QColor strandColor(bool is_reverse);
+	QColor insertSizeColor(const BamAlignmentWrapper&); //
+
 	static QSize characterSize(QFont font);
 	// display info of Alignment that was at local pos
 	void handlePopupRequest(QPoint local_pos, QPointF global_pos);
@@ -102,6 +106,12 @@ private:
 	// TODO: insertation can also be expanded in the future
 	int getAlignmentStart(const BamAlignmentWrapper&);
 	int getAlignmentEnd(const BamAlignmentWrapper&);
+	// returns color of alignment based on its properties and current coloring scheme
+	QColor getAlignmentColor(const BamAlignmentWrapper&);
+	// adds Go To Mate, select/delect options to context menu
+	void addAlignmentOptionsToCtxtMenu(QMenu& menu, const QPoint& local_pos);
+	// adds color schemes to context menu
+	void addColorOptionToCtxtMenu(QMenu& menu, const QPoint& local_pos);
 
 
 	/*TODO: all of these need to be stored as LRUCache*/
@@ -123,9 +133,17 @@ private:
 	QFont cached_font_;
 
 	//settings
+	enum ColoringScheme
+	{
+		NONE,
+		INSERT_SIZE,
+		READ_STRAND
+	};
+
 	bool view_as_pairs_ = false;
 	bool show_all_bases_ = false;
 	bool show_soft_clip_bases_ = false;
+	ColoringScheme coloring_scheme_ = INSERT_SIZE;
 	QString selected_name_ = ""; // name of selected alignment
 
 

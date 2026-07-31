@@ -109,6 +109,8 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 
 	bool isValid() const { return (st_ >= 0 && en_ >= 0); }
 
+	int insertSize() const { return insert_size_; }
+
 private:
 	int st_ = -1;
 	int en_ = -1;
@@ -118,6 +120,7 @@ private:
 	bool mate_is_mapped_;
 	int mat_chr_id_ = -1;
 	int mate_start_;
+	int insert_size_ = -1;
 	QString name_;
 
 	void storeAlignmentInfo(const BamAlignment& al)
@@ -131,6 +134,7 @@ private:
 		mate_start_ = al.mateStart();
 		mat_chr_id_ = al.mateChrosomeID();
 		name_ = al.name();
+		insert_size_ = al.insertSize();
 	}
 };
 
@@ -138,6 +142,12 @@ inline size_t qHash(const BamAlignmentWrapper& key, size_t seed = 0)
 {
 	return qHash(key.id, seed);
 }
+
+struct InsertSizeStats
+{
+	int insert_size_min = 0;
+	int insert_size_max = 1000;
+};
 
 /*this is used for connecting BamAlignemnt and BamCoverage tracks*/
 class CPPVISUALSHARED_EXPORT BamTrackData : public QObject
@@ -180,6 +190,10 @@ public:
 		updateRegion();
 	}
 
+	void computeInsertSizeStats();
+
+	InsertSizeStats getInsertSizeStats() { return insert_size_stats_; };
+
 	void reload();
 
 signals:
@@ -203,6 +217,7 @@ private:
 
 	bool is_loading_;
 	bool return_empty_ = true;
+	InsertSizeStats insert_size_stats_;
 
 	//loaded region
 	BedLine loaded_region_;

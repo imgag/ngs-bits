@@ -189,7 +189,7 @@ void BamTrackData::fetchRegion(const BedLine& region, QVector<BamAlignmentWrappe
 		catch (const Exception& e)
 		{
 			//TODO: decide what to do here
-			// for now the mate_chr remains invalid, so go_to_mate and mate info won't be available
+			// for now the mate_chr remains invalid
 		}
 		loaded_ids_.insert(wrapped_alignment.id);
 
@@ -200,6 +200,9 @@ void BamTrackData::fetchRegion(const BedLine& region, QVector<BamAlignmentWrappe
 		if (dest) dest->push_back(std::move(wrapped_alignment));
 		else alignments_.push_back(std::move(wrapped_alignment));
 	}
+	//TODO: this can be optimized i.e when we pan only a bit to the left, we dont need to recalculate
+	// only recalulate stats when we change by a large amount
+	computeInsertSizeStats();
 }
 
 void BamTrackData::pruneAlignments(int keep_start, int keep_end)
@@ -220,6 +223,31 @@ void BamTrackData::pruneAlignments(int keep_start, int keep_end)
 		});
 
 	alignments_.erase(it, alignments_.end());
+}
+
+void BamTrackData::computeInsertSizeStats()
+{
+	QVector<int> sizes;
+	sizes.reserve(alignments_.size());
+	foreach (const auto& aln, alignments_)
+	{
+		if (aln.isReverseStrand()) continue;
+		int tlen = std::abs(aln.insertSize());
+		if (tlen > 0 && tlen < 10000) sizes << tlen;
+	}
+
+	if (sizes.size() < 10)
+	{
+		insert_size_stats_.insert_size_min =0;
+		insert_size_stats_.insert_size_max =1000;
+		return;
+	}
+
+	std::sort(sizes.begin(), sizes.end());
+	int n = sizes.size();
+	// TODO: these percentiles should come from settings somewhere!
+	insert_size_stats_.insert_size_min = sizes[(int)(n * 0.005)];
+	insert_size_stats_.insert_size_max = sizes[(int)(n * 0.995)];
 }
 
 void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Sequence& ref_seq, int ref_start)

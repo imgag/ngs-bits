@@ -56,6 +56,7 @@ HEADERS += \
     BamTrackData.h \
     BamTrackDataManager.h \
     BedTrack.h \
+    ChromosomeColors.h \
     ChromosomeContextPanel.h \
     FileLoader.h \
     GenomeVisualizationWidget.h \
