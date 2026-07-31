@@ -11,7 +11,8 @@ struct CPPVISUALSHARED_EXPORT ChromosomeColors
 public:
 	static QColor getColor(QString chr)
 	{
-		if (instance()->colorMap.contains(chr)) return instance()->colorMap[chr];
+		QString base_chr = chr.split("_")[0];
+		if (instance()->colorMap.contains(base_chr)) return instance()->colorMap[base_chr];
 		return QColor(0, 0, 0);
 	}
 
