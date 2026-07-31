@@ -5,15 +5,15 @@
 #include "ServerHelper.h"
 
 SessionManager::SessionManager()
-    : current_client_info_()
+	: current_client_info_()
 	, current_notification_()
-    , session_storage_()
+	, session_storage_()
 {
 }
 
 SessionManager& SessionManager::instance()
 {
-    static SessionManager session_manager;
+	static SessionManager session_manager;
 	return session_manager;
 }
 

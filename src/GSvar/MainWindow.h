@@ -101,6 +101,8 @@ public slots:
     void updateSecureToken();
 	/// Checks (only in clinet-server mode) if the server is currently running
 	void checkServerAvailability();
+	/// Resets the expiration time for the URLs related to the currently opened sample
+	void updateActiveUrls();
 	/// Checks (only in clinet-server mode) if there is some new information needed to be displayed to the user (e.g. downtimes, maintenance, reboots, updates)
 	void checkUserNotifications();
 	///Loads a variant list. Unloads the variant list if no file name is given

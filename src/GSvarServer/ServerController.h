@@ -37,6 +37,8 @@ public:
 	static HttpResponse serveTempUrl(const HttpRequest& request);
 	/// Returns a location object for a file based on its type
 	static HttpResponse locateFileByType(const HttpRequest& request);
+	/// Refreshes lifetimes for all URLs related to the given processed sample
+	static HttpResponse prolongUrl(const HttpRequest& request);
 	/// Returns the location of the processed sample
     static HttpResponse getProcessedSamplePath(const HttpRequest& request);
 	/// Checks every processed sample folder inside the given project folder: if a processed sample has any files (needed to handle project folder change)
@@ -118,7 +120,9 @@ private:
     static QString getProcessedSampleFile(int ps_id, const PathType& type, const QString& token);
     /// Returns a temporary URL for a file
 	static QString createTempUrl(const QString& file, const QString& token);
-    static QString createTempUrl(FastFileInfo& file_info, const QString& token);
+	/// Returns a temporary URL for a file (URL is linked to a processed sample folder to simplify its lifetime refesh)
+	static QString createTempUrl(const QString& ps_folder, const QString& file, const QString& token);
+	static QString createTempUrl(FastFileInfo& file_info, const QString& token, bool id_as_ps_folder = false);
     /// Returns a temporary URL wihtout a parameters (e.g. ?token=123)
     static QString stripParamsFromTempUrl(const QString& url);
 

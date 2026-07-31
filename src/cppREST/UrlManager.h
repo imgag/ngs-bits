@@ -8,21 +8,23 @@
 class CPPRESTSHARED_EXPORT UrlManager
 {
 public:
-    static const qint64 DEFAULT_URL_LIFETIME = 600; // in seconds
-    static void addNewUrl(UrlEntity url_entity);
-    static void removeUrl(QString id);
-    static bool isInStorageAlready(QString filename_with_path);
-    static UrlEntity getURLById(QString id);
-    static QList<UrlEntity> getAllUrls();
-    static bool isValidUrl(QString token);
-    static void removeExpiredUrls();
+	static const qint64 DEFAULT_URL_LIFETIME = 600; // in seconds
+	static void addNewUrl(UrlEntity url_entity);
+	static void removeUrl(QString id);
+	static bool isInStorageAlready(QString filename_with_path);
+	static UrlEntity getURLById(QString id);
+	static QList<UrlEntity> getAllUrls();
+	static bool isValidUrl(QString token);
+	static void removeExpiredUrls();
+	static bool extendActiveUrls(QString ps_folder);
 
 protected:
-	UrlManager();	
+	UrlManager();
 
 private:
-    static UrlManager& instance();
-    ThreadSafeHashMap<QString, UrlEntity> url_storage_;
+	static UrlManager& instance();
+	ThreadSafeHashMap<QString, UrlEntity> url_storage_;
+	qint64 current_url_lifetime_;
 };
 
 #endif // URLMANAGER_H
