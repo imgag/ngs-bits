@@ -482,6 +482,84 @@ int main(int argc, char **argv)
 						&ServerController::annotateVariant
 					});
 
+	EndpointManager::appendEndpoint(Endpoint{
+						"add_project",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_XML,
+						AuthType::USER_TOKEN,
+						"Adds a new project to the database",
+						&ServerController::addProjectToDb
+					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"add_processing_system",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_XML,
+						AuthType::USER_TOKEN,
+						"Adds a new processing system to the database",
+						&ServerController::addProcessingSystemToDb
+					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"add_device",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_XML,
+						AuthType::USER_TOKEN,
+						"Adds a new device to the database",
+						&ServerController::addDeviceToDb
+					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"add_sequencing_run",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_XML,
+						AuthType::USER_TOKEN,
+						"Adds a new sequencing run to the database",
+						&ServerController::addSequencingRunToDb
+					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"add_sample",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_XML,
+						AuthType::USER_TOKEN,
+						"Adds a new sample to the database",
+						&ServerController::addSampleToDb
+					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"add_processed_sample",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_XML,
+						AuthType::USER_TOKEN,
+						"Adds a new processed sample to the database",
+						&ServerController::addProcessedSampleToDb
+					});
+	EndpointManager::appendEndpoint(Endpoint{
+						"add_sender",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_XML,
+						AuthType::USER_TOKEN,
+						"Adds a new sender to the database",
+						&ServerController::addSenderToDb
+					});
+
     EndpointManager::appendEndpoint(Endpoint{
                         "blat_search",
                         QMap<QString, ParamProps> {

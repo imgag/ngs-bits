@@ -17,6 +17,8 @@
 #include "Statistics.h"
 #include "ToolBase.h"
 #include "FileLocationProviderLocal.h"
+#include "XmlRequestValidator.h"
+#include "DatabaseInsert.h"
 
 ServerController::ServerController()
 {
@@ -1721,6 +1723,58 @@ HttpResponse ServerController::getCurrentClientInfo(const HttpRequest& /*request
 	response_data.length = json_doc_output.toJson().length();
 	response_data.content_type = ContentType::APPLICATION_JSON;
 	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
+HttpResponse ServerController::addProjectToDb(const HttpRequest &request)
+{
+	DatabaseSchema db_schema = EndpointManager::getDatabaseSchema();
+	XmlRequestValidator validator(db_schema);
+	const XmlValidationResult result = validator.validateInsert(request.getBody(), "project");
+
+	if (result.isValid())
+	{
+		const TableSchema* table = db_schema.table("project");
+		if (table == nullptr) return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_PLAIN, "No schema found for `project` table");
+
+		qlonglong project_id = -1;
+		DatabaseInsert::insert(*table, result.values,&project_id);
+
+		return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "A new project has been added");
+	}
+	else
+	{
+		return HttpResponse(ResponseStatus::BAD_REQUEST, ContentType::TEXT_PLAIN, "Error while adding a new project: " + result.errors.join(", "));
+	}
+}
+
+HttpResponse ServerController::addProcessingSystemToDb(const HttpRequest &request)
+{
+	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "addProcessingSystemToDb");
+}
+
+HttpResponse ServerController::addDeviceToDb(const HttpRequest &request)
+{
+	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "addDeviceToDb");
+}
+
+HttpResponse ServerController::addSequencingRunToDb(const HttpRequest &request)
+{
+	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "addSequencingRunToDb");
+}
+
+HttpResponse ServerController::addSampleToDb(const HttpRequest &request)
+{
+	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "addSampleToDb");
+}
+
+HttpResponse ServerController::addProcessedSampleToDb(const HttpRequest &request)
+{
+	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "addProcessedSampleToDb");
+}
+
+HttpResponse ServerController::addSenderToDb(const HttpRequest &request)
+{
+	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "addSenderToDb");
 }
 
 HttpResponse ServerController::performBlatSearch(const HttpRequest& request)

@@ -724,6 +724,9 @@ public:
 	///Returns if the database is available (i.e. the credentials are in the settings file or the application is in client-server mode)
 	static bool isAvailable(bool test_db=false);
 
+	///Returns the database name
+	QString databaseName() const;
+
 	///Returns the table list.
 	QStringList tables() const;
 	///Returns information about all fields of a table.

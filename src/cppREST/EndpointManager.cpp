@@ -6,6 +6,8 @@
 
 EndpointManager::EndpointManager()
 {
+	Log::error("EndpointManager constructor");
+	database_schema_ = DatabaseSchema::loadFromDatabase();
 }
 
 HttpResponse EndpointManager::getBasicHttpAuthStatus(const HttpRequest& request)
@@ -260,6 +262,11 @@ QString EndpointManager::getEndpointHelpTemplate(QList<Endpoint> endpoint_list)
 QString EndpointManager::formatResponseMessage(const HttpRequest& request, const QString& message)
 {
     return request.methodAsString().toUpper() + " " + (request.getPath().startsWith("/") ? request.getPath() : "/" + request.getPath()) + " - " + message;
+}
+
+DatabaseSchema EndpointManager::getDatabaseSchema()
+{
+	return instance().database_schema_;
 }
 
 EndpointManager& EndpointManager::instance()

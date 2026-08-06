@@ -95,7 +95,22 @@ public:
 	static HttpResponse getRnaExpressionPlots(const HttpRequest& request);
 	/// Returns information about the latest available version of the desktop client
 	static HttpResponse getCurrentClientInfo(const HttpRequest& request);
-
+	/// --------- Database editing ---------
+	/// Adds a new project to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addProjectToDb(const HttpRequest& request);
+	/// Adds a new processing system to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addProcessingSystemToDb(const HttpRequest& request);
+	/// Adds a new device to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addDeviceToDb(const HttpRequest& request);
+	/// Adds a new sequencing run to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addSequencingRunToDb(const HttpRequest& request);
+	/// Adds a new sample to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addSampleToDb(const HttpRequest& request);
+	/// Adds a new processed sample to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addProcessedSampleToDb(const HttpRequest& request);
+	/// Adds a new sender to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addSenderToDb(const HttpRequest& request);
+	/// ------------------
 	/// Returns BLAT-like search results for the given sequence (performed with BWA-mem2)
     static HttpResponse performBlatSearch(const HttpRequest& request);
 

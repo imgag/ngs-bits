@@ -83,6 +83,11 @@ bool NGSD::isAvailable(bool test_db)
 	return Settings::contains(prefix+"_host") && Settings::contains(prefix+"_port") && Settings::contains(prefix+"_name") && Settings::contains(prefix+"_user") && Settings::contains(prefix+"_pass");
 }
 
+QString NGSD::databaseName() const
+{
+	return db_->databaseName();
+}
+
 int NGSD::userId(QString user_name, bool only_active, bool throw_if_fails)
 {
 	// don't fail if user name is empty
