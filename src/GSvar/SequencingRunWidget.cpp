@@ -505,7 +505,12 @@ void SequencingRunWidget::setQualityAutomatically()
 			if (qc_class == "medium") medium_count++;
 			if (qc_class == "bad") bad_count++;
 			if (qc_class == "n/a") n_a_count++;
-			if (qc_class.isEmpty()) no_rules_count++;
+			if (qc_class.isEmpty())
+			{
+				// no changes to the database needed
+				no_rules_count++;
+				continue;
+			}
 
 			SqlQuery update_query = db.getQuery();
 			update_query.exec("UPDATE processed_sample SET quality='"+qc_class+"' WHERE id='"+ps_id+"'");
