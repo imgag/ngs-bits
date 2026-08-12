@@ -31,8 +31,6 @@ unix: LIBS += -lxml2
 
 SOURCES += \
     ApiCaller.cpp \
-    DatabaseInsert.cpp \
-    DatabaseSchema.cpp \
     ExportCBioPortalStudy.cpp \
     FileLocationList.cpp \
     FileLocationProviderLocal.cpp \
@@ -55,12 +53,10 @@ SOURCES += \
     SomaticReportHelper.cpp \
     SomaticRnaReport.cpp \
     SomaticcfDNAReport.cpp \
-    XmlRequestValidator.cpp
+    XmlImportValidator.cpp
 
 HEADERS += \
     ApiCaller.h \
-    DatabaseInsert.h \
-    DatabaseSchema.h \
     ExportCBioPortalStudy.h \
     FileLocation.h \
     FileLocationList.h \
@@ -86,7 +82,7 @@ HEADERS += \
     SomaticReportHelper.h \
     SomaticRnaReport.h \
     SomaticcfDNAReport.h \
-    XmlRequestValidator.h
+    XmlImportValidator.h
 
 RESOURCES += \
     cppNGSD.qrc

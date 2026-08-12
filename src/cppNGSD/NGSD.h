@@ -116,6 +116,7 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 
 	//index+key info
 	bool is_primary_key = false;
+	bool has_auto_increment = false;
 	bool is_unique = false;
 	QString fk_table; //target table of FK
 	QString fk_field; //target field of FK
@@ -702,6 +703,32 @@ struct  NsxAnalysisSettings
 	//perform DRAGEN analysis
 	bool dragen_analysis = true;
 };
+
+///Contains information about the fields for a specific database table
+struct CPPNGSDSHARED_EXPORT TableSchema
+{
+	QString name;
+	QHash<QString, TableFieldInfo> columns;
+};
+
+///Contains information about all fields in all tables in a specific database
+class CPPNGSDSHARED_EXPORT DatabaseSchema
+	: public QObject
+{
+	Q_OBJECT
+public:
+	DatabaseSchema(NGSD& db);
+	const TableSchema& table(const QString& name) const
+	{
+		const auto it = tables_.constFind(name);
+		if (it == tables_.constEnd()) THROW(DatabaseException, QString("Table '%1' does not exist").arg(name));
+		return it.value();
+	}
+
+private:
+	QHash<QString, TableSchema> tables_;
+};
+
 
 ///NGSD access
 class CPPNGSDSHARED_EXPORT NGSD

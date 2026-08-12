@@ -17,8 +17,7 @@
 #include "Statistics.h"
 #include "ToolBase.h"
 #include "FileLocationProviderLocal.h"
-#include "XmlRequestValidator.h"
-#include "DatabaseInsert.h"
+#include "XmlImportValidator.h"
 
 ServerController::ServerController()
 {
@@ -1561,17 +1560,14 @@ HttpResponse ServerController::getProcessingSystemGenes(const HttpRequest& reque
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
     }
 
-	if (filename.isEmpty())
-    {
-        return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Processing system genes file has not been found"));
-	}
+	if (filename.isEmpty()) return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Processing system genes file has not been found"));
 	return createStaticStreamResponse(filename, false);
 }
 
 HttpResponse ServerController::getSecondaryAnalyses(const HttpRequest& request)
 {
 	QString processed_sample_name = request.getUrlParams()["ps_name"];
-	QString type  = QUrl::fromEncoded(request.getUrlParams()["type"].toUtf8()).toString();
+	QString type = QUrl::fromEncoded(request.getUrlParams()["type"].toUtf8()).toString();
 	QStringList secondary_analyses;
 	try
 	{
@@ -1579,10 +1575,7 @@ HttpResponse ServerController::getSecondaryAnalyses(const HttpRequest& request)
 		foreach(QString file, analyses)
 		{
 			QSharedPointer<FastFileInfo> info = QSharedPointer<FastFileInfo>(new FastFileInfo(file));
-            if (info->exists())
-			{
-				secondary_analyses << file;
-			}
+			if (info->exists()) secondary_analyses << file;
 		}
 	}
 	catch (DatabaseException& e)
@@ -1725,56 +1718,59 @@ HttpResponse ServerController::getCurrentClientInfo(const HttpRequest& /*request
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
+HttpResponse ServerController::getSenderIdByName(const HttpRequest &request)
+{
+	return getIdNamePair("sender", request);
+}
+
+HttpResponse ServerController::getReceiverIdByName(const HttpRequest &request)
+{
+	return getIdNamePair("user", request);
+}
+
+HttpResponse ServerController::getSpeciesIdByName(const HttpRequest &request)
+{
+	return getIdNamePair("species", request);
+}
+
 HttpResponse ServerController::addProjectToDb(const HttpRequest &request)
 {
-	DatabaseSchema db_schema = EndpointManager::getDatabaseSchema();
-	XmlRequestValidator validator(db_schema);
-	const XmlValidationResult result = validator.validateInsert(request.getBody(), "project");
-
-	if (result.isValid())
-	{
-		const TableSchema* table = db_schema.table("project");
-		if (table == nullptr) return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_PLAIN, "No schema found for `project` table");
-
-		qlonglong project_id = -1;
-		DatabaseInsert::insert(*table, result.values,&project_id);
-
-		return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "A new project has been added");
-	}
-	else
-	{
-		return HttpResponse(ResponseStatus::BAD_REQUEST, ContentType::TEXT_PLAIN, "Error while adding a new project: " + result.errors.join(", "));
-	}
+	return addRecordToDbTable("project", request);
 }
 
 HttpResponse ServerController::addProcessingSystemToDb(const HttpRequest &request)
 {
-	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "addProcessingSystemToDb");
+	return addRecordToDbTable("processing_system", request);
 }
 
 HttpResponse ServerController::addDeviceToDb(const HttpRequest &request)
 {
-	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "addDeviceToDb");
+	return addRecordToDbTable("device", request);
 }
 
 HttpResponse ServerController::addSequencingRunToDb(const HttpRequest &request)
 {
-	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "addSequencingRunToDb");
+	return addRecordToDbTable("sequencing_run", request);
 }
 
 HttpResponse ServerController::addSampleToDb(const HttpRequest &request)
 {
-	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "addSampleToDb");
+	return addRecordToDbTable("sample", request);
+}
+
+HttpResponse ServerController::addSampleRelationToDb(const HttpRequest &request)
+{
+	return addRecordToDbTable("sample_relations", request);
 }
 
 HttpResponse ServerController::addProcessedSampleToDb(const HttpRequest &request)
 {
-	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "addProcessedSampleToDb");
+	return addRecordToDbTable("processed_sample", request);
 }
 
 HttpResponse ServerController::addSenderToDb(const HttpRequest &request)
 {
-	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "addSenderToDb");
+	return addRecordToDbTable("sender", request);
 }
 
 HttpResponse ServerController::performBlatSearch(const HttpRequest& request)
@@ -1937,6 +1933,30 @@ QString ServerController::stripParamsFromTempUrl(const QString& url)
     return output;
 }
 
+void ServerController::importDataToNGSD(NGSD &db, const TableSchema &table, const QHash<QString, QVariant> &values)
+{
+	if (values.isEmpty()) THROW(DatabaseException, "No values supplied for INSERT");
+
+	QStringList column_names;
+	QStringList placeholders;
+	QList<QString> keys;
+	int index = 0;
+
+	for (auto it = values.constBegin(); it != values.constEnd(); it++)
+	{
+		const QString& column_name = it.key();
+		if (!table.columns.contains(column_name)) THROW(DatabaseException, QString("Unknown column '%1' for table '%2'").arg(column_name, table.name));
+
+		keys.append(column_name);
+		column_names.append(escapeQuotationMarks(column_name));
+		placeholders.append("'" + values[column_name].toString() + "'");
+		index++;
+	}
+
+	SqlQuery query = db.getQuery();
+	query.exec(QString("INSERT INTO %1 (%2) VALUES (%3)").arg(escapeQuotationMarks(table.name), column_names.join(", "), placeholders.join(", ")));
+}
+
 HttpResponse ServerController::createStaticFolderResponse(const QString path, const HttpRequest& request)
 {
 	if (!Settings::boolean("allow_folder_listing", true))
@@ -2008,6 +2028,69 @@ HttpResponse ServerController::createStaticLocationResponse(const QString path, 
 	}
 
 	return createStaticFileResponse(path, request);
+}
+
+HttpResponse ServerController::addRecordToDbTable(const QString &table_name, const HttpRequest& request)
+{
+	NGSD db;
+	DatabaseSchema db_schema = DatabaseSchema(db);
+
+	XmlImportValidator validator(db_schema);
+	const XmlValidationResult result = validator.validateInsert(request.getBody(), table_name);
+
+	if (result.isValid())
+	{
+		try
+		{
+			const TableSchema& table = db_schema.table(table_name);
+			importDataToNGSD(db, table, result.values);
+		}
+		catch (DatabaseException& e)
+		{
+			return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_PLAIN, QString("Database error: %1").arg(e.message()));
+		}
+
+		return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, QString("A new record has been added to the '%1' table").arg(table_name));
+	}
+	else
+	{
+		return HttpResponse(ResponseStatus::BAD_REQUEST, ContentType::TEXT_PLAIN, QString("Error while adding a new record to the '%1' table: %2").arg(table_name, result.errors.join(", ")));
+	}
+}
+
+HttpResponse ServerController::getIdNamePair(const QString &table_name, const HttpRequest &request)
+{
+	NGSD db;
+	QJsonDocument json = QJsonDocument::fromJson(request.getBody());
+	if (!json.isArray()) return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not extract a list of sender names from the JSON"));
+
+	QJsonArray output_list;
+	QJsonArray name_list = json.array();
+	for (int i=0; i<name_list.size(); i++)
+	{
+		QJsonObject id_and_name_pair;
+		int current_id = -1;
+		try
+		{
+			current_id = db.getValue(QString("SELECT id FROM %1 WHERE name='%2'").arg(table_name, name_list[i].toString())).toInt();
+		}
+		catch (DatabaseException& e)
+		{
+			return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not retrieve a sender id from the database: " + e.message()));
+		}
+
+		if (current_id==0) continue;
+		id_and_name_pair.insert("id", current_id);
+		id_and_name_pair.insert("name", name_list[i]);
+		output_list.append(id_and_name_pair);
+	}
+
+	QJsonDocument json_doc_output;
+	json_doc_output.setArray(output_list);
+	BasicResponseData response_data;
+	response_data.length = json_doc_output.toJson().length();
+	response_data.content_type = ContentType::APPLICATION_JSON;
+	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
 HttpResponse ServerController::uploadFileToFolder(QString upload_folder, const HttpRequest& request)

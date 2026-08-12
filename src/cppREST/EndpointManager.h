@@ -5,7 +5,6 @@
 #include "HttpRequest.h"
 #include "HttpResponse.h"
 #include "NGSD.h"
-#include "DatabaseSchema.h"
 
 struct CPPRESTSHARED_EXPORT ParamProps
 {
@@ -73,15 +72,13 @@ public:
 	static QList<Endpoint> getEndpointEntities();
 
 	static QString getEndpointHelpTemplate(QList<Endpoint> endpoint_list);
-    static QString formatResponseMessage(const HttpRequest& request, const QString& message);
-	static DatabaseSchema getDatabaseSchema();
+    static QString formatResponseMessage(const HttpRequest& request, const QString& message);	
 
 protected:
 	EndpointManager();
 
 private:	
-	static EndpointManager& instance();
-	DatabaseSchema database_schema_;
+	static EndpointManager& instance();	
     static bool hasKey(const QString& key, const QList<QString>& list);
     static bool hasKey(const QString& key, const QMap<QString, QString>& map);
 	QList<Endpoint> endpoint_list_;
