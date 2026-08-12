@@ -1,12 +1,13 @@
 #ifndef DATABASESCHEMA_H
 #define DATABASESCHEMA_H
 
+#include "cppNGSD_global.h"
 #include <QHash>
 #include <QString>
 #include <QStringList>
 #include <QVariant>
 
-struct ColumnSchema
+struct CPPNGSDSHARED_EXPORT ColumnSchema
 {
 	QString name;
 
@@ -38,13 +39,13 @@ struct ColumnSchema
 	}
 };
 
-struct TableSchema
+struct CPPNGSDSHARED_EXPORT TableSchema
 {
 	QString name;
 	QHash<QString, ColumnSchema> columns;
 };
 
-class DatabaseSchema
+class CPPNGSDSHARED_EXPORT DatabaseSchema
 {
 public:
 	static DatabaseSchema loadFromDatabase();

@@ -1,10 +1,11 @@
 #ifndef DATABASEINSERT_H
 #define DATABASEINSERT_H
 
+#include "cppNGSD_global.h"
 #include "NGSD.h"
 #include "DatabaseSchema.h"
 
-class DatabaseInsert
+class CPPNGSDSHARED_EXPORT DatabaseInsert
 {
 public:
 	static void insert(const TableSchema& table, const QHash<QString, QVariant>& values, qlonglong* inserted_id = nullptr);
