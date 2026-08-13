@@ -25,13 +25,7 @@ XmlValidationResult XmlRequestValidator::validateInsert(const QByteArray& body, 
 		return result;
 	}
 
-	const TableSchema* table = schema_.table(tableName);
-
-	if (table == nullptr)
-	{
-		result.errors << QString("Database table '%1' does not exist").arg(tableName);
-		return result;
-	}
+	const TableSchema& table = schema_.table(tableName);
 
 	QXmlStreamReader xml(body);
 	if (!xml.readNextStartElement())
@@ -57,9 +51,9 @@ XmlValidationResult XmlRequestValidator::validateInsert(const QByteArray& body, 
 	{
 		const QString fieldName = xml.name().toString();
 
-		const auto column_it = table->columns.constFind(fieldName);
+		const auto column_it = table.columns.constFind(fieldName);
 
-		if (column_it == table->columns.constEnd())
+		if (column_it == table.columns.constEnd())
 		{
 			result.errors << QString("Unknown field <%1>").arg(fieldName);
 			xml.skipCurrentElement();
@@ -114,7 +108,7 @@ XmlValidationResult XmlRequestValidator::validateInsert(const QByteArray& body, 
 	}
 
 	// Check mandatory database columns.
-	for (auto it = table->columns.constBegin(); it != table->columns.constEnd(); it++)
+	for (auto it = table.columns.constBegin(); it != table.columns.constEnd(); it++)
 	{
 		const ColumnSchema& column = it.value();
 		if (column.requiredForInsert() && !seen_fields.contains(column.name))

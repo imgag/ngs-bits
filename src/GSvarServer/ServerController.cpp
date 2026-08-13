@@ -1733,11 +1733,11 @@ HttpResponse ServerController::addProjectToDb(const HttpRequest &request)
 
 	if (result.isValid())
 	{
-		const TableSchema* table = db_schema.table("project");
-		if (table == nullptr) return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_PLAIN, "No schema found for `project` table");
+		const TableSchema& table = db_schema.table("project");
+		// if (table == nullptr) return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_PLAIN, "No schema found for `project` table");
 
 		qlonglong project_id = -1;
-		DatabaseInsert::insert(*table, result.values,&project_id);
+		DatabaseInsert::insert(table, result.values,&project_id);
 
 		return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "A new project has been added");
 	}
