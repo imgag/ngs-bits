@@ -1727,59 +1727,37 @@ HttpResponse ServerController::getCurrentClientInfo(const HttpRequest& /*request
 
 HttpResponse ServerController::addProjectToDb(const HttpRequest &request)
 {
-	DatabaseSchema db_schema = EndpointManager::getDatabaseSchema();
-	XmlRequestValidator validator(db_schema);
-	const XmlValidationResult result = validator.validateInsert(request.getBody(), "project");
-
-	if (result.isValid())
-	{
-		try
-		{
-			const TableSchema& table = db_schema.table("project");
-			qlonglong project_id = -1;
-			DatabaseInsert::insert(table, result.values,&project_id);
-		}
-		catch (DatabaseException& e)
-		{
-			return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_PLAIN, e.message());
-		}
-
-		return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "A new project has been added");
-	}
-	else
-	{
-		return HttpResponse(ResponseStatus::BAD_REQUEST, ContentType::TEXT_PLAIN, "Error while adding a new project: " + result.errors.join(", "));
-	}
+	return addRecordToDbTable("project", request);
 }
 
 HttpResponse ServerController::addProcessingSystemToDb(const HttpRequest &request)
 {
-	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "addProcessingSystemToDb");
+	return addRecordToDbTable("processing_system", request);
 }
 
 HttpResponse ServerController::addDeviceToDb(const HttpRequest &request)
 {
-	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "addDeviceToDb");
+	return addRecordToDbTable("device", request);
 }
 
 HttpResponse ServerController::addSequencingRunToDb(const HttpRequest &request)
 {
-	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "addSequencingRunToDb");
+	return addRecordToDbTable("sequencing_run", request);
 }
 
 HttpResponse ServerController::addSampleToDb(const HttpRequest &request)
 {
-	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "addSampleToDb");
+	return addRecordToDbTable("sample", request);
 }
 
 HttpResponse ServerController::addProcessedSampleToDb(const HttpRequest &request)
 {
-	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "addProcessedSampleToDb");
+	return addRecordToDbTable("processed_sample", request);
 }
 
 HttpResponse ServerController::addSenderToDb(const HttpRequest &request)
 {
-	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "addSenderToDb");
+	return addRecordToDbTable("sender", request);
 }
 
 HttpResponse ServerController::performBlatSearch(const HttpRequest& request)
@@ -2013,6 +1991,33 @@ HttpResponse ServerController::createStaticLocationResponse(const QString path, 
 	}
 
 	return createStaticFileResponse(path, request);
+}
+
+HttpResponse ServerController::addRecordToDbTable(const QString &table_name, const HttpRequest& request)
+{
+	DatabaseSchema db_schema = EndpointManager::getDatabaseSchema();
+	XmlRequestValidator validator(db_schema);
+	const XmlValidationResult result = validator.validateInsert(request.getBody(), table_name);
+
+	if (result.isValid())
+	{
+		qlonglong record_id = -1;
+		try
+		{
+			const TableSchema& table = db_schema.table(table_name);
+			DatabaseInsert::insert(table, result.values,&record_id);
+		}
+		catch (DatabaseException& e)
+		{
+			return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_PLAIN, QString("Database error: %1").arg(e.message()));
+		}
+
+		return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, QString("A new record with id=%1 has been added to the '%2' table").arg(QString::number(record_id), table_name));
+	}
+	else
+	{
+		return HttpResponse(ResponseStatus::BAD_REQUEST, ContentType::TEXT_PLAIN, QString("Error while adding a new record to the '%1' table: %2").arg(table_name, result.errors.join(", ")));
+	}
 }
 
 HttpResponse ServerController::uploadFileToFolder(QString upload_folder, const HttpRequest& request)

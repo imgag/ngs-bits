@@ -148,6 +148,8 @@ private:
     static HttpResponse createStaticFileResponse(const QString& filename, const HttpRequest& request);
 	static HttpResponse createStaticFolderResponse(const QString path, const HttpRequest& request);
 	static HttpResponse createStaticLocationResponse(const QString path, const HttpRequest& request);
+	/// Handles adding new records to the database tables (data import)
+	static HttpResponse addRecordToDbTable(const QString& table_name, const HttpRequest& request);
 };
 
 #endif // SERVERCONTROLLER_H
