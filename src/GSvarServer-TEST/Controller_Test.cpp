@@ -424,7 +424,10 @@ private:
 
 	TEST_METHOD(test_data_import_api)
 	{
+		if (!NGSD::isAvailable(true)) SKIP("No test database found!");
 		NGSD test_db(true);
+		test_db.init();
+
 		QByteArray correct_xml_content =
 			"<project>"
 			"<name>Example_Project_Name</name>"
@@ -442,8 +445,10 @@ private:
 		DatabaseSchema db_schema = DatabaseSchema::loadFromDatabase(test_db);
 		XmlRequestValidator validator(db_schema);
 		XmlValidationResult result = validator.validateInsert(correct_xml_content, "project");
-
 		IS_TRUE(result.isValid());
+
+		TableSchema table = db_schema.table("project");
+		DatabaseInsert::insert(test_db, table, result.values);
 
 		QByteArray in_correct_xml_content =
 			"<project>"
@@ -461,5 +466,7 @@ private:
 
 		result = validator.validateInsert(in_correct_xml_content, "project");
 		IS_TRUE(!result.isValid());
+
+		IS_THROWN(DatabaseException, DatabaseInsert::insert(test_db, table, result.values));
 	}
 };
