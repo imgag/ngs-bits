@@ -10,9 +10,8 @@ static QString quoteIdentifier(const QString& identifier)
 }
 
 
-void DatabaseInsert::insert(const TableSchema& table, const QHash<QString, QVariant>& values, qlonglong* inserted_id)
-{
-	NGSD db;
+void DatabaseInsert::insert(NGSD& db, const TableSchema& table, const QHash<QString, QVariant>& values)
+{	
 	if (values.isEmpty()) THROW(DatabaseException, "No values supplied for INSERT");
 
 	QStringList column_names;
@@ -34,15 +33,10 @@ void DatabaseInsert::insert(const TableSchema& table, const QHash<QString, QVari
 
 		keys.append(column_name);
 		column_names.append(quoteIdentifier(column_name));
-		placeholders.append(QString(":value_%1").arg(index));
+		placeholders.append("'" + values[column_name].toString() + "'");
 		index++;
 	}
 
-	SqlQuery query = db.getQuery();
-	query.prepare(QString("INSERT INTO %1 (%2) VALUES (%3)").arg(quoteIdentifier(table.name), column_names.join(", "), placeholders.join(", ")));
-
-	for (int i = 0; i < keys.count(); i++) query.bindValue(QString(":value_%1").arg(i), values.value(keys[i]));
-
-	query.exec();
-	if (inserted_id != nullptr) *inserted_id = query.lastInsertId().toLongLong();
+	SqlQuery query = db.getQuery();	
+	query.exec(QString("INSERT INTO %1 (%2) VALUES (%3)").arg(quoteIdentifier(table.name), column_names.join(", "), placeholders.join(", ")));	
 }

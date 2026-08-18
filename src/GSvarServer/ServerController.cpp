@@ -2001,18 +2001,18 @@ HttpResponse ServerController::addRecordToDbTable(const QString &table_name, con
 
 	if (result.isValid())
 	{
-		qlonglong record_id = -1;
 		try
 		{
+			NGSD db;
 			const TableSchema& table = db_schema.table(table_name);
-			DatabaseInsert::insert(table, result.values,&record_id);
+			DatabaseInsert::insert(db, table, result.values);
 		}
 		catch (DatabaseException& e)
 		{
 			return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_PLAIN, QString("Database error: %1").arg(e.message()));
 		}
 
-		return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, QString("A new record with id=%1 has been added to the '%2' table").arg(QString::number(record_id), table_name));
+		return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, QString("A new record has been added to the '%1' table").arg(table_name));
 	}
 	else
 	{

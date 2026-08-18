@@ -7,7 +7,8 @@
 EndpointManager::EndpointManager()
 {
 	Log::error("EndpointManager constructor");
-	database_schema_ = DatabaseSchema::loadFromDatabase();
+	NGSD db;
+	database_schema_ = DatabaseSchema::loadFromDatabase(db);
 }
 
 HttpResponse EndpointManager::getBasicHttpAuthStatus(const HttpRequest& request)

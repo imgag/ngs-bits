@@ -50,7 +50,6 @@ XmlValidationResult XmlRequestValidator::validateInsert(const QByteArray& body, 
 	while (xml.readNextStartElement())
 	{
 		const QString fieldName = xml.name().toString();
-
 		const auto column_it = table.columns.constFind(fieldName);
 
 		if (column_it == table.columns.constEnd())
@@ -84,12 +83,7 @@ XmlValidationResult XmlRequestValidator::validateInsert(const QByteArray& body, 
 		}
 
 		const QString value = xml.readElementText(QXmlStreamReader::ErrorOnUnexpectedElement);
-
-		if (xml.hasError())
-		{
-			break;
-		}
-
+		if (xml.hasError()) break;
 		const ConvertedValue converted = convertValue(value, column);
 
 		if (!converted.valid)

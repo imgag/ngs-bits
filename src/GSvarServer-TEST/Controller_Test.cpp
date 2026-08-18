@@ -421,4 +421,45 @@ private:
         // it will always change when items are added or deleted
 		I_EQUAL(static_cast<int>(PathType::OTHER), 49);
     }
+
+	TEST_METHOD(test_data_import_api)
+	{
+		NGSD test_db(true);
+		QByteArray correct_xml_content =
+			"<project>"
+			"<name>Example_Project_Name</name>"
+			"<aliases>Example;TestProject</aliases>"
+			"<type>research</type>"
+			"<internal_coordinator_id>1</internal_coordinator_id>"
+			"<comment>Example project created through the API</comment>"
+			"<analysis>variants</analysis>"
+			"<preserve_fastqs>1</preserve_fastqs>"
+			"<email_notification>alice@example.org;bob@example.org</email_notification>"
+			"<archived>0</archived>"
+			"<matchmaking>yes</matchmaking>"
+			"</project>";
+
+		DatabaseSchema db_schema = DatabaseSchema::loadFromDatabase(test_db);
+		XmlRequestValidator validator(db_schema);
+		XmlValidationResult result = validator.validateInsert(correct_xml_content, "project");
+
+		IS_TRUE(result.isValid());
+
+		QByteArray in_correct_xml_content =
+			"<project>"
+			"<label>Project Label</label>"
+			"<aliases>Example;TestProject</aliases>"
+			"<type>research</type>"
+			"<internal_coordinator_id>1</internal_coordinator_id>"
+			"<comment>Example project created through the API</comment>"
+			"<analysis>variants</analysis>"
+			"<preserve_fastqs>1</preserve_fastqs>"
+			"<email_notification>alice@example.org;bob@example.org</email_notification>"
+			"<archived>0</archived>"
+			"<matchmaking>yes</matchmaking>"
+			"</project>";
+
+		result = validator.validateInsert(in_correct_xml_content, "project");
+		IS_TRUE(!result.isValid());
+	}
 };

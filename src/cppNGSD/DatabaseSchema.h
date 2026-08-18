@@ -7,6 +7,7 @@
 #include <QStringList>
 #include <QVariant>
 #include "Exceptions.h"
+#include "NGSD.h"
 
 struct CPPNGSDSHARED_EXPORT ColumnSchema
 {
@@ -49,18 +50,11 @@ struct CPPNGSDSHARED_EXPORT TableSchema
 class CPPNGSDSHARED_EXPORT DatabaseSchema
 {
 public:
-	static DatabaseSchema loadFromDatabase();
-
-
+	static DatabaseSchema loadFromDatabase(NGSD& db);
 	const TableSchema& table(const QString& name) const
 	{
 		const auto it = tables_.constFind(name);
-
-		if (it == tables_.constEnd())
-		{
-			THROW(DatabaseException, QString("Table '%1' does not exist").arg(name));
-		}
-
+		if (it == tables_.constEnd()) THROW(DatabaseException, QString("Table '%1' does not exist").arg(name));
 		return it.value();
 	}
 

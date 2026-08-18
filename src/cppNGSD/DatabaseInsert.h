@@ -8,7 +8,7 @@
 class CPPNGSDSHARED_EXPORT DatabaseInsert
 {
 public:
-	static void insert(const TableSchema& table, const QHash<QString, QVariant>& values, qlonglong* inserted_id = nullptr);
+	static void insert(NGSD& db, const TableSchema& table, const QHash<QString, QVariant>& values);
 };
 
 #endif // DATABASEINSERT_H
