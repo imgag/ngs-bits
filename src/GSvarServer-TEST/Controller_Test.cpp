@@ -427,6 +427,7 @@ private:
 		if (!NGSD::isAvailable(true)) SKIP("No test database found!");
 		NGSD test_db(true);
 		test_db.init();
+		test_db.executeQueriesFromFile(TESTDATA("data/NGSD_in5.sql"));
 
 		QByteArray correct_xml_content =
 			"<project>"
