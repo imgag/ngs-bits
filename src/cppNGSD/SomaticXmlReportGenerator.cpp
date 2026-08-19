@@ -207,6 +207,10 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	if( data.settings.report_config->msiStatus() ) w.writeAttribute( "microsatellite_instability",  QString::number(data.msi_unstable_percent, 'f', 2) );
 	w.writeAttribute("hrd_score_chromo", QString::number(data.settings.report_config->cnvLohCount() + data.settings.report_config->cnvTaiCount() + data.settings.report_config->cnvLstCount()));
 
+	w.writeAttribute("scheduled_for_resequencing", t_ps_data.scheduled_for_resequencing ? "true" : "false");
+
+
+
 	//QC data
 	QCCollection qc_data = db.getQCData(tumor_ps_id);
 	for (int i=0; i<qc_data.count(); ++i)
@@ -232,6 +236,7 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 	w.writeAttribute("sequencer", db.getValue("SELECT d.type FROM device as d, sequencing_run as sr WHERE d.id = sr.device_id AND sr.name = '" + n_ps_data.run_name +  "'", false).toString() );
 	QCCollection n_qc = db.getQCData(normal_ps_id);
 	w.writeAttribute("average_depth", n_qc.value("QC:2000025", true).toString());
+	w.writeAttribute("scheduled_for_resequencing", n_ps_data.scheduled_for_resequencing ? "true" : "false");
 
 	//QC data
 	qc_data = db.getQCData(normal_ps_id);

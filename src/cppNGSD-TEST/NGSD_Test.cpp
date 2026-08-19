@@ -2820,6 +2820,10 @@ private:
 		query.prepare("UPDATE processed_sample SET folder_override = '" + TESTDATA("data_in/somatic/Sample_DNA123456_01/") + "' WHERE id = 4004");
 		query.exec();
 
+		query = db.getQuery();
+		query.prepare("UPDATE processed_sample SET scheduled_for_resequencing = '1' WHERE id = 4004");
+		query.exec();
+
 		QString tumor_sample = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/DNA123456_01-NA12878_03.GSvar");
 		QString normal_sample = TESTDATA("data_in/somatic/Sample_NA12878_03/NA12878_03.GSvar");
 
@@ -2909,6 +2913,10 @@ private:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in4_gene_exons.sql"));
 		SqlQuery query = db.getQuery();
 		query.prepare("UPDATE processed_sample SET folder_override = '" + TESTDATA("data_in/somatic/Sample_DNA123456_01/") + "' WHERE id = 4004");
+		query.exec();
+
+		query = db.getQuery();
+		query.prepare("UPDATE processed_sample SET scheduled_for_resequencing = '1' WHERE id = 3999");
 		query.exec();
 
 		QString tumor_sample = TESTDATA("data_in/somatic/Somatic_DNA123456_01-NA12878_03/DNA123456_01-NA12878_03.GSvar");
