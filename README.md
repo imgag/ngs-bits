@@ -23,7 +23,7 @@ Depending on your operating system, building instructions vary slightly:
 * Building from **sources** for [MacOS](doc/install_mac.md)
 * Building from **sources** for [Windows](doc/install_win.md)
 
-`GSvar` app requires a running server, instructions on how to deplpy it on a Linux machine can be found [here](doc/GSvarServer/index.md)
+`GSvar` app requires a running server, instructions on how to deploy it on a Linux machine can be found [here](doc/GSvarServer/index.md)
 
 
 ## Support
