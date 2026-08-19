@@ -75,10 +75,6 @@ public slots:
 	void checkUserNotifications();
 	///Loads a variant list. Unloads the variant list if no file name is given
     void loadFile(QString filename="");
-	///Checks if variant list is outdated
-	void checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues);
-	///Checks if processed samples have bad quality or other problems
-	void checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>>& issues);
 	///Shows a dialog with issues in analysis. Returns the DialogCode.
     int showAnalysisIssues(QList<QPair<Log::LogLevel, QString> >& issues);
 	///Open dialog
@@ -368,8 +364,6 @@ public slots:
 	void addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize=false);
 	///Adds and shows a modeless dialog
 	void deleteClosedModelessDialogs();
-	///Imports phenotype data from NGSD
-	void importPhenotypesFromNGSD();
 
 	///Opens a sample based on the processed sample name
 	void openProcessedSampleFromNGSD(QString processed_sample_name, bool search_multi=true);
@@ -423,8 +417,6 @@ public slots:
 	void execContextMenuAction(QAction* action, int index);
 	//Open Alamut visualization
 	void openAlamut(QAction* action);
-	//Show matching CNVs and SVs
-	void showMatchingCnvsAndSvs(BedLine region);
 
     //Open a window with the IGV command history
 	void displayIgvHistoryTable();

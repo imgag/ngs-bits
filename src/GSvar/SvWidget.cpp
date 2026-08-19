@@ -442,7 +442,7 @@ void SvWidget::annotateTargetRegionGeneOverlap()
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 
 	//generate gene regions and index
-	BedFile roi_genes = NGSD().genesToRegions(ui->filter_widget->targetRegion().genes, Transcript::ENSEMBL, "gene", true);
+	BedFile roi_genes = NGSD().genesToRegions(state_.getTargetRegionInfo().genes, Transcript::ENSEMBL, "gene", true);
 	roi_genes.extend(5000);
 	ChromosomalIndex<BedFile> roi_genes_index(roi_genes);
 

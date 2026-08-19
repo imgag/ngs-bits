@@ -5,7 +5,8 @@
 #include <QTableWidget>
 #include "ArribaFile.h"
 #include "RnaReportConfiguration.h"
-#include "NGSD.h"
+#include "AnalysisDataController.h"
+#include "FilterState.h"
 
 namespace Ui {
 class FusionWidget;
@@ -24,7 +25,6 @@ signals:
 
 private slots:
 	void displayFusionImage();
-	void applyFilters(bool debug_time=false);
 	void updateStatus(int shown);
 	void editRnaReportConfiguration(int row);
 	void editRnaReportConfiguration(const QList<int>& rows);
@@ -45,6 +45,8 @@ private slots:
 private:
 	QList<QImage> imagesFromFiles(const QStringList& files);
     QSharedPointer<RnaReportConfiguration> rna_report_config_;
+	AnalysisDataController& data_controller_;
+	FilterState& state_;
 
 	QString filename_;
 	ArribaFile fusions_;

@@ -41,19 +41,16 @@ public:
     FilterState& getSmallVariantsFilterState();
 	FilterState& getCnvFilterState();
 	FilterState& getSvFilterState();
-	FilterState& getReFilterState();
 	FilterState& getFusionFilterState();
 
     const FilterResult& getSmallVariantsFilterResult() const;
 	const FilterResult& getCnvFilterResult() const;
 	const FilterResult& getSVFilterResult() const;
-	const FilterResult& getReFilterResult() const;
 	const FilterResult& getFusionFilterResult() const;
 
     const FilterResult& applySmallVariantFilter(bool debug_time=false);
 	const FilterResult& applyCnvFilter(bool debug_time=false);
 	const FilterResult& applySvFilter(bool debug_time=false);
-	const FilterResult& applyReFilter(bool debug_time=false);
 	const FilterResult& applyFusionFilter(bool debug_time=false);
 
     ///change the annotation of variants in the small variant list:
@@ -294,11 +291,13 @@ private:
 
     //variants
     VariantList variants_;
-    FilterState  variants_filter_state_;
+	VariantList somatic_control_tissue_variants_;
+	FilterState  variants_filter_state_;
     FilterResult variants_filter_result_;
     QList<VariantListChange> variants_changed_;
 	bool var_het_genes_uptodate_;
 	GeneSet var_het_genes_;
+
 
     CnvList cnvs_;
     FilterState  cnvs_filter_state_;
@@ -307,12 +306,9 @@ private:
     FilterState  svs_filter_state_;
     FilterResult svs_filter_result_;
     RepeatLocusList repeat_expansions_;
-    FilterState  res_filter_state_;
-    FilterResult res_filter_result_;
-    VariantList somatic_control_tissue_variants_;
-    ArribaFile fusions_;
-    FilterState  fusions_filter_state_;
-    FilterResult fusions_filter_result_;
+	ArribaFile fusions_;
+	FilterState  fusions_filter_state_;
+	FilterResult fusions_filter_result_;
 
     //Report data:
     ReportSettings germline_report_settings_;

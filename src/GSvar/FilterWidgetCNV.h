@@ -22,9 +22,6 @@ public:
 	//Visually marks filters that failed.
 	void markFailedFilters();
 
-	//Sets the target region by name file (without the type prefix).
-	void setTargetRegionByDisplayName(QString name);
-
 signals:
 	/// Signal that requests the creation of gene overlap ToolTips
 	void calculateGeneTargetRegionOverlap();

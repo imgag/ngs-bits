@@ -2,8 +2,8 @@
 #include "ui_ReportVariantSelectionDialog.h"
 #include "LoginManager.h"
 #include "Exceptions.h"
-#include "GlobalServiceProvider.h"
 #include "GSvarHelper.h"
+#include "AnalysisDataController.h"
 
 #include <GUIHelper.h>
 #include <NGSD.h>

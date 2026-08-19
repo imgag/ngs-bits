@@ -97,21 +97,6 @@ void FilterWidgetCNV::markFailedFilters()
 	ui_.cascade_widget->markFailedFilters();
 }
 
-void FilterWidgetCNV::setTargetRegionByDisplayName(QString name)
-{
-	QString system = "Processing system: " + name;
-	QString subpanel ="Sub-panel: " + name;
-
-	for (int i=0; i<ui_.roi->count(); ++i)
-	{
-		if (ui_.roi->itemText(i)==system || ui_.roi->itemText(i)==subpanel)
-		{
-			ui_.roi->setCurrentIndex(i);
-			break;
-		}
-	}
-}
-
 bool FilterWidgetCNV::setTargetRegionByName(QString name)
 {
 	return FilterWidgetHelper::setTargetRegionByName(name, ui_.roi);
@@ -449,7 +434,7 @@ void FilterWidgetCNV::showRoiContextMenu(QPoint pos)
 	{
         foreach(const QString& entry, FilterWidgetHelper::roiHistory())
 		{
-			if (action->text()==entry) setTargetRegionByDisplayName(entry);
+			if (action->text()==entry) FilterWidgetHelper::setTargetRegionByName(entry, ui_.roi);
 		}
 	}
 }

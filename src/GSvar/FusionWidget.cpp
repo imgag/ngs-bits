@@ -14,7 +14,9 @@
 
 FusionWidget::FusionWidget(const QString& filename, const QString& rna_ps_name, QSharedPointer<RnaReportConfiguration> rna_rep_conf,  QWidget *parent) :
 	QWidget(parent),
-    rna_report_config_(rna_rep_conf),
+	rna_report_config_(rna_rep_conf),
+	data_controller_(AnalysisDataController::instance()),
+	state_(data_controller_.getFusionFilterState()),
     filename_(filename),
     fusions_(),
     rna_ps_name_(rna_ps_name),
@@ -33,6 +35,9 @@ FusionWidget::FusionWidget(const QString& filename, const QString& rna_ps_name, 
 
 	GUIHelper::styleSplitter(ui_->splitter);
 
+	connect(&state_, SIGNAL(targetRegionChanged()), this, SLOT(clearTooltips()));
+	connect(&data_controller_, SIGNAL(FusionFilterResultChanged()), this, SLOT(updateGUI()));
+
 	connect(ui_->fusions, SIGNAL(itemSelectionChanged()), this, SLOT(displayFusionImage()));
 	//TODO
 	connect(ui_->fusions, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
@@ -45,8 +50,6 @@ FusionWidget::FusionWidget(const QString& filename, const QString& rna_ps_name, 
 
 	QStringList images = GlobalServiceProvider::database().getRnaFusionPics(rna_ps_name_);
 	images_ = imagesFromFiles(images);
-
-    applyFilters();
 }
 
 FusionWidget::~FusionWidget()
@@ -112,6 +115,13 @@ void FusionWidget::updateGUI()
 	//enable sorting
 	ui_->fusions->setSortingEnabled(true);
 
+	//update GUI by filter
+	for(int r=0; r<fusions_.count(); ++r)
+	{
+		ui_->fusions->setRowHidden(r, !data_controller_.getFusionFilterResult().flags()[r]);
+	}
+	updateStatus(data_controller_.getFusionFilterResult().countPassing());
+
 	//optimize table view
 	GUIHelper::resizeTableCellWidths(ui_->fusions, 200);
 	ui_->fusions->resizeRowsToContents();
@@ -170,188 +180,6 @@ void FusionWidget::showContextMenu(QPoint p)
     }
 }
 
-void FusionWidget::applyFilters(bool debug_time)
-{
-	QApplication::setOverrideCursor(Qt::BusyCursor);
-	const int rows = ui_->fusions->rowCount();
-	FilterResult filter_result(rows);
-
-	try
-	{
-		QElapsedTimer timer;
-		timer.start();
-
-		//apply main filter
-		const FilterCascade& filter_cascade = ui_->filter_widget->filters();
-
-		filter_result = filter_cascade.apply(fusions_, false, debug_time);
-		ui_->filter_widget->markFailedFilters();
-
-		if (debug_time)
-		{
-			Log::perf("Applying annotation filters took ", timer);
-			timer.start();
-		}
-
-		//filter by report config
-		ReportConfigFilter rc_filter = ui_->filter_widget->reportConfigurationFilter();
-		if (rc_filter!=ReportConfigFilter::NONE)
-		{
-			for(int r=0; r<rows; ++r)
-			{
-				if (!filter_result.flags()[r]) continue;
-
-				if (rc_filter==ReportConfigFilter::HAS_RC)
-				{
-
-                    filter_result.flags()[r] = rna_report_config_->exists(r);
-
-				}
-				else if (rc_filter==ReportConfigFilter::NO_RC)
-				{
-                    filter_result.flags()[r] = !rna_report_config_->exists(r);
-				}
-			}
-		}
-
-		//filter by genes
-		GeneSet genes = ui_->filter_widget->genes();
-		if (!genes.isEmpty())
-		{
-			QByteArray genes_joined = genes.join('|');
-
-			if (genes_joined.contains("*")) //with wildcards
-			{
-                QRegularExpression reg(genes_joined.replace("-", "\\-").replace("*", "[A-Z0-9-]*"));
-				for(int r=0; r<rows; ++r)
-				{
-					if (!filter_result.flags()[r]) continue;
-
-					bool match_found = false;
-					foreach(const QString& fusion_gene, QStringList() << fusions_.getFusion(r).symbol1().split(",") << fusions_.getFusion(r).symbol2().split(","))
-					{
-                        if (reg.match(fusion_gene).hasMatch())
-						{
-							match_found = true;
-							break;
-						}
-					}
-					filter_result.flags()[r] = match_found;
-				}
-			}
-			else //without wildcards
-			{
-				for(int r=0; r<rows; ++r)
-				{
-					if (!filter_result.flags()[r]) continue;
-					GeneSet fusion_genes;
-					fusion_genes.insert(fusions_.getFusion(r).symbol1().toUtf8().split(','));
-					fusion_genes.insert(fusions_.getFusion(r).symbol2().toUtf8().split(','));
-					filter_result.flags()[r] = fusion_genes.intersectsWith(genes);
-				}
-			}
-		}
-
-		//filter by ROI
-		if (ui_->filter_widget->targetRegion().isValid())
-		{
-			for(int r=0; r<rows; ++r)
-			{
-				if (!filter_result.flags()[r]) continue;
-				filter_result.flags()[r] = fusions_.getFusion(r).breakpointsOverlapRegion(ui_->filter_widget->targetRegion().regions);
-			}
-		}
-
-		//filter by region
-		QString region_text = ui_->filter_widget->region();
-		BedLine region = BedLine::fromString(region_text);
-		if (!region.isValid()) //check if valid chr
-		{
-			Chromosome chr(region_text);
-			if (chr.isNonSpecial())
-			{
-				region.setChr(chr);
-				region.setStart(1);
-				region.setEnd(999999999);
-			}
-		}
-		if (region.isValid()) //valid region (chr,start, end or only chr)
-		{
-			for(int r=0; r<rows; ++r)
-			{
-				if (!filter_result.flags()[r]) continue;
-				filter_result.flags()[r] = fusions_.getFusion(r).breakpointsOverlapRegion(region);
-			}
-		}
-
-		//filter by phenotype (via genes, not genomic regions)
-		PhenotypeList phenotypes = ui_->filter_widget->phenotypes();
-		if (!phenotypes.isEmpty())
-		{
-			//convert phenotypes to genes
-			NGSD db;
-			GeneSet pheno_genes;
-			foreach(const Phenotype& pheno, phenotypes)
-			{
-				pheno_genes << db.phenotypeToGenes(db.phenotypeIdByAccession(pheno.accession()), true);
-			}
-
-			//convert genes to ROI (using a cache to speed up repeating queries)
-			BedFile pheno_roi;
-			timer.start();
-			foreach(const QByteArray& gene, pheno_genes)
-			{
-				pheno_roi.add(GlobalServiceProvider::geneToRegions(gene, db));
-			}
-			pheno_roi.merge();
-
-			for(int r=0; r<rows; ++r)
-			{
-				if (!filter_result.flags()[r]) continue;
-
-				filter_result.flags()[r] = fusions_.getFusion(r).breakpointsOverlapRegion(pheno_roi);
-			}
-		}
-
-		//filter annotations by text
-		QByteArray text = ui_->filter_widget->text().trimmed().toLower();
-		if (text!="")
-		{
-			for(int r=0; r<rows; ++r)
-			{
-				if (!filter_result.flags()[r]) continue;
-
-				bool match = false;
-				foreach(const QString& anno, fusions_.getFusion(r).annotations())
-				{
-					if (anno.toLower().contains(text))
-					{
-						match = true;
-						break;
-					}
-				}
-				filter_result.flags()[r] = match;
-			}
-		}
-	}
-	catch(Exception& e)
-	{
-		QMessageBox::warning(this, "Filtering error", e.message() + "\nA possible reason for this error is an outdated variant list.\nTry re-annotating the NGSD columns.\n "
-							 + "If re-annotation does not help, please re-analyze the sample (starting from annotation) in the sample information dialog!");
-
-		filter_result = FilterResult(fusions_.count(), false);
-	}
-
-	//update GUI
-	for(int r=0; r<rows; ++r)
-	{
-		ui_->fusions->setRowHidden(r, !filter_result.flags()[r]);
-	}
-
-	updateStatus(filter_result.countPassing());
-	QApplication::restoreOverrideCursor();
-}
-
 void FusionWidget::editRnaReportConfiguration(int row)
 {
 	RnaReportFusionConfiguration fusion_config;
@@ -399,16 +227,16 @@ void FusionWidget::updateReportConfigHeaderIcon(int row)
 {
     qDebug() << "FusionWidget::updateReportConfigHeaderIcon()";
 	//report config-based filter is on => update whole variant list
-	if (ui_->filter_widget->reportConfigurationFilter() != ReportConfigFilter::NONE)
+	if (state_.getReportConfigFilter()!=ReportConfigFilter::NONE)
 	{
-		applyFilters();
+		updateGUI();
 	}
 	else //no filter => refresh icon only
 	{
 		QIcon report_icon;
-        if (rna_report_config_->exists(row))
+		if (rna_report_config_->exists(row))
 		{
-            const RnaReportFusionConfiguration& rc = rna_report_config_->get(row);
+			const RnaReportFusionConfiguration& rc = rna_report_config_->get(row);
 			report_icon = VariantTable::reportIcon(rc.showInReport(), true);
 		}
 

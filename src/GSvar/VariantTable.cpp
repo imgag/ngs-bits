@@ -291,7 +291,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	//perform actions
 	if (action==a_cnv_sv)
 	{
-		emit showMatchingCnvsAndSvs(BedLine(variant.chr(), variant.start(), variant.end()));
+		showMatchingCnvsAndSvs(BedLine(variant.chr(), variant.start(), variant.end()));
 	}
 
 	if (action==a_visualize)
