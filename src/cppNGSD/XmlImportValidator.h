@@ -1,5 +1,5 @@
-#ifndef XMLREQUESTVALIDATOR_H
-#define XMLREQUESTVALIDATOR_H
+#ifndef XMLIMPORTVALIDATOR_H
+#define XMLIMPORTVALIDATOR_H
 
 #include "DatabaseSchema.h"
 #include "cppNGSD_global.h"
@@ -20,11 +20,11 @@ struct CPPNGSDSHARED_EXPORT XmlValidationResult
 };
 
 
-class CPPNGSDSHARED_EXPORT XmlRequestValidator
+class CPPNGSDSHARED_EXPORT XmlImportValidator
 {
 public:
-	explicit XmlRequestValidator(const DatabaseSchema& schema);
-	XmlValidationResult validateInsert(const QByteArray& xml, const QString& tableName) const;
+	explicit XmlImportValidator(const DatabaseSchema& schema);
+	XmlValidationResult validateInsert(const QByteArray& xml, const QString& table_name) const;
 
 private:
 	struct ConvertedValue
@@ -38,4 +38,4 @@ private:
 	const DatabaseSchema& schema_;
 };
 
-#endif // XMLREQUESTVALIDATOR_H
+#endif // XMLIMPORTVALIDATOR_H

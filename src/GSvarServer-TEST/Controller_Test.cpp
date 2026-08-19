@@ -444,7 +444,7 @@ private:
 			"</project>";
 
 		DatabaseSchema db_schema = DatabaseSchema::loadFromDatabase(test_db);
-		XmlRequestValidator validator(db_schema);
+		XmlImportValidator validator(db_schema);
 		XmlValidationResult result = validator.validateInsert(correct_xml_content, "project");
 		IS_TRUE(result.isValid());
 

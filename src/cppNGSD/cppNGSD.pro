@@ -55,7 +55,7 @@ SOURCES += \
     SomaticReportHelper.cpp \
     SomaticRnaReport.cpp \
     SomaticcfDNAReport.cpp \
-    XmlRequestValidator.cpp
+    XmlImportValidator.cpp
 
 HEADERS += \
     ApiCaller.h \
@@ -86,7 +86,7 @@ HEADERS += \
     SomaticReportHelper.h \
     SomaticRnaReport.h \
     SomaticcfDNAReport.h \
-    XmlRequestValidator.h
+    XmlImportValidator.h
 
 RESOURCES += \
     cppNGSD.qrc

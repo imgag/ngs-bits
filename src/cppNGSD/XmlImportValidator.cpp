@@ -1,14 +1,14 @@
-#include "XmlRequestValidator.h"
+#include "XmlImportValidator.h"
 #include <QSet>
 #include <QXmlStreamReader>
 #include <limits>
 
-XmlRequestValidator::XmlRequestValidator(const DatabaseSchema& schema)
+XmlImportValidator::XmlImportValidator(const DatabaseSchema& schema)
 	: schema_(schema)
 {
 }
 
-XmlValidationResult XmlRequestValidator::validateInsert(const QByteArray& body, const QString& tableName) const
+XmlValidationResult XmlImportValidator::validateInsert(const QByteArray& body, const QString& table_name) const
 {
 	XmlValidationResult result;
 	constexpr qsizetype MAX_XML_SIZE = 1024 * 1024;
@@ -25,7 +25,7 @@ XmlValidationResult XmlRequestValidator::validateInsert(const QByteArray& body, 
 		return result;
 	}
 
-	const TableSchema& table = schema_.table(tableName);
+	const TableSchema& table = schema_.table(table_name);
 
 	QXmlStreamReader xml(body);
 	if (!xml.readNextStartElement())
@@ -34,52 +34,52 @@ XmlValidationResult XmlRequestValidator::validateInsert(const QByteArray& body, 
 		return result;
 	}
 
-	if (xml.name() != tableName)
+	if (xml.name() != table_name)
 	{
-		result.errors << QString("Expected root element <%1>, found <%2>").arg(tableName, xml.name().toString());
+		result.errors << QString("Expected root element <%1>, found <%2>").arg(table_name, xml.name().toString());
 		return result;
 	}
 
 	if (!xml.attributes().isEmpty())
 	{
-		result.errors << QString("Attributes on <%1> are not allowed").arg(tableName);
+		result.errors << QString("Attributes on <%1> are not allowed").arg(table_name);
 	}
 
 	QSet<QString> seen_fields;
 
 	while (xml.readNextStartElement())
 	{
-		const QString fieldName = xml.name().toString();
-		const auto column_it = table.columns.constFind(fieldName);
+		const QString field_name = xml.name().toString();
+		const auto column_it = table.columns.constFind(field_name);
 
 		if (column_it == table.columns.constEnd())
 		{
-			result.errors << QString("Unknown field <%1>").arg(fieldName);
+			result.errors << QString("Unknown field <%1>").arg(field_name);
 			xml.skipCurrentElement();
 			continue;
 		}
 
 		const ColumnSchema& column = column_it.value();
 
-		if (seen_fields.contains(fieldName))
+		if (seen_fields.contains(field_name))
 		{
-			result.errors << QString("Field <%1> occurs more than once").arg(fieldName);
+			result.errors << QString("Field <%1> occurs more than once").arg(field_name);
 			xml.skipCurrentElement();
 			continue;
 		}
 
-		seen_fields.insert(fieldName);
+		seen_fields.insert(field_name);
 
 		if (!column.writable())
 		{
-			result.errors << QString("Field <%1> cannot be supplied").arg(fieldName);
+			result.errors << QString("Field <%1> cannot be supplied").arg(field_name);
 			xml.skipCurrentElement();
 			continue;
 		}
 
 		if (!xml.attributes().isEmpty())
 		{
-			result.errors << QString("Attributes on <%1> are not allowed").arg(fieldName);
+			result.errors << QString("Attributes on <%1> are not allowed").arg(field_name);
 		}
 
 		const QString value = xml.readElementText(QXmlStreamReader::ErrorOnUnexpectedElement);
@@ -92,7 +92,7 @@ XmlValidationResult XmlRequestValidator::validateInsert(const QByteArray& body, 
 			continue;
 		}
 
-		result.values.insert(fieldName, converted.value);
+		result.values.insert(field_name, converted.value);
 	}
 
 	if (xml.hasError())
@@ -113,7 +113,7 @@ XmlValidationResult XmlRequestValidator::validateInsert(const QByteArray& body, 
 	return result;
 }
 
-XmlRequestValidator::ConvertedValue XmlRequestValidator::convertValue(const QString &text, const ColumnSchema &column) const
+XmlImportValidator::ConvertedValue XmlImportValidator::convertValue(const QString &text, const ColumnSchema &column) const
 {
 	ConvertedValue result;
 	const QString type = column.data_type.toLower();

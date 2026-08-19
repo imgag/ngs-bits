@@ -17,7 +17,7 @@
 #include "Statistics.h"
 #include "ToolBase.h"
 #include "FileLocationProviderLocal.h"
-#include "XmlRequestValidator.h"
+#include "XmlImportValidator.h"
 #include "DatabaseInsert.h"
 
 ServerController::ServerController()
@@ -1996,7 +1996,7 @@ HttpResponse ServerController::createStaticLocationResponse(const QString path, 
 HttpResponse ServerController::addRecordToDbTable(const QString &table_name, const HttpRequest& request)
 {
 	DatabaseSchema db_schema = EndpointManager::getDatabaseSchema();
-	XmlRequestValidator validator(db_schema);
+	XmlImportValidator validator(db_schema);
 	const XmlValidationResult result = validator.validateInsert(request.getBody(), table_name);
 
 	if (result.isValid())
