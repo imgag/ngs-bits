@@ -467,7 +467,6 @@ private:
 		IS_TRUE(!result.isValid());
 		IS_THROWN(DatabaseException, DatabaseInsert::insert(test_db, table, result.values));
 
-
 		correct_xml_content =
 			"<processing_system>"
 			"<name_short>NovaSeq_WGS3</name_short>"
@@ -520,6 +519,177 @@ private:
 			"<name>NovaSeq6000_01</name>"
 			"</device>";
 		result = validator.validateInsert(incorrect_xml_content, "device");
+		IS_TRUE(!result.isValid());
+		IS_THROWN(DatabaseException, DatabaseInsert::insert(test_db, table, result.values));
+
+		correct_xml_content =
+			"<sequencing_run>"
+			"<name>RUN_2026_08_19_001</name>"
+			"<fcid>H7ABCXY123</fcid>"
+			"<flowcell_type>illumina novaseq s4</flowcell_type>"
+			"<start_date>2026-08-19</start_date>"
+			"<end_date>2026-08-20</end_date>"
+			"<device_id>1</device_id>"
+			"<side>n/a</side>"
+			"<recipe>2x150+2x10+2x10</recipe>"
+			"<pool_molarity>10.5</pool_molarity>"
+			"<pool_quantification_method>qpcr</pool_quantification_method>"
+			"<comment>Example sequencing run</comment>"
+			"<quality>good</quality>"
+			"<status>run_finished</status>"
+			"<backup_done>1</backup_done>"
+			"</sequencing_run>";
+		result = validator.validateInsert(correct_xml_content, "sequencing_run");
+		IS_TRUE(result.isValid());
+		table = db_schema.table("sequencing_run");
+		DatabaseInsert::insert(test_db, table, result.values);
+
+		incorrect_xml_content =
+			"<sequencing_run>"
+			"<name>RUN_2026_08_19_001</name>"
+			"<fcid>H7ABCXY123</fcid>"
+			"<type>illumina novaseq s4</type>"
+			"<start_date>2026-08-19</start_date>"
+			"<end_date>2026-08-20</end_date>"
+			"<device_id>1</device_id>"
+			"<side>n/a</side>"
+			"<recipe>2x150+2x10+2x10</recipe>"
+			"<pool_molarity>10,5</pool_molarity>"
+			"<pool_quantification_method>qpcr</pool_quantification_method>"
+			"<comment>Example sequencing run</comment>"
+			"<quality>good</quality>"
+			"<status>run_finished</status>"
+			"<backup_done>1</backup_done>"
+			"</sequencing_run>";
+		result = validator.validateInsert(incorrect_xml_content, "sequencing_run");
+		IS_TRUE(!result.isValid());
+		IS_THROWN(DatabaseException, DatabaseInsert::insert(test_db, table, result.values));
+
+		correct_xml_content =
+			"<sample>"
+			"<name>SAMPLE_001</name>"
+			"<name_external>ExternalSample001</name_external>"
+			"<patient_identifier>PATIENT_001</patient_identifier>"
+			"<received>2026-08-19</received>"
+			"<receiver_id>1</receiver_id>"
+			"<sample_type>dna</sample_type>"
+			"<tissue>blood</tissue>"
+			"<species_id>1</species_id>"
+			"<concentration>25.5</concentration>"
+			"<volume>50.0</volume>"
+			"<od_260_280>1.85</od_260_280>"
+			"<gender>male</gender>"
+			"<comment>Example DNA sample</comment>"
+			"<quality>good</quality>"
+			"<od_260_230>2.05</od_260_230>"
+			"<integrity_number>8.7</integrity_number>"
+			"<tumor>0</tumor>"
+			"<ffpe>0</ffpe>"
+			"<sender_id>1</sender_id>"
+			"<disease_group>n/a</disease_group>"
+			"<disease_status>n/a</disease_status>"
+			"<year_of_birth>1985</year_of_birth>"
+			"<order_date>2026-08-15</order_date>"
+			"<sampling_date>2026-08-18</sampling_date>"
+			"</sample>";
+		result = validator.validateInsert(correct_xml_content, "sample");
+		IS_TRUE(result.isValid());
+		table = db_schema.table("sample");
+		DatabaseInsert::insert(test_db, table, result.values);
+
+		incorrect_xml_content =
+			"<sample>"
+			"<sample_name>SAMPLE_001</sample_name>"
+			"<name_external>ExternalSample001</name_external>"
+			"<patient_identifier>PATIENT_001</patient_identifier>"
+			"<received>2026-08-19</received>"
+			"<receiver_id>1</receiver_id>"
+			"<sample_type>dna</sample_type>"
+			"<tissue>blood</tissue>"
+			"<species_id>1</species_id>"
+			"<concentration>25.5</concentration>"
+			"<volume>50.0</volume>"
+			"<od_260_280>1.85</od_260_280>"
+			"<gender>male</gender>"
+			"<comment>Example DNA sample</comment>"
+			"<quality>good</quality>"
+			"<od_260_230>2,05</od_260_230>"
+			"<integrity_number>8.7</integrity_number>"
+			"<tumor>0</tumor>"
+			"<sampling_date>2026-08-18</sampling_date>"
+			"</sample>";
+		result = validator.validateInsert(incorrect_xml_content, "sample");
+		IS_TRUE(!result.isValid());
+		IS_THROWN(DatabaseException, DatabaseInsert::insert(test_db, table, result.values));
+
+		correct_xml_content =
+			"<processed_sample>"
+			"<sample_id>1</sample_id>"
+			"<process_id>1</process_id>"
+			"<sequencing_run_id>1</sequencing_run_id>"
+			"<lane>1,2</lane>"
+			"<mid1_i7>1</mid1_i7>"
+			"<mid2_i5>2</mid2_i5>"
+			"<operator_id>1</operator_id>"
+			"<processing_system_id>1</processing_system_id>"
+			"<comment>Example processed sample</comment>"
+			"<project_id>1</project_id>"
+			"<processing_input>25.0</processing_input>"
+			"<molarity>10.5</molarity>"
+			"<processing_modus>biomek i5</processing_modus>"
+			"<batch_number>BATCH_2026_08_19_001</batch_number>"
+			"<quality>good</quality>"
+			"<folder_override>/data/projects/example/sample</folder_override>"
+			"<folder_override_client>/projects/example/sample</folder_override_client>"
+			"<scheduled_for_resequencing>false</scheduled_for_resequencing>"
+			"<urgent>false</urgent>"
+			"</processed_sample>";
+		result = validator.validateInsert(correct_xml_content, "processed_sample");
+		IS_TRUE(result.isValid());
+		table = db_schema.table("processed_sample");
+		DatabaseInsert::insert(test_db, table, result.values);
+
+		incorrect_xml_content =
+			"<processed_sample>"
+			"<mid2_i5>2</mid2_i5>"
+			"<operator_id>1</operator_id>"
+			"<processing_system_id>1</processing_system_id>"
+			"<comment>Example processed sample</comment>"
+			"<project_id>1</project_id>"
+			"<processing_input>25,0</processing_input>"
+			"<molarity>10,5</molarity>"
+			"<processing_modus>biomek i5</processing_modus>"
+			"<batch_number>BATCH_2026_08_19_001</batch_number>"
+			"<quality>good</quality>"
+			"<folder_override>/data/projects/example/sample</folder_override>"
+			"<folder_override_client>/projects/example/sample</folder_override_client>"
+			"<scheduled_for_resequencing>false</scheduled_for_resequencing>"
+			"<urgent>false</urgent>"
+			"</processed_sample>";
+		result = validator.validateInsert(incorrect_xml_content, "processed_sample");
+		IS_TRUE(!result.isValid());
+		IS_THROWN(DatabaseException, DatabaseInsert::insert(test_db, table, result.values));
+
+		correct_xml_content =
+			"<sender>"
+			"<name>Dr. Jane Smith</name>"
+			"<phone>+497071123456</phone>"
+			"<email>jane.smith@example.org</email>"
+			"<affiliation>UKT</affiliation>"
+			"</sender>";
+		result = validator.validateInsert(correct_xml_content, "sender");
+		IS_TRUE(result.isValid());
+		table = db_schema.table("sender");
+		DatabaseInsert::insert(test_db, table, result.values);
+
+		incorrect_xml_content =
+			"<sender>"
+			"<phone>+497071123456</phone>"
+			"<id>1</id>"
+			"<email>jane.smith@example.org</email>"
+			"<affiliation>UKT</affiliation>"
+			"</sender>";
+		result = validator.validateInsert(incorrect_xml_content, "sender");
 		IS_TRUE(!result.isValid());
 		IS_THROWN(DatabaseException, DatabaseInsert::insert(test_db, table, result.values));
 	}

@@ -144,6 +144,36 @@ XmlImportValidator::ConvertedValue XmlImportValidator::convertValue(const QStrin
 		return result;
 	}
 
+
+	if (type == "date")
+	{
+		const QDate date = QDate::fromString(text, "yyyy-MM-dd");
+		if (!date.isValid())
+		{
+			result.error = QString("Field '%1' must be a valid date in YYYY-MM-DD format").arg(column.name);
+			return result;
+		}
+
+		result.valid = true;
+		result.value = date;
+		return result;
+	}
+
+	if (type == "float")
+	{
+		bool ok = false;
+		const float value = text.toFloat(&ok);
+		if (!ok || !std::isfinite(value))
+		{
+			result.error = QString("Field '%1' must be a valid floating-point number").arg(column.name);
+			return result;
+		}
+
+		result.valid = true;
+		result.value = value;
+		return result;
+	}
+
 	if (type == "tinyint" && column.column_type.startsWith("tinyint(1)"))
 	{
 		if (text == "0" || text.compare("false", Qt::CaseInsensitive) == 0)
