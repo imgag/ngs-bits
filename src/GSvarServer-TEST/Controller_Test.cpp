@@ -447,11 +447,10 @@ private:
 		XmlImportValidator validator(db_schema);
 		XmlValidationResult result = validator.validateInsert(correct_xml_content, "project");
 		IS_TRUE(result.isValid());
-
 		TableSchema table = db_schema.table("project");
 		DatabaseInsert::insert(test_db, table, result.values);
 
-		QByteArray in_correct_xml_content =
+		QByteArray incorrect_xml_content =
 			"<project>"
 			"<label>Project Label</label>"
 			"<aliases>Example;TestProject</aliases>"
@@ -464,10 +463,64 @@ private:
 			"<archived>0</archived>"
 			"<matchmaking>yes</matchmaking>"
 			"</project>";
-
-		result = validator.validateInsert(in_correct_xml_content, "project");
+		result = validator.validateInsert(incorrect_xml_content, "project");
 		IS_TRUE(!result.isValid());
+		IS_THROWN(DatabaseException, DatabaseInsert::insert(test_db, table, result.values));
 
+
+		correct_xml_content =
+			"<processing_system>"
+			"<name_short>NovaSeq_WGS3</name_short>"
+			"<name_manufacturer>Illumina NovaSeq 60003</name_manufacturer>"
+			"<platform>illumina</platform>"
+			"<adapter1_p5>AGATCGGAAGAGCACACGTCTGAACTCCAGTCA</adapter1_p5>"
+			"<adapter2_p7>AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT</adapter2_p7>"
+			"<type>wgs</type>"
+			"<shotgun>1</shotgun>"
+			"<umi_type>n/a</umi_type>"
+			"<target_file>subpanel.bed</target_file>"
+			"<genome_id>1</genome_id>"
+			"</processing_system>";
+		result = validator.validateInsert(correct_xml_content, "processing_system");
+		IS_TRUE(result.isValid());
+		table = db_schema.table("processing_system");
+		DatabaseInsert::insert(test_db, table, result.values);
+
+		incorrect_xml_content =
+			"<processing_system>"
+			"<name>NovaSeq_name</name>"
+			"<name_manufacturer>Illumina NovaSeq 60003</name_manufacturer>"
+			"<platform>illumina</platform>"
+			"<adapter1_p5>AGATCGGAAGAGCACACGTCTGAACTCCAGTCA</adapter1_p5>"
+			"<adapter2_p7>AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT</adapter2_p7>"
+			"<type>wgs</type>"
+			"<shotgun>1</shotgun>"
+			"<umi_type>n/a</umi_type>"
+			"<target_file>subpanel.bed</target_file>"
+			"<genome_id>1</genome_id>"
+			"</processing_system>";
+		result = validator.validateInsert(incorrect_xml_content, "processing_system");
+		IS_TRUE(!result.isValid());
+		IS_THROWN(DatabaseException, DatabaseInsert::insert(test_db, table, result.values));
+
+		correct_xml_content =
+			"<device>"
+			"<type>novaseq6000</type>"
+			"<name>NovaSeq6000_01</name>"
+			"<comment>Main production sequencing instrument</comment>"
+			"</device>";
+		result = validator.validateInsert(correct_xml_content, "device");
+		IS_TRUE(result.isValid());
+		table = db_schema.table("device");
+		DatabaseInsert::insert(test_db, table, result.values);
+
+		incorrect_xml_content =
+			"<device>"
+			"<category>novaseq1000</category>"
+			"<name>NovaSeq6000_01</name>"
+			"</device>";
+		result = validator.validateInsert(incorrect_xml_content, "device");
+		IS_TRUE(!result.isValid());
 		IS_THROWN(DatabaseException, DatabaseInsert::insert(test_db, table, result.values));
 	}
 };
