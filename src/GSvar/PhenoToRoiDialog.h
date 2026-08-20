@@ -4,7 +4,7 @@
 #include <QDialog>
 
 namespace Ui {
-class PhenotoRoiDialog;
+class PhenoToRoiDialog;
 }
 
 class PhenoToRoiDialog
@@ -20,7 +20,7 @@ private slots:
 	void copyPhenotype(QString phenotype);
 
 private:
-	Ui::PhenotoRoiDialog *ui;
+	Ui::PhenoToRoiDialog *ui;
 };
 
 #endif // PHENOTOROIDIALOG_H

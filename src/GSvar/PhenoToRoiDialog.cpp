@@ -1,9 +1,9 @@
 #include "PhenoToRoiDialog.h"
-#include "ui_PhenotoRoiDialog.h"
+#include "ui_PhenoToRoiDialog.h"
 
 PhenoToRoiDialog::PhenoToRoiDialog(QWidget *parent) :
 	QDialog(parent),
-	ui(new Ui::PhenotoRoiDialog)
+	ui(new Ui::PhenoToRoiDialog)
 {
 	ui->setupUi(this);
 	connect(ui->pheno_sel, SIGNAL(phenotypeSelected(QString)), this, SLOT(copyPhenotype(QString)));
