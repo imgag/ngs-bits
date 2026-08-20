@@ -13,180 +13,186 @@ cppNGSD.depends = cppNGS
 SUBDIRS += tools-TEST
 tools-TEST.depends = cppNGSD
 
-defineTest(add_tool) {
-    TOOL = $$1
-    DEPS = $$2
+#tools depending on cppNGS
+TOOLS_NGS = \
+	BamCleanHaloplex \ 
+	BamClipOverlap \ 
+	BamDownsample \ 
+	BamExtract \ 
+	BamFilter \ 
+	BamInfo \ 
+	BamRemoveVariants \ 
+	BamToFastq \ 
+	BedAdd \ 
+	BedAnnotateFreq \ 
+	BedAnnotateFromBed \ 
+	BedAnnotateGC \ 
+	BedChunk \ 
+	BedCoverage \ 
+	BedExtend \ 
+	BedHighCoverage \ 
+	BedInfo \ 
+	BedIntersect \ 
+	BedLiftOver \ 
+	BedLowCoverage \ 
+	BedMerge \ 
+	BedReadCount \ 
+	BedSort \ 
+	BedSubtract \ 
+	BedToEpigen \ 
+	BedToFasta \ 
+	BedShrink \ 
+	BedpeAnnotateBreakpointDensity \ 
+	BedpeAnnotateCnvOverlap \ 
+	BedpeAnnotateFromBed \ 
+	BedpeExtractGenotype \ 
+	BedpeExtractInfoField \ 
+	BedpeFilter \ 
+	BedpeSort \ 
+	BedpeToBed \ 
+	CfDnaQC \ 
+	CnvFilterAnnotations \ 
+	CnvReferenceCohort \ 
+	ExtractMethylationData \ 
+	FastaChecksumUpdate \ 
+	FastaFromBam \ 
+	FastaInfo \ 
+	FastaMask \ 
+	FastqAddBarcode \ 
+	FastqCheckUMI \ 
+	FastqConcat \ 
+	FastqConvert \ 
+	FastqDownsample \ 
+	FastqExtract \ 
+	FastqExtractBarcode \ 
+	FastqExtractUMI \ 
+	FastqFormat \ 
+	FastqList \ 
+	FastqMidParser \ 
+	FastqToFasta \ 
+	FastqTrim \ 
+	GenePrioritization \ 
+	GenlabInfo \ 
+	GraphStringDb \ 
+	MantaVcfFix \ 
+	MappingQC \ 
+	NGSDImportGenlab \ 
+	NGSDImportOncotree \ 
+	NgsBitsInfo \ 
+	QcToTsv \ 
+	ReadQC \ 
+	RnaQC \ 
+	RohHunter \ 
+	SampleAncestry \ 
+	SampleGender \ 
+	SampleIdentity \ 
+	SampleSimilarity \ 
+	SeqPurge \ 
+	SvFilterAnnotations \ 
+	TranscriptToProtein \ 
+	TrioMaternalContamination \ 
+	TrioMendelianErrors \ 
+	TsvAnnotate \ 
+	TsvDiff \ 
+	TsvFilter \ 
+	TsvInfo \ 
+	TsvMerge \ 
+	TsvSlice \ 
+	TsvTo \ 
+	TsvToQC \ 
+	UpdHunter \ 
+	VariantAnnotateASE \ 
+	VariantAnnotateFrequency \ 
+	VariantFilterAnnotations \ 
+	VariantFilterRegions \ 
+	VariantQC \ 
+	VcfAdd \ 
+	VcfAnnotateConsequence \ 
+	VcfAnnotateFrequency \ 
+	VcfAnnotateFromBed \ 
+	VcfAnnotateFromBigWig \ 
+	VcfAnnotateFromVcf \ 
+	VcfAnnotateHexplorer \ 
+	VcfBreakMulti \ 
+	VcfCalculatePRS \ 
+	VcfCheck \ 
+	VcfExtractSamples \ 
+	VcfFilter \ 
+	VcfLeftNormalize \ 
+	VcfMerge \ 
+	VcfReplaceSamples \ 
+	VcfSort \ 
+	VcfSplit \ 
+	VcfStreamSort \ 
+	VcfStrip \ 
+	VcfSubtract \ 
+	VcfToBed \ 
+	VcfToBedpe \ 
+	VcfToTsv \ 
 
-    SUBDIRS += $$TOOL
-    eval($${TOOL}.depends = $$DEPS)
-    tools-TEST.depends += $$TOOL
+#tools depending on cppNGSD
+TOOLS_NGSD = \
+	BedAnnotateGenes \ 
+	BedAnnotateGenes \ 
+	BedGeneOverlap \ 
+	BedpeAnnotateCounts \ 
+	BedpeGeneAnnotation \ 
+	CnvGeneAnnotation \ 
+	ExportcBioportal \ 
+	GenesToApproved \ 
+	GenesToBed \ 
+	GenesToTranscripts \ 
+	HgvsToVcf \ 
+	NGSDAddVariantsGermline \ 
+	NGSDAddVariantsSomatic \ 
+	NGSDAnnotateCNV \ 
+	NGSDAnnotateGeneExpression \ 
+	NGSDAnnotateRNA \ 
+	NGSDAnnotateSV \ 
+	NGSDExportAnnotationData \ 
+	NGSDExportCnvTrack \ 
+	NGSDExportGenes \ 
+	NGSDExportGff \ 
+	NGSDExportIgvGeneTrack \ 
+	NGSDExportSV \ 
+	NGSDExportSamples \ 
+	NGSDExportSpliceAI \ 
+	NGSDExportStudyGHGA \ 
+	NGSDExtractRNACohort \ 
+	NGSDGeneBurdenTest \ 
+	NGSDImportCSpec \ 
+	NGSDImportClinvarAccessions \ 
+	NGSDImportEnsembl \ 
+	NGSDImportExpressionData \ 
+	NGSDImportGeneInfo \ 
+	NGSDImportHGNC \ 
+	NGSDImportHPO \ 
+	NGSDImportOMIM \ 
+	NGSDImportORPHA \ 
+	NGSDImportQC \ 
+	NGSDImportSampleQC \ 
+	NGSDInit \ 
+	NGSDSameSample \ 
+	NGSDSampleUsers \ 
+	NGSDTransferReportConfig \ 
+	PhenotypeSubtree \ 
+	PhenotypesToGenes \ 
+	SamplePath \ 
+	SnifflesVcfFix \ 
+	SomaticQC \ 
+	SplicingToBed \ 
+	TranscriptComparison \ 
+	TranscriptsToBed \ 
+	VariantRanking \ 
+	VcfAnnotateMaxEntScan \ 
 
-    export(SUBDIRS)
+SUBDIRS += $$TOOLS_NGS $$TOOLS_NGSD
+tools-TEST.depends = $$TOOLS_NGS $$TOOLS_NGSD
+
+for(tool, TOOLS_NGS) {
+    eval($${tool}.depends = cppNGS)
 }
 
-add_tool(BamCleanHaloplex,	cppNGS)
-add_tool(BamClipOverlap,	cppNGS)
-add_tool(BamDownsample,	cppNGS)
-add_tool(BamExtract,	cppNGS)
-add_tool(BamFilter,	cppNGS)
-add_tool(BamInfo, 		cppNGS)
-add_tool(BamRemoveVariants,	cppNGS)
-add_tool(BamToFastq,	cppNGS)
-add_tool(BedAdd,	cppNGS)
-add_tool(BedAnnotateFreq,	cppNGS)
-add_tool(BedAnnotateFromBed,	cppNGS)
-add_tool(BedAnnotateGC,	cppNGS)
-add_tool(BedAnnotateGenes,	cppNGSD)
-add_tool(BedAnnotateGenes,	cppNGSD)
-add_tool(BedChunk,	cppNGS)
-add_tool(BedCoverage,	cppNGS)
-add_tool(BedExtend,	cppNGS)
-add_tool(BedGeneOverlap,	cppNGSD)
-add_tool(BedHighCoverage,	cppNGS)
-add_tool(BedInfo,	cppNGS)
-add_tool(BedIntersect,	cppNGS)
-add_tool(BedLiftOver,	cppNGS)
-add_tool(BedLowCoverage,	cppNGS)
-add_tool(BedMerge,	cppNGS)
-add_tool(BedReadCount,	cppNGS)
-add_tool(BedSort,	cppNGS)
-add_tool(BedSubtract,	cppNGS)
-add_tool(BedToEpigen,	cppNGS)
-add_tool(BedToFasta,	cppNGS)
-add_tool(BedpeAnnotateBreakpointDensity,	cppNGS)
-add_tool(BedpeAnnotateCnvOverlap,	cppNGS)
-add_tool(BedpeAnnotateCounts,	cppNGSD)
-add_tool(BedpeAnnotateFromBed,	cppNGS)
-add_tool(BedpeExtractGenotype,	cppNGS)
-add_tool(BedpeExtractInfoField,	cppNGS)
-add_tool(BedpeFilter,	cppNGS)
-add_tool(BedpeGeneAnnotation,	cppNGSD)
-add_tool(BedpeSort,	cppNGS)
-add_tool(BedpeToBed,	cppNGS)
-add_tool(CfDnaQC,	cppNGS)
-add_tool(CnvFilterAnnotations,	cppNGS)
-add_tool(CnvGeneAnnotation,	cppNGSD)
-add_tool(CnvReferenceCohort,	cppNGS)
-add_tool(ExportcBioportal,	cppNGSD)
-add_tool(ExtractMethylationData,	cppNGS)
-add_tool(FastaChecksumUpdate,	cppNGS)
-add_tool(FastaFromBam,	cppNGS)
-add_tool(FastaInfo,	cppNGS)
-add_tool(FastaMask,	cppNGS)
-add_tool(FastqAddBarcode,	cppNGS)
-add_tool(FastqCheckUMI,	cppNGS)
-add_tool(FastqConcat,	cppNGS)
-add_tool(FastqConvert,	cppNGS)
-add_tool(FastqDownsample,	cppNGS)
-add_tool(FastqExtract,	cppNGS)
-add_tool(FastqExtractBarcode,	cppNGS)
-add_tool(FastqExtractUMI,	cppNGS)
-add_tool(FastqFormat,	cppNGS)
-add_tool(FastqList,	cppNGS)
-add_tool(FastqMidParser,	cppNGS)
-add_tool(FastqToFasta,	cppNGS)
-add_tool(FastqTrim,	cppNGS)
-add_tool(GenePrioritization,	cppNGS)
-add_tool(GenesToApproved,	cppNGSD)
-add_tool(GenesToBed,	cppNGSD)
-add_tool(GenesToTranscripts,	cppNGSD)
-add_tool(GenlabInfo,	cppNGS)
-add_tool(GraphStringDb,	cppNGS)
-add_tool(HgvsToVcf,	cppNGSD)
-add_tool(MantaVcfFix,	cppNGS)
-add_tool(MappingQC,	cppNGS)
-add_tool(NGSDAddVariantsGermline,	cppNGSD)
-add_tool(NGSDAddVariantsSomatic,	cppNGSD)
-add_tool(NGSDAnnotateCNV,	cppNGSD)
-add_tool(NGSDAnnotateGeneExpression,	cppNGSD)
-add_tool(NGSDAnnotateRNA,	cppNGSD)
-add_tool(NGSDAnnotateSV,	cppNGSD)
-add_tool(NGSDExportAnnotationData,	cppNGSD)
-add_tool(NGSDExportCnvTrack,	cppNGSD)
-add_tool(NGSDExportGenes,	cppNGSD)
-add_tool(NGSDExportGff,	cppNGSD)
-add_tool(NGSDExportIgvGeneTrack,	cppNGSD)
-add_tool(NGSDExportSV,	cppNGSD)
-add_tool(NGSDExportSamples,	cppNGSD)
-add_tool(NGSDExportSpliceAI,	cppNGSD)
-add_tool(NGSDExportStudyGHGA,	cppNGSD)
-add_tool(NGSDExtractRNACohort,	cppNGSD)
-add_tool(NGSDGeneBurdenTest,	cppNGSD)
-add_tool(NGSDImportCSpec,	cppNGSD)
-add_tool(NGSDImportClinvarAccessions,	cppNGSD)
-add_tool(NGSDImportEnsembl,	cppNGSD)
-add_tool(NGSDImportExpressionData,	cppNGSD)
-add_tool(NGSDImportGeneInfo,	cppNGSD)
-add_tool(NGSDImportGenlab,	cppNGS)
-add_tool(NGSDImportHGNC,	cppNGSD)
-add_tool(NGSDImportHPO,	cppNGSD)
-add_tool(NGSDImportOMIM,	cppNGSD)
-add_tool(NGSDImportORPHA,	cppNGSD)
-add_tool(NGSDImportOncotree,	cppNGS)
-add_tool(NGSDImportQC,	cppNGSD)
-add_tool(NGSDImportSampleQC,	cppNGSD)
-add_tool(NGSDInit,	cppNGSD)
-add_tool(NGSDSameSample,	cppNGSD)
-add_tool(NGSDSampleUsers,	cppNGSD)
-add_tool(NGSDTransferReportConfig,	cppNGSD)
-add_tool(NgsBitsInfo,	cppNGS)
-add_tool(PhenotypeSubtree,	cppNGSD)
-add_tool(PhenotypesToGenes,	cppNGSD)
-add_tool(QcToTsv,	cppNGS)
-add_tool(ReadQC,	cppNGS)
-add_tool(RnaQC,	cppNGS)
-add_tool(RohHunter,	cppNGS)
-add_tool(SampleAncestry, cppNGS)
-add_tool(SampleGender,	cppNGS)
-add_tool(SampleIdentity,	cppNGS)
-add_tool(SamplePath,	cppNGSD)
-add_tool(SampleSimilarity,	cppNGS)
-add_tool(SeqPurge,	cppNGS)
-add_tool(SnifflesVcfFix,	cppNGSD)
-add_tool(SomaticQC,	cppNGSD)
-add_tool(SplicingToBed,	cppNGSD)
-add_tool(SvFilterAnnotations,	cppNGS)
-add_tool(TranscriptComparison,	cppNGSD)
-add_tool(TranscriptToProtein,	cppNGS)
-add_tool(TranscriptsToBed,	cppNGSD)
-add_tool(TrioMaternalContamination,	cppNGS)
-add_tool(TrioMendelianErrors,	cppNGS)
-add_tool(TsvAnnotate,	cppNGS)
-add_tool(TsvDiff,	cppNGS)
-add_tool(TsvFilter,	cppNGS)
-add_tool(TsvInfo,	cppNGS)
-add_tool(TsvMerge,	cppNGS)
-add_tool(TsvSlice,	cppNGS)
-add_tool(TsvTo,	cppNGS)
-add_tool(TsvToQC,	cppNGS)
-add_tool(UpdHunter, 	cppNGS)
-add_tool(VariantAnnotateASE,	cppNGS)
-add_tool(VariantAnnotateFrequency,	cppNGS)
-add_tool(VariantFilterAnnotations,	cppNGS)
-add_tool(VariantFilterRegions,	cppNGS)
-add_tool(VariantQC,	cppNGS)
-add_tool(VariantRanking,	cppNGSD)
-add_tool(VcfAdd,	cppNGS)
-add_tool(VcfAnnotateConsequence,	cppNGS)
-add_tool(VcfAnnotateFrequency,	cppNGS)
-add_tool(VcfAnnotateFromBed,	cppNGS)
-add_tool(VcfAnnotateFromBigWig,	cppNGS)
-add_tool(VcfAnnotateFromVcf,	cppNGS)
-add_tool(VcfAnnotateHexplorer,	cppNGS)
-add_tool(VcfAnnotateMaxEntScan,	cppNGSD)
-add_tool(VcfBreakMulti,	cppNGS)
-add_tool(VcfCalculatePRS,	cppNGS)
-add_tool(VcfCheck,	cppNGS)
-add_tool(VcfExtractSamples,	cppNGS)
-add_tool(VcfFilter,	cppNGS)
-add_tool(VcfLeftNormalize,	cppNGS)
-add_tool(VcfMerge,	cppNGS)
-add_tool(VcfReplaceSamples,	cppNGS)
-add_tool(VcfSort,	cppNGS)
-add_tool(VcfSplit,	cppNGS)
-add_tool(VcfStreamSort,	cppNGS)
-add_tool(VcfStrip,	cppNGS)
-add_tool(VcfSubtract,	cppNGS)
-add_tool(VcfToBed,	cppNGS)
-add_tool(VcfToBedpe,	cppNGS)
-add_tool(VcfToTsv,	cppNGS)
+for(tool, TOOLS_NGSD) {
+    eval($${tool}.depends = cppNGSD)
+}
