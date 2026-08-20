@@ -13,665 +13,180 @@ cppNGSD.depends = cppNGS
 SUBDIRS += tools-TEST
 tools-TEST.depends = cppNGSD
 
-SUBDIRS += BamInfo
-tools-TEST.depends += BamInfo
-BamInfo.depends = cppNGS
-
-SUBDIRS += SampleAncestry
-tools-TEST.depends += SampleAncestry
-SampleAncestry.depends = cppNGS
-
-SUBDIRS += UpdHunter
-tools-TEST.depends += UpdHunter
-UpdHunter.depends = cppNGS
-
-SUBDIRS += NGSDImportQC
-tools-TEST.depends += NGSDImportQC
-NGSDImportQC.depends = cppNGSD
-
-SUBDIRS += NGSDExportGenes
-tools-TEST.depends += NGSDExportGenes
-NGSDExportGenes.depends = cppNGSD
-
-SUBDIRS += NGSDExportSamples
-tools-TEST.depends += NGSDExportSamples
-NGSDExportSamples.depends = cppNGSD
-
-SUBDIRS += BedChunk
-tools-TEST.depends += BedChunk
-BedChunk.depends = cppNGS
-
-SUBDIRS += BamClipOverlap
-tools-TEST.depends += BamClipOverlap
-BamClipOverlap.depends = cppNGS
-
-SUBDIRS += BedAnnotateGenes
-tools-TEST.depends += BedAnnotateGenes
-BedAnnotateGenes.depends = cppNGSD
-
-SUBDIRS += BedCoverage
-tools-TEST.depends += BedCoverage
-BedCoverage.depends = cppNGS
-
-SUBDIRS += BedLowCoverage
-tools-TEST.depends += BedLowCoverage
-BedLowCoverage.depends = cppNGS
-
-SUBDIRS += BedExtend
-tools-TEST.depends += BedExtend
-BedExtend.depends = cppNGS
-
-SUBDIRS += BedInfo
-tools-TEST.depends += BedInfo
-BedInfo.depends = cppNGS
-
-SUBDIRS += BedIntersect
-tools-TEST.depends += BedIntersect
-BedIntersect.depends = cppNGS
-
-SUBDIRS += BedMerge
-tools-TEST.depends += BedMerge
-BedMerge.depends = cppNGS
-
-SUBDIRS += BedShrink
-tools-TEST.depends += BedShrink
-BedShrink.depends = cppNGS
-
-SUBDIRS += BedSort
-tools-TEST.depends += BedSort
-BedSort.depends = cppNGS
-
-SUBDIRS += BedSubtract
-tools-TEST.depends += BedSubtract
-BedSubtract.depends = cppNGS
-
-SUBDIRS += FastaChecksumUpdate
-tools-TEST.depends += FastaChecksumUpdate
-FastaChecksumUpdate.depends = cppNGS
-
-SUBDIRS += FastaInfo
-tools-TEST.depends += FastaInfo
-FastaInfo.depends = cppNGS
-
-SUBDIRS += FastaMask
-tools-TEST.depends += FastaMask
-FastaMask.depends = cppNGS
-
-SUBDIRS += FastaFromBam
-tools-TEST.depends += FastaFromBam
-FastaFromBam.depends = cppNGS
-
-SUBDIRS += SampleSimilarity
-tools-TEST.depends += SampleSimilarity
-SampleSimilarity.depends = cppNGS
-
-SUBDIRS += SampleIdentity
-tools-TEST.depends += SampleIdentity
-SampleIdentity.depends = cppNGS
-
-SUBDIRS += SampleGender
-tools-TEST.depends += SampleGender
-SampleGender.depends = cppNGS
-
-SUBDIRS += BedAnnotateFreq
-tools-TEST.depends += BedAnnotateFreq
-BedAnnotateFreq.depends = cppNGS
-
-SUBDIRS += GenesToApproved
-tools-TEST.depends += GenesToApproved
-GenesToApproved.depends = cppNGSD
-
-SUBDIRS += GenesToBed
-tools-TEST.depends += GenesToBed
-GenesToBed.depends = cppNGSD
-
-SUBDIRS += VariantFilterRegions
-tools-TEST.depends += VariantFilterRegions
-VariantFilterRegions.depends = cppNGS
-
-SUBDIRS += VariantAnnotateFrequency
-tools-TEST.depends += VariantAnnotateFrequency
-VariantAnnotateFrequency.depends = cppNGS
-
-SUBDIRS += VcfAnnotateFrequency
-tools-TEST.depends += VcfAnnotateFrequency
-VcfAnnotateFrequency.depends = cppNGS
-
-SUBDIRS += MappingQC
-tools-TEST.depends += MappingQC
-MappingQC.depends = cppNGS
-
-SUBDIRS += VariantQC
-tools-TEST.depends += VariantQC
-VariantQC.depends = cppNGS
-
-SUBDIRS += SomaticQC
-tools-TEST.depends += SomaticQC
-SomaticQC.depends = cppNGSD
-
-SUBDIRS += FastqExtract
-tools-TEST.depends += FastqExtract
-FastqExtract.depends = cppNGS
-
-SUBDIRS += FastqList
-tools-TEST.depends += FastqList
-FastqList.depends = cppNGS
-
-SUBDIRS += FastqFormat
-tools-TEST.depends += FastqFormat
-FastqFormat.depends = cppNGS
-
-SUBDIRS += ReadQC
-tools-TEST.depends += ReadQC
-ReadQC.depends = cppNGS
-
-SUBDIRS += BedToFasta
-tools-TEST.depends += BedToFasta
-BedToFasta.depends = cppNGS
-
-SUBDIRS += FastqMidParser
-tools-TEST.depends += FastqMidParser
-FastqMidParser.depends = cppNGS
-
-SUBDIRS += FastqTrim
-tools-TEST.depends += FastqTrim
-FastqTrim.depends = cppNGS
-
-SUBDIRS += FastqConvert
-tools-TEST.depends += FastqConvert
-FastqConvert.depends = cppNGS
-
-SUBDIRS += BedGeneOverlap
-tools-TEST.depends += BedGeneOverlap
-BedGeneOverlap.depends = cppNGSD
-
-SUBDIRS += SeqPurge
-tools-TEST.depends += SeqPurge
-SeqPurge.depends = cppNGS
-
-SUBDIRS += VcfToTsv
-tools-TEST.depends += VcfToTsv
-VcfToTsv.depends = cppNGS
-
-SUBDIRS += VcfSort
-tools-TEST.depends += VcfSort
-VcfSort.depends = cppNGS
-
-SUBDIRS += TsvInfo
-tools-TEST.depends += TsvInfo
-TsvInfo.depends = cppNGS
-
-SUBDIRS += TsvSlice
-tools-TEST.depends += TsvSlice
-TsvSlice.depends = cppNGS
-
-SUBDIRS += TsvFilter
-tools-TEST.depends += TsvFilter
-TsvFilter.depends = cppNGS
-
-SUBDIRS += BedAnnotateGC
-tools-TEST.depends += BedAnnotateGC
-BedAnnotateGC.depends = cppNGS
-
-SUBDIRS += FastqToFasta
-tools-TEST.depends += FastqToFasta
-FastqToFasta.depends = cppNGS
-
-SUBDIRS += BamCleanHaloplex
-tools-TEST.depends += BamCleanHaloplex
-BamCleanHaloplex.depends = cppNGS
-
-SUBDIRS += BedAdd
-tools-TEST.depends += BedAdd
-BedAdd.depends = cppNGS
-
-SUBDIRS += BamDownsample
-tools-TEST.depends += BamDownsample
-BamDownsample.depends = cppNGS
-
-SUBDIRS += BamToFastq
-tools-TEST.depends += BamToFastq
-BamToFastq.depends = cppNGS
-
-SUBDIRS += NGSDInit
-tools-TEST.depends += NGSDInit
-NGSDInit.depends = cppNGSD
-
-SUBDIRS += NGSDImportHGNC
-tools-TEST.depends += NGSDImportHGNC
-NGSDImportHGNC.depends = cppNGSD
-
-SUBDIRS += NGSDImportEnsembl
-tools-TEST.depends += NGSDImportEnsembl
-NGSDImportEnsembl.depends = cppNGSD
-
-SUBDIRS += BedReadCount
-tools-TEST.depends += BedReadCount
-BedReadCount.depends = cppNGS
-
-SUBDIRS += NGSDImportHPO
-tools-TEST.depends += NGSDImportHPO
-NGSDImportHPO.depends = cppNGSD
-
-SUBDIRS += NGSDImportOMIM
-tools-TEST.depends += NGSDImportOMIM
-NGSDImportOMIM.depends = cppNGSD
-
-SUBDIRS += NGSDImportORPHA
-tools-TEST.depends += NGSDImportORPHA
-NGSDImportORPHA.depends = cppNGSD
-
-SUBDIRS += FastqExtractBarcode
-tools-TEST.depends += FastqExtractBarcode
-FastqExtractBarcode.depends = cppNGS
-
-SUBDIRS += VariantFilterAnnotations
-tools-TEST.depends += VariantFilterAnnotations
-VariantFilterAnnotations.depends = cppNGS
-
-SUBDIRS += VcfLeftNormalize
-tools-TEST.depends += VcfLeftNormalize
-VcfLeftNormalize.depends = cppNGS
-
-SUBDIRS += VcfStreamSort
-tools-TEST.depends += VcfStreamSort
-VcfStreamSort.depends = cppNGS
-
-SUBDIRS += NGSDImportGeneInfo
-tools-TEST.depends += NGSDImportGeneInfo
-NGSDImportGeneInfo.depends = cppNGSD
-
-SUBDIRS += VcfAnnotateFromBed
-tools-TEST.depends += VcfAnnotateFromBed
-VcfAnnotateFromBed.depends = cppNGS
-
-SUBDIRS += TsvMerge
-tools-TEST.depends += TsvMerge
-TsvMerge.depends = cppNGS
-
-SUBDIRS += TsvAnnotate
-tools-TEST.depends += TsvAnnotate
-TsvAnnotate.depends = cppNGS
-
-SUBDIRS += BedAnnotateFromBed
-tools-TEST.depends += BedAnnotateFromBed
-BedAnnotateFromBed.depends = cppNGS
-
-SUBDIRS += RohHunter
-tools-TEST.depends += RohHunter
-RohHunter.depends = cppNGS
-
-SUBDIRS += FastqExtractUMI
-tools-TEST.depends += FastqExtractUMI
-FastqExtractUMI.depends = cppNGS
-
-SUBDIRS += FastqAddBarcode
-tools-TEST.depends += FastqAddBarcode
-FastqAddBarcode.depends = cppNGS
-
-SUBDIRS += BamFilter
-tools-TEST.depends += BamFilter
-BamFilter.depends = cppNGS
-
-SUBDIRS += VcfCheck
-tools-TEST.depends += VcfCheck
-VcfCheck.depends = cppNGS
-
-SUBDIRS += VcfBreakMulti
-tools-TEST.depends += VcfBreakMulti
-VcfBreakMulti.depends = cppNGS
-
-SUBDIRS += VcfStrip
-tools-TEST.depends += VcfStrip
-VcfStrip.depends = cppNGS
-
-SUBDIRS += VcfFilter
-tools-TEST.depends += VcfFilter
-VcfFilter.depends = cppNGS
-
-SUBDIRS += VcfExtractSamples
-tools-TEST.depends += VcfExtractSamples
-VcfExtractSamples.depends = cppNGS
-
-SUBDIRS += FastqConcat
-tools-TEST.depends += FastqConcat
-FastqConcat.depends = cppNGS
-
-SUBDIRS += VcfToBedpe
-tools-TEST.depends += VcfToBedpe
-VcfToBedpe.depends = cppNGS
-
-SUBDIRS += NGSDAddVariantsGermline
-tools-TEST.depends += NGSDAddVariantsGermline
-NGSDAddVariantsGermline.depends = cppNGSD
-
-SUBDIRS += NGSDAddVariantsSomatic
-tools-TEST.depends += NGSDAddVariantsSomatic
-NGSDAddVariantsSomatic.depends = cppNGSD
-
-SUBDIRS += NGSDExportAnnotationData
-tools-TEST.depends += NGSDExportAnnotationData
-NGSDExportAnnotationData.depends = cppNGSD
-
-SUBDIRS += VcfAnnotateFromVcf
-tools-TEST.depends += VcfAnnotateFromVcf
-VcfAnnotateFromVcf.depends = cppNGS
-
-SUBDIRS += NGSDExportCnvTrack
-tools-TEST.depends += NGSDExportCnvTrack
-NGSDExportCnvTrack.depends = cppNGSD
-
-SUBDIRS += CnvGeneAnnotation
-tools-TEST.depends += CnvGeneAnnotation
-CnvGeneAnnotation.depends = cppNGSD
-
-SUBDIRS += BedpeGeneAnnotation
-tools-TEST.depends += BedpeGeneAnnotation
-BedpeGeneAnnotation.depends = cppNGSD
-
-SUBDIRS += BedpeAnnotateFromBed
-tools-TEST.depends += BedpeAnnotateFromBed
-BedpeAnnotateFromBed.depends = cppNGS
-
-SUBDIRS += NGSDAnnotateCNV
-tools-TEST.depends += NGSDAnnotateCNV
-NGSDAnnotateCNV.depends = cppNGSD
-
-SUBDIRS += NGSDAnnotateSV
-tools-TEST.depends += NGSDAnnotateSV
-NGSDAnnotateSV.depends = cppNGSD
-
-SUBDIRS += SvFilterAnnotations
-tools-TEST.depends += SvFilterAnnotations
-SvFilterAnnotations.depends = cppNGS
-
-SUBDIRS += BedpeToBed
-tools-TEST.depends += BedpeToBed
-BedpeToBed.depends = cppNGS
-
-SUBDIRS += BedHighCoverage
-tools-TEST.depends += BedHighCoverage
-BedHighCoverage.depends = cppNGS
-
-SUBDIRS += PhenotypesToGenes
-tools-TEST.depends += PhenotypesToGenes
-PhenotypesToGenes.depends = cppNGSD
-
-SUBDIRS += PhenotypeSubtree
-tools-TEST.depends += PhenotypeSubtree
-PhenotypeSubtree.depends = cppNGSD
-
-SUBDIRS += CnvFilterAnnotations
-tools-TEST.depends += CnvFilterAnnotations
-CnvFilterAnnotations.depends = cppNGS
-
-SUBDIRS += BedpeFilter
-tools-TEST.depends += BedpeFilter
-BedpeFilter.depends = cppNGS
-
-SUBDIRS += BedpeAnnotateCnvOverlap
-tools-TEST.depends += BedpeAnnotateCnvOverlap
-BedpeAnnotateCnvOverlap.depends = cppNGS
-
-SUBDIRS += TrioMaternalContamination
-tools-TEST.depends += TrioMaternalContamination
-TrioMaternalContamination.depends = cppNGS
-
-SUBDIRS += FastqDownsample
-tools-TEST.depends += FastqDownsample
-FastqDownsample.depends = cppNGS
-
-SUBDIRS += VcfCalculatePRS
-tools-TEST.depends += VcfCalculatePRS
-VcfCalculatePRS.depends = cppNGS
-
-SUBDIRS += VariantRanking
-tools-TEST.depends += VariantRanking
-VariantRanking.depends = cppNGSD
-
-SUBDIRS += GenePrioritization
-tools-TEST.depends += GenePrioritization
-GenePrioritization.depends = cppNGS
-
-SUBDIRS += GraphStringDb
-tools-TEST.depends += GraphStringDb
-GraphStringDb.depends = cppNGS
-
-SUBDIRS += VariantAnnotateASE
-tools-TEST.depends += VariantAnnotateASE
-VariantAnnotateASE.depends = cppNGS
-
-SUBDIRS += SplicingToBed
-tools-TEST.depends += SplicingToBed
-SplicingToBed.depends = cppNGSD
-
-SUBDIRS += CfDnaQC
-tools-TEST.depends += CfDnaQC
-CfDnaQC.depends = cppNGS
-
-SUBDIRS += VcfAnnotateFromBigWig
-tools-TEST.depends += VcfAnnotateFromBigWig
-VcfAnnotateFromBigWig.depends = cppNGS
-
-SUBDIRS += BedLiftOver
-tools-TEST.depends += BedLiftOver
-BedLiftOver.depends = cppNGS
-SUBDIRS += NGSDExportSV
-tools-TEST.depends += NGSDExportSV
-NGSDExportSV.depends = cppNGSD
-
-SUBDIRS += BedpeAnnotateCounts
-tools-TEST.depends += BedpeAnnotateCounts
-BedpeAnnotateCounts.depends = cppNGSD
-
-SUBDIRS += BedpeSort
-tools-TEST.depends += BedpeSort
-BedpeSort.depends = cppNGS
-
-SUBDIRS += BedpeAnnotateBreakpointDensity
-tools-TEST.depends += BedpeAnnotateBreakpointDensity
-BedpeAnnotateBreakpointDensity.depends = cppNGS
-
-SUBDIRS += HgvsToVcf
-tools-TEST.depends += HgvsToVcf
-HgvsToVcf.depends = cppNGSD
-
-SUBDIRS += VcfAnnotateConsequence
-tools-TEST.depends += VcfAnnotateConsequence
-VcfAnnotateConsequence.depends = cppNGS
-
-SUBDIRS += RnaQC
-tools-TEST.depends += RnaQC
-RnaQC.depends = cppNGS
-
-SUBDIRS += NGSDImportExpressionData
-tools-TEST.depends += NGSDImportExpressionData
-NGSDImportExpressionData.depends = cppNGSD
-
-SUBDIRS += VcfAnnotateHexplorer
-tools-TEST.depends += VcfAnnotateHexplorer
-VcfAnnotateHexplorer.depends = cppNGS
-
-SUBDIRS += NGSDExportGff
-tools-TEST.depends += NGSDExportGff
-NGSDExportGff.depends = cppNGSD
-
-SUBDIRS += NGSDAnnotateRNA
-tools-TEST.depends += NGSDAnnotateRNA
-NGSDAnnotateRNA.depends = cppNGSD
-
-SUBDIRS += NGSDAnnotateGeneExpression
-tools-TEST.depends += NGSDAnnotateGeneExpression
-NGSDAnnotateGeneExpression.depends = cppNGSD
-
-SUBDIRS += NGSDExtractRNACohort
-tools-TEST.depends += NGSDExtractRNACohort
-NGSDExtractRNACohort.depends = cppNGSD
-
-SUBDIRS += VcfToBed
-tools-TEST.depends += VcfToBed
-VcfToBed.depends = cppNGS
-
-SUBDIRS += TsvToQC
-tools-TEST.depends += TsvToQC
-TsvToQC.depends = cppNGS
-
-SUBDIRS += TsvTo
-tools-TEST.depends += TsvTo
-TsvTo.depends = cppNGS
-
-SUBDIRS += NGSDImportGenlab
-tools-TEST.depends += NGSDImportGenlab
-NGSDImportGenlab.depends = cppNGS
-
-SUBDIRS += NGSDImportClinvarAccessions
-tools-TEST.depends += NGSDImportClinvarAccessions
-NGSDImportClinvarAccessions.depends = cppNGSD
-
-SUBDIRS += VcfAdd
-tools-TEST.depends += VcfAdd
-VcfAdd.depends = cppNGS
-
-SUBDIRS += NGSDExportStudyGHGA
-tools-TEST.depends += NGSDExportStudyGHGA
-NGSDExportStudyGHGA.depends = cppNGSD
-
-SUBDIRS += VcfSubtract
-tools-TEST.depends += VcfSubtract
-VcfSubtract.depends = cppNGS
-
-SUBDIRS += TranscriptsToBed
-tools-TEST.depends += TranscriptsToBed
-TranscriptsToBed.depends = cppNGSD
-
-SUBDIRS += TranscriptComparison
-tools-TEST.depends += TranscriptComparison
-TranscriptComparison.depends = cppNGSD
-
-SUBDIRS += GenesToTranscripts
-tools-TEST.depends += GenesToTranscripts
-GenesToTranscripts.depends = cppNGSD
-
-SUBDIRS += ExportcBioportal
-tools-TEST.depends += ExportcBioportal
-ExportcBioportal.depends = cppNGSD
-
-SUBDIRS += NGSDImportSampleQC
-tools-TEST.depends += NGSDImportSampleQC
-NGSDImportSampleQC.depends = cppNGSD
-
-SUBDIRS += VcfAnnotateMaxEntScan
-tools-TEST.depends += VcfAnnotateMaxEntScan
-VcfAnnotateMaxEntScan.depends = cppNGSD
-
-SUBDIRS += SamplePath
-tools-TEST.depends += SamplePath
-SamplePath.depends = cppNGSD
-
-SUBDIRS += NGSDImportOncotree
-tools-TEST.depends += NGSDImportOncotree
-NGSDImportOncotree.depends = cppNGS
-
-SUBDIRS += FastqCheckUMI
-tools-TEST.depends += FastqCheckUMI
-FastqCheckUMI.depends = cppNGS
-
-SUBDIRS += BedpeExtractGenotype
-tools-TEST.depends += BedpeExtractGenotype
-BedpeExtractGenotype.depends = cppNGS
-
-SUBDIRS += BedpeExtractInfoField
-tools-TEST.depends += BedpeExtractInfoField
-BedpeExtractInfoField.depends = cppNGS
-
-SUBDIRS += NGSDSameSample
-tools-TEST.depends += NGSDSameSample
-NGSDSameSample.depends = cppNGSD
-
-SUBDIRS += BamExtract
-tools-TEST.depends += BamExtract
-BamExtract.depends = cppNGS
-
-SUBDIRS += VcfSplit
-tools-TEST.depends += VcfSplit
-VcfSplit.depends = cppNGS
-
-SUBDIRS += NGSDExportIgvGeneTrack
-tools-TEST.depends += NGSDExportIgvGeneTrack
-NGSDExportIgvGeneTrack.depends = cppNGSD
-
-SUBDIRS += ExtractMethylationData
-tools-TEST.depends += ExtractMethylationData
-ExtractMethylationData.depends = cppNGS
-
-SUBDIRS += BamRemoveVariants
-tools-TEST.depends += BamRemoveVariants
-BamRemoveVariants.depends = cppNGS
-
-SUBDIRS += CnvReferenceCohort
-tools-TEST.depends += CnvReferenceCohort
-CnvReferenceCohort.depends = cppNGS
-
-SUBDIRS += TsvDiff
-tools-TEST.depends += TsvDiff
-TsvDiff.depends = cppNGS
-
-SUBDIRS += QcToTsv
-tools-TEST.depends += QcToTsv
-QcToTsv.depends = cppNGS
-
-SUBDIRS += TrioMendelianErrors
-tools-TEST.depends += TrioMendelianErrors
-TrioMendelianErrors.depends = cppNGS
-
-SUBDIRS += MantaVcfFix
-tools-TEST.depends += MantaVcfFix
-MantaVcfFix.depends = cppNGS
-
-SUBDIRS += SnifflesVcfFix
-tools-TEST.depends += SnifflesVcfFix
-SnifflesVcfFix.depends = cppNGSD
-
-SUBDIRS += VcfReplaceSamples
-tools-TEST.depends += VcfReplaceSamples
-VcfReplaceSamples.depends = cppNGS
-
-SUBDIRS += GenlabInfo
-tools-TEST.depends += GenlabInfo
-GenlabInfo.depends = cppNGS
-
-SUBDIRS += BedToEpigen
-tools-TEST.depends += BedToEpigen
-BedToEpigen.depends = cppNGS
-
-SUBDIRS += NGSDImportCSpec
-tools-TEST.depends += NGSDImportCSpec
-NGSDImportCSpec.depends = cppNGSD
-
-SUBDIRS += NGSDTransferReportConfig
-tools-TEST.depends += NGSDTransferReportConfig
-NGSDTransferReportConfig.depends = cppNGSD
-
-SUBDIRS += NGSDExportSpliceAI
-tools-TEST.depends += NGSDExportSpliceAI
-NGSDExportSpliceAI.depends = cppNGSD
-
-SUBDIRS += VcfMerge
-tools-TEST.depends += VcfMerge
-VcfMerge.depends = cppNGS
-
-SUBDIRS += TranscriptToProtein
-tools-TEST.depends += TranscriptToProtein
-TranscriptToProtein.depends = cppNGS
-
-SUBDIRS += NGSDGeneBurdenTest
-tools-TEST.depends += NGSDGeneBurdenTest
-NGSDGeneBurdenTest.depends = cppNGSD
-
-SUBDIRS += NGSDSampleUsers
-tools-TEST.depends += NGSDSampleUsers
-NGSDSampleUsers.depends = cppNGSD
-
-SUBDIRS += NgsBitsInfo
-tools-TEST.depends += NgsBitsInfo
-NgsBitsInfo.depends = cppNGS
+defineTest(add_tool) {
+    TOOL = $$1
+    DEPS = $$2
+
+    SUBDIRS += $$TOOL
+    eval($${TOOL}.depends = $$DEPS)
+    tools-TEST.depends += $$TOOL
+
+    export(SUBDIRS)
+}
+
+add_tool(BamCleanHaloplex,	cppNGS)
+add_tool(BamClipOverlap,	cppNGS)
+add_tool(BamDownsample,	cppNGS)
+add_tool(BamExtract,	cppNGS)
+add_tool(BamFilter,	cppNGS)
+add_tool(BamInfo, 		cppNGS)
+add_tool(BamRemoveVariants,	cppNGS)
+add_tool(BamToFastq,	cppNGS)
+add_tool(BedAdd,	cppNGS)
+add_tool(BedAnnotateFreq,	cppNGS)
+add_tool(BedAnnotateFromBed,	cppNGS)
+add_tool(BedAnnotateGC,	cppNGS)
+add_tool(BedAnnotateGenes,	cppNGSD)
+add_tool(BedAnnotateGenes,	cppNGSD)
+add_tool(BedChunk,	cppNGS)
+add_tool(BedCoverage,	cppNGS)
+add_tool(BedExtend,	cppNGS)
+add_tool(BedGeneOverlap,	cppNGSD)
+add_tool(BedHighCoverage,	cppNGS)
+add_tool(BedInfo,	cppNGS)
+add_tool(BedIntersect,	cppNGS)
+add_tool(BedLiftOver,	cppNGS)
+add_tool(BedLowCoverage,	cppNGS)
+add_tool(BedMerge,	cppNGS)
+add_tool(BedReadCount,	cppNGS)
+add_tool(BedSort,	cppNGS)
+add_tool(BedSubtract,	cppNGS)
+add_tool(BedToEpigen,	cppNGS)
+add_tool(BedToFasta,	cppNGS)
+add_tool(BedpeAnnotateBreakpointDensity,	cppNGS)
+add_tool(BedpeAnnotateCnvOverlap,	cppNGS)
+add_tool(BedpeAnnotateCounts,	cppNGSD)
+add_tool(BedpeAnnotateFromBed,	cppNGS)
+add_tool(BedpeExtractGenotype,	cppNGS)
+add_tool(BedpeExtractInfoField,	cppNGS)
+add_tool(BedpeFilter,	cppNGS)
+add_tool(BedpeGeneAnnotation,	cppNGSD)
+add_tool(BedpeSort,	cppNGS)
+add_tool(BedpeToBed,	cppNGS)
+add_tool(CfDnaQC,	cppNGS)
+add_tool(CnvFilterAnnotations,	cppNGS)
+add_tool(CnvGeneAnnotation,	cppNGSD)
+add_tool(CnvReferenceCohort,	cppNGS)
+add_tool(ExportcBioportal,	cppNGSD)
+add_tool(ExtractMethylationData,	cppNGS)
+add_tool(FastaChecksumUpdate,	cppNGS)
+add_tool(FastaFromBam,	cppNGS)
+add_tool(FastaInfo,	cppNGS)
+add_tool(FastaMask,	cppNGS)
+add_tool(FastqAddBarcode,	cppNGS)
+add_tool(FastqCheckUMI,	cppNGS)
+add_tool(FastqConcat,	cppNGS)
+add_tool(FastqConvert,	cppNGS)
+add_tool(FastqDownsample,	cppNGS)
+add_tool(FastqExtract,	cppNGS)
+add_tool(FastqExtractBarcode,	cppNGS)
+add_tool(FastqExtractUMI,	cppNGS)
+add_tool(FastqFormat,	cppNGS)
+add_tool(FastqList,	cppNGS)
+add_tool(FastqMidParser,	cppNGS)
+add_tool(FastqToFasta,	cppNGS)
+add_tool(FastqTrim,	cppNGS)
+add_tool(GenePrioritization,	cppNGS)
+add_tool(GenesToApproved,	cppNGSD)
+add_tool(GenesToBed,	cppNGSD)
+add_tool(GenesToTranscripts,	cppNGSD)
+add_tool(GenlabInfo,	cppNGS)
+add_tool(GraphStringDb,	cppNGS)
+add_tool(HgvsToVcf,	cppNGSD)
+add_tool(MantaVcfFix,	cppNGS)
+add_tool(MappingQC,	cppNGS)
+add_tool(NGSDAddVariantsGermline,	cppNGSD)
+add_tool(NGSDAddVariantsSomatic,	cppNGSD)
+add_tool(NGSDAnnotateCNV,	cppNGSD)
+add_tool(NGSDAnnotateGeneExpression,	cppNGSD)
+add_tool(NGSDAnnotateRNA,	cppNGSD)
+add_tool(NGSDAnnotateSV,	cppNGSD)
+add_tool(NGSDExportAnnotationData,	cppNGSD)
+add_tool(NGSDExportCnvTrack,	cppNGSD)
+add_tool(NGSDExportGenes,	cppNGSD)
+add_tool(NGSDExportGff,	cppNGSD)
+add_tool(NGSDExportIgvGeneTrack,	cppNGSD)
+add_tool(NGSDExportSV,	cppNGSD)
+add_tool(NGSDExportSamples,	cppNGSD)
+add_tool(NGSDExportSpliceAI,	cppNGSD)
+add_tool(NGSDExportStudyGHGA,	cppNGSD)
+add_tool(NGSDExtractRNACohort,	cppNGSD)
+add_tool(NGSDGeneBurdenTest,	cppNGSD)
+add_tool(NGSDImportCSpec,	cppNGSD)
+add_tool(NGSDImportClinvarAccessions,	cppNGSD)
+add_tool(NGSDImportEnsembl,	cppNGSD)
+add_tool(NGSDImportExpressionData,	cppNGSD)
+add_tool(NGSDImportGeneInfo,	cppNGSD)
+add_tool(NGSDImportGenlab,	cppNGS)
+add_tool(NGSDImportHGNC,	cppNGSD)
+add_tool(NGSDImportHPO,	cppNGSD)
+add_tool(NGSDImportOMIM,	cppNGSD)
+add_tool(NGSDImportORPHA,	cppNGSD)
+add_tool(NGSDImportOncotree,	cppNGS)
+add_tool(NGSDImportQC,	cppNGSD)
+add_tool(NGSDImportSampleQC,	cppNGSD)
+add_tool(NGSDInit,	cppNGSD)
+add_tool(NGSDSameSample,	cppNGSD)
+add_tool(NGSDSampleUsers,	cppNGSD)
+add_tool(NGSDTransferReportConfig,	cppNGSD)
+add_tool(NgsBitsInfo,	cppNGS)
+add_tool(PhenotypeSubtree,	cppNGSD)
+add_tool(PhenotypesToGenes,	cppNGSD)
+add_tool(QcToTsv,	cppNGS)
+add_tool(ReadQC,	cppNGS)
+add_tool(RnaQC,	cppNGS)
+add_tool(RohHunter,	cppNGS)
+add_tool(SampleAncestry, cppNGS)
+add_tool(SampleGender,	cppNGS)
+add_tool(SampleIdentity,	cppNGS)
+add_tool(SamplePath,	cppNGSD)
+add_tool(SampleSimilarity,	cppNGS)
+add_tool(SeqPurge,	cppNGS)
+add_tool(SnifflesVcfFix,	cppNGSD)
+add_tool(SomaticQC,	cppNGSD)
+add_tool(SplicingToBed,	cppNGSD)
+add_tool(SvFilterAnnotations,	cppNGS)
+add_tool(TranscriptComparison,	cppNGSD)
+add_tool(TranscriptToProtein,	cppNGS)
+add_tool(TranscriptsToBed,	cppNGSD)
+add_tool(TrioMaternalContamination,	cppNGS)
+add_tool(TrioMendelianErrors,	cppNGS)
+add_tool(TsvAnnotate,	cppNGS)
+add_tool(TsvDiff,	cppNGS)
+add_tool(TsvFilter,	cppNGS)
+add_tool(TsvInfo,	cppNGS)
+add_tool(TsvMerge,	cppNGS)
+add_tool(TsvSlice,	cppNGS)
+add_tool(TsvTo,	cppNGS)
+add_tool(TsvToQC,	cppNGS)
+add_tool(UpdHunter, 	cppNGS)
+add_tool(VariantAnnotateASE,	cppNGS)
+add_tool(VariantAnnotateFrequency,	cppNGS)
+add_tool(VariantFilterAnnotations,	cppNGS)
+add_tool(VariantFilterRegions,	cppNGS)
+add_tool(VariantQC,	cppNGS)
+add_tool(VariantRanking,	cppNGSD)
+add_tool(VcfAdd,	cppNGS)
+add_tool(VcfAnnotateConsequence,	cppNGS)
+add_tool(VcfAnnotateFrequency,	cppNGS)
+add_tool(VcfAnnotateFromBed,	cppNGS)
+add_tool(VcfAnnotateFromBigWig,	cppNGS)
+add_tool(VcfAnnotateFromVcf,	cppNGS)
+add_tool(VcfAnnotateHexplorer,	cppNGS)
+add_tool(VcfAnnotateMaxEntScan,	cppNGSD)
+add_tool(VcfBreakMulti,	cppNGS)
+add_tool(VcfCalculatePRS,	cppNGS)
+add_tool(VcfCheck,	cppNGS)
+add_tool(VcfExtractSamples,	cppNGS)
+add_tool(VcfFilter,	cppNGS)
+add_tool(VcfLeftNormalize,	cppNGS)
+add_tool(VcfMerge,	cppNGS)
+add_tool(VcfReplaceSamples,	cppNGS)
+add_tool(VcfSort,	cppNGS)
+add_tool(VcfSplit,	cppNGS)
+add_tool(VcfStreamSort,	cppNGS)
+add_tool(VcfStrip,	cppNGS)
+add_tool(VcfSubtract,	cppNGS)
+add_tool(VcfToBed,	cppNGS)
+add_tool(VcfToBedpe,	cppNGS)
+add_tool(VcfToTsv,	cppNGS)
