@@ -2025,9 +2025,6 @@ void MainWindow::loadFile(QString filename)
         //reset GUI and data structures
         setWindowTitle(appName());
 
-		connect(data_controller_.getGermlineReportConfig().data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
-		connect(data_controller_.getSomaticReportConfig().data(), SIGNAL(variantsChanged()), this, SLOT(storeSomaticReportConfig()));
-
         ui_.tabs->setCurrentIndex(0);
         ui_.filters->reset(true);
 

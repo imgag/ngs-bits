@@ -32,10 +32,10 @@ AnalysisDataController& AnalysisDataController::instance()
 AnalysisDataController::AnalysisDataController()
     : QObject()
 {
-    connect(&variants_filter_state_, SIGNAL(filterStateChanged()), this, SLOT(applySmallVariantFilter(bool)));
-	connect(&cnvs_filter_state_, SIGNAL(filterStateChanged()), this, SLOT(applyCnvFilter(bool)));
-	connect(&svs_filter_state_, SIGNAL(filterStateChanged()), this, SLOT(applySvFilter(bool)));
-	connect(&fusions_filter_state_, SIGNAL(filterStateChanged()), this, SLOT(applyFusionFilter(bool)));
+	connect(&variants_filter_state_, SIGNAL(filterStateChanged()), this, SLOT(applySmallVariantFilter()));
+	connect(&cnvs_filter_state_, SIGNAL(filterStateChanged()), this, SLOT(applyCnvFilter()));
+	connect(&svs_filter_state_, SIGNAL(filterStateChanged()), this, SLOT(applySvFilter()));
+	connect(&fusions_filter_state_, SIGNAL(filterStateChanged()), this, SLOT(applyFusionFilter()));
 }
 
 void AnalysisDataController::clear()
@@ -186,9 +186,19 @@ QStringList AnalysisDataController::loadFile(QString filename)
         loadSomaticReportConfig();
     }
 
+	connect(getGermlineReportConfig().data(), SIGNAL(variantsChanged()), this, SLOT(storeReportConfig()));
+	connect(getSomaticReportConfig().data(), SIGNAL(variantsChanged()), this, SLOT(storeSomaticReportConfig()));
 
     return errors;
 }
+
+
+QStringList AnalysisDataController::availableAnalysis(QString processed_sample)
+{
+	thrownError("NOT IMPLEMENTED YET", "AnalysisDataController::availableAnalysis(String) is not implemented yet!");
+	return QStringList();
+}
+
 
 QList<QPair<Log::LogLevel, QString>> AnalysisDataController::checkVariantList()
 {
@@ -2400,8 +2410,8 @@ VariantValidation AnalysisDataController::getSvValidationEntry(int variant_idx, 
 	int sv_id = db.svId(sv, Helper::toInt(callset_id, "callset_id"), svs_);
 	if (sv_id == -1)
 	{
+		//if missing import into DB
 		sv_id = db.addSv(Helper::toInt(callset_id), sv, svs_);
-		THROW(DatabaseException, "SV not found in the NGSD! ");
 	}
 
 	//get sample ID

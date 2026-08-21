@@ -31,7 +31,6 @@ public:
     void clear();
 
     QStringList loadFile(QString filename="");
-    QStringList loadSample(QString processed_sample);
     QStringList availableAnalysis(QString processed_sample);
 
     QList<QPair<Log::LogLevel, QString>> checkVariantList();
@@ -47,11 +46,6 @@ public:
 	const FilterResult& getCnvFilterResult() const;
 	const FilterResult& getSVFilterResult() const;
 	const FilterResult& getFusionFilterResult() const;
-
-    const FilterResult& applySmallVariantFilter(bool debug_time=false);
-	const FilterResult& applyCnvFilter(bool debug_time=false);
-	const FilterResult& applySvFilter(bool debug_time=false);
-	const FilterResult& applyFusionFilter(bool debug_time=false);
 
     ///change the annotation of variants in the small variant list:
     void changeSmallVariantList(int variant_idx, QByteArray column, QByteArray new_text, bool throw_if_not_found=true);
@@ -212,6 +206,12 @@ public:
     TumorOnlyReportWorkerConfig getTumorOnlyReportWorkerConfig();
 
 public slots:
+	///Filter functions:
+	const FilterResult& applySmallVariantFilter(bool debug_time=false);
+	const FilterResult& applyCnvFilter(bool debug_time=false);
+	const FilterResult& applySvFilter(bool debug_time=false);
+	const FilterResult& applyFusionFilter(bool debug_time=false);
+
     ///Store changes in the GSvar file
     void storeSmallVariantList();
     ///Store report configuration
