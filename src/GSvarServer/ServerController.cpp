@@ -1561,17 +1561,14 @@ HttpResponse ServerController::getProcessingSystemGenes(const HttpRequest& reque
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
     }
 
-	if (filename.isEmpty())
-    {
-        return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Processing system genes file has not been found"));
-	}
+	if (filename.isEmpty()) return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Processing system genes file has not been found"));
 	return createStaticStreamResponse(filename, false);
 }
 
 HttpResponse ServerController::getSecondaryAnalyses(const HttpRequest& request)
 {
 	QString processed_sample_name = request.getUrlParams()["ps_name"];
-	QString type  = QUrl::fromEncoded(request.getUrlParams()["type"].toUtf8()).toString();
+	QString type = QUrl::fromEncoded(request.getUrlParams()["type"].toUtf8()).toString();
 	QStringList secondary_analyses;
 	try
 	{
@@ -1579,10 +1576,7 @@ HttpResponse ServerController::getSecondaryAnalyses(const HttpRequest& request)
 		foreach(QString file, analyses)
 		{
 			QSharedPointer<FastFileInfo> info = QSharedPointer<FastFileInfo>(new FastFileInfo(file));
-            if (info->exists())
-			{
-				secondary_analyses << file;
-			}
+			if (info->exists()) secondary_analyses << file;
 		}
 	}
 	catch (DatabaseException& e)
@@ -1723,6 +1717,21 @@ HttpResponse ServerController::getCurrentClientInfo(const HttpRequest& /*request
 	response_data.length = json_doc_output.toJson().length();
 	response_data.content_type = ContentType::APPLICATION_JSON;
 	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
+HttpResponse ServerController::getSenderIdByName(const HttpRequest &request)
+{
+	return getIdNamePair("sender", request);
+}
+
+HttpResponse ServerController::getReceiverIdByName(const HttpRequest &request)
+{
+	return getIdNamePair("user", request);
+}
+
+HttpResponse ServerController::getSpeciesIdByName(const HttpRequest &request)
+{
+	return getIdNamePair("species", request);
 }
 
 HttpResponse ServerController::addProjectToDb(const HttpRequest &request)
@@ -2018,6 +2027,41 @@ HttpResponse ServerController::addRecordToDbTable(const QString &table_name, con
 	{
 		return HttpResponse(ResponseStatus::BAD_REQUEST, ContentType::TEXT_PLAIN, QString("Error while adding a new record to the '%1' table: %2").arg(table_name, result.errors.join(", ")));
 	}
+}
+
+HttpResponse ServerController::getIdNamePair(const QString &table_name, const HttpRequest &request)
+{
+	NGSD db;
+	QJsonDocument json = QJsonDocument::fromJson(request.getBody());
+	if (!json.isArray()) return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not extract a list of sender names from the JSON"));
+
+	QJsonArray output_list;
+	QJsonArray name_list = json.array();
+	for (int i=0; i<name_list.size(); i++)
+	{
+		QJsonObject id_and_name_pair;
+		int current_id = -1;
+		try
+		{
+			current_id = db.getValue(QString("SELECT id FROM %1 WHERE name='%2'").arg(table_name, name_list[i].toString())).toInt();
+		}
+		catch (DatabaseException& e)
+		{
+			return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not retrieve a sender id from the database: " + e.message()));
+		}
+
+		if (current_id==0) continue;
+		id_and_name_pair.insert("id", current_id);
+		id_and_name_pair.insert("name", name_list[i]);
+		output_list.append(id_and_name_pair);
+	}
+
+	QJsonDocument json_doc_output;
+	json_doc_output.setArray(output_list);
+	BasicResponseData response_data;
+	response_data.length = json_doc_output.toJson().length();
+	response_data.content_type = ContentType::APPLICATION_JSON;
+	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
 HttpResponse ServerController::uploadFileToFolder(QString upload_folder, const HttpRequest& request)

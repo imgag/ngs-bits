@@ -483,6 +483,42 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
+						"find_sender",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::APPLICATION_JSON,
+						AuthType::USER_TOKEN,
+						"Finds a sender ID by the name",
+						&ServerController::getSenderIdByName
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"find_receiver",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::APPLICATION_JSON,
+						AuthType::USER_TOKEN,
+						"Finds a user ID by the receiver name",
+						&ServerController::getReceiverIdByName
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"find_species",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::APPLICATION_JSON,
+						AuthType::USER_TOKEN,
+						"Finds a species ID by the name",
+						&ServerController::getSpeciesIdByName
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
 						"add_project",
 						QMap<QString, ParamProps>{
 							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}

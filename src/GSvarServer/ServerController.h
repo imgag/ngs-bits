@@ -95,6 +95,14 @@ public:
 	static HttpResponse getRnaExpressionPlots(const HttpRequest& request);
 	/// Returns information about the latest available version of the desktop client
 	static HttpResponse getCurrentClientInfo(const HttpRequest& request);
+
+	/// "Finds a sender ID by the name
+	static HttpResponse getSenderIdByName(const HttpRequest& request);
+	/// Finds a user ID by the receiver name
+	static HttpResponse getReceiverIdByName(const HttpRequest& request);
+	/// Finds a species ID by the name
+	static HttpResponse getSpeciesIdByName(const HttpRequest& request);
+
 	/// --------- Database editing ---------
 	/// Adds a new project to NGSD database: returns OK (and a corresponding message) on success or error message when fails
 	static HttpResponse addProjectToDb(const HttpRequest& request);
@@ -150,6 +158,8 @@ private:
 	static HttpResponse createStaticLocationResponse(const QString path, const HttpRequest& request);
 	/// Handles adding new records to the database tables (data import)
 	static HttpResponse addRecordToDbTable(const QString& table_name, const HttpRequest& request);
+	/// Returns a JSON array with id-name pairs for a given table
+	static HttpResponse getIdNamePair(const QString& table_name, const HttpRequest& request);
 };
 
 #endif // SERVERCONTROLLER_H
