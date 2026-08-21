@@ -24,9 +24,13 @@ ImportDialog::ImportDialog(QWidget* parent, Type type)
 	connect(ui_.import_btn, SIGNAL(clicked()), this, SLOT(import()));
 
 	//add context menu item to paste data
-	QAction* action = new QAction("paste");
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(pasteTable()));
-	ui_.table->addAction(action);
+	QAction* paste_action = new QAction("paste");
+	connect(paste_action, SIGNAL(triggered(bool)), this, SLOT(pasteTable()));
+	ui_.table->addAction(paste_action);
+
+	QAction* clear_action = new QAction("clear");
+	connect(clear_action, SIGNAL(triggered(bool)), this, SLOT(clearTable()));
+	ui_.table->addAction(clear_action);
 
 	//type-specific UI setup
 	setupGUI();
@@ -146,6 +150,12 @@ void ImportDialog::pasteTable()
 
 	//enable import button if there are no errors
 	ui_.import_btn->setEnabled(ui_.warnings->toPlainText().trimmed().isEmpty());
+}
+
+void ImportDialog::clearTable()
+{
+	ui_.table->clearContents();
+	ui_.table->setRowCount(0);
 }
 
 void ImportDialog::pasteRow(int row_index, QString line)

@@ -31,6 +31,7 @@ public:
 
 private slots:
 	void pasteTable();
+	void clearTable();
 	void import();
 	void variantImportFailed();
 	void loadFile(QString filename);
