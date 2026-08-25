@@ -60,7 +60,7 @@ ServerWrapper::ServerWrapper(const quint16& port)
 		return;
 	}
 
-	server_ = QSharedPointer<SslServer>(new SslServer(this));
+	server_ = QSharedPointer<SslServer>::create(nullptr);
 
 	QSslConfiguration config = server_->getSslConfiguration();
 	config.setLocalCertificate(cert);
@@ -299,7 +299,15 @@ void ServerWrapper::updateQueingEngineStatus()
 
 	try
 	{
-		qe_status_pool_.start(QueuingEngineController::create(PipelineSettings::queuingEngine()));
+		QueuingEngineController* qe_controller = QueuingEngineController::create(PipelineSettings::queuingEngine());
+
+		if (qe_controller == nullptr)
+		{
+			Log::error("Could not create queuing engine controller");
+			return;
+		}
+
+		qe_status_pool_.start(qe_controller);
 	}
 	catch(Exception& e)
 	{

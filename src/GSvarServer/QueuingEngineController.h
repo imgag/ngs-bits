@@ -11,6 +11,8 @@ class QueuingEngineController
 		: public QRunnable
 {
 public:
+	virtual ~QueuingEngineController() = default;
+
 	// Determines which subclass to use
 	static QueuingEngineController* create(const QString& engine);
 
