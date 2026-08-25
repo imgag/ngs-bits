@@ -133,7 +133,6 @@ TOOLS_NGS = \
 #tools depending on cppNGSD
 TOOLS_NGSD = \
 	BedAnnotateGenes \ 
-	BedAnnotateGenes \ 
 	BedGeneOverlap \ 
 	BedpeAnnotateCounts \ 
 	BedpeGeneAnnotation \ 
