@@ -23,18 +23,22 @@ public:
 		//optional
 		addOutfile("out", "Output TSV file - one line per input BAM/CRAM file. If unset, writes to STDOUT.", true);
 		QStringList methods;
-		methods << "xy" << "hetx" << "sry";
-		addEnum("method", "Method selection: Read distribution on X and Y chromosome (xy), fraction of heterozygous variants on X chromosome (hetx), or coverage of SRY gene (sry).", false, methods);
+		methods << "xy" << "hetx" << "sry" << "depthx";
+		addEnum("method", "Method selection: Read ratio between chrX and chrY (xy), fraction of heterozygous SNPs on chrX (hetx), or coverage of SRY gene (sry), depth ratio beteen chrX and autosomes (depthx).", false, methods);
 		addFloat("max_female", "Maximum Y/X ratio for female (method xy).", true, 0.06);
 		addFloat("min_male", "Minimum Y/X ratio for male (method xy).", true, 0.09);
 		addFloat("min_female", "Minimum heterozygous SNP fraction for female (method hetx).", true, 0.25);
 		addFloat("max_male", "Maximum heterozygous SNP fraction for male (method hetx).", true, 0.05);
 		addFloat("sry_cov", "Minimum average coverage of SRY gene for males (method sry).", true, 20.0);
+		addFloat("covx", "Minium ratio chrX/autosomes for females (method depthx).", true, 0.75);
+		addInfile("roi", "Target region of panel/exome (method depthx)", true);
+		addInt("threads", "Number of threads used (method depthx)", true, 1);
 		addEnum("build", "Genome build used to generate the input (methods hetx and sry).", true, QStringList() << "hg19" << "hg38", "hg38");
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addFlag("long_read", "Support long reads (> 1kb) and uses single-end reads for gender calculation.");
 
 		//changelog
+		changeLog(2026,  6, 13, "Added 'depthx' method.");
 		changeLog(2024,  2, 29, "Added parameter to include single-end reads (long-read).");
 		changeLog(2022,  8,  5, "Ignoring duplicate, secondary and supplementary alignments in methods 'xy' and 'sry' now.");
 		changeLog(2020, 11, 27, "Added CRAM support.");
@@ -68,6 +72,10 @@ public:
 			else if (method=="sry")
 			{
 				estimate = Statistics::genderSRY(build, bam, getFloat("sry_cov"), getInfile("ref"));
+			}
+			else if (method=="depthx")
+			{
+				estimate = Statistics::genderDepthX(bam, getInfile("roi"), getFloat("covx"), getInt("threads"), getInfile("ref"));
 			}
 
 			//output header
