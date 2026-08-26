@@ -1759,6 +1759,11 @@ HttpResponse ServerController::addSampleToDb(const HttpRequest &request)
 	return addRecordToDbTable("sample", request);
 }
 
+HttpResponse ServerController::addSampleRelationToDb(const HttpRequest &request)
+{
+	return addRecordToDbTable("sample_relations", request);
+}
+
 HttpResponse ServerController::addProcessedSampleToDb(const HttpRequest &request)
 {
 	return addRecordToDbTable("processed_sample", request);

@@ -573,6 +573,19 @@ int main(int argc, char **argv)
 						"Adds a new sample to the database",
 						&ServerController::addSampleToDb
 					});
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"add_sample_relation",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_XML,
+						AuthType::USER_TOKEN,
+						"Adds a new sample relation (between two samples) to the database",
+						&ServerController::addSampleRelationToDb
+					});
+
 	EndpointManager::appendEndpoint(Endpoint{
 						"add_processed_sample",
 						QMap<QString, ParamProps>{

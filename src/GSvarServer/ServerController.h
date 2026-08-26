@@ -114,6 +114,8 @@ public:
 	static HttpResponse addSequencingRunToDb(const HttpRequest& request);
 	/// Adds a new sample to NGSD database: returns OK (and a corresponding message) on success or error message when fails
 	static HttpResponse addSampleToDb(const HttpRequest& request);
+	/// Adds a new sample relation to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addSampleRelationToDb(const HttpRequest& request);
 	/// Adds a new processed sample to NGSD database: returns OK (and a corresponding message) on success or error message when fails
 	static HttpResponse addProcessedSampleToDb(const HttpRequest& request);
 	/// Adds a new sender to NGSD database: returns OK (and a corresponding message) on success or error message when fails
