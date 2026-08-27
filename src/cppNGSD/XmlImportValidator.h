@@ -34,7 +34,6 @@ private:
 		QString error;
 	};
 
-	ConvertedValue convertValue(const QString& text, const ColumnSchema& column) const;
 	const DatabaseSchema& schema_;
 };
 

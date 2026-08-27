@@ -22,14 +22,7 @@ void DatabaseInsert::insert(NGSD& db, const TableSchema& table, const QHash<QStr
 	for (auto it = values.constBegin(); it != values.constEnd(); it++)
 	{
 		const QString& column_name = it.key();
-
-		// The column must actually exist in the database schema.
-		const auto column_it = table.columns.constFind(column_name);
-		if (column_it == table.columns.constEnd()) THROW(DatabaseException, QString("Unknown column '%1' for table '%2'").arg(column_name, table.name));
-		const ColumnSchema& column = column_it.value();
-
-		// Do not allow values for auto_increment/generated columns.
-		if (!column.writable()) THROW(DatabaseException, QString("Column '%1' is not writable").arg(column_name));
+		if (!table.columns.contains(column_name)) THROW(DatabaseException, QString("Unknown column '%1' for table '%2'").arg(column_name, table.name));
 
 		keys.append(column_name);
 		column_names.append(quoteIdentifier(column_name));

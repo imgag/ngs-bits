@@ -5,8 +5,7 @@
 #include "SessionManager.h"
 
 EndpointManager::EndpointManager()
-{
-	Log::error("EndpointManager constructor");
+{	
 	NGSD db;
 	database_schema_ = DatabaseSchema::loadFromDatabase(db);
 }

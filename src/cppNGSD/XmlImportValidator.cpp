@@ -59,7 +59,7 @@ XmlValidationResult XmlImportValidator::validateInsert(const QByteArray& body, c
 			continue;
 		}
 
-		const ColumnSchema& column = column_it.value();
+		const TableFieldInfo& column = column_it.value();
 
 		if (seen_fields.contains(field_name))
 		{
@@ -67,15 +67,8 @@ XmlValidationResult XmlImportValidator::validateInsert(const QByteArray& body, c
 			xml.skipCurrentElement();
 			continue;
 		}
-
 		seen_fields.insert(field_name);
 
-		if (!column.writable())
-		{
-			result.errors << QString("Field <%1> cannot be supplied").arg(field_name);
-			xml.skipCurrentElement();
-			continue;
-		}
 
 		if (!xml.attributes().isEmpty())
 		{
@@ -84,15 +77,15 @@ XmlValidationResult XmlImportValidator::validateInsert(const QByteArray& body, c
 
 		const QString value = xml.readElementText(QXmlStreamReader::ErrorOnUnexpectedElement);
 		if (xml.hasError()) break;
-		const ConvertedValue converted = convertValue(value, column);
 
-		if (!converted.valid)
+		if (!column.isValid(value))
 		{
-			result.errors << converted.error;
+
+			result.errors << QString("Invalid value in the '%1'").arg(column.name);
 			continue;
 		}
 
-		result.values.insert(field_name, converted.value);
+		result.values.insert(field_name, value);
 	}
 
 	if (xml.hasError())
@@ -101,134 +94,14 @@ XmlValidationResult XmlImportValidator::validateInsert(const QByteArray& body, c
 		return result;
 	}
 
-	// Check mandatory database columns.
+	// Check mandatory database columns
 	for (auto it = table.columns.constBegin(); it != table.columns.constEnd(); it++)
 	{
-		const ColumnSchema& column = it.value();
-		if (column.requiredForInsert() && !seen_fields.contains(column.name))
-		{
-			result.errors << QString("Required field <%1> is missing").arg(column.name);
-		}
+		const TableFieldInfo& column = it.value();
+
+		bool mandatory_field = true;
+		if ((column.is_primary_key && column.has_auto_increment) || (column.is_nullable) || (!column.default_value.isEmpty())) mandatory_field = false;
+		if (mandatory_field && !seen_fields.contains(column.name)) result.errors << QString("Required field <%1> is missing").arg(column.name);
 	}
-	return result;
-}
-
-XmlImportValidator::ConvertedValue XmlImportValidator::convertValue(const QString &text, const ColumnSchema &column) const
-{
-	ConvertedValue result;
-	const QString type = column.data_type.toLower();
-
-	if (type == "char" || type == "varchar" || type == "tinytext" || type == "text" || type == "mediumtext" || type == "longtext")
-	{
-		if (column.character_maximum_length >= 0 && text.size() > column.character_maximum_length)
-		{
-			result.error = QString("Field '%1' exceeds maximum length of %2 characters").arg(column.name).arg(column.character_maximum_length);
-			return result;
-		}
-
-		result.valid = true;
-		result.value = text;
-		return result;
-	}
-
-	if (type == "enum")
-	{
-		if (!column.enum_values.contains(text))
-		{
-			result.error = QString("Invalid value '%1' for field '%2'. Allowed values: %3").arg(text, column.name, column.enum_values.join(", "));
-			return result;
-		}
-
-		result.valid = true;
-		result.value = text;
-		return result;
-	}
-
-
-	if (type == "date")
-	{
-		const QDate date = QDate::fromString(text, "yyyy-MM-dd");
-		if (!date.isValid())
-		{
-			result.error = QString("Field '%1' must be a valid date in YYYY-MM-DD format").arg(column.name);
-			return result;
-		}
-
-		result.valid = true;
-		result.value = date;
-		return result;
-	}
-
-	if (type == "float")
-	{
-		bool ok = false;
-		const float value = text.toFloat(&ok);
-		if (!ok || !std::isfinite(value))
-		{
-			result.error = QString("Field '%1' must be a valid floating-point number").arg(column.name);
-			return result;
-		}
-
-		result.valid = true;
-		result.value = value;
-		return result;
-	}
-
-	if (type == "tinyint" && column.column_type.startsWith("tinyint(1)"))
-	{
-		if (text == "0" || text.compare("false", Qt::CaseInsensitive) == 0)
-		{
-			result.valid = true;
-			result.value = 0;
-			return result;
-		}
-
-		if (text == "1" || text.compare("true", Qt::CaseInsensitive) == 0)
-		{
-			result.valid = true;
-			result.value = 1;
-			return result;
-		}
-
-		result.error = QString("Field '%1' must be 0, 1, true or false").arg(column.name);
-		return result;
-	}
-
-	if (type == "int" || type == "integer")
-	{
-		const bool isUnsigned = column.column_type.contains("unsigned", Qt::CaseInsensitive);
-
-		if (isUnsigned)
-		{
-			bool ok = false;
-			const qulonglong value = text.toULongLong(&ok);
-
-			if (!ok || value > std::numeric_limits<quint32>::max())
-			{
-				result.error = QString("Field '%1' must be an unsigned 32-bit integer").arg(column.name);
-				return result;
-			}
-
-			result.valid = true;
-			result.value = QVariant::fromValue(value);
-			return result;
-		}
-
-		bool ok = false;
-
-		const qlonglong value = text.toLongLong(&ok);
-
-		if (!ok || value < std::numeric_limits<qint32>::min() || value > std::numeric_limits<qint32>::max())
-		{
-			result.error = QString("Field '%1' must be a signed 32-bit integer").arg(column.name);
-			return result;
-		}
-
-		result.valid = true;
-		result.value = QVariant::fromValue(value);
-		return result;
-	}
-
-	result.error = QString("Unsupported database type '%1' for field '%2'").arg(column.column_type, column.name);
 	return result;
 }

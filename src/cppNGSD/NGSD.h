@@ -116,6 +116,7 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 
 	//index+key info
 	bool is_primary_key = false;
+	bool has_auto_increment = false;
 	bool is_unique = false;
 	QString fk_table; //target table of FK
 	QString fk_field; //target field of FK

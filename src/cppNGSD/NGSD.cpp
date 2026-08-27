@@ -4068,6 +4068,9 @@ const TableInfo& NGSD::tableInfo(const QString& table, bool use_cache) const
 			//PK
 			info.is_primary_key = index.contains(info.name);
 
+			//auto increment (in extra column)
+			info.has_auto_increment = query.value(5).toString().contains("auto_increment");
+
 			//unique
 			info.is_unique = query.value(3).toString()=="UNI";
 
