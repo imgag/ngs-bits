@@ -704,6 +704,32 @@ struct  NsxAnalysisSettings
 	bool dragen_analysis = true;
 };
 
+///Contains information about the fields for a specific database table
+struct CPPNGSDSHARED_EXPORT TableSchema
+{
+	QString name;
+	QHash<QString, TableFieldInfo> columns;
+};
+
+///Contains information about all fields in all tables in a specific database
+class CPPNGSDSHARED_EXPORT DatabaseSchema
+	: public QObject
+{
+	Q_OBJECT
+public:
+	DatabaseSchema(NGSD& db);
+	const TableSchema& table(const QString& name) const
+	{
+		const auto it = tables_.constFind(name);
+		if (it == tables_.constEnd()) THROW(DatabaseException, QString("Table '%1' does not exist").arg(name));
+		return it.value();
+	}
+
+private:
+	QHash<QString, TableSchema> tables_;
+};
+
+
 ///NGSD access
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject

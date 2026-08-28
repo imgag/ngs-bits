@@ -31,8 +31,6 @@ unix: LIBS += -lxml2
 
 SOURCES += \
     ApiCaller.cpp \
-    DatabaseInsert.cpp \
-    DatabaseSchema.cpp \
     ExportCBioPortalStudy.cpp \
     FileLocationList.cpp \
     FileLocationProviderLocal.cpp \
@@ -59,8 +57,6 @@ SOURCES += \
 
 HEADERS += \
     ApiCaller.h \
-    DatabaseInsert.h \
-    DatabaseSchema.h \
     ExportCBioPortalStudy.h \
     FileLocation.h \
     FileLocationList.h \

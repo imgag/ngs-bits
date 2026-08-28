@@ -18,7 +18,6 @@
 #include "ToolBase.h"
 #include "FileLocationProviderLocal.h"
 #include "XmlImportValidator.h"
-#include "DatabaseInsert.h"
 
 ServerController::ServerController()
 {
@@ -1934,6 +1933,30 @@ QString ServerController::stripParamsFromTempUrl(const QString& url)
     return output;
 }
 
+void ServerController::importDataToNGSD(NGSD &db, const TableSchema &table, const QHash<QString, QVariant> &values)
+{
+	if (values.isEmpty()) THROW(DatabaseException, "No values supplied for INSERT");
+
+	QStringList column_names;
+	QStringList placeholders;
+	QList<QString> keys;
+	int index = 0;
+
+	for (auto it = values.constBegin(); it != values.constEnd(); it++)
+	{
+		const QString& column_name = it.key();
+		if (!table.columns.contains(column_name)) THROW(DatabaseException, QString("Unknown column '%1' for table '%2'").arg(column_name, table.name));
+
+		keys.append(column_name);
+		column_names.append(escapeQuotationMarks(column_name));
+		placeholders.append("'" + values[column_name].toString() + "'");
+		index++;
+	}
+
+	SqlQuery query = db.getQuery();
+	query.exec(QString("INSERT INTO %1 (%2) VALUES (%3)").arg(escapeQuotationMarks(table.name), column_names.join(", "), placeholders.join(", ")));
+}
+
 HttpResponse ServerController::createStaticFolderResponse(const QString path, const HttpRequest& request)
 {
 	if (!Settings::boolean("allow_folder_listing", true))
@@ -2009,7 +2032,9 @@ HttpResponse ServerController::createStaticLocationResponse(const QString path, 
 
 HttpResponse ServerController::addRecordToDbTable(const QString &table_name, const HttpRequest& request)
 {
-	DatabaseSchema db_schema = EndpointManager::getDatabaseSchema();
+	NGSD db;
+	DatabaseSchema db_schema = DatabaseSchema(db);
+
 	XmlImportValidator validator(db_schema);
 	const XmlValidationResult result = validator.validateInsert(request.getBody(), table_name);
 
@@ -2017,9 +2042,8 @@ HttpResponse ServerController::addRecordToDbTable(const QString &table_name, con
 	{
 		try
 		{
-			NGSD db;
 			const TableSchema& table = db_schema.table(table_name);
-			DatabaseInsert::insert(db, table, result.values);
+			importDataToNGSD(db, table, result.values);
 		}
 		catch (DatabaseException& e)
 		{

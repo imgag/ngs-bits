@@ -1,7 +1,7 @@
 #ifndef XMLIMPORTVALIDATOR_H
 #define XMLIMPORTVALIDATOR_H
 
-#include "DatabaseSchema.h"
+#include "NGSD.h"
 #include "cppNGSD_global.h"
 #include <QByteArray>
 #include <QHash>
@@ -27,13 +27,6 @@ public:
 	XmlValidationResult validateInsert(const QByteArray& xml, const QString& table_name) const;
 
 private:
-	struct ConvertedValue
-	{
-		bool valid = false;
-		QVariant value;
-		QString error;
-	};
-
 	const DatabaseSchema& schema_;
 };
 

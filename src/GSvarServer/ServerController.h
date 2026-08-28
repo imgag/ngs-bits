@@ -133,6 +133,8 @@ public:
 	/// Removes the cache for user permissions
 	static HttpResponse clearPermissionsCache(const HttpRequest& request);
 
+	/// Inserts new data into a specific table in NGSD (needed for the data import / batch import functionality)
+	static void importDataToNGSD(NGSD& db, const TableSchema& table, const QHash<QString, QVariant>& values);
 private:
 	/// Find file/folder name corresponding to the id from a temporary URL
 	static QString findPathForTempUrl(QList<QString> path_parts);
@@ -150,6 +152,15 @@ private:
 	static QString createTempUrl(FastFileInfo& file_info, const QString& token, bool id_as_ps_folder = false);
     /// Returns a temporary URL wihtout a parameters (e.g. ?token=123)
     static QString stripParamsFromTempUrl(const QString& url);
+
+	/// Handles quotation mark escaping for the data import
+	static QString escapeQuotationMarks(const QString& identifier)
+	{
+		QString escaped = identifier;
+		escaped.replace('`', "``");
+
+		return "`" + escaped + "`";
+	}
 
 	/// Serves a file for a byte range request (i.e. specific fragment of a file)
 	static HttpResponse createStaticFileRangeResponse(const QString& filename, const QList<ByteRange>& byte_ranges, const ContentType& type, bool is_downloadable);

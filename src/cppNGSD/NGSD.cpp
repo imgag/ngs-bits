@@ -11182,3 +11182,33 @@ const QHash<int, QString>& NGSD::geneCache()
     }
 }
 */
+
+DatabaseSchema::DatabaseSchema(NGSD &db)
+{
+	try
+	{
+		SqlQuery query = db.getQuery();
+		query.prepare("SELECT "
+		        "TABLE_NAME,"
+		        "COLUMN_NAME"
+		        " FROM INFORMATION_SCHEMA.COLUMNS"
+		        " WHERE TABLE_SCHEMA = :schema ORDER BY TABLE_NAME, ORDINAL_POSITION");
+
+		query.bindValue(":schema", db.databaseName());
+		query.exec();
+
+		while (query.next())
+		{
+			const QString table_name = query.value(0).toString();
+			const TableFieldInfo& field_info =  db.tableInfo(table_name).fieldInfo(query.value(1).toString());
+
+			TableSchema& table = tables_[table_name];
+			table.name = table_name;
+			table.columns.insert(query.value(1).toString(), field_info);
+		}
+	}
+	catch(DatabaseException& e)
+	{
+		Log::error("Failed to load the database schema: " + e.message());
+	}
+}

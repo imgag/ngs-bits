@@ -443,12 +443,12 @@ private:
 			"<matchmaking>yes</matchmaking>"
 			"</project>";
 
-		DatabaseSchema db_schema = DatabaseSchema::loadFromDatabase(test_db);
+		DatabaseSchema db_schema = DatabaseSchema(test_db);
 		XmlImportValidator validator(db_schema);
 		XmlValidationResult result = validator.validateInsert(correct_xml_content, "project");
 		IS_TRUE(result.isValid());
 		TableSchema table = db_schema.table("project");
-		DatabaseInsert::insert(test_db, table, result.values);
+		ServerController::importDataToNGSD(test_db, table, result.values);
 
 		QByteArray incorrect_xml_content =
 			"<project>"
@@ -465,7 +465,7 @@ private:
 			"</project>";
 		result = validator.validateInsert(incorrect_xml_content, "project");
 		IS_TRUE(!result.isValid());
-		IS_THROWN(DatabaseException, DatabaseInsert::insert(test_db, table, result.values));
+		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
 
 		correct_xml_content =
 			"<processing_system>"
@@ -483,7 +483,7 @@ private:
 		result = validator.validateInsert(correct_xml_content, "processing_system");
 		IS_TRUE(result.isValid());
 		table = db_schema.table("processing_system");
-		DatabaseInsert::insert(test_db, table, result.values);
+		ServerController::importDataToNGSD(test_db, table, result.values);
 
 		incorrect_xml_content =
 			"<processing_system>"
@@ -500,7 +500,7 @@ private:
 			"</processing_system>";
 		result = validator.validateInsert(incorrect_xml_content, "processing_system");
 		IS_TRUE(!result.isValid());
-		IS_THROWN(DatabaseException, DatabaseInsert::insert(test_db, table, result.values));
+		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
 
 		correct_xml_content =
 			"<device>"
@@ -511,7 +511,7 @@ private:
 		result = validator.validateInsert(correct_xml_content, "device");
 		IS_TRUE(result.isValid());
 		table = db_schema.table("device");
-		DatabaseInsert::insert(test_db, table, result.values);
+		ServerController::importDataToNGSD(test_db, table, result.values);
 
 		incorrect_xml_content =
 			"<device>"
@@ -520,7 +520,7 @@ private:
 			"</device>";
 		result = validator.validateInsert(incorrect_xml_content, "device");
 		IS_TRUE(!result.isValid());
-		IS_THROWN(DatabaseException, DatabaseInsert::insert(test_db, table, result.values));
+		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
 
 		correct_xml_content =
 			"<sequencing_run>"
@@ -542,7 +542,7 @@ private:
 		result = validator.validateInsert(correct_xml_content, "sequencing_run");
 		IS_TRUE(result.isValid());
 		table = db_schema.table("sequencing_run");
-		DatabaseInsert::insert(test_db, table, result.values);
+		ServerController::importDataToNGSD(test_db, table, result.values);
 
 		incorrect_xml_content =
 			"<sequencing_run>"
@@ -563,7 +563,7 @@ private:
 			"</sequencing_run>";
 		result = validator.validateInsert(incorrect_xml_content, "sequencing_run");
 		IS_TRUE(!result.isValid());
-		IS_THROWN(DatabaseException, DatabaseInsert::insert(test_db, table, result.values));
+		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
 
 		correct_xml_content =
 			"<sample>"
@@ -595,7 +595,7 @@ private:
 		result = validator.validateInsert(correct_xml_content, "sample");
 		IS_TRUE(result.isValid());
 		table = db_schema.table("sample");
-		DatabaseInsert::insert(test_db, table, result.values);
+		ServerController::importDataToNGSD(test_db, table, result.values);
 
 		incorrect_xml_content =
 			"<sample>"
@@ -620,7 +620,7 @@ private:
 			"</sample>";
 		result = validator.validateInsert(incorrect_xml_content, "sample");
 		IS_TRUE(!result.isValid());
-		IS_THROWN(DatabaseException, DatabaseInsert::insert(test_db, table, result.values));
+		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
 
 		correct_xml_content =
 			"<processed_sample>"
@@ -647,7 +647,7 @@ private:
 		result = validator.validateInsert(correct_xml_content, "processed_sample");
 		IS_TRUE(result.isValid());
 		table = db_schema.table("processed_sample");
-		DatabaseInsert::insert(test_db, table, result.values);
+		ServerController::importDataToNGSD(test_db, table, result.values);
 
 		incorrect_xml_content =
 			"<processed_sample>"
@@ -668,7 +668,7 @@ private:
 			"</processed_sample>";
 		result = validator.validateInsert(incorrect_xml_content, "processed_sample");
 		IS_TRUE(!result.isValid());
-		IS_THROWN(DatabaseException, DatabaseInsert::insert(test_db, table, result.values));
+		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
 
 		correct_xml_content =
 			"<sender>"
@@ -680,7 +680,7 @@ private:
 		result = validator.validateInsert(correct_xml_content, "sender");
 		IS_TRUE(result.isValid());
 		table = db_schema.table("sender");
-		DatabaseInsert::insert(test_db, table, result.values);
+		ServerController::importDataToNGSD(test_db, table, result.values);
 
 		incorrect_xml_content =
 			"<sender>"
@@ -691,6 +691,6 @@ private:
 			"</sender>";
 		result = validator.validateInsert(incorrect_xml_content, "sender");
 		IS_TRUE(!result.isValid());
-		IS_THROWN(DatabaseException, DatabaseInsert::insert(test_db, table, result.values));
+		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
 	}
 };
