@@ -10,6 +10,9 @@
 #include "LoginManager.h"
 #include "Settings.h"
 #include <QClipboard>
+#include <QBuffer>
+#include <QXmlStreamWriter>
+#include "ClientHelper.h"
 
 ImportDialog::ImportDialog(QWidget* parent, Type type)
 	: QDialog(parent)
@@ -315,6 +318,38 @@ bool ImportDialog::addItem(int r, int c, const QString& value, const QString& ac
 	return true;
 }
 
+void ImportDialog::sendImportDataToServer(QString table, QHash<QString, QString> import_data)
+{
+	QByteArray xml_data;
+	QBuffer buffer(&xml_data);
+	buffer.open(QIODevice::WriteOnly);
+
+	QXmlStreamWriter xml(&buffer);
+	xml.setAutoFormatting(true);
+
+	xml.writeStartDocument();
+	xml.writeStartElement(table);
+
+	// create XML to be sent to the API endpoint
+	for (auto it = import_data.constBegin(); it != import_data.constEnd(); ++it)
+	{
+		xml.writeTextElement(it.key(), it.value());
+	}
+
+	xml.writeEndElement();
+	xml.writeEndDocument();
+
+	buffer.close();
+
+	qDebug().noquote() << QString::fromUtf8(xml_data);
+
+	HttpRequestHandler handler;
+	handler.setHeader("content-type", "text/xml; charset=utf-8");
+
+	ServerReply reply = handler.post(ClientHelper::serverApiUrl()+table+"?token="+LoginManager::userToken(), xml_data);
+	if (reply.status_code!=200) THROW(Exception, "Could not import the data to '" + db_table_ + "'");
+}
+
 void ImportDialog::checkNumberOfParts(const QStringList& parts)
 {
 	int max = db_fields_.count() + special_fields_;
@@ -413,39 +448,57 @@ void ImportDialog::import()
 		}
 		else if (type_==SAMPLES)
 		{
-			//prepare query
-			SqlQuery query = db_.getQuery();
-			query.prepare(insertQuery());
-
 			//add entries
 			for (int r=0; r<ui_.table->rowCount(); ++r)
 			{
 				++row_num;
+				NGSD db;
 
 				//skip already imported samples
 				QString sample_name = ui_.table->item(r,0)->data(Qt::UserRole).toString();
-				if (db_.getValue("SELECT id FROM sample WHERE name=:0", true, sample_name).toString()!="")
+				if (db.getValue("SELECT id FROM sample WHERE name=:0", true, sample_name).toString()!="")
 				{
 					++skipped;
 					continue;
 				}
 
-				addRow(query, r);
+				QHash<QString, QString> import_data;
+				// select table data for the import
+				int c = 0;
+				foreach (const QString& field, db_fields_)
+				{
+					QTableWidgetItem* item = ui_.table->item(r,c);
+					QString value = item==nullptr ? "" : item->data(Qt::UserRole).toString();
+					const TableFieldInfo& field_info = db_.tableInfo(db_table_).fieldInfo(field);
 
-				//link corresponding tumor and cfDNA sample
+					// Don't send empty optional fields
+					if (!value.isEmpty()) import_data.insert(field_info.name, value);
+					c++;
+				}
+
+				sendImportDataToServer("sample", import_data);
+				QMessageBox::warning(this, "Test the database", "Check if the sample is in the database");
+				import_data.clear();
+
+				// link corresponding tumor and cfDNA sample
 				QByteArray cfdna_sample = ui_.table->item(r, 0)->text().trimmed().toUtf8();
 				QTableWidgetItem* tumor_item = ui_.table->item(r, db_fields_.count());
 				if (tumor_item==nullptr) continue;
 				QByteArray tumor_sample = tumor_item->text().trimmed().toUtf8();
 				if (tumor_sample.isEmpty()) continue;
-				if (!db_.getSampleData(db_.sampleId(tumor_sample)).is_tumor)
+				if (!db.getSampleData(db.sampleId(tumor_sample)).is_tumor)
 				{
 					THROW(DatabaseException, "Sample " + tumor_sample + " is not a tumor! Can't import relation.");
 				}
-				db_.addSampleRelation(SampleRelation{tumor_sample, "tumor-cfDNA", cfdna_sample});
+
+				import_data.insert("sample1_id", db.sampleId(tumor_sample));
+				import_data.insert("relation", "tumor-cfDNA");
+				import_data.insert("sample2_id", db.sampleId(cfdna_sample));
+				import_data.insert("user_id", QString::number(LoginManager::userId()));
+				sendImportDataToServer("sample_relations", import_data);
 			}
 
-			db_.commit();
+			// db_.commit();
 			ui_.warnings->appendPlainText("Import successful!");
 			if (skipped>0)
 			{

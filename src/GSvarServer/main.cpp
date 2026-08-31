@@ -519,7 +519,7 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
-						"add_project",
+						"project",
 						QMap<QString, ParamProps>{
 							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
@@ -530,7 +530,7 @@ int main(int argc, char **argv)
 						&ServerController::addProjectToDb
 					});
 	EndpointManager::appendEndpoint(Endpoint{
-						"add_processing_system",
+						"processing_system",
 						QMap<QString, ParamProps>{
 							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
@@ -541,7 +541,7 @@ int main(int argc, char **argv)
 						&ServerController::addProcessingSystemToDb
 					});
 	EndpointManager::appendEndpoint(Endpoint{
-						"add_device",
+						"device",
 						QMap<QString, ParamProps>{
 							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
@@ -552,7 +552,7 @@ int main(int argc, char **argv)
 						&ServerController::addDeviceToDb
 					});
 	EndpointManager::appendEndpoint(Endpoint{
-						"add_sequencing_run",
+						"sequencing_run",
 						QMap<QString, ParamProps>{
 							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
@@ -563,7 +563,7 @@ int main(int argc, char **argv)
 						&ServerController::addSequencingRunToDb
 					});
 	EndpointManager::appendEndpoint(Endpoint{
-						"add_sample",
+						"sample",
 						QMap<QString, ParamProps>{
 							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
@@ -575,7 +575,7 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
-						"add_sample_relation",
+						"sample_relations",
 						QMap<QString, ParamProps>{
 							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
@@ -587,7 +587,7 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
-						"add_processed_sample",
+						"processed_sample",
 						QMap<QString, ParamProps>{
 							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},
@@ -598,7 +598,7 @@ int main(int argc, char **argv)
 						&ServerController::addProcessedSampleToDb
 					});
 	EndpointManager::appendEndpoint(Endpoint{
-						"add_sender",
+						"sender",
 						QMap<QString, ParamProps>{
 							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
 						},

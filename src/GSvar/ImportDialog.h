@@ -51,6 +51,7 @@ private:
 	void keyPressEvent(QKeyEvent* e) override;
 	void fixValue(QString value, const TableFieldInfo& field_info, QString& actual, QString& validation_error);
 	bool addItem(int r, int c, const QString& value, const QString& actual, const QString& validation_error, const QString& notice);
+	void sendImportDataToServer(QString table, QHash<QString, QString> import_data);
 	void checkNumberOfParts(const QStringList& parts);
 	QString insertQuery();
 	void addRow(SqlQuery& query, int r);
