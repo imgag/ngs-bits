@@ -54,9 +54,9 @@ public:
 		// determine format
         output.append("Minimum ASCII character: " + QString((char)min) + " ("+ QString::number(min) + ")");
 		output.append("Maximum ASCII character: " + QString((char)max) + " ("+ QString::number(max) + ")");
-		if (min>=33 && max<=75)
+		if (min>=33 && max<=88)
 		{
-			output.append("Format: Sanger/Illumina1.8");
+			output.append("Format: Sanger/Illumina1.8+");
 		}
         else if (min>=64 && max<=104)
 		{
