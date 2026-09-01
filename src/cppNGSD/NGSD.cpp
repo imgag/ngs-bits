@@ -7016,13 +7016,13 @@ GeneSet NGSD::phenotypeToGenes(int id, bool recursive, bool ignore_non_phenotype
 	{
 		int pheno_inh = phenotypeIdByAccession("HP:0000005"); //"Mode of inheritance"
 		ignored_terms_ids << pheno_inh;
-        for (const Phenotype& pheno : phenotypeChildTerms(pheno_inh, true))
+		for (const Phenotype& pheno : phenotypeChildTerms(pheno_inh, true))
 		{
 			ignored_terms_ids << phenotypeIdByAccession(pheno.accession());
 		}
 		int pheno_freq = phenotypeIdByAccession("HP:0040279"); //"Frequency"
 		ignored_terms_ids << pheno_freq;
-        for (const Phenotype& pheno : phenotypeChildTerms(pheno_freq, true))
+		for (const Phenotype& pheno : phenotypeChildTerms(pheno_freq, true))
 		{
 			ignored_terms_ids << phenotypeIdByAccession(pheno.accession());
 		}

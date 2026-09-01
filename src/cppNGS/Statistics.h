@@ -75,6 +75,8 @@ public:
 	static GenderEstimate genderHetX(GenomeBuild build, QString bam_file, double max_male=0.15, double min_female=0.24, const QString& ref_file = QString(), bool include_not_properly_paired = false);
 	///Determines the gender based on the coverge of the SRY gene on chrY.
 	static GenderEstimate genderSRY(GenomeBuild build, QString bam_file, double min_cov=20.0, const QString& ref_file = QString());
+	///Determines the gender based on the depth of chrX and autosomes.
+	static GenderEstimate genderDepthX(QString bam_file, QString roi, double min_ratio_female=0.75, int threads=1, const QString& ref_file = QString());
 
 protected:
 	///No default constructor

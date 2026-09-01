@@ -541,30 +541,6 @@ void MainWindow::userSpecificDebugFunction()
 		qDebug() << ("Executing debug function for user "+user+" - time: "+QDateTime::currentDateTime().toString(Qt::ISODate));
 		if (user=="ahsturm1")
 		{
-			QByteArray request = R"(<?xml version="1.0" encoding="utf-8"?>
-			                        <soapenv:Envelope
-			                            xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-			                            xmlns:urn="urn:sap-com:document:sap:soap:functions:mc-style">
-			                          <soapenv:Header/>
-			                          <soapenv:Body>
-			                            <urn:ZishWsSetGenomData>
-			                              <ImpFalnr>0000022580</ImpFalnr>
-			                              <ImpMeldeDatum></ImpMeldeDatum>
-			                              <ImpMeldungsart>0</ImpMeldungsart>
-			                              <ImpMeldungsnr></ImpMeldungsnr>
-			                              <ImpMeldungstyp>K</ImpMeldungstyp>
-			                              <ImpVorgangsnr>AAAGERGWEG344GSDFGSDFGSDFGSDGSDFGDFGSDGDFGSDFGDFGDGDGSDGDGDFGDFG</ImpVorgangsnr>
-			                              <ImpVgUploadDatum>2026-06-18</ImpVgUploadDatum>
-			                            </urn:ZishWsSetGenomData>
-			                          </soapenv:Body>
-			                        </soapenv:Envelope>)";
-			HttpRequestHandler handler;
-			handler.setCredentials("ah3arzt", "XXXXXXXXXXXXXXX - TODO - XXXXXXXXXXXXXXX");
-			handler.setHeader("content-type", "text/xml; charset=utf-8");
-			handler.setHeader("SOAPAction", "\"urn:sap-com:document:sap:soap:functions:mc-style:ZISH_WS_SET_GENOM_DATA:ZishWsSetGenomDataRequest\"");
-			ServerReply reply = handler.post("http://vsldt4as01.med.uni-tuebingen.de:8080/sap/bc/srt/rfc/sap/zish_ws_set_genom_data/100/zish_ws_set_genom_data/zish_ws_set_genom_data", request);
-			qDebug() << reply.status_code;
-			qDebug() << reply.body;
 		}
 		else if (user=="ahschul1")
 		{
@@ -2380,29 +2356,43 @@ void MainWindow::checkMendelianErrorRate()
 		for (int i=0; i<variants_.count(); ++i)
 		{
 			const Variant& v = variants_[i];
+
+			//only autosomes
 			if (!v.chr().isAutosome()) continue;
 
-			//remove no genotyping
+			//skip InDels (too many mendelian errors for ONT)
+			if (!v.isSNV()) continue;
+
+			//skip variant with filter entry
+			if (!v.filters().isEmpty()) continue;
+
+			//skip variant without genotyping
 			QString geno_c = v.annotations()[i_c];
 			QString geno_f = v.annotations()[i_f];
 			QString geno_m = v.annotations()[i_m];
 			if (geno_c=="n/a" || geno_f=="n/a" || geno_m=="n/a") continue;
 
-			//remove filter entry
-			if (!v.filters().isEmpty()) continue;
-
-			//remove low depth
+			//skip low depth loci and mosaic variant calls
 			bool low_depth = false;
+			bool mosaic_call = false;
 			QByteArrayList entries = v.annotations()[i_qual].split(';');
 			foreach(const QByteArray& entry, entries)
 			{
-				if (!entry.startsWith("DP=")) continue;
-				foreach(const QByteArray& value, entry.mid(3).split(','))
+				if (entry.startsWith("DP="))
 				{
-					if (value.toInt()<20) low_depth = true;
+					foreach(const QByteArray& value, entry.mid(3).split(','))
+					{
+						if (value.toInt()<20) low_depth = true;
+					}
+				}
+				if (entry.startsWith("CT="))
+				{
+					if (entry.contains("MO")) mosaic_call = true;
 				}
 			}
 			if (low_depth) continue;
+			if (mosaic_call) continue;
+
 
 			++used;
 
@@ -2417,12 +2407,11 @@ void MainWindow::checkMendelianErrorRate()
 		}
 
 		double percentage = 100.0 * errors / used;
-
-		qDebug() << used << errors << percentage;
-		if (percentage>10)
+		if (percentage>5)
 		{
 			output = "Mendelian error rate too high:\n" + QString::number(errors) + "/" + QString::number(used) + " ~ " + QString::number(percentage, 'f', 2) + "%";
 		}
+		qDebug() << "mendelian error rate (SNPs on autosomes without filter entry and with 20x cov): " << percentage << " (" << errors << "/" << used << ")" << Qt::endl;
 	}
 	catch (Exception& e)
 	{
@@ -3387,6 +3376,7 @@ void MainWindow::storeReportConfig()
 		return;
 	}
 
+	//TODO Marc: instead of checking the user, check if the RC in NGSD was modified since it was loaded, so that the warning is also shown if the same user overrides its own modified RC
 	//check if config exists and not edited by other user
 	int conf_id = db.reportConfigId(processed_sample_id);
 	if (conf_id!=-1)
