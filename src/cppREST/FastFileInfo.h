@@ -2,29 +2,28 @@
 #define FASTFILEINFO_H
 
 #include "cppREST_global.h"
-#include <QObject>
 #include <QDateTime>
 
-class CPPRESTSHARED_EXPORT FastFileInfo : public QObject
+class CPPRESTSHARED_EXPORT FastFileInfo
 {
-    Q_OBJECT
-
 public:
-    FastFileInfo(QString absolute_file_path);
-    qint64 size();
-    bool exists();
-    QString absoluteFilePath();
-    QString absolutePath();
-    QString fileName();
-    QDateTime lastModified();
+	explicit FastFileInfo(const QString& absolute_file_path);
+	qint64 size() const;
+	bool exists() const;
+	QString absoluteFilePath() const;
+	QString absolutePath() const;
+	QString fileName() const;
+	QDateTime lastModified() const;
 
 private:
-    QString absolute_file_path_;
-    QString absolute_path_;
-    QString filename_;
-    qint64 size_;
-    bool exists_;
-    QDateTime last_modified_;
+	static bool cachingEnabled();
+
+	QString absolute_file_path_;
+	QString absolute_path_;
+	QString filename_;
+	qint64 size_;
+	bool exists_;
+	QDateTime last_modified_;
 };
 
 #endif // FASTFILEINFO_H
