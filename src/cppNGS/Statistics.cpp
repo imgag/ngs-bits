@@ -916,14 +916,13 @@ QCCollection Statistics::mapping(const QString &bam_file, const QString& ref_fil
 	}
 	bases_usable -= bases_clipped;
 
-	//calcualte number of 'N' bases in genome (takes about 10s, but that's ok for WGS QC)
+	//calcualte number of 'N' bases in genome
 	double no_base = 0.0;
 	foreach(const Chromosome& c, reader.chromosomes())
 	{
 		if (c.isNonSpecial())
 		{
-			int n = ref_idx.n(c);
-			no_base +=n;
+			no_base += ref_idx.n(c);
 		}
 	}
 
@@ -1233,7 +1232,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		}
 	}
 
-	//calcualte number of 'N' bases in genome (takes about 10s, but that's ok for WGS QC)
+	//calcualte number of 'N' bases in genome
 	double no_base = 0.0;
 	foreach(const Chromosome& c, reader.chromosomes())
 	{
