@@ -3,6 +3,8 @@
 #include "Helper.h"
 #include "VersatileFile.h"
 #include "RefGenomeService.h"
+#include <limits>
+#include <new>
 /*
 External documentation used for the implementation:
 - reading BAM file: https://gist.github.com/PoisonAlien/350677acc03b2fbf98aa
@@ -31,12 +33,30 @@ BamAlignment::BamAlignment(const BamAlignment& rhs)
 {
 }
 
+BamAlignment& BamAlignment::operator=(const BamAlignment& rhs)
+{
+	if (this == &rhs) return *this;
+
+	//Duplicate first so that the current alignment remains valid if allocation fails.
+	bam1_t* new_aln = bam_dup1(rhs.aln_);
+	if (new_aln==nullptr) throw std::bad_alloc();
+
+	bam_destroy1(aln_);
+	aln_ = new_aln;
+	length_ = rhs.length_;
+	length_initialized_ = rhs.length_initialized_;
+	loaded_fields_ = rhs.loaded_fields_;
+
+	return *this;
+}
+
 void BamAlignment::setCigarData(const QList<CigarOp>& cigar)
 {
-	//create new CIGAR datastructur for htslib
-	const unsigned int n = cigar.size();
-	uint32_t* cigar2 = new uint32_t[n];
-	for (unsigned int i=0; i<n; ++i)
+	//Create new CIGAR data structure for htslib.
+	if (cigar.size() > std::numeric_limits<uint32_t>::max()) throw std::bad_alloc();
+	const uint32_t n = static_cast<uint32_t>(cigar.size());
+	QVector<uint32_t> cigar2(n);
+	for (uint32_t i=0; i<n; ++i)
 	{
 		cigar2[i] = bam_cigar_gen(cigar[i].Length, cigar[i].Type);
 	}
@@ -44,24 +64,34 @@ void BamAlignment::setCigarData(const QList<CigarOp>& cigar)
 	//write new cigar string
 	if (n != aln_->core.n_cigar)
 	{
-		int o = aln_->core.l_qname + aln_->core.n_cigar * 4;
-		if (aln_->l_data + (n - aln_->core.n_cigar) * 4 > aln_->m_data) {
-			aln_->m_data = aln_->l_data + (n - aln_->core.n_cigar) * 4;
-			kroundup32(aln_->m_data);
-			aln_->data = (uint8_t*)realloc(aln_->data, aln_->m_data);
+		const uint32_t old_n = aln_->core.n_cigar;
+		const int old_tail_offset = aln_->core.l_qname + static_cast<int>(old_n * sizeof(uint32_t));
+		const int tail_size = aln_->l_data - old_tail_offset;
+		const qint64 new_data_size = static_cast<qint64>(aln_->l_data)
+			+ (static_cast<qint64>(n) - old_n) * static_cast<qint64>(sizeof(uint32_t));
+		if (new_data_size < 0 || new_data_size > std::numeric_limits<int>::max()) throw std::bad_alloc();
+
+		if (new_data_size > aln_->m_data)
+		{
+			uint32_t new_capacity = static_cast<uint32_t>(new_data_size);
+			kroundup32(new_capacity);
+			if (new_capacity < new_data_size) throw std::bad_alloc();
+
+			void* resized = realloc(aln_->data, new_capacity);
+			if (resized==nullptr) throw std::bad_alloc();
+			aln_->data = static_cast<uint8_t*>(resized);
+			aln_->m_data = new_capacity;
 		}
-		memmove(aln_->data + aln_->core.l_qname + n * 4, aln_->data + o, aln_->l_data - o);
-		memcpy(aln_->data + aln_->core.l_qname, cigar2, n * 4);
-		aln_->l_data += (n - aln_->core.n_cigar) * 4;
+
+		memmove(aln_->data + aln_->core.l_qname + n * sizeof(uint32_t), aln_->data + old_tail_offset, tail_size);
+		if (n>0) memcpy(aln_->data + aln_->core.l_qname, cigar2.constData(), n * sizeof(uint32_t));
+		aln_->l_data = static_cast<int>(new_data_size);
 		aln_->core.n_cigar = n;
 	}
-	else
+	else if (n>0)
 	{
-		memcpy(aln_->data + aln_->core.l_qname, cigar2, n * 4);
+		memcpy(aln_->data + aln_->core.l_qname, cigar2.constData(), n * sizeof(uint32_t));
 	}
-
-	//delete datastructure
-	delete[] cigar2;
 }
 
 QByteArray BamAlignment::cigarDataAsString(bool expand) const

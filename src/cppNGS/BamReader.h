@@ -59,11 +59,7 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		//Copy constructor (makes a deep copy of the alignment > slow)
 		BamAlignment(const BamAlignment& rhs);
 		//Assignment operator
-		BamAlignment& operator=(const BamAlignment& rhs)
-		{
-			aln_ = bam_dup1(rhs.aln_);
-			return *this;
-		}
+		BamAlignment& operator=(const BamAlignment& rhs);
 
 		//Returns the read name
 		QByteArray name() const

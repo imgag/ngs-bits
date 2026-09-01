@@ -294,6 +294,19 @@ private:
 		I_EQUAL(vl2.count(), 0);
 	}
 
+	TEST_METHOD(VariantAnnotationHeader_description_ownership)
+	{
+		VariantAnnotationHeader header("annotation");
+		{
+			VariantAnnotationDescription description("annotation", "original");
+			header.setDescription(description);
+			description.setDescription("changed");
+		}
+
+		S_EQUAL(header.description().name(), "annotation");
+		S_EQUAL(header.description().description(), "original");
+	}
+
 	TEST_METHOD(addAnnotation)
 	{
 		VariantList vl;
