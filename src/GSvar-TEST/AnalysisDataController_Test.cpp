@@ -9,6 +9,7 @@ TEST_METHOD(data_loading)
 {
 	AnalysisDataController& controller = AnalysisDataController::instance();
 	IS_FALSE(controller.isValid());
+
 	S_EQUAL("TODO", "DONE");
 }
 
