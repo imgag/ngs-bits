@@ -986,10 +986,20 @@ void SequencingRunWidget::updateReadQualityTable()
 				table->setItem(r++, c, GUIHelper::createTableItem(qc_query.value("n50").toInt()));
 				c++;
 			}
+			else if (qc_query.size() == 0) // if no qc is avaiable fill with empty values
+			{
+				qc_query.next();
+				int r = 0;
+				table->setItem(r++, c, GUIHelper::createTableItem(""));
+				table->setItem(r++, c, GUIHelper::createTableItem(""));
+				table->setItem(r++, c, GUIHelper::createTableItem(""));
+				table->setItem(r++, c, GUIHelper::createTableItem(""));
+				table->setItem(r++, c, GUIHelper::createTableItem(""));
+				table->setItem(r++, c, GUIHelper::createTableItem(""));
+				table->setItem(r++, c, GUIHelper::createTableItem(""));
+				c++;
+			}
 		}
-
-
-
 	}
 	else
 	{
