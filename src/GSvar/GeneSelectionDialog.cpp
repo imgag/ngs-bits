@@ -1,4 +1,5 @@
 #include "GeneSelectionDialog.h"
+#include <QSignalBlocker>
 #include "PhenotypeSelectionWidget.h"
 #include "ui_GeneSelectionDialog.h"
 #include "Settings.h"
@@ -146,7 +147,7 @@ void GeneSelectionDialog::determineGenes()
 
 void GeneSelectionDialog::loadTargetRegions()
 {
-	ui_->cb_target_region->blockSignals(true);
+	const QSignalBlocker blocker(ui_->cb_target_region);
 
 
 	ui_->cb_target_region->clear();
@@ -186,7 +187,5 @@ void GeneSelectionDialog::loadTargetRegions()
 		QFileInfo info(roi_file);
 		ui_->cb_target_region->addItem(info.fileName(), roi_file);
 	}
-
-	ui_->cb_target_region->blockSignals(false);
 
 }

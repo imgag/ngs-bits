@@ -1,4 +1,5 @@
 #include "FilterWidgetSV.h"
+#include <QSignalBlocker>
 #include "Helper.h"
 #include "NGSD.h"
 #include "Log.h"
@@ -84,9 +85,10 @@ QString FilterWidgetSV::filterFileName() const
 
 void FilterWidgetSV::reset(bool clear_roi)
 {
-	blockSignals(true);
-	resetSignalsUnblocked(clear_roi);
-	blockSignals(false);
+	{//do not remove scope - needed by QSignalBlocker
+		const QSignalBlocker blocker(this);
+		resetSignalsUnblocked(clear_roi);
+	}
 
 	if (clear_roi) emit targetRegionChanged();
 }
@@ -385,9 +387,10 @@ void FilterWidgetSV::updateFilterName()
 
 void FilterWidgetSV::customFilterLoaded()
 {
-	ui_.filters->blockSignals(true);
-	ui_.filters->setCurrentIndex(0);
-	ui_.filters->blockSignals(false);
+	{//do not remove scope - needed by QSignalBlocker
+		const QSignalBlocker blocker(ui_.filters);
+		ui_.filters->setCurrentIndex(0);
+	}
 
 	ui_.lab_modified->setHidden(false);
 
