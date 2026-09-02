@@ -35,6 +35,18 @@ private:
 		vl.removeDuplicates(true);
 	}
 
+	TEST_METHOD(removeDuplicates_different_alt_counts)
+	{
+		VcfFile vl;
+		vl.append(VcfLine("chr1", 100, "G", QList<Sequence>() << "A"));
+		vl.append(VcfLine("chr1", 100, "G", QList<Sequence>() << "A" << "C"));
+		vl.append(VcfLine("chr1", 100, "G", QList<Sequence>() << "A" << "C"));
+		vl.removeDuplicates(false);
+
+		I_EQUAL(vl.count(), 2);
+		IS_TRUE(vl[0].alt()!=vl[1].alt());
+	}
+
 	TEST_METHOD(loadFromVCF)
 	{
 		VcfFile vl;

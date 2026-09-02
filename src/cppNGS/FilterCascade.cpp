@@ -174,16 +174,17 @@ void FilterResult::removeFlagged(BedpeFile& svs)
     //skip if all variants pass
     if (countPassing()==svs.count()) return;
 
-    //remove non-passing structural variants from list
-    int removed_svs = 0; // index offset for already removed list entries
-    for (int i=0; i<pass.size(); ++i)
-    {
-        if (!pass[i])
-        {
-            svs.removeAt(i - removed_svs);
-            removed_svs++;
-        }
-    }
+	//move passing structural variants to the front of the list
+	int to_index = 0;
+	for (int i=0; i<pass.size(); ++i)
+	{
+		if (pass[i])
+		{
+			if (to_index!=i) svs[to_index] = svs[i];
+			++to_index;
+		}
+	}
+	svs.resize(to_index);
 
     //update flags
     pass = QBitArray(svs.count(), true);

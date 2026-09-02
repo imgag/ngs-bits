@@ -88,7 +88,7 @@ private:
 	static float genoToDouble(const QString& geno);
 
 	static VariantGenotypes genotypesVcf(const VcfFile& variants, const QString& filename, bool include_gonosomes, bool skip_multi);
-	static VariantGenotypes genotypesGSvar(VariantList variants, QString filename, bool include_gonosomes);
+	static VariantGenotypes genotypesGSvar(const VariantList& variants, const QString& filename, bool include_gonosomes);
 	static VariantGenotypes genotypesBam(const VcfFile& snps, BamReader& reader, int min_cov, int max_snps, bool include_gonosomes, bool include_not_properly_paired=false);
 
 	//Returns a string pointer, which can be stored/compared instead of the string. Reduces memory and run-time.

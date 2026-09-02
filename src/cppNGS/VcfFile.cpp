@@ -489,24 +489,23 @@ void VcfFile::removeDuplicates(bool sort_by_quality)
 {
 	sort(sort_by_quality);
 
-	//remove duplicates (same chr, start, obs, ref) - avoid linear time remove() calls by copying the data to a new vector.
-	QList<VcfLine> output;
-	output.reserve(vcf_lines_.count());
+	//remove duplicates (same chr, start, alt, ref) by compacting unique variants in place
+	int output_index = 0;
 	for (int i=0; i<vcf_lines_.count()-1; ++i)
 	{
 		int j = i+1;
-        if (vcf_lines_[i].chr() != vcf_lines_[j].chr() || vcf_lines_[i].start() != vcf_lines_[j].start() || vcf_lines_[i].ref() !=vcf_lines_[j].ref() || !std::equal(vcf_lines_[i].alt().begin(),  vcf_lines_[i].alt().end(), vcf_lines_[j].alt().begin()))
+		if (vcf_lines_[i].chr()!=vcf_lines_[j].chr() || vcf_lines_[i].start()!=vcf_lines_[j].start() || vcf_lines_[i].ref()!=vcf_lines_[j].ref() || vcf_lines_[i].alt()!=vcf_lines_[j].alt())
 		{
-			output.append(vcf_lines_.at(i));
+			if (output_index!=i) vcf_lines_[output_index] = std::move(vcf_lines_[i]);
+			++output_index;
 		}
 	}
 	if (!vcf_lines_.isEmpty())
 	{
-		output.append(vcf_lines_.last());
+		if (output_index!=vcf_lines_.count()-1) vcf_lines_[output_index] = std::move(vcf_lines_.last());
+		++output_index;
 	}
-
-	//swap the old and new vector
-	vcf_lines_.swap(output);
+	vcf_lines_.resize(output_index);
 }
 
 void VcfFile::storeLineInformation(QTextStream& stream, const VcfLine& line) const

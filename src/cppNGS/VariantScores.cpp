@@ -45,7 +45,7 @@ QString VariantScores::description(QString algorithm)
 	THROW(ArgumentException, "VariantScores::description: Not implemented algorithm '" + algorithm + "'!");
 }
 
-VariantScores::Result VariantScores::score(QString algorithm, const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const Parameters& parameters)
+VariantScores::Result VariantScores::score(QString algorithm, const VariantList& variants, const QHash<Phenotype, BedFile>& phenotype_rois, const Parameters& parameters)
 {
 	if (!algorithms().contains(algorithm))
 	{
@@ -273,7 +273,7 @@ QStringList CategorizedScores::explainations(const QByteArrayList& best_genes) c
 	return output;
 }
 
-VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const Parameters& parameters)
+VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants, const QHash<Phenotype, BedFile>& phenotype_rois, const Parameters& parameters)
 {
 	Result output;
 
@@ -533,7 +533,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 	return output;
 }
 
-VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const Parameters& parameters)
+VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& variants, const QHash<Phenotype, BedFile>& phenotype_rois, const Parameters& parameters)
 {
 	Result output;
 
@@ -556,7 +556,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 	//prepare ROI for fast lookup
 	if (phenotype_rois.count()==0) output.warnings << "No phenotype region(s) set!";
 	QHash<Phenotype, QSharedPointer<ChromosomalIndex<BedFile>>> phenotype_rois_indices;
-	for(auto it=phenotype_rois.begin(); it!=phenotype_rois.end(); ++it)
+	for(auto it=phenotype_rois.cbegin(); it!=phenotype_rois.cend(); ++it)
 	{
 		phenotype_rois_indices.insert(it.key(), QSharedPointer<ChromosomalIndex<BedFile>>(new ChromosomalIndex<BedFile>(it.value())));
 	}
@@ -785,7 +785,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 	return output;
 }
 
-VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const Parameters& parameters)
+VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList& variants, const QHash<Phenotype, BedFile>& phenotype_rois, const Parameters& parameters)
 {
 	Result output;
 
@@ -808,7 +808,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 	//prepare ROI for fast lookup
 	if (phenotype_rois.count()==0) output.warnings << "No phenotype region(s) set!";
 	QHash<Phenotype, QSharedPointer<ChromosomalIndex<BedFile>>> phenotype_rois_indices;
-	for(auto it=phenotype_rois.begin(); it!=phenotype_rois.end(); ++it)
+	for(auto it=phenotype_rois.cbegin(); it!=phenotype_rois.cend(); ++it)
 	{
 		phenotype_rois_indices.insert(it.key(), QSharedPointer<ChromosomalIndex<BedFile>>(new ChromosomalIndex<BedFile>(it.value())));
 	}
@@ -1092,4 +1092,3 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 //   - create and use version of ClinVar without our commits (we submit to ClinVar)
 //   - https://www.cell.com/trends/genetics/fulltext/S0168-9525(22)00179-2
 //   - https://academic.oup.com/bib/article/23/2/bbac019/6521702
-

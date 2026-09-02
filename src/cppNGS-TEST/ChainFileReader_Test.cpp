@@ -125,4 +125,19 @@ private:
 			I_EQUAL(count, expected[i]);
 		}
 	}
+
+	TEST_METHOD(single_chain_at_end_of_file)
+	{
+		QString chain_file = Helper::tempFileName(".chain");
+		QSharedPointer<QFile> file = Helper::openFileForWriting(chain_file);
+		file->write("chain 1 chr1 100 + 0 10 chr2 100 + 20 30 1\n10\n");
+		file->close();
+
+		ChainFileReader reader(chain_file, 0.0);
+		BedLine lifted = reader.lift("chr1", 1, 10);
+		S_EQUAL(lifted.chr().strNormalized(true), "chr2");
+		I_EQUAL(lifted.start(), 21);
+		I_EQUAL(lifted.end(), 30);
+		QFile::remove(chain_file);
+	}
 };

@@ -4,6 +4,30 @@
 TEST_CLASS(NGSHelper_Test)
 {
 private:
+	TEST_METHOD(createSampleOverview)
+	{
+		QString input1 = Helper::tempFileName("_sample1.GSvar");
+		QString input2 = Helper::tempFileName("_sample2.GSvar");
+		QString output = Helper::tempFileName("_overview.GSvar");
+		IS_TRUE(QFile::copy(TESTDATA("data_in/VariantFilter_in.GSvar"), input1));
+		IS_TRUE(QFile::copy(TESTDATA("data_in/VariantFilter_in.GSvar"), input2));
+
+		NGSHelper::createSampleOverview(QStringList() << input1 << input2, output, 100, false, QStringList() << "gene");
+
+		VariantList result;
+		result.load(output);
+		IS_TRUE(result.count()>0);
+		I_EQUAL(result.annotations().count(), 3);
+		for (int i=0; i<result.count(); ++i)
+		{
+			IS_TRUE(result[i].annotations()[1].startsWith("yes ("));
+			S_EQUAL(result[i].annotations()[1], result[i].annotations()[2]);
+		}
+
+		QFile::remove(input1);
+		QFile::remove(input2);
+		QFile::remove(output);
+	}
 
 	TEST_METHOD(getKnownVariants)
 	{
@@ -214,6 +238,8 @@ private:
 	{
 		S_EQUAL(NGSHelper::cytoBand(GenomeBuild::HG19, "chrY", 34847524), "Yq12");
 		S_EQUAL(NGSHelper::cytoBand(GenomeBuild::HG19, "chr1", 76992611), "1p31.1");
+		S_EQUAL(NGSHelper::cytoBand(GenomeBuild::HG19, "chr1", 5350000), "1p36.32");
+		S_EQUAL(NGSHelper::cytoBand(GenomeBuild::HG38, "chr1", 5350000), "1p36.31");
 	}
 
 	TEST_METHOD(cytoBandToRange)

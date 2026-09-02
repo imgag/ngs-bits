@@ -5,6 +5,30 @@
 #include <QFileInfo>
 
 namespace {
+	const BedFile& cytoBands(GenomeBuild build)
+	{
+		if (build==GenomeBuild::HG19)
+		{
+			static const BedFile bands = []()
+			{
+				BedFile output;
+				output.load(":/Resources/hg19_cyto_band.bed");
+				return output;
+			}();
+			return bands;
+		}
+		if (build==GenomeBuild::HG38)
+		{
+			static const BedFile bands = []()
+			{
+				BedFile output;
+				output.load(":/Resources/hg38_cyto_band.bed");
+				return output;
+			}();
+			return bands;
+		}
+		THROW(ProgrammingException, "Unsupported genome build '" + buildToString(build) + "'!");
+	}
 
 	QString copyFromResource(GenomeBuild build)
 	{
@@ -435,12 +459,7 @@ const BedFile& NGSHelper::pseudoAutosomalRegion(GenomeBuild build)
 
 QByteArray NGSHelper::cytoBand(GenomeBuild build, Chromosome chr, int pos)
 {
-	//init
-	static BedFile bands;
-	if (bands.count()==0)
-	{
-		bands.load(":/Resources/" + buildToString(build) + "_cyto_band.bed");
-	}
+	const BedFile& bands = cytoBands(build);
 
 	//search for band
 	for (int i=0; i<bands.count(); ++i)
@@ -456,12 +475,7 @@ QByteArray NGSHelper::cytoBand(GenomeBuild build, Chromosome chr, int pos)
 
 BedLine NGSHelper::cytoBandToRange(GenomeBuild build, QByteArray cytoband)
 {
-	//init
-	static BedFile bands;
-	if (bands.count()==0)
-	{
-		bands.load(":/Resources/" + buildToString(build) + "_cyto_band.bed");
-	}
+	const BedFile& bands = cytoBands(build);
 
 	//determine chromosome
 	if (cytoband.contains('-'))
@@ -1198,4 +1212,3 @@ QSet<QString> SampleHeaderInfo::sampleNames() const
 
 	return output;
 }
-

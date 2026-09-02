@@ -40,7 +40,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesVcf(const VcfFile&
 	return output;
 }
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesGSvar(VariantList variants, QString filename, bool include_gonosomes)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesGSvar(const VariantList& variants, const QString& filename, bool include_gonosomes)
 {
 	//determine genotype column
 	int geno_col = -1;
@@ -61,7 +61,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesGSvar(VariantList 
 	VariantGenotypes output;
 	for (int i=0; i<variants.count(); ++i)
 	{
-		Variant& variant = variants[i];
+		const Variant& variant = variants[i];
 
 		//skip variants not on autosomes
 		if(!variant.chr().isAutosome() && !include_gonosomes) continue;
