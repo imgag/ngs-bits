@@ -44,7 +44,7 @@ ServerDB::~ServerDB()
 
 void ServerDB::initDbIfEmpty()
 {
-    Log::info("Creating new tables, if they do not exist");
+	Log::info("Creating new tables, if they do not exist");
 	QString version_info_table = "CREATE TABLE IF NOT EXISTS schema_version ("
 								 "id TINYINT NOT NULL,"
 								 "version INT NOT NULL,"
@@ -52,20 +52,20 @@ void ServerDB::initDbIfEmpty()
 								 "CHECK (id = 1)"
 								 ");";
 
-    QString client_info_table = "CREATE TABLE IF NOT EXISTS client_info ("
+	QString client_info_table = "CREATE TABLE IF NOT EXISTS client_info ("
                                 "`id` INT(10) unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT,"
                                 "`version` VARCHAR(50),"
                                 "`message` TEXT,"
                                 "`date` BIGINT"
                                 ");";
 
-    QString user_notification = "CREATE TABLE IF NOT EXISTS user_notification ("
+	QString user_notification = "CREATE TABLE IF NOT EXISTS user_notification ("
                                 "`id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,"
                                 "`string_id` VARCHAR(40),"
                                 "`message` TEXT"
                                 ");";
 
-    QString sessions_table = "CREATE TABLE IF NOT EXISTS sessions ("
+	QString sessions_table = "CREATE TABLE IF NOT EXISTS sessions ("
                              "`id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,"
                              "`string_id` VARCHAR(40) NOT NULL,"
                              "`user_id` INTEGER NOT NULL,"
@@ -76,7 +76,7 @@ void ServerDB::initDbIfEmpty()
                              "`is_for_db_only` INTEGER(1)"
                              ");";
 
-    QString urls_table = "CREATE TABLE IF NOT EXISTS urls ("
+	QString urls_table = "CREATE TABLE IF NOT EXISTS urls ("
                          "`id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,"
                          "`string_id` VARCHAR(40) NOT NULL,"
                          "`filename` TEXT NOT NULL,"
@@ -88,7 +88,7 @@ void ServerDB::initDbIfEmpty()
                          "`created` BIGINT NOT NULL"
                          ");";
 
-    QString file_locations_table = "CREATE TABLE IF NOT EXISTS file_locations ("
+	QString file_locations_table = "CREATE TABLE IF NOT EXISTS file_locations ("
                              "`id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,"
                              "`filename_with_path` TEXT NOT NULL,"
                              "`type` VARCHAR(40) NOT NULL,"
@@ -100,18 +100,18 @@ void ServerDB::initDbIfEmpty()
                              ");";
 
 	QList<QString> filedb_tables = QList<QString>() << version_info_table << client_info_table << user_notification << sessions_table << urls_table << file_locations_table;
-    for(int i = 0; i < filedb_tables.size(); i++)
-    {
-        QSqlQuery query(*(db_.data()));
-        query.exec(filedb_tables[i]);
-        bool success = query.lastError().text().trimmed().isEmpty();
+	for(int i = 0; i < filedb_tables.size(); i++)
+	{
+		QSqlQuery query(*(db_.data()));
+		query.exec(filedb_tables[i]);
+		bool success = query.lastError().text().trimmed().isEmpty();
 
-        if(!success)
-        {
-            Log::error("Failed to create a table: " + query.lastError().text());
+		if(!success)
+		{
+			Log::error("Failed to create a table: " + query.lastError().text());
 			return;
-        }
-    }
+		}
+	}
 }
 
 void ServerDB::reinitializeDb()
@@ -162,18 +162,18 @@ int ServerDB::getSchemaVersion()
 
 bool ServerDB::addSession(const QString string_id, const int user_id, const QString user_login, const QString user_name, const QString random_secret, const QDateTime login_time, const bool is_for_db_only)
 {
-    qint64 login_time_as_num = login_time.toSecsSinceEpoch();
-    QSqlQuery query(*(db_.data()));
+	qint64 login_time_as_num = login_time.toSecsSinceEpoch();
+	QSqlQuery query(*(db_.data()));
 	query.exec("INSERT INTO sessions (string_id, user_id, user_login, user_name, random_secret, login_time, is_for_db_only)"
 													   " VALUES (\""+string_id+"\", " + QString::number(user_id) + ", \"" + user_login + "\", \"" + user_name + "\", \"" + random_secret + "\", " + QString::number(login_time_as_num) + ", " + QString::number(is_for_db_only) + ")");
-    bool success = query.lastError().text().trimmed().isEmpty();
+	bool success = query.lastError().text().trimmed().isEmpty();
 
-    if(!success)
-    {
-        Log::error("Failed to add a new session: " + query.lastError().text() + ", " + query.lastQuery());
-    }
+	if(!success)
+	{
+		Log::error("Failed to add a new session: " + query.lastError().text() + ", " + query.lastQuery());
+	}
 
-    return success;
+	return success;
 }
 
 bool ServerDB::addSession(const Session new_session)
