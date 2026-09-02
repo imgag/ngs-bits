@@ -491,32 +491,36 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 
 	//remove duplicates
 	QSet<int> done;
-	for(int r=output.rowCount()-1; r>=0; --r) //reverse, so that all indices are valid
+	QSet<int> rows_to_remove;
+	for(int r=output.rowCount()-1; r>=0; --r)
 	{
 		int ps_id = output.row(r).id().toInt();
 		if (done.contains(ps_id))
 		{
-			output.removeRow(r);
+			rows_to_remove << r;
 		}
 		else
 		{
 			done << ps_id;
 		}
 	}
+	output.removeRows(rows_to_remove);
 
 	//filter by user access rights (for restricted users only)
 	if (p.restricted_user!="")
 	{
 		int user_id = userId(p.restricted_user);
 
-		for(int r=output.rowCount()-1; r>=0; --r) //reverse, so that all indices are valid
+		rows_to_remove.clear();
+		for(int r=0; r<output.rowCount(); ++r)
 		{
 			int ps_id = output.row(r).id().toInt();
 			if (!userCanAccess(user_id, ps_id))
 			{
-				output.removeRow(r);
+				rows_to_remove << r;
 			}
 		}
+		output.removeRows(rows_to_remove);
 	}
 
 	//PS override: reorder to input order
@@ -3890,17 +3894,22 @@ DBTable NGSD::createOverviewTable(QString table, QString text_filter, QString sq
 		}
 	}
 
-	//remove hidden columns (reverse order so that indices stay valid)
-	for (int c=headers.count()-1; c>=0; --c)
+	//remove hidden columns
+	QSet<int> hidden_columns;
+	QStringList visible_headers;
+	visible_headers.reserve(headers.count());
+	for (int c=0; c<headers.count(); ++c)
 	{
 		const TableFieldInfo& field_info = table_info.fieldInfo(headers[c]);
 
 		if (field_info.is_hidden)
 		{
-			output.takeColumn(c);
-			headers.removeAt(c);
+			hidden_columns << c;
 		}
+		else visible_headers << headers[c];
 	}
+	output.removeColumns(hidden_columns);
+	headers.swap(visible_headers);
 
 	//fix headers (last because replacements before partially depend on correct header names)
 	for (int i=0; i<headers.count(); ++i)

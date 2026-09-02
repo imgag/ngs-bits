@@ -102,18 +102,24 @@ int VariantScores::annotate(VariantList& variants, const VariantScores::Result& 
 	if (variants.count()!=result.scores.count()) THROW(ProgrammingException, "Variant list and scoring result differ in count!");
 
 	//add columns if missing
-	if (add_explanations && variants.annotationIndexByName("GSvar_score_explanations", true, false)==-1)
+	QList<VariantAnnotationDescription> new_annotations;
+	QByteArrayList default_values;
+	if (variants.annotationIndexByName("GSvar_rank", true, false)==-1)
 	{
-		variants.prependAnnotation("GSvar_score_explanations", "GSvar score explanations.");
+		new_annotations << VariantAnnotationDescription("GSvar_rank", "GSvar score based rank.");
+		default_values << QByteArray();
 	}
 	if (variants.annotationIndexByName("GSvar_score", true, false)==-1)
 	{
-		variants.prependAnnotation("GSvar_score", "GSvar score (algorithm: " + result.algorithm + ", description:" + VariantScores::description(result.algorithm)+  ")");
+		new_annotations << VariantAnnotationDescription("GSvar_score", "GSvar score (algorithm: " + result.algorithm + ", description:" + VariantScores::description(result.algorithm)+  ")");
+		default_values << QByteArray();
 	}
-	if (variants.annotationIndexByName("GSvar_rank", true, false)==-1)
+	if (add_explanations && variants.annotationIndexByName("GSvar_score_explanations", true, false)==-1)
 	{
-		variants.prependAnnotation("GSvar_rank", "GSvar score based rank.");
+		new_annotations << VariantAnnotationDescription("GSvar_score_explanations", "GSvar score explanations.");
+		default_values << QByteArray();
 	}
+	variants.prependAnnotations(new_annotations, default_values);
 	int i_rank = variants.annotationIndexByName("GSvar_rank");
 	int i_score = variants.annotationIndexByName("GSvar_score");
 	int i_score_exp = add_explanations ? variants.annotationIndexByName("GSvar_score_explanations") : -1;

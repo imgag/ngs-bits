@@ -61,6 +61,17 @@ void DBTable::removeRow(int r)
 	rows_.removeAt(r);
 }
 
+void DBTable::removeRows(const QSet<int>& indices)
+{
+	for (int index : indices) checkRowIndex(index);
+
+	qsizetype row_index = 0;
+	filterRowsInPlace(rows_, [&indices, &row_index](const DBRow&)
+	{
+		return !indices.contains(row_index++);
+	});
+}
+
 int DBTable::columnIndex(const QString& name) const
 {
 	QList<int> output;
@@ -135,13 +146,33 @@ QStringList DBTable::takeColumn(int c)
 	output.reserve(rowCount());
 	for (int r=0; r<rows_.count(); ++r)
 	{
-		DBRow current_row = row(r);
-		output << current_row.value(c);
-		current_row.removeValue(c);
-		setRow(r, current_row);
+		output << rows_[r].value(c);
+		rows_[r].removeValue(c);
 	}
 
 	return output;
+}
+
+void DBTable::removeColumns(const QSet<int>& indices)
+{
+	for (int index : indices) checkColumnIndex(index);
+	if (indices.isEmpty()) return;
+
+	qsizetype write_index = 0;
+	const qsizetype count = headers_.size();
+	for (qsizetype read_index=0; read_index<count; ++read_index)
+	{
+		if (indices.contains(read_index)) continue;
+
+		if (write_index != read_index)
+		{
+			headers_[write_index] = std::move(headers_[read_index]);
+		}
+		++write_index;
+	}
+	headers_.resize(write_index);
+
+	for (DBRow& row : rows_) row.removeValues(indices);
 }
 
 void DBTable::setColumn(int c, const QStringList& values, const QString& header)
@@ -292,6 +323,26 @@ void DBRow::removeValue(int i)
 	checkValueIndex(i);
 
 	values_.removeAt(i);
+}
+
+void DBRow::removeValues(const QSet<int>& indices)
+{
+	for (int index : indices) checkValueIndex(index);
+	if (indices.isEmpty()) return;
+
+	qsizetype write_index = 0;
+	const qsizetype count = values_.size();
+	for (qsizetype read_index=0; read_index<count; ++read_index)
+	{
+		if (indices.contains(read_index)) continue;
+
+		if (write_index != read_index)
+		{
+			values_[write_index] = std::move(values_[read_index]);
+		}
+		++write_index;
+	}
+	values_.resize(write_index);
 }
 
 bool DBRow::contains(const QString& text, Qt::CaseSensitivity cs) const

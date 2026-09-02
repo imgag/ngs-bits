@@ -757,15 +757,42 @@ int VariantList::addAnnotationIfMissing(QString name, QString description, QByte
 
 int VariantList::prependAnnotation(QString name, QString description, QByteArray default_value)
 {
-	annotations().prepend(VariantAnnotationHeader(name));
-	for (int i=0; i<variants_.count(); ++i)
-	{
-		variants_[i].annotations().prepend(default_value);
-	}
-
-	annotationDescriptions().prepend(VariantAnnotationDescription(name, description));
+	prependAnnotations(QList<VariantAnnotationDescription>{VariantAnnotationDescription(name, description)}, QByteArrayList{default_value});
 
 	return 0;
+}
+
+void VariantList::prependAnnotations(const QList<VariantAnnotationDescription>& descriptions, const QByteArrayList& default_values)
+{
+	if (descriptions.count()!=default_values.count())
+	{
+		THROW(ArgumentException, "Annotation descriptions and default values differ in count!");
+	}
+	if (descriptions.isEmpty()) return;
+
+	QList<VariantAnnotationHeader> headers;
+	headers.reserve(descriptions.count() + annotation_headers_.count());
+	for (const VariantAnnotationDescription& description : descriptions)
+	{
+		headers.append(VariantAnnotationHeader(description.name()));
+	}
+	headers.append(annotation_headers_);
+	annotation_headers_.swap(headers);
+
+	QList<VariantAnnotationDescription> new_descriptions;
+	new_descriptions.reserve(descriptions.count() + annotation_descriptions_.count());
+	new_descriptions.append(descriptions);
+	new_descriptions.append(annotation_descriptions_);
+	annotation_descriptions_.swap(new_descriptions);
+
+	for (Variant& variant : variants_)
+	{
+		QByteArrayList annotations;
+		annotations.reserve(default_values.count() + variant.annotations().count());
+		annotations.append(default_values);
+		annotations.append(variant.annotations());
+		variant.annotations().swap(annotations);
+	}
 }
 
 void VariantList::removeAnnotation(int index)

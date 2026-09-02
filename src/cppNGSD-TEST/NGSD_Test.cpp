@@ -63,6 +63,19 @@ private:
 		I_EQUAL(table.rowCount(), 2);
 		S_EQUAL(table.row(0).value(0), "keep");
 		S_EQUAL(table.row(1).value(1), "gamma");
+
+		table = create_table();
+		table.removeRows(QSet<int>{0, 2});
+		I_EQUAL(table.rowCount(), 1);
+		S_EQUAL(table.row(0).value(0), "drop");
+		S_EQUAL(table.row(0).value(1), "beta");
+
+		table = create_table();
+		table.removeColumns(QSet<int>{0});
+		I_EQUAL(table.columnCount(), 1);
+		S_EQUAL(table.headers().at(0), "second");
+		S_EQUAL(table.row(0).value(0), "alpha");
+		S_EQUAL(table.row(2).value(0), "gamma");
 	}
 
 	TEST_METHOD(cache_invalidation)
