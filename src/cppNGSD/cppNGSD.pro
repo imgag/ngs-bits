@@ -37,6 +37,7 @@ SOURCES += \
     FileLocationProviderRemote.cpp \
     GeneBurdenTest.cpp \
     SqlQuery.cpp\
+    NGSDCache.cpp \
     NGSD.cpp \
     GenLabDB.cpp \
     DBTable.cpp \
@@ -64,6 +65,7 @@ HEADERS += \
     FileLocationProviderRemote.h \
     GeneBurdenTest.h \
     SqlQuery.h \
+    NGSDCache.h \
     NGSD.h \
     GenLabDB.h \
     DBTable.h \

@@ -1,5 +1,6 @@
 #include "TestFrameworkNGS.h"
 #include "NGSD.h"
+#include "NGSDCache.h"
 #include "LoginManager.h"
 #include "SomaticXmlReportGenerator.h"
 #include "SomaticReportSettings.h"
@@ -21,6 +22,39 @@ private:
 		const QStringList connections_before = QSqlDatabase::connectionNames();
 		IS_THROWN(ProgrammingException, NGSD failing_db(true, "missing_ngsd_settings_for_connection_cleanup_test"));
 		IS_TRUE(QSqlDatabase::connectionNames() == connections_before);
+	}
+
+	TEST_METHOD(test_and_production_caches_are_separate)
+	{
+		IS_TRUE(&NGSDReferenceDataCache::instance("test") != &NGSDReferenceDataCache::instance("production"));
+		IS_TRUE(&NGSDReferenceDataCache::instance("test") != &NGSDReferenceDataCache::instance("test:mvh"));
+		IS_TRUE(&NGSDUserCache::instance("test") != &NGSDUserCache::instance("production"));
+		IS_TRUE(&NGSDUserCache::instance("test") != &NGSDUserCache::instance("test:mvh"));
+	}
+
+	TEST_METHOD(cache_invalidation)
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
+
+		//User caches remain stable until their normal-operation invalidation function is called.
+		const int user_id = db.userId("ahmustm1");
+		S_EQUAL(db.getUserRole(user_id), "user");
+		db.getQuery().exec("UPDATE user SET user_role='admin' WHERE id=" + QString::number(user_id));
+		S_EQUAL(db.getUserRole(user_id), "user");
+		db.clearUserCaches();
+		S_EQUAL(db.getUserRole(user_id), "admin");
+
+		//Reference caches can still be rebuilt by the explicitly test-only clear operation.
+		const int transcript_count = db.transcripts().count();
+		IS_TRUE(transcript_count>0);
+		db.getQuery().exec("UPDATE user SET user_role='user' WHERE id=" + QString::number(user_id));
+		db.clearCache();
+		I_EQUAL(db.transcripts().count(), transcript_count);
+		S_EQUAL(db.getUserRole(user_id), "user");
 	}
 
 	//Normally, one member is tested in one QT slot.
@@ -152,6 +186,7 @@ private:
 		//geneID
 		int gene_app_id = db.geneId("BRCA1");
 		I_EQUAL(gene_app_id, 1);
+		I_EQUAL(db.geneId("BrCa1"), 1);
 		gene_app_id = db.geneId("BLABLA");
 		I_EQUAL(gene_app_id, -1);
 
@@ -556,6 +591,10 @@ private:
 		I_EQUAL(db.geneIdOfTranscript("NIPA1_TR2"), 3);
 		I_EQUAL(db.geneIdOfTranscript("NON-CODING_TR1"), 4);
 		I_EQUAL(db.geneIdOfTranscript("HARSTEM_ROX", false), -1); //not present
+		const Transcript& cached_transcript = db.transcript(db.transcriptId("NIPA1_TR2"));
+		const BedLine& cached_exon = cached_transcript.regions()[0];
+		const QByteArray cached_exon_key = cached_exon.chr().strNormalized(true) + ":" + QByteArray::number(cached_exon.start()) + "-" + QByteArray::number(cached_exon.end());
+		IS_TRUE(db.getExonTranscriptMapping().value(cached_exon_key).contains(cached_transcript.name()));
 
 		//transcriptToRegions
 		regions = db.transcriptToRegions("NIPA1_TR2", "gene");
@@ -629,7 +668,9 @@ private:
 		I_EQUAL(approved.count(), 20);
 
 		//phenotypes
-		PhenotypeList phenos = db.phenotypes(QStringList() << "aBNOrmality");
+		PhenotypeList phenos = db.phenotypes(QStringList());
+		IS_TRUE(!phenos.isEmpty());
+		phenos = db.phenotypes(QStringList() << "aBNOrmality");
 		I_EQUAL(phenos.count(), 1);
 		IS_TRUE(phenos.containsAccession("HP:0000118")); //Phenotypic abnormality
 		//synonyms
@@ -2746,6 +2787,8 @@ private:
 		I_EQUAL(db.getSomaticGeneRoleId("PTGS2"), 2);
 		I_EQUAL(db.getSomaticGeneRoleId("FOXP1"), -1);
 		I_EQUAL(db.getSomaticGeneRoleId("ASDFJKL"), -1);
+		I_EQUAL(db.getSomaticGeneRoles().count(), 3);
+		I_EQUAL(db.getSomaticGeneRoles(true).count(), 2);
 
 		IS_THROWN(DatabaseException, db.getSomaticGeneRole("FOXP1", true));
 		IS_THROWN(DatabaseException, db.getSomaticGeneRole("ASDFJKL", true));
@@ -2777,7 +2820,6 @@ private:
 		gene_role_res1.high_evidence = true;
 		gene_role_res1.comment = "comment update";
 		db.setSomaticGeneRole(gene_role_res1);
-		db.clearCache();
 		gene_role_res1 =  db.getSomaticGeneRole("PTGS2", true);
 		S_EQUAL(gene_role_res1.gene, "PTGS2");
 		I_EQUAL(gene_role_res1.role, SomaticGeneRole::Role::ACTIVATING);
@@ -2798,7 +2840,6 @@ private:
 		role_for_ins2.role = SomaticGeneRole::Role::ACTIVATING;
 		role_for_ins2.comment = "newly inserted test role";
 		db.setSomaticGeneRole(role_for_ins2);
-		db.clearCache();
 		SomaticGeneRole gene_role_res5 = db.getSomaticGeneRole("FOXP1");
 		S_EQUAL(gene_role_res5.gene, "FOXP1");
 		I_EQUAL(gene_role_res5.role, SomaticGeneRole::Role::ACTIVATING);
