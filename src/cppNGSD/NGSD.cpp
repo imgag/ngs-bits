@@ -31,42 +31,53 @@ NGSD::NGSD(bool test_db, QString test_name_override)
 	: test_db_(test_db)
 	, debug_(false)
 {
-	QString db_identifier = "NGSD_" + QUuid::createUuid().toString();
-	db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", db_identifier)));
+	const QString db_identifier = "NGSD_" + QUuid::createUuid().toString();
+	try
+	{
+		db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", db_identifier)));
 
-	//connect to DB
-	QString db_name;
-	if (ClientHelper::isClientServerMode() && !ClientHelper::isRunningOnServer() && !test_db_) //get credentials from server in client-server mode
-	{
-		db_->setHostName(LoginManager::ngsdHostName());
-		db_->setPort(LoginManager::ngsdPort());
-		db_->setDatabaseName(LoginManager::ngsdName());
-		db_->setUserName(LoginManager::ngsdUser());
-		db_->setPassword(LoginManager::ngsdPassword());
-		db_name = LoginManager::ngsdName();
-	}
-	else
-	{
-		QString prefix = "ngsd";
-		if (test_db_) prefix += "_test";
-		if (test_db_ && !test_name_override.isEmpty()) prefix = test_name_override;
-		db_->setHostName(Settings::string(prefix + "_host"));
-		db_->setPort(Settings::integer(prefix + "_port"));
-		db_->setDatabaseName(Settings::string(prefix + "_name"));
-		db_->setUserName(Settings::string(prefix + "_user"));
-		db_->setPassword(Settings::string(prefix + "_pass"));
-		db_name = prefix;
-	}
-    QByteArray db_ssl_ca = Settings::string("db_ssl_ca", true).trimmed().toUtf8();
-    if (!db_ssl_ca.isEmpty())
-    {
-        //setting certificate authorities (e.g. needed to validate secure connections to AWS DB servers)
-        db_->setConnectOptions("SSL_CA=" + db_ssl_ca);
-    }
+		//connect to DB
+		QString db_name;
+		if (ClientHelper::isClientServerMode() && !ClientHelper::isRunningOnServer() && !test_db_) //get credentials from server in client-server mode
+		{
+			db_->setHostName(LoginManager::ngsdHostName());
+			db_->setPort(LoginManager::ngsdPort());
+			db_->setDatabaseName(LoginManager::ngsdName());
+			db_->setUserName(LoginManager::ngsdUser());
+			db_->setPassword(LoginManager::ngsdPassword());
+			db_name = LoginManager::ngsdName();
+		}
+		else
+		{
+			QString prefix = "ngsd";
+			if (test_db_) prefix += "_test";
+			if (test_db_ && !test_name_override.isEmpty()) prefix = test_name_override;
+			db_->setHostName(Settings::string(prefix + "_host"));
+			db_->setPort(Settings::integer(prefix + "_port"));
+			db_->setDatabaseName(Settings::string(prefix + "_name"));
+			db_->setUserName(Settings::string(prefix + "_user"));
+			db_->setPassword(Settings::string(prefix + "_pass"));
+			db_name = prefix;
+		}
+		QByteArray db_ssl_ca = Settings::string("db_ssl_ca", true).trimmed().toUtf8();
+		if (!db_ssl_ca.isEmpty())
+		{
+			//setting certificate authorities (e.g. needed to validate secure connections to AWS DB servers)
+			db_->setConnectOptions("SSL_CA=" + db_ssl_ca);
+		}
 
-	if (!db_->open())
+		if (!db_->open())
+		{
+			THROW(DatabaseException, "Could not connect to NGSD database '" + db_name + "': " + db_->lastError().text());
+		}
+	}
+	catch (...)
 	{
-		THROW(DatabaseException, "Could not connect to NGSD database '" + db_name + "': " + db_->lastError().text());
+		//The constructor will not invoke the destructor. Remove the named Qt connection here
+		//after releasing our handle so failed construction does not leak registry entries.
+		db_.clear();
+		QSqlDatabase::removeDatabase(db_identifier);
+		throw;
 	}
 }
 
@@ -11145,32 +11156,32 @@ AccessPermission stringToAccessPermission(const QString &in)
 /*
 const QHash<int, QString>& NGSD::geneCache()
 {
-    // Fast path
+    //fast path - already initialized
     {
-	QReadLocker locker(&gene_cache_lock_);
+	QReadLocker locker(&cache_gene_locker_);
 
-	if (!gene_cache_.isEmpty())
+	if (!cache_gene_.isEmpty())
 	{
-	    return gene_cache_;
+	    return cache_gene_;
 	}
     }
 
-    // Initialization
+    //initialization
     {
-	QWriteLocker locker(&gene_cache_lock_);
+	QWriteLocker locker(&cache_gene_locker_);
 
 	// Another thread may have initialized it already.
-	if (gene_cache_.isEmpty())
+	if (cache_gene_.isEmpty())
 	{
 	    QHash<int, QString> tmp;
 
 	    // Fill tmp from SQL
 	    // ...
 
-	    gene_cache_ = std::move(tmp);
+	    cache_gene_ = std::move(tmp);
 	}
 
-	return gene_cache_;
+	return cache_gene_;
     }
 }
 */

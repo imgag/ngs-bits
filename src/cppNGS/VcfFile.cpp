@@ -112,7 +112,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 	if (!load_chr_.isEmpty() && !line.startsWith(load_chr_)) return;
 
 	//split line
-	QByteArrayList line_parts = line.split('\t'); //TODO Marc: massive speed-up possible when using QByteArrayView
+	QByteArrayList line_parts = line.split('\t');
 	if (line_parts.count()< MIN_COLS) THROW(FileParseException, "VCF data line needs at least 8 tab-separated columns! Found " + QString::number(line_parts.count()) + " column(s) in line number " + QString::number(line_number) + ": " + line);
 
 	VcfLine vcf_line;

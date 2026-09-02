@@ -16,6 +16,13 @@
 TEST_CLASS(NGSD_Test)
 {
 private:
+	TEST_METHOD(constructor_failure_does_not_leak_connection)
+	{
+		const QStringList connections_before = QSqlDatabase::connectionNames();
+		IS_THROWN(ProgrammingException, NGSD failing_db(true, "missing_ngsd_settings_for_connection_cleanup_test"));
+		IS_TRUE(QSqlDatabase::connectionNames() == connections_before);
+	}
+
 	//Normally, one member is tested in one QT slot.
 	//Because initializing the database takes very long, most NGSD functionality is tested in one slot.
 	TEST_METHOD(main_tests)

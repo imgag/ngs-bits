@@ -3376,7 +3376,7 @@ void MainWindow::storeReportConfig()
 		return;
 	}
 
-	//TODO Marc: instead of checking the user, check if the RC in NGSD was modified since it was loaded, so that the warning is also shown if the same user overrides its own modified RC
+	//TODO Marc: instead of checking the user, check if the report config in NGSD was modified since it was loaded, so that the warning is also shown if the same user overrides its own modified report config
 	//check if config exists and not edited by other user
 	int conf_id = db.reportConfigId(processed_sample_id);
 	if (conf_id!=-1)
