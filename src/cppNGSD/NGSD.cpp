@@ -8407,6 +8407,8 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 {
 	int report_config_id = reportConfigId(processed_sample_id);
 	QString report_config_id_str = QString::number(report_config_id);
+	QString stored_last_updated_by;
+	QDateTime stored_last_updated_at;
 
 	//check that it is not finalized
 	if (report_config_id!=-1 && reportConfigIsFinalized(report_config_id))
@@ -8871,6 +8873,13 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 			query.exec();
 		}
 
+		//read timestamp/user from NGSD, so the in-memory data is in sync with NGSD
+		SqlQuery metadata_query = getQuery();
+		metadata_query.exec("SELECT u.name, rc.last_edit_date FROM report_configuration rc, user u WHERE rc.id=" + QString::number(report_config_id) + " AND u.id=rc.last_edit_by");
+		if (!metadata_query.next()) THROW(DatabaseException, "Could not read report configuration metadata from NGSD!");
+		stored_last_updated_by = metadata_query.value("name").toString();
+		stored_last_updated_at = metadata_query.value("last_edit_date").toDateTime();
+
 		commit();
 	}
 	catch(...)
@@ -8878,6 +8887,9 @@ int NGSD::setReportConfig(const QString& processed_sample_id, QSharedPointer<Rep
 		rollback();
 		throw;
 	}
+
+	config->last_updated_by_ = stored_last_updated_by;
+	config->last_updated_at_ = stored_last_updated_at;
 
 	return report_config_id;
 }

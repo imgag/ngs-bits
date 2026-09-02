@@ -1081,6 +1081,9 @@ private:
 		report_conf->set(report_var_conf4);
 
 		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs, res);
+		S_EQUAL(report_conf->lastUpdatedBy(), "Max Mustermann");
+		IS_TRUE(report_conf->lastUpdatedAt().isValid());
+		QDateTime local_last_update_time_before_update = report_conf->lastUpdatedAt();
 
 		//reportConfigId
 		int conf_id = db.reportConfigId(ps_id);
@@ -1142,6 +1145,7 @@ private:
 		QThread::sleep(1);
 		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs, res);
 		IS_TRUE(conf_id1==conf_id2);
+		IS_TRUE(local_last_update_time_before_update<report_conf->lastUpdatedAt());
 		//check that no double entries are inserted after second execution of setReportConfig
 		I_EQUAL(db.getValue("SELECT count(*) FROM cnv WHERE cnv_callset_id=1 AND chr='chr2' AND start=89246800 AND end=89545067 AND cn=1").toInt(), 1);
 
