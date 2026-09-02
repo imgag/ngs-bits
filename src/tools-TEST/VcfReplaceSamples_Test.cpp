@@ -18,4 +18,13 @@ private:
 		COMPARE_FILES("out/VcfReplaceSamples_out2.vcf", TESTDATA("data_out/VcfReplaceSamples_out2.vcf"));
 		VCF_IS_VALID("out/VcfReplaceSamples_out2.vcf");
 	}
+
+	TEST_METHOD(compressed_output)
+	{
+		EXECUTE("VcfReplaceSamples", "-in " + TESTDATA("data_in/VcfReplaceSamples_in2.vcf.gz") + " -out out/VcfReplaceSamples_out3.vcf.gz -compression_level 5 -ids NA12878x3_73=REP1,NA12877_49=REP2");
+		VcfFile output;
+		output.load("out/VcfReplaceSamples_out3.vcf.gz");
+		output.store("out/VcfReplaceSamples_out3.vcf");
+		COMPARE_FILES("out/VcfReplaceSamples_out3.vcf", TESTDATA("data_out/VcfReplaceSamples_out2.vcf"));
+	}
 };

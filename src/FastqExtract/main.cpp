@@ -83,8 +83,9 @@ public:
 			{
 				if (v) continue;
 
-				entry.bases.resize(length);
-				entry.qualities.resize(length);
+				//The requested length is a trimming limit. Do not enlarge shorter reads because QByteArray::resize() would append NUL/padding bytes.
+				if (length<entry.bases.size()) entry.bases.resize(length);
+				if (length<entry.qualities.size()) entry.qualities.resize(length);
 				outfile.write(entry);
 			}
 		}

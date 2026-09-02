@@ -1,7 +1,7 @@
 #include "ToolBase.h"
 #include "VersatileFile.h"
-#include "Helper.h"
 #include "VcfFile.h" //Comment to prevent removal by fix_includes.php
+#include "VersatileOutStream.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -21,7 +21,7 @@ public:
 		addString("ids", "Comma-separated list of sample ID pairs in the format 'old1=new1,old2=new2,...'.", false);
 		//optional
 		addInfile("in", "Input variant list in VCF or VCF.GZ format. If unset, reads from STDIN.", true);
-		addOutfile("out", "Output variant list in VCF format. If unset, writes to STDOUT.", true);
+		addOutfile("out", "Output variant list in VCF or VCF.GZ format. If unset, writes to STDOUT.", true);
 		addInt("compression_level", "Output VCF compression level from 1 (fastest) to 9 (best compression). If unset, an unzipped VCF is written.", true, BGZF_NO_COMPRESSION);
 
 		changeLog(2025,  8, 27, "Initial version.");
@@ -34,7 +34,8 @@ public:
 		QString in = getInfile("in");
 		QString out = getOutfile("out");
 		if (in!="" && in==out) THROW(ArgumentException, "Parameters 'in' and 'out' cannot be the same file!");
-		QSharedPointer<QFile> out_file = Helper::openFileForWriting(out, true);
+		int compression_level = getInt("compression_level");
+		VersatileOutStream out_file(out, true, compression_level);
 
 		//parse sample replacement
 		using IdPair=QPair<QByteArray,QByteArray>;
@@ -74,10 +75,10 @@ public:
 				}
 			}
 
-			out_file->write(line);
+			if (out_file.write(line)!=line.size()) THROW(FileAccessException, "Writing VCF file '" + out + "' failed!");
 		}
 		file.close();
-		out_file->close();
+		out_file.close();
     }
 };
 
@@ -88,4 +89,3 @@ int main(int argc, char *argv[])
 	ConcreteTool tool(argc, argv);
 	return tool.execute();
 }
-

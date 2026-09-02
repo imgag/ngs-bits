@@ -159,34 +159,28 @@ void FastqFileStream::readEntry(FastqEntry& entry)
 
 FastqOutfileStream::FastqOutfileStream(QString filename, int compression_level, int compression_strategy)
 	: filename_(filename)
+	, stream_(filename, false, compression_level, compression_strategy)
 	, is_closed_(false)
 {
-	gzfile_ = gzopen(filename.toUtf8().data(), "wb");
-	if (gzfile_==nullptr) THROW(FileAccessException, "Could not open file '" + filename + "' for writing!");
-
-	gzbuffer(gzfile_, 131072);
-
-	if (compression_level<0 || compression_level>9) THROW(ArgumentException, "Invalid gzip compression level '" + QString::number(compression_level) +"' given for FASTQ file '" + filename + "'!");
-	if (compression_strategy<0 || compression_strategy>4) THROW(ArgumentException, "Invalid gzip compression strategy '" + QString::number(compression_strategy) +"' given for FASTQ file '" + filename + "'!");
-	gzsetparams(gzfile_, compression_level, compression_strategy);
 }
 
-FastqOutfileStream::~FastqOutfileStream()
-{
-    close();
-}
+FastqOutfileStream::~FastqOutfileStream() = default;
 
 void FastqOutfileStream::write(const FastqEntry& entry)
 {
-	static QByteArray newline = "\n";
-	if (gzputs(gzfile_, entry.header.constData())==-1
-		|| gzputs(gzfile_, newline)==-1
-		|| gzputs(gzfile_, entry.bases.constData())==-1
-		|| gzputs(gzfile_, newline)==-1
-		|| gzputs(gzfile_, entry.header2.constData())==-1
-		|| gzputs(gzfile_, newline)==-1
-		|| gzputs(gzfile_, entry.qualities.constData())==-1
-		|| gzputs(gzfile_, newline)==-1)
+	static const QByteArray newline = "\n";
+	auto write = [this](const QByteArray& data)
+	{
+		return stream_.write(data.constData(), data.size())==data.size();
+	};
+	if (!write(entry.header)
+		|| !write(newline)
+		|| !write(entry.bases)
+		|| !write(newline)
+		|| !write(entry.header2)
+		|| !write(newline)
+		|| !write(entry.qualities)
+		|| !write(newline))
 	{
 		THROW(FileAccessException, "Could not write to file '" + filename_ + "'!");
 	}
@@ -194,8 +188,8 @@ void FastqOutfileStream::write(const FastqEntry& entry)
 
 void FastqOutfileStream::close()
 {
-    if (is_closed_) return;
+	if (is_closed_) return;
 
-	gzclose(gzfile_);
+	stream_.close();
 	is_closed_ = true;
 }

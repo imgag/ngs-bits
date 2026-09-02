@@ -6,6 +6,7 @@
 #include "Sequence.h"
 #include <QString>
 #include "VersatileFile.h"
+#include "VersatileOutStream.h"
 
 ///Representation of a FASTQ entry.
 struct CPPNGSSHARED_EXPORT FastqEntry
@@ -108,7 +109,7 @@ public:
 
 protected:
     QString filename_;
-	gzFile gzfile_;
+	VersatileOutStream stream_;
 	bool is_closed_;
 
     //declared away methods

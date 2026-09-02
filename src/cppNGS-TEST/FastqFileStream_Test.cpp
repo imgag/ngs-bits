@@ -383,7 +383,7 @@ private:
 	{
 		//copy Fastq data to temporary file
 		QString tmp_file = Helper::tempFileName(".fastq.gz");
-		FastqOutfileStream out(tmp_file, false);
+		FastqOutfileStream out(tmp_file, Z_BEST_SPEED, Z_HUFFMAN_ONLY);
 		{
 			FastqFileStream stream(TESTDATA("data_in/example1.fastq.gz"));
 			while(!stream.atEnd())
