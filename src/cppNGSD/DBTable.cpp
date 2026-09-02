@@ -1,5 +1,27 @@
 #include "DBTable.h"
 #include "Exceptions.h"
+#include <utility>
+
+namespace
+{
+	template<typename KeepPredicate>
+	void filterRowsInPlace(QList<DBRow>& rows, KeepPredicate keep)
+	{
+		qsizetype write_index = 0;
+		const qsizetype count = rows.size();
+		for (qsizetype read_index=0; read_index<count; ++read_index)
+		{
+			if (!keep(rows.at(read_index))) continue;
+
+			if (write_index != read_index)
+			{
+				rows[write_index] = std::move(rows[read_index]);
+			}
+			++write_index;
+		}
+		rows.resize(write_index);
+	}
+}
 
 const DBRow& DBTable::row(int r) const
 {
@@ -208,45 +230,30 @@ void DBTable::formatBooleanColumn(int c, bool empty_if_no)
 
 void DBTable::filterRows(QString text, Qt::CaseSensitivity cs)
 {
-	for(int r=rowCount()-1; r>=0; --r) //reverse, so that all indices are valid
+	filterRowsInPlace(rows_, [&text, cs](const DBRow& row)
 	{
-		if (!rows_[r].contains(text, cs))
-		{
-			rows_.removeAt(r);
-		}
-	}
-
+		return row.contains(text, cs);
+	});
 }
 
 void DBTable::filterRowsByColumn(int col_idx, QString text, Qt::CaseSensitivity cs)
 {
-	for(int r=rowCount()-1; r>=0; --r) //reverse, so that all indices are valid
+	filterRowsInPlace(rows_, [col_idx, &text, cs](const DBRow& row)
 	{
-		if (!rows_[r].value(col_idx).contains(text, cs))
-		{
-			rows_.removeAt(r);
-		}
-	}
+		return row.value(col_idx).contains(text, cs);
+	});
 }
 
 void DBTable::filterRowsByColumn(int col_idx, QStringList texts, Qt::CaseSensitivity cs)
 {
-	for(int r=rowCount()-1; r>=0; --r) //reverse, so that all indices are valid
+	filterRowsInPlace(rows_, [col_idx, &texts, cs](const DBRow& row)
 	{
-		bool contained = false;
-		foreach(const QString& text, texts)
+		for (const QString& text : texts)
 		{
-			if (rows_[r].value(col_idx).contains(text, cs))
-			{
-				contained = true;
-				break;
-			}
+			if (row.value(col_idx).contains(text, cs)) return true;
 		}
-		if (!contained)
-		{
-			rows_.removeAt(r);
-		}
-	}
+		return false;
+	});
 }
 
 void DBTable::checkRowIndex(int r) const
@@ -327,4 +334,3 @@ void DBTable::write(QTextStream& stream) const
 		stream << "\n";
 	}
 }
-

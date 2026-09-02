@@ -351,13 +351,14 @@ RtfTable SomaticRnaReport::partSnvTable()
 	int i_tum_af = dna_snvs_.annotationIndexByName("tumor_af");
 
 	BamReader bam_file(data_.rna_bam_file, data_.ref_genome_fasta_file);
+	FastaFileIndex genome_reference(data_.ref_genome_fasta_file);
 
 	for(int i=0; i<dna_snvs_.count(); ++i)
 	{
 		const Variant& var = dna_snvs_[i];
 
-		if(db_.getSomaticViccId(var) == -1) continue;
-		SomaticViccData vicc_data = db_.getSomaticViccData(var);
+		SomaticViccData vicc_data;
+		if (!db_.getSomaticViccData(var, vicc_data)) continue;
 		SomaticVariantInterpreter::Result vicc_result = SomaticVariantInterpreter::viccScore(vicc_data);
 		if(vicc_result != SomaticVariantInterpreter::Result::ONCOGENIC && vicc_result != SomaticVariantInterpreter::Result::LIKELY_ONCOGENIC) continue;
 
@@ -365,7 +366,7 @@ RtfTable SomaticRnaReport::partSnvTable()
 
 		ExpressionData data = expression_per_gene_.value(trans.gene, ExpressionData());
 
-		VariantDetails var_details = bam_file.getVariantDetails(FastaFileIndex(data_.ref_genome_fasta_file), var, false);
+		VariantDetails var_details = bam_file.getVariantDetails(genome_reference, var, false);
 
 		RtfTableRow row;
 
@@ -754,13 +755,14 @@ RtfTable SomaticRnaReport::uncertainSnvTable()
 	int i_tum_af = dna_snvs_.annotationIndexByName("tumor_af");
 
 	BamReader bam_file(data_.rna_bam_file, data_.ref_genome_fasta_file);
+	FastaFileIndex genome_reference(data_.ref_genome_fasta_file);
 
 	for(int i=0; i<dna_snvs_.count(); ++i)
 	{
 		const Variant& var = dna_snvs_[i];
 
-		if(db_.getSomaticViccId(var) == -1) continue;
-		SomaticViccData vicc_data = db_.getSomaticViccData(var);
+		SomaticViccData vicc_data;
+		if (!db_.getSomaticViccData(var, vicc_data)) continue;
 		SomaticVariantInterpreter::Result vicc_result = SomaticVariantInterpreter::viccScore(vicc_data);
 		if(vicc_result != SomaticVariantInterpreter::Result::UNCERTAIN_SIGNIFICANCE) continue;
 
@@ -768,7 +770,7 @@ RtfTable SomaticRnaReport::uncertainSnvTable()
 
 		ExpressionData data = expression_per_gene_.value(trans.gene, ExpressionData());
 
-		VariantDetails var_details = bam_file.getVariantDetails(FastaFileIndex(data_.ref_genome_fasta_file), var, false);
+		VariantDetails var_details = bam_file.getVariantDetails(genome_reference, var, false);
 
 		RtfTableRow row;
 

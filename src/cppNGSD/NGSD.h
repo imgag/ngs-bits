@@ -1132,6 +1132,8 @@ public:
 	int getSomaticViccId(const Variant& variant);
 	///Returns the VICC classification of a variant
 	SomaticViccData getSomaticViccData(const Variant& variant, bool throw_on_fail = true);
+	///Returns whether VICC classification data exists for a variant and writes it to output if present.
+	bool getSomaticViccData(const Variant& variant, SomaticViccData& output);
 	///Sets the VICC classification of a variant
 	void setSomaticViccData(const Variant& variant, const SomaticViccData& vicc_data, QString user_name);
 	///Deletes the VICC classification of a variant
@@ -1301,6 +1303,7 @@ protected:
 
 	///Returns the maxiumn allele frequency of a variant.
 	static double maxAlleleFrequency(const Variant& v, QList<int> af_column_index);
+	bool getSomaticViccDataByVariantId(const QString& variant_id, SomaticViccData& output);
 
 	///Returns the target region folder.
 	static QString getTargetFilePath();

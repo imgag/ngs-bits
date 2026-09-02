@@ -32,6 +32,39 @@ private:
 		IS_TRUE(&NGSDUserCache::instance("test") != &NGSDUserCache::instance("test:mvh"));
 	}
 
+	TEST_METHOD(dbtable_filtering)
+	{
+		auto create_table = []()
+		{
+			DBTable table;
+			table.setHeaders({"first", "second"});
+			for (const QStringList& values : {QStringList{"keep", "alpha"}, QStringList{"drop", "beta"}, QStringList{"keep", "gamma"}})
+			{
+				DBRow row;
+				for (const QString& value : values) row.addValue(value);
+				table.addRow(row);
+			}
+			return table;
+		};
+
+		DBTable table = create_table();
+		table.filterRows("keep");
+		I_EQUAL(table.rowCount(), 2);
+		S_EQUAL(table.row(0).value(1), "alpha");
+		S_EQUAL(table.row(1).value(1), "gamma");
+
+		table = create_table();
+		table.filterRowsByColumn(1, "beta");
+		I_EQUAL(table.rowCount(), 1);
+		S_EQUAL(table.row(0).value(0), "drop");
+
+		table = create_table();
+		table.filterRowsByColumn(1, QStringList{"alpha", "gamma"});
+		I_EQUAL(table.rowCount(), 2);
+		S_EQUAL(table.row(0).value(0), "keep");
+		S_EQUAL(table.row(1).value(1), "gamma");
+	}
+
 	TEST_METHOD(cache_invalidation)
 	{
 		SKIP_IF_NO_TEST_NGSD();
@@ -2670,7 +2703,10 @@ private:
 		//Variant does not exist
 		IS_THROWN(DatabaseException, db.getSomaticViccData(Variant("chr1", 112175770, 112175770, "C", "A")) );
 
-
+		SomaticViccData optional_vicc_data;
+		IS_FALSE(db.getSomaticViccData(Variant("chr5", 112175770, 112175770, "G", "A"), optional_vicc_data));
+		IS_FALSE(db.getSomaticViccData(Variant("chr1", 112175770, 112175770, "C", "A"), optional_vicc_data));
+		IS_TRUE(db.getSomaticViccData(Variant("chr13", 32929387, 32929387, "T", "C"), optional_vicc_data));
 
 		//somatic Variant Interpretation for Cancer Consortium
 		SomaticViccData vicc_data1 = db.getSomaticViccData(Variant("chr13", 32929387, 32929387, "T", "C"));

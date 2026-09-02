@@ -3921,25 +3921,26 @@ DBTable NGSD::createOverviewTable(QString table, QString text_filter, QString sq
 
 void NGSD::replaceForeignKeyColumn(DBTable& table, int c, QString fk_table, QString fk_name_sql)
 {
-	QHash<QString, QString> cache; //check query result to reduce the number of SQL queries (they are slow)
-
 	QStringList column = table.extractColumn(c);
-	for(int r=0; r<column.count(); ++r)
+	QSet<QString> unique_ids;
+	for (const QString& value : std::as_const(column))
 	{
-		QString value = column[r];
-		if (value!="")
-		{
-			if (cache.contains(value))
-			{
-				column[r] = cache.value(value);
-			}
-			else
-			{
-				QString fk_value = getValue("SELECT " + fk_name_sql + " FROM " + fk_table + " WHERE id=" + value).toString();
-				column[r] = fk_value;
-				cache[value] = fk_value;
-			}
-		}
+		if (!value.isEmpty()) unique_ids.insert(value);
+	}
+
+	QHash<QString, QString> id_to_name;
+	if (!unique_ids.isEmpty())
+	{
+		SqlQuery query = getQuery();
+		query.exec("SELECT id, " + fk_name_sql + " FROM " + fk_table + " WHERE id IN (" + QStringList(unique_ids.cbegin(), unique_ids.cend()).join(",") + ")");
+		while (query.next()) id_to_name.insert(query.value(0).toString(), query.value(1).toString());
+	}
+
+	for(QString& value : column)
+	{
+		if (value.isEmpty()) continue;
+		if (!id_to_name.contains(value)) THROW(DatabaseException, "Foreign key '" + value + "' not found in table '" + fk_table + "'!");
+		value = id_to_name.value(value);
 	}
 
 	table.setColumn(c, column);
@@ -4368,14 +4369,9 @@ SomaticViccData NGSD::getSomaticViccData(const Variant& variant, bool throw_on_f
 	SomaticViccData out;
 
 	QString variant_id = variantId(variant, throw_on_fail);
-	if (variant_id=="")
-	{
-		return out;
-	}
+	if (variant_id=="") return out;
 
-	SqlQuery query = getQuery();
-	query.exec("SELECT null_mutation_in_tsg, known_oncogenic_aa, strong_cancerhotspot, oncogenic_funtional_studies, located_in_canerhotspot, absent_from_controls, protein_length_change, other_aa_known_oncogenic, weak_cancerhotspot, computational_evidence, mutation_in_gene_with_etiology, very_weak_cancerhotspot, very_high_maf, benign_functional_studies, high_maf, benign_computational_evidence, synonymous_mutation, comment, created_by, created_date, last_edit_by, last_edit_date FROM somatic_vicc_interpretation WHERE variant_id='" + variant_id + "'");
-	if (query.size()==0)
+	if (!getSomaticViccDataByVariantId(variant_id, out))
 	{
 		if(throw_on_fail)
 		{
@@ -4386,7 +4382,21 @@ SomaticViccData NGSD::getSomaticViccData(const Variant& variant, bool throw_on_f
 			return out;
 		}
 	}
-	query.next();
+	return out;
+}
+
+bool NGSD::getSomaticViccData(const Variant& variant, SomaticViccData& output)
+{
+	const QString variant_id = variantId(variant, false);
+	if (variant_id.isEmpty()) return false;
+	return getSomaticViccDataByVariantId(variant_id, output);
+}
+
+bool NGSD::getSomaticViccDataByVariantId(const QString& variant_id, SomaticViccData& out)
+{
+	SqlQuery query = getQuery();
+	query.exec("SELECT null_mutation_in_tsg, known_oncogenic_aa, strong_cancerhotspot, oncogenic_funtional_studies, located_in_canerhotspot, absent_from_controls, protein_length_change, other_aa_known_oncogenic, weak_cancerhotspot, computational_evidence, mutation_in_gene_with_etiology, very_weak_cancerhotspot, very_high_maf, benign_functional_studies, high_maf, benign_computational_evidence, synonymous_mutation, comment, created_by, created_date, last_edit_by, last_edit_date FROM somatic_vicc_interpretation WHERE variant_id='" + variant_id + "'");
+	if (!query.next()) return false;
 
 	auto varToState = [](const QVariant& var)
 	{
@@ -4421,7 +4431,7 @@ SomaticViccData NGSD::getSomaticViccData(const Variant& variant, bool throw_on_f
 	out.last_updated_by = userLogin( query.value(20).toInt() );
 	out.last_updated_at = query.value(21).toDateTime();
 
-	return out;
+	return true;
 }
 
 void NGSD::setSomaticViccData(const Variant& variant, const SomaticViccData& vicc_data, QString user_name)

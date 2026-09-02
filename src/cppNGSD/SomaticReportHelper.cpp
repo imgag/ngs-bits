@@ -107,7 +107,6 @@ SomaticReportHelper::SomaticReportHelper(GenomeBuild build, const VariantList& v
 	for(int i=0; i<somatic_vl_.count(); ++i)
 	{
 		QByteArray gene = selectSomaticTranscript(db_, somatic_vl_[i].transcriptAnnotations(snv_index_coding_splicing_)).gene;
-		Variant var = somatic_vl_[i];
 
 		if(important_genes.contains(gene))
 		{
@@ -2155,4 +2154,3 @@ double SomaticReportHelper::getTumorContentBioinf()
 	return -1;
 
 }
-
