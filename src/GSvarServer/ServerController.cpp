@@ -571,7 +571,8 @@ HttpResponse ServerController::prolongUrl(const HttpRequest &request)
 		return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Sample id has not been provided"));
 	}
 	QString ps_url_id = request.getUrlParams()["ps_url_id"];
-	if(UrlManager::extendActiveUrls(ps_url_id))
+	Session current_session = SessionManager::getSessionBySecureToken(EndpointManager::getTokenIfAvailable(request));
+	if(UrlManager::extendActiveUrls(ps_url_id, current_session.user_id))
 	{
 		return HttpResponse(ResponseStatus::OK, request.getContentType(), "Lifetimes for the given URLs have been extended: " + ps_url_id);
 	}

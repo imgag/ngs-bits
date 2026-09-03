@@ -106,13 +106,13 @@ void UrlManager::removeExpiredUrls()
 	Log::info("Number of removed URLs: " + QString::number(to_be_removed.length()));
 }
 
-bool UrlManager::extendActiveUrls(QString ps_folder)
+bool UrlManager::extendActiveUrls(QString ps_folder, int user_id)
 {
 	QList<QString> keys = instance().url_storage_.keys();
 	bool has_active_urls = false;
 	for (int i = 0; i < keys.count(); i++)
 	{
-		if (instance().url_storage_.value(keys[i]).ps_folder == ps_folder)
+		if (instance().url_storage_.value(keys[i]).ps_folder==ps_folder && instance().url_storage_.value(keys[i]).user_id==user_id)
 		{
 			has_active_urls = true;
 			UrlEntity url_to_be_updated = instance().url_storage_.value(keys[i]);

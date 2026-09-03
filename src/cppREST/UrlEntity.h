@@ -15,6 +15,7 @@ struct CPPRESTSHARED_EXPORT UrlEntity
 	bool file_exists;
 	QDateTime created;
 	QString ps_folder;
+	int user_id;
 
 	UrlEntity()
 	: string_id()
@@ -26,10 +27,11 @@ struct CPPRESTSHARED_EXPORT UrlEntity
 	, file_exists()
 	, created()
 	, ps_folder()
+	, user_id()
 	{
 	}
 
-	UrlEntity(const QString string_id_in, const QString filename_in, const QString path_in, const QString filename_with_path_in, const QString file_id_in, const qint64 size, const bool file_exists, const QDateTime created_in, const QString ps_folder_in = "")
+	UrlEntity(const QString string_id_in, const QString filename_in, const QString path_in, const QString filename_with_path_in, const QString file_id_in, const qint64 size, const bool file_exists, const QDateTime created_in, const QString ps_folder_in = "", int user_id = -1)
 	: string_id(string_id_in)
 	, filename(filename_in)
 	, path(path_in)
@@ -39,6 +41,7 @@ struct CPPRESTSHARED_EXPORT UrlEntity
 	, file_exists(file_exists)
 	, created(created_in)
 	, ps_folder(ps_folder_in)
+	, user_id(user_id)
 	{
 	}
 

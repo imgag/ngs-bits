@@ -77,16 +77,18 @@ void ServerDB::initDbIfEmpty()
                              ");";
 
 	QString urls_table = "CREATE TABLE IF NOT EXISTS urls ("
-                         "`id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,"
-                         "`string_id` VARCHAR(40) NOT NULL,"
-                         "`filename` TEXT NOT NULL,"
-                         "`path` TEXT NOT NULL,"
-                         "`filename_with_path` TEXT NOT NULL,"
-                         "`file_id` TEXT NOT NULL,"
-                         "`size` BIGINT NOT NULL,"
-                         "`file_exists` INTEGER(1),"
-                         "`created` BIGINT NOT NULL"
-                         ");";
+			"`id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,"
+			"`string_id` VARCHAR(40) NOT NULL,"
+			"`filename` TEXT NOT NULL,"
+			"`path` TEXT NOT NULL,"
+			"`filename_with_path` TEXT NOT NULL,"
+			"`file_id` TEXT NOT NULL,"
+			"`size` BIGINT NOT NULL,"
+			"`file_exists` INTEGER(1),"
+			"`created` BIGINT NOT NULL,"
+			"`ps_folder` TEXT NOT NULL,"
+			"`user_id` INTEGER NOT NULL"
+			");";
 
 	QString file_locations_table = "CREATE TABLE IF NOT EXISTS file_locations ("
                              "`id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,"
@@ -334,11 +336,11 @@ int ServerDB::getSessionsCount()
     return 0;
 }
 
-bool ServerDB::addUrl(const QString string_id, const QString filename, const QString path, const QString filename_with_path, const QString file_id, const qint64 size, const bool file_exists, const QDateTime created)
+bool ServerDB::addUrl(const QString string_id, const QString filename, const QString path, const QString filename_with_path, const QString file_id, const qint64 size, const bool file_exists, const QDateTime created, const QString ps_folder, int user_id)
 {
     qint64 created_as_num = created.toSecsSinceEpoch();
-    QString query_text = "INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, size, file_exists, created)"
-                         " VALUES (\"" + string_id + "\", \"" + filename + "\", \"" + path + "\", \"" + filename_with_path + "\", \"" + file_id + "\", " +  QString::number(size) + ", " + QString::number(static_cast<int>(file_exists)) + ", " + QString::number(created_as_num) + ")";
+	QString query_text = "INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, size, file_exists, created, ps_folder, user_id)"
+						 " VALUES (\"" + string_id + "\", \"" + filename + "\", \"" + path + "\", \"" + filename_with_path + "\", \"" + file_id + "\", " +  QString::number(size) + ", " + QString::number(static_cast<int>(file_exists)) + ", " + QString::number(created_as_num) + ", \"" + ps_folder + "\", " + QString::number(user_id) + ")";
     QSqlQuery query(*(db_.data()));
     query.exec(query_text);
     bool success = query.lastError().text().trimmed().isEmpty();
@@ -352,7 +354,7 @@ bool ServerDB::addUrl(const QString string_id, const QString filename, const QSt
 
 bool ServerDB::addUrl(const UrlEntity new_url)
 {
-    return addUrl(new_url.string_id, new_url.filename, new_url.path, new_url.filename_with_path, new_url.file_id, new_url.size, new_url.file_exists, new_url.created);
+	return addUrl(new_url.string_id, new_url.filename, new_url.path, new_url.filename_with_path, new_url.file_id, new_url.size, new_url.file_exists, new_url.created, new_url.ps_folder, new_url.user_id);
 }
 
 bool ServerDB::addUrls(const QList<UrlEntity> all_urls)

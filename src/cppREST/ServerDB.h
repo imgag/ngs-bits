@@ -30,7 +30,7 @@ public:
 	QList<Session> getAllSessions();
 	int getSessionsCount();
 
-	bool addUrl(const QString string_id, const QString filename, const QString path, const QString filename_with_path, const QString file_id, const qint64 size, const bool file_exists, const QDateTime created);
+	bool addUrl(const QString string_id, const QString filename, const QString path, const QString filename_with_path, const QString file_id, const qint64 size, const bool file_exists, const QDateTime created, const QString ps_folder, int user_id);
 	bool addUrl(const UrlEntity new_url);
 	bool addUrls(const QList<UrlEntity> all_urls);
 	bool removeUrl(const QString& string_id);
