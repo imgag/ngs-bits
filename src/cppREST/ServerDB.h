@@ -10,7 +10,7 @@
 class CPPRESTSHARED_EXPORT ServerDB
 {
 public:
-	const int EXPECTED_SCHEMA_VERSION = 1;
+	const int EXPECTED_SCHEMA_VERSION = 2;
 
 	ServerDB();
 	~ServerDB();
