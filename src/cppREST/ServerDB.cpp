@@ -463,6 +463,8 @@ UrlEntity ServerDB::getUrl(const QString& string_id)
         int index_size = query.record().indexOf("size");
         int index_file_exists = query.record().indexOf("file_exists");
         int index_created = query.record().indexOf("created");
+		int index_ps_folder = query.record().indexOf("ps_folder");
+		int index_user_id = query.record().indexOf("user_id");
 
         return UrlEntity(
             query.value(index_string_id).toString(),
@@ -472,7 +474,9 @@ UrlEntity ServerDB::getUrl(const QString& string_id)
             query.value(index_file_id).toString(),
             query.value(index_size).toLongLong(),
             query.value(index_file_exists).toBool(),
-            QDateTime::fromSecsSinceEpoch(query.value(index_created).toLongLong())
+			QDateTime::fromSecsSinceEpoch(query.value(index_created).toLongLong()),
+			query.value(index_ps_folder).toString(),
+			query.value(index_user_id).toLongLong()
             );
     }
 
