@@ -5,6 +5,7 @@
 #include "HttpResponse.h"
 #include "HttpRequest.h"
 #include "FastFileInfo.h"
+#include "FileLocation.h"
 
 class ServerController
 {

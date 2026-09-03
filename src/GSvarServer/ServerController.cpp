@@ -5,6 +5,7 @@
 #include <QDir>
 #include <QJsonArray>
 #include <QLibraryInfo>
+#include "EndpointManager.h"
 #include "HttpUtils.h"
 #include "Settings.h"
 #include "HtmlEngine.h"
