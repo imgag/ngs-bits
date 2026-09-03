@@ -372,13 +372,13 @@ bool ServerDB::addUrls(const QList<UrlEntity> all_urls)
     int processed_items = 0;
     for (int i=0; i<batch_count; i++)
     {
-        QString query_text = "INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, size, file_exists, created) VALUES";
+		QString query_text = "INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, size, file_exists, created, ps_folder, user_id) VALUES";
         for (int b=i*batch_size; b<((i+1)*batch_size); b++)
         {
             if (b>(all_urls.count()-1)) break;
 
             qint64 created_as_num = all_urls[b].created.toSecsSinceEpoch();
-            query_text+="\n(\"" + all_urls[b].string_id + "\", \"" + all_urls[b].filename + "\", \"" + all_urls[b].path + "\", \"" + all_urls[b].filename_with_path + "\", \"" + all_urls[b].file_id + "\", " + QString::number(all_urls[b].size) + ", " + QString::number(static_cast<int>(all_urls[b].file_exists)) + ", " + QString::number(created_as_num) + "),";
+			query_text+="\n(\"" + all_urls[b].string_id + "\", \"" + all_urls[b].filename + "\", \"" + all_urls[b].path + "\", \"" + all_urls[b].filename_with_path + "\", \"" + all_urls[b].file_id + "\", " + QString::number(all_urls[b].size) + ", " + QString::number(static_cast<int>(all_urls[b].file_exists)) + ", " + QString::number(created_as_num) + ", \"" + all_urls[b].ps_folder + "\", " + QString::number(all_urls[b].user_id) + "),";
 
             processed_items++;
         }
