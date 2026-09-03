@@ -1,20 +1,10 @@
 #ifndef SERVERCONTROLLER_H
 #define SERVERCONTROLLER_H
 
-
 #include "Log.h"
-#include "VariantList.h"
 #include "HttpResponse.h"
 #include "HttpRequest.h"
-#include "EndpointManager.h"
 #include "FastFileInfo.h"
-
-
-struct SampleMetadata
-{
-	SampleHeaderInfo header;
-	AnalysisType type;
-};
 
 class ServerController
 {
