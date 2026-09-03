@@ -509,7 +509,7 @@ QList<UrlEntity> ServerDB::getAllUrls()
                 query.value(index_file_exists).toBool(),
 				QDateTime::fromSecsSinceEpoch(query.value(index_created).toLongLong()),
 				query.value(index_ps_folder).toString(),
-				query.value(index_user_id).toLongLong(),
+				query.value(index_user_id).toLongLong()
                 )
             );
     }
