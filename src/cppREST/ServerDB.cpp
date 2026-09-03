@@ -6,6 +6,7 @@
 #include <QUuid>
 #include <QSqlError> //Comment to prevent removal by fix_includes.php
 #include <QSqlRecord> //Comment to prevent removal by fix_includes.php
+#include <QSqlField>
 
 ServerDB::ServerDB()
 {
@@ -157,7 +158,7 @@ int ServerDB::getSchemaVersion()
 
 	if (query.next())
 	{
-		return query.record().indexOf("version");
+		return query.record().value("version").toInt();
 	}
 	return -1;
 }
