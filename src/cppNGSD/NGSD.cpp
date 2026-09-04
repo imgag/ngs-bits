@@ -6028,7 +6028,7 @@ int NGSD::geneId(const QByteArray& gene)
 	return referenceCache().geneId(*this, gene);
 }
 
-int NGSD::geneIdOfTranscript(const QByteArray& name, bool throw_on_error, GenomeBuild build)
+int NGSD::geneIdOfTranscript(const QByteArray& name, bool throw_on_error)
 {
 	//Ensembl / CCDS
 	int trans_id = transcriptId(name, false);
@@ -6040,7 +6040,7 @@ int NGSD::geneIdOfTranscript(const QByteArray& name, bool throw_on_error, Genome
 	//RefSeq (via our transcript mapping)
 	QByteArray name_nover = name;
 	if (name_nover.contains('.')) name_nover = name_nover.left(name_nover.indexOf('.'));
-	const QMap<QByteArray, QByteArrayList>& matches = NGSHelper::transcriptMatches(build);
+	const QMap<QByteArray, QByteArrayList>& matches = NGSHelper::transcriptMatches();
 	foreach(QByteArray match, matches.value(name_nover))
 	{
 		match = match.trimmed();

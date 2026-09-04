@@ -47,7 +47,7 @@ public:
 	///Calculates target region statistics (term-value pairs). @p merge determines if overlapping regions are merged before calculating the statistics.
 	static QCCollection region(const BedFile& bed_file, bool merge);
 	///Calculates somatic QC metrics from BAM and VCF file
-	static QCCollection somatic(GenomeBuild build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots = false);
+	static QCCollection somatic(QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots = false);
 
 	///Calculates QC depths for somatic custom panel
 	static QCCollection somaticCustomDepth(const BedFile& bed_file, QString bam_file, QString ref_file, int min_mapq=1);
@@ -58,9 +58,9 @@ public:
 	static QCValue mutationBurden(QString somatic_vcf, QString target, QString blacklist);
 
 	///Calculates the percentage of common SNPs that lie outside the expected allele frequency range for diploid organisms.
-	static QCCollection contamination(GenomeBuild build, QString bam, QString ref_file = "", QString roi = "", bool debug = false, int min_cov = 20, int min_snps = 50, bool include_not_properly_paired = false);
+	static QCCollection contamination(QString bam, QString ref_file = "", QString roi = "", bool debug = false, int min_cov = 20, int min_snps = 50, bool include_not_properly_paired = false);
 	///Returns ancestry estimates for a variant list in VCF format.
-	static AncestryEstimates ancestry(GenomeBuild build, QString filename, int min_snp=1000, double abs_score_cutoff = 0.32, double max_mad_dist = 4.2);
+	static AncestryEstimates ancestry(QString filename, int min_snp=1000, double abs_score_cutoff = 0.32, double max_mad_dist = 4.2);
 
 	///Calculates the part of the target region that has a lower coverage than the given cutoff. The input BED file must be merged and sorted!
 	static BedFile lowCoverage(const BedFile& bed_file, const QString& bam_file, int cutoff, int min_mapq=1, int min_baseq=0, int threads=1, const QString& ref_file = QString(), bool random_access=true, bool debug=false);
@@ -72,9 +72,9 @@ public:
 	///Determines the gender based on the read ratio between X and Y chromosome.
 	static GenderEstimate genderXY(QString bam_file, double max_female=0.06, double min_male=0.09, const QString& ref_file = QString());
 	///Determines the gender based on the fraction of heterozygous SNPs on chromosome X.
-	static GenderEstimate genderHetX(GenomeBuild build, QString bam_file, double max_male=0.15, double min_female=0.24, const QString& ref_file = QString(), bool include_not_properly_paired = false);
+	static GenderEstimate genderHetX(QString bam_file, double max_male=0.15, double min_female=0.24, const QString& ref_file = QString(), bool include_not_properly_paired = false);
 	///Determines the gender based on the coverge of the SRY gene on chrY.
-	static GenderEstimate genderSRY(GenomeBuild build, QString bam_file, double min_cov=20.0, const QString& ref_file = QString());
+	static GenderEstimate genderSRY(QString bam_file, double min_cov=20.0, const QString& ref_file = QString());
 	///Determines the gender based on the depth of chrX and autosomes.
 	static GenderEstimate genderDepthX(QString bam_file, QString roi, double min_ratio_female=0.75, int threads=1, const QString& ref_file = QString());
 

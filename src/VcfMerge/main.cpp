@@ -219,7 +219,7 @@ public:
 				//statistics: determine heterozygous SNV percentage on chrX (for gender)
                 if (chr.isX() && is_snv && format.ct==".")
                 {
-                    if (!NGSHelper::pseudoAutosomalRegion(GenomeBuild::HG38).overlapsWith(chr, pos, pos))
+					if (!NGSHelper::pseudoAutosomalRegion().overlapsWith(chr, pos, pos))
                     {
                         ++c_snv_x;
                         if (gt=="0/1") ++c_snv_x_het;

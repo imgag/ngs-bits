@@ -376,7 +376,7 @@ private:
         }
 
         QString filename_small = ClientHelper::serverApiUrl() + "assets/ancestry_hg38.vcf.gz";
-        AncestryEstimates ancestry_small = Statistics::ancestry(GenomeBuild::HG38, filename_small);
+		AncestryEstimates ancestry_small = Statistics::ancestry(filename_small);
         I_EQUAL(ancestry_small.snps, 2126);
         F_EQUAL2(ancestry_small.afr, 0.4984, 0.001);
         F_EQUAL2(ancestry_small.eur, 0.0241, 0.001);
@@ -385,8 +385,8 @@ private:
         S_EQUAL(ancestry_small.population, "AFR");
 
         QString filename_large = ClientHelper::serverApiUrl() + "assets/NA12878_58_var_annotated.vcf.gz";
-        AncestryEstimates ancestry_large = Statistics::ancestry(GenomeBuild::HG38, filename_large);
-        // AncestryEstimates ancestry = Statistics::ancestry(GenomeBuild::HG38, TESTDATA("data/NA12878_58_var_annotated.vcf.gz"));
+		AncestryEstimates ancestry_large = Statistics::ancestry(filename_large);
+		// AncestryEstimates ancestry = Statistics::ancestry(TESTDATA("data/NA12878_58_var_annotated.vcf.gz"));
 
         I_EQUAL(ancestry_large.snps, 2907);
         F_EQUAL2(ancestry_large.afr, 0.00860332, 0.001);

@@ -45,7 +45,7 @@ SelectedReportVariant ReportVariantSelectionDialog::getSelectedReportVariant()
 		SampleData sample_data = db.getSampleData(db.sampleId(db.processedSampleName(ps_id_)));
 		report_variant.cnv = cnvs_[selected_report_variant_.variant_index];
 		report_variant.cn = report_variant.cnv.copyNumber(cnvs_.annotationHeaders());
-		report_variant.ref_cn = CnvList::determineReferenceCopyNumber(report_variant.cnv, sample_data.gender, GSvarHelper::build());
+		report_variant.ref_cn = CnvList::determineReferenceCopyNumber(report_variant.cnv, sample_data.gender);
 		report_variant.variant_id = db.cnvId(report_variant.cnv, cnv_callset_id_).toInt();
 	}
 	else if (selected_report_variant_.variant_type == VariantType::SVS)

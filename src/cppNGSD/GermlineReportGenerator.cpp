@@ -231,21 +231,21 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<tr>" << Qt::endl;
 		stream << "<td>" << Qt::endl;
 		stream  << variant.chr().strNormalized(true) << ":" << variant.start() << "&nbsp;" << variant.ref() << "&nbsp;&gt;&nbsp;" << variant.obs() << "</td>";
-		QString geno = formatGenotype(data_.build, processed_sample_data.gender.toUtf8(), variant.annotations().at(i_genotype), variant);
+		QString geno = formatGenotype(processed_sample_data.gender.toUtf8(), variant.annotations().at(i_genotype), variant);
 		if (var_conf.de_novo) geno += " (de-novo)";
 		if (var_conf.mosaic) geno += " (mosaic)";
 		if (var_conf.comp_het) geno += " (comp-het)";
 		stream << "<td>" << geno << "</td>" << Qt::endl;
 		if (is_trio)
 		{
-			stream << "<td>" << formatGenotype(data_.build, "male", variant.annotations().at(info_additional[0].column_index), variant) << "</td>";
-			stream << "<td>" << formatGenotype(data_.build, "female", variant.annotations().at(info_additional[1].column_index), variant) << "</td>";
+			stream << "<td>" << formatGenotype("male", variant.annotations().at(info_additional[0].column_index), variant) << "</td>";
+			stream << "<td>" << formatGenotype("female", variant.annotations().at(info_additional[1].column_index), variant) << "</td>";
 		}
 		if (is_multi_with_extra_genotypes)
 		{
 			for (const SampleInfo& info : std::as_const(info_additional))
 			{
-				stream << "<td>" << formatGenotype(data_.build, info.gender(), variant.annotations().at(info.column_index), variant) << "</td>";
+				stream << "<td>" << formatGenotype(info.gender(), variant.annotations().at(info.column_index), variant) << "</td>";
 			}
 		}
 
@@ -827,7 +827,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element ChromosomeAliases
 	w.writeStartElement("ChromosomeAliases");
-	QHash<Chromosome, QString> table = NGSHelper::chromosomeMapping(data_.build);
+	QHash<Chromosome, QString> table = NGSHelper::chromosomeMapping();
 	QList<Chromosome> chr_list = table.keys();
 	std::sort(chr_list.begin(), chr_list.end());
 	for (const Chromosome& key : std::as_const(chr_list))
@@ -1060,7 +1060,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		}
 		w.writeAttribute("allele_frequency", QString::number(allele_frequency, 'f', 2));
 		w.writeAttribute("depth", QString::number(depth));
-		w.writeAttribute("genotype", formatGenotype(data_.build, processed_sample_data.gender, variant.annotations()[geno_idx], variant));
+		w.writeAttribute("genotype", formatGenotype(processed_sample_data.gender, variant.annotations()[geno_idx], variant));
 		w.writeAttribute("causal", var_conf.causal ? "true" : "false");
 		w.writeAttribute("de_novo", var_conf.de_novo ? "true" : "false");
 		w.writeAttribute("comp_het", var_conf.comp_het ? "true" : "false");
@@ -1343,8 +1343,8 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("chr", cnv.chr().strNormalized(true));
 		w.writeAttribute("start", QString::number(cnv.start()));
 		w.writeAttribute("end", QString::number(cnv.end()));
-		w.writeAttribute("start_band", NGSHelper::cytoBand(data_.build, cnv.chr(), cnv.start()));
-		w.writeAttribute("end_band", NGSHelper::cytoBand(data_.build, cnv.chr(), cnv.end()));
+		w.writeAttribute("start_band", NGSHelper::cytoBand(cnv.chr(), cnv.start()));
+		w.writeAttribute("end_band", NGSHelper::cytoBand(cnv.chr(), cnv.end()));
 		int cn = cnv.copyNumber(data_.cnvs.annotationHeaders());
 		w.writeAttribute("type", cn>=2 ? "dup" : "del"); //2 can be dup in chrX/chrY
 		w.writeAttribute("cn", QString::number(cn));
@@ -1484,11 +1484,11 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			v.setEnd(sv.end2());
 		}
 
-		w.writeAttribute("start_band", NGSHelper::cytoBand(data_.build, sv.chr1(), sv.start1()));
-		w.writeAttribute("end_band", NGSHelper::cytoBand(data_.build, sv.chr2(), sv.end2()));
+		w.writeAttribute("start_band", NGSHelper::cytoBand(sv.chr1(), sv.start1()));
+		w.writeAttribute("end_band", NGSHelper::cytoBand(sv.chr2(), sv.end2()));
 
 		QByteArray sv_gt = sv.genotypeHumanReadable(data_.svs.annotationHeaders(), false);
-		w.writeAttribute("genotype", formatGenotype(data_.build, processed_sample_data.gender, sv_gt, v));
+		w.writeAttribute("genotype", formatGenotype(processed_sample_data.gender, sv_gt, v));
 
 		if (i_qual!=-1)
 		{
@@ -2218,13 +2218,13 @@ void GermlineReportGenerator::writeRNACoverageReport(QTextStream& stream)
 
 }
 
-QString GermlineReportGenerator::formatGenotype(GenomeBuild build, const QString& gender, const QString& genotype, const Variant& variant)
+QString GermlineReportGenerator::formatGenotype(const QString& gender, const QString& genotype, const Variant& variant)
 {
 	//correct only hom variants on gonosomes outside the PAR for males
 	if (gender!="male") return genotype;
 	if (genotype!="hom") return genotype;
 	if (!variant.chr().isGonosome()) return genotype;
-	if (NGSHelper::pseudoAutosomalRegion(build).overlapsWith(variant.chr(), variant.start(), variant.end())) return genotype;
+	if (NGSHelper::pseudoAutosomalRegion().overlapsWith(variant.chr(), variant.start(), variant.end())) return genotype;
 
 	return "hemi";
 }
@@ -2247,7 +2247,7 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 				QString refseq;
 				if (data_.report_settings.show_refseq_transcripts)
 				{
-					const QMap<QByteArray, QByteArrayList>& transcript_matches = NGSHelper::transcriptMatches(data_.build);
+					const QMap<QByteArray, QByteArrayList>& transcript_matches = NGSHelper::transcriptMatches();
                     for (const QByteArray& match : transcript_matches.value(trans.name()))
 					{
 						if (match.startsWith("NM_"))

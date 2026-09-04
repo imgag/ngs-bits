@@ -826,7 +826,7 @@ void VariantDetailsDockWidget::setTranscript(int index)
 	ui->trans->setText("<span style=\"font-weight:600; color:#222222;\">" + text + "<span>");
 
 	//RefSeq match
-	const QMap<QByteArray, QByteArrayList>& transcript_matches = NGSHelper::transcriptMatches(GSvarHelper::build());
+	const QMap<QByteArray, QByteArrayList>& transcript_matches = NGSHelper::transcriptMatches();
 	QStringList refseq_links;
 	foreach(QByteArray transcript_match, transcript_matches[trans.idWithoutVersion()])
 	{

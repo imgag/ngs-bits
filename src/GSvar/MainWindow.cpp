@@ -4298,7 +4298,7 @@ QString MainWindow::selectGene()
 	//handle invalid gene name > check if it is a transcript name
 	if (selector->getId()=="")
 	{
-		int gene_id = db.geneIdOfTranscript(selector->text().toUtf8(), false, GSvarHelper::build());
+		int gene_id = db.geneIdOfTranscript(selector->text().toUtf8(), false);
 		if (gene_id!=-1)
 		{
 			return db.geneSymbol(gene_id);

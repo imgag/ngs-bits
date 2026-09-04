@@ -31,39 +31,12 @@ private:
 
 	TEST_METHOD(getKnownVariants)
 	{
-		VcfFile list = NGSHelper::getKnownVariants(GenomeBuild::HG19, false);
-		I_EQUAL(list.count(), 102467);
-
-		//only SNPs
-		list = NGSHelper::getKnownVariants(GenomeBuild::HG19, true);
-		I_EQUAL(list.count(), 97469);
-
-		//only SNPs, AF<80%
-		list = NGSHelper::getKnownVariants(GenomeBuild::HG19, true, 0.0, 0.8);
-		I_EQUAL(list.count(), 91186);
-
-		//only SNPs, AF>20%
-		list = NGSHelper::getKnownVariants(GenomeBuild::HG19, true, 0.2);
-		I_EQUAL(list.count(), 36022);
-
-		//only SNPs, AF>20%, AF<80%
-		list = NGSHelper::getKnownVariants(GenomeBuild::HG19, true, 0.2, 0.8);
-		I_EQUAL(list.count(), 29739);
-
-		//only SNPs on chrX
-		BedFile roi_chrx("chrX", 1, 155270560);
-		list = NGSHelper::getKnownVariants(GenomeBuild::HG19, true, roi_chrx, 0.0, 1.0);
-		I_EQUAL(list.count(), 1948);
-	}
-
-	TEST_METHOD(getKnownVariants_hg38)
-	{
-		VcfFile list = NGSHelper::getKnownVariants(GenomeBuild::HG38, false);
+		VcfFile list = NGSHelper::getKnownVariants(false);
 		I_EQUAL(list.count(), 100779);
 
 		//only SNPs, AF<50% on chrX
 		BedFile roi_chrx("chrX", 1, 155270560);
-		list = NGSHelper::getKnownVariants(GenomeBuild::HG38, true, roi_chrx, 0.0, 0.5);
+		list = NGSHelper::getKnownVariants(true, roi_chrx, 0.0, 0.5);
 		I_EQUAL(list.count(), 1548);
 	}
 
@@ -224,37 +197,33 @@ private:
 		S_EQUAL(NGSHelper::translateSequence("ATGATATGTCGAGCCGAGGGGAGCTGACCGTAAAGACCC", true, true, true),   "MetMetCysArgAlaGluGlySerTrpProTer")
 	}
 
-
-
-
 	TEST_METHOD(pseudoAutosomalRegion)
 	{
-		BedFile par = NGSHelper::pseudoAutosomalRegion(GenomeBuild::HG19);
+		BedFile par = NGSHelper::pseudoAutosomalRegion();
 		I_EQUAL(par.count(), 4);
-		I_EQUAL(par.baseCount(), 5938074);
+		I_EQUAL(par.baseCount(), 6201984);
 	}
 
 	TEST_METHOD(cytoBand)
 	{
-		S_EQUAL(NGSHelper::cytoBand(GenomeBuild::HG19, "chrY", 34847524), "Yq12");
-		S_EQUAL(NGSHelper::cytoBand(GenomeBuild::HG19, "chr1", 76992611), "1p31.1");
-		S_EQUAL(NGSHelper::cytoBand(GenomeBuild::HG19, "chr1", 5350000), "1p36.32");
-		S_EQUAL(NGSHelper::cytoBand(GenomeBuild::HG38, "chr1", 5350000), "1p36.31");
+		S_EQUAL(NGSHelper::cytoBand("chrY", 34847524), "Yq12");
+		S_EQUAL(NGSHelper::cytoBand("chr1", 76992611), "1p31.1");
+		S_EQUAL(NGSHelper::cytoBand("chr1", 5350000), "1p36.31");
 	}
 
 	TEST_METHOD(cytoBandToRange)
 	{
-		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange(GenomeBuild::HG19, ""));
-		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange(GenomeBuild::HG19, "Zr36.33"));
-		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange(GenomeBuild::HG19, "1r36.33"));
-		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange(GenomeBuild::HG19, "1p36.33-"));
-		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange(GenomeBuild::HG19, "1p36.33-5q21.2"));
-		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange(GenomeBuild::HG19, "1p36.33-1p36.32-1p36.31"));
+		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange(""));
+		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("Zr36.33"));
+		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("1r36.33"));
+		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("1p36.33-"));
+		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("1p36.33-5q21.2"));
+		IS_THROWN(ArgumentException, NGSHelper::cytoBandToRange("1p36.33-1p36.32-1p36.31"));
 
-		S_EQUAL(NGSHelper::cytoBandToRange(GenomeBuild::HG19, "chr1p36.33").toString(true), "chr1:1-2300000");
-		S_EQUAL(NGSHelper::cytoBandToRange(GenomeBuild::HG19, "1p36.33").toString(true), "chr1:1-2300000");
-		S_EQUAL(NGSHelper::cytoBandToRange(GenomeBuild::HG19, "1p36.33-1p36.32").toString(true), "chr1:1-5400000");
-		S_EQUAL(NGSHelper::cytoBandToRange(GenomeBuild::HG19, "1p36.32-1p36.33").toString(true), "chr1:1-5400000");
+		S_EQUAL(NGSHelper::cytoBandToRange("chr1p36.33").toString(true), "chr1:1-2300000");
+		S_EQUAL(NGSHelper::cytoBandToRange("1p36.33").toString(true), "chr1:1-2300000");
+		S_EQUAL(NGSHelper::cytoBandToRange("1p36.33-1p36.32").toString(true), "chr1:1-5300000");
+		S_EQUAL(NGSHelper::cytoBandToRange("1p36.32-1p36.33").toString(true), "chr1:1-5300000");
 	}
 
 	TEST_METHOD(impringGenes)
@@ -272,23 +241,14 @@ private:
 
 	TEST_METHOD(centromeres)
 	{
-		BedFile centros = NGSHelper::centromeres(GenomeBuild::HG19);
-		I_EQUAL(centros.count(), 24);
-		S_EQUAL(centros[1].toString(true), "chr2:92326171-95326171");
-		S_EQUAL(centros[11].toString(true), "chr12:34856694-37856694");
-
-		BedFile centros4 = NGSHelper::centromeres(GenomeBuild::HG38);
+		BedFile centros4 = NGSHelper::centromeres();
 		I_EQUAL(centros4.count(), 24);
 		S_EQUAL(centros4[0].toString(true), "chr1:121700000-125100000");
 	}
 
 	TEST_METHOD(telomeres)
 	{
-		BedFile telos1 = NGSHelper::telomeres(GenomeBuild::HG19);
-		I_EQUAL(telos1.count(), 46);
-		S_EQUAL(telos1[45].toString(true), "chrY:59363566-59373566");
-
-		BedFile telos2 = NGSHelper::telomeres(GenomeBuild::HG38);
+		BedFile telos2 = NGSHelper::telomeres();
 		I_EQUAL(telos2.count(), 48);
 		S_EQUAL(telos2[32].toString(true), "chr17:1-10000");
 		S_EQUAL(telos2[45].toString(true), "chrX:156030895-156040895");
@@ -306,18 +266,7 @@ private:
 
 	TEST_METHOD(transcriptMatches)
 	{
-		//HG19
-		auto matches = NGSHelper::transcriptMatches(GenomeBuild::HG19);
-		IS_FALSE(matches.contains("ENST00000644374"));
-		IS_TRUE(matches.contains("ENST00000004921"));
-		I_EQUAL(matches["ENST00000004921"].count(), 2);
-		IS_TRUE(matches["ENST00000004921"].contains("CCDS11306"));
-		IS_TRUE(matches["ENST00000004921"].contains("NM_002988"));
-		IS_TRUE(matches["CCDS11306"].contains("ENST00000004921"));
-		IS_TRUE(matches["NM_002988"].contains("ENST00000004921"));
-
-		//HG38
-		matches = NGSHelper::transcriptMatches(GenomeBuild::HG38);
+		const QMap<QByteArray, QByteArrayList>& matches = NGSHelper::transcriptMatches();
 		IS_TRUE(matches.contains("ENST00000644374"));
 		IS_FALSE(matches.contains("ENST00000004921"));
 		I_EQUAL(matches["ENST00000644374"].count(), 2);

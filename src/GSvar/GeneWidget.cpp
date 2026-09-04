@@ -328,7 +328,7 @@ void GeneWidget::updateTranscriptsTable(NGSD& db)
 {
 	//clear
 	ui_.transcripts->setRowCount(0);
-	const QMap<QByteArray, QByteArrayList>&  matches = NGSHelper::transcriptMatches(GSvarHelper::build());
+	const QMap<QByteArray, QByteArrayList>&  matches = NGSHelper::transcriptMatches();
 
 	//get transcripts
 	int gene_id = db.geneId(symbol_);

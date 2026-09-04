@@ -33,12 +33,11 @@ public:
 		addFloat("covx", "Minium ratio chrX/autosomes for females (method depthx).", true, 0.75);
 		addInfile("roi", "Target region of panel/exome (method depthx)", true);
 		addInt("threads", "Number of threads used (method depthx)", true, 1);
-		addEnum("build", "Genome build used to generate the input (methods hetx and sry).", true, QStringList() << "hg19" << "hg38", "hg38");
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addFlag("long_read", "Support long reads (> 1kb) and uses single-end reads for gender calculation.");
 
 		//changelog
-		changeLog(2026,  6, 13, "Added 'depthx' method.");
+		changeLog(2026,  9,  3, "Removed hg19 support and 'build' parameter.");
 		changeLog(2024,  2, 29, "Added parameter to include single-end reads (long-read).");
 		changeLog(2022,  8,  5, "Ignoring duplicate, secondary and supplementary alignments in methods 'xy' and 'sry' now.");
 		changeLog(2020, 11, 27, "Added CRAM support.");
@@ -53,7 +52,6 @@ public:
 		QString method = getEnum("method");
 		QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
 		QTextStream stream(outfile.data());
-		GenomeBuild build = stringToBuild(getEnum("build"));
 
 		//process
 		bool print_header = true;
@@ -67,11 +65,11 @@ public:
 			}
 			else if (method=="hetx")
 			{
-				estimate = Statistics::genderHetX(build, bam, getFloat("max_male"), getFloat("min_female"), getInfile("ref"), getFlag("long_read"));
+				estimate = Statistics::genderHetX(bam, getFloat("max_male"), getFloat("min_female"), getInfile("ref"), getFlag("long_read"));
 			}
 			else if (method=="sry")
 			{
-				estimate = Statistics::genderSRY(build, bam, getFloat("sry_cov"), getInfile("ref"));
+				estimate = Statistics::genderSRY(bam, getFloat("sry_cov"), getInfile("ref"));
 			}
 			else if (method=="depthx")
 			{

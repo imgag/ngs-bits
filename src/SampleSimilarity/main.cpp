@@ -35,12 +35,12 @@ public:
 		addFlag("include_gonosomes", "Includes gonosomes into calculation (by default only variants on autosomes are considered).");
 		addInt("min_cov",  "Minimum coverage to consider a SNP for the analysis (BAM mode).",  true,  30);
 		addInt("max_snps",  "The maximum number of high-coverage SNPs to extract from BAM/CRAM. 0 means unlimited (BAM mode).",  true, 5000);
-		addEnum("build", "Genome build used to generate the input (BAM mode).", true, QStringList() << "hg19" << "hg38", "hg38");
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 		addFlag("long_read", "Support long reads (BAM mode).");
 		addFlag("debug", "Print debug output.");
 
 		//changelog
+		changeLog(2026,  9,  3, "Removed hg19 support and 'build' parameter.");
 		changeLog(2023, 12, 22, "Added 'roi_hg38_wes_wgs' flag.");
 		changeLog(2022,  7,  7, "Changed BAM mode: max_snps is now 5000 by default because this results in a better separation of related and unrelated samples.");
 		changeLog(2022,  6, 30, "Changed GSvar mode: MODIFIER impact variants are now ingnored to make scores more similar between exomes and genomes.");
@@ -68,7 +68,6 @@ public:
 		QString roi = getInfile("roi");
 		bool roi_hg38_wes_wgs = getFlag("roi_hg38_wes_wgs");
 		bool include_gonosomes = getFlag("include_gonosomes");
-		GenomeBuild build = stringToBuild(getEnum("build"));
 		bool debug = getFlag("debug");
         QElapsedTimer timer;
 		timer.start();
@@ -89,7 +88,6 @@ public:
 
 		//load ROI
 		if (!roi.isEmpty() && roi_hg38_wes_wgs) THROW(ArgumentException, "Parameters 'roi' and 'roi_hg38_wes_wgs' are mutually exclusive!");
-		if (roi_hg38_wes_wgs && build==GenomeBuild::HG19) THROW(ArgumentException, "Parameters 'build hg19' and 'roi_hg38_wes_wgs' are mutually exclusive!");
 		BedFile roi_reg;
 		if (!roi.isEmpty()) roi_reg.load(roi);
 		if (roi_hg38_wes_wgs) roi_reg.load(":/Resources/hg38_coding_highconf_all_kits.bed");
@@ -119,8 +117,8 @@ public:
 			}
 			else
 			{
-				genotype_data << (roi_reg.count()>0 ? SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, roi_reg, getInfile("ref"), getFlag("long_read"))
-													: SampleSimilarity::genotypesFromBam(build, filename, min_cov, max_snps, include_gonosomes, getInfile("ref"), getFlag("long_read")));
+				genotype_data << (roi_reg.count()>0 ? SampleSimilarity::genotypesFromBam(filename, min_cov, max_snps, include_gonosomes, roi_reg, getInfile("ref"), getFlag("long_read"))
+													: SampleSimilarity::genotypesFromBam(filename, min_cov, max_snps, include_gonosomes, getInfile("ref"), getFlag("long_read")));
 			}
 			if (debug)
 			{

@@ -794,7 +794,7 @@ public:
 	///Returns the gene ID, or -1 if no approved gene name could be found. Checks approved symbols, previous symbols and synonyms. Uses internal cache to speed up repeated queries of the same gene name.
 	int geneId(const QByteArray& gene);
 	///Returns the gene ID of the transcript, or -1 if no gene could be determined.
-	int geneIdOfTranscript(const QByteArray& name, bool throw_on_error=true, GenomeBuild build=GenomeBuild::HG38);
+	int geneIdOfTranscript(const QByteArray& name, bool throw_on_error=true);
 	///Returns the gene symbol for a gene ID. Throws a DatabaseException if the ID is not valid.
 	QByteArray geneSymbol(int id);
 	///Returns the HGNC identifier of a gene.

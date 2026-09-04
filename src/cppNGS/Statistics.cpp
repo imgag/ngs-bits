@@ -1708,14 +1708,14 @@ QCCollection Statistics::somaticCustomDepth(const BedFile& bed_file, QString bam
 	return output;
 }
 
-QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots)
+QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots)
 {
 	QCCollection output;
 
 	//sample correlation
-	auto tumor_genotypes = SampleSimilarity::genotypesFromBam(build, tumor_bam, 30, 500, true, target_file, ref_fasta);
+	auto tumor_genotypes = SampleSimilarity::genotypesFromBam(tumor_bam, 30, 500, true, target_file, ref_fasta);
 
-	auto normal_genotypes = SampleSimilarity::genotypesFromBam(build, normal_bam, 30, 500, true, target_file, ref_fasta);
+	auto normal_genotypes = SampleSimilarity::genotypesFromBam(normal_bam, 30, 500, true, target_file, ref_fasta);
 	SampleSimilarity sc;
 
 	sc.calculateSimilarity(tumor_genotypes, normal_genotypes);
@@ -2329,7 +2329,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	return output;
 }
 
-QCCollection Statistics::contamination(GenomeBuild build, QString bam, QString ref_file, QString roi_file, bool debug, int min_cov, int min_snps, bool include_not_properly_paired)
+QCCollection Statistics::contamination(QString bam, QString ref_file, QString roi_file, bool debug, int min_cov, int min_snps, bool include_not_properly_paired)
 {
 	//open BAM
 	BamReader reader(bam, ref_file);
@@ -2345,7 +2345,7 @@ QCCollection Statistics::contamination(GenomeBuild build, QString bam, QString r
 	Histogram hist(0, 1, 0.05);
 	int passed = 0;
 	double passed_depth_sum = 0.0;
-	VcfFile snps = roi_file!="" ? NGSHelper::getKnownVariants(build, true, roi, 0.2, 0.8) : NGSHelper::getKnownVariants(build, true, 0.2, 0.8);
+	VcfFile snps = roi_file!="" ? NGSHelper::getKnownVariants(true, roi, 0.2, 0.8) : NGSHelper::getKnownVariants(true, 0.2, 0.8);
 	for(int i=0; i<snps.count(); ++i)
 	{
 		Pileup pileup = reader.getPileup(snps[i].chr(), snps[i].start(), -1, 1, include_not_properly_paired);
@@ -2384,7 +2384,7 @@ QCCollection Statistics::contamination(GenomeBuild build, QString bam, QString r
 	return output;
 }
 
-AncestryEstimates Statistics::ancestry(GenomeBuild build, QString filename, int min_snp, double abs_score_cutoff, double max_mad_dist)
+AncestryEstimates Statistics::ancestry(QString filename, int min_snp, double abs_score_cutoff, double max_mad_dist)
 {
 	//init score statistics
 	struct PopScore
@@ -2414,10 +2414,8 @@ AncestryEstimates Statistics::ancestry(GenomeBuild build, QString filename, int 
 	}
 
 	//copy ancestry SNP file from resources (gzopen cannot access Qt resources)
-	QString snp_file = ":/Resources/" + buildToString(build) + "_ancestry.vcf";
-	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + buildToString(build) + "' for ancestry estimation!");
-	QString tmp = Helper::tempFileNameNonRandom(buildToString(build) + "_ancestry.vcf");
-	QFile::copy(snp_file, tmp);
+	QString tmp = Helper::tempFileNameNonRandom("hg38_ancestry.vcf");
+	QFile::copy(":/Resources/hg38_ancestry.vcf", tmp);
 
 	//load ancestry SNP file
 	VcfFile vars_ancestry;
@@ -2832,7 +2830,7 @@ GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double 
 	return output;
 }
 
-GenderEstimate Statistics::genderHetX(GenomeBuild build, QString bam_file, double max_male, double min_female, const QString& ref_file, bool include_not_properly_paired)
+GenderEstimate Statistics::genderHetX(QString bam_file, double max_male, double min_female, const QString& ref_file, bool include_not_properly_paired)
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
@@ -2841,8 +2839,8 @@ GenderEstimate Statistics::genderHetX(GenomeBuild build, QString bam_file, doubl
 	Chromosome chrx("chrX");
 	int chrx_end_pos = reader.chromosomeSize(chrx);
 	BedFile roi_chrx(chrx, 1, chrx_end_pos);
-	roi_chrx.subtract(NGSHelper::pseudoAutosomalRegion(build));
-	VcfFile snps = NGSHelper::getKnownVariants(build, true, roi_chrx, 0.2, 0.8);
+	roi_chrx.subtract(NGSHelper::pseudoAutosomalRegion());
+	VcfFile snps = NGSHelper::getKnownVariants(true, roi_chrx, 0.2, 0.8);
 
 	//count het SNPs
 	int c_all = 0;
@@ -2881,13 +2879,11 @@ GenderEstimate Statistics::genderHetX(GenomeBuild build, QString bam_file, doubl
 	return output;
 }
 
-GenderEstimate Statistics::genderSRY(GenomeBuild build, QString bam_file, double min_cov, const QString& ref_file)
+GenderEstimate Statistics::genderSRY(QString bam_file, double min_cov, const QString& ref_file)
 {
 	//construct ROI
-	int start = build==GenomeBuild::HG38 ? 2786989 : 2655031;
-	int end = build==GenomeBuild::HG38 ? 2787603 : 2655641;
 	BedFile roi;
-	roi.append(BedLine("chrY", start, end));
+	roi.append(BedLine("chrY", 2786989, 2787603));
 
 	//calculate coverage
 	Statistics::avgCoverage(roi, bam_file, 1, 1, 2 , ref_file);

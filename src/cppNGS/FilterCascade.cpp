@@ -2485,9 +2485,6 @@ FilterTrio::FilterTrio()
 	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
 	params_.last().constraints["valid"] = "male,female,n/a";
 
-	params_ << FilterParameter("build", FilterParameterType::STRING, "hg38", "Genome build used for pseudoautosomal region coordinates");
-	params_.last().constraints["valid"] = "hg19,hg38";
-
 	checkIsRegistered();
 }
 
@@ -2528,7 +2525,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 	i_af_m = tmp.indexOf(i_m);
 
 	//get PAR region
-	BedFile par_region = NGSHelper::pseudoAutosomalRegion(stringToBuild(getString("build")));
+	BedFile par_region = NGSHelper::pseudoAutosomalRegion();
 
 	//pre-calculate genes with heterozygous variants
     QSet<QString> types = Helper::listToSet(getStringList("types"));
@@ -4793,9 +4790,6 @@ FilterSvTrio::FilterSvTrio()
 	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
     params_.last().constraints["valid"] = "male,female,n/a";
 
-	params_ << FilterParameter("build", FilterParameterType::STRING, "hg19", "Genome build used for pseudoautosomal region coordinates");
-	params_.last().constraints["valid"] = "hg19,hg38";
-
     checkIsRegistered();
 }
 
@@ -4830,7 +4824,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
 	int i_format_col = svs.annotationIndexByName("FORMAT");
 
     //get PAR region
-	BedFile par_region = NGSHelper::pseudoAutosomalRegion(stringToBuild(getString("build")));
+	BedFile par_region = NGSHelper::pseudoAutosomalRegion();
 
     //pre-calculate genes with heterozygous variants
     QSet<QString> types = Helper::listToSet(getStringList("types"));

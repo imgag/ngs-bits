@@ -114,7 +114,7 @@ void VariantConversionWidget::convert()
 		{
 			NGSD db;
 
-			const QMap<QByteArray, QByteArrayList>& matches = NGSHelper::transcriptMatches(GSvarHelper::build());
+			const QMap<QByteArray, QByteArrayList>& matches = NGSHelper::transcriptMatches();
 			foreach(QString line, lines)
 			{
 				line = line.trimmed();
