@@ -120,7 +120,7 @@ private:
     static QString getProcessedSampleFile(int ps_id, const PathType& type, const QString& token);
     /// Returns a temporary URL for a file
 	static QString createTempUrl(const QString& file, const QString& token);
-	/// Returns a temporary URL for a file (URL is linked to a processed sample folder to simplify its lifetime refesh)
+	/// Returns a temporary URL for a file (URL is linked to a processed sample folder to simplify its lifetime refresh)
 	static QString createTempUrl(const QString& ps_folder, const QString& file, const QString& token);
 	static QString createTempUrl(FastFileInfo& file_info, const QString& token, bool id_as_ps_folder = false);
     /// Returns a temporary URL wihtout a parameters (e.g. ?token=123)

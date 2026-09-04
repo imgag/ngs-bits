@@ -112,11 +112,12 @@ bool UrlManager::extendActiveUrls(QString ps_folder, int user_id)
 	bool has_active_urls = false;
 	for (int i = 0; i < keys.count(); i++)
 	{
-		if (instance().url_storage_.value(keys[i]).ps_folder==ps_folder && instance().url_storage_.value(keys[i]).user_id==user_id)
-		{
+		if ((instance().url_storage_.value(keys[i]).ps_folder==ps_folder && instance().url_storage_.value(keys[i]).user_id==user_id)
+			|| instance().url_storage_.value(keys[i]).string_id == ps_folder)
+		{			
 			has_active_urls = true;
 			UrlEntity url_to_be_updated = instance().url_storage_.value(keys[i]);
-			url_to_be_updated.created =  QDateTime::currentDateTime();
+			url_to_be_updated.created = QDateTime::currentDateTime();
 			instance().url_storage_.updateValue(keys[i], url_to_be_updated);
 		}
 	}

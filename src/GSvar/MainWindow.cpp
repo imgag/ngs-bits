@@ -373,7 +373,7 @@ MainWindow::MainWindow(QWidget *parent)
 		//check if the server is running
 		QTimer *active_url_update_timer = new QTimer(this);
 		connect(active_url_update_timer, SIGNAL(timeout()), this, SLOT(updateActiveUrls()));
-		active_url_update_timer->start(30 * 60 * 1000); // every 30 minutes
+		active_url_update_timer->start(2 * 60 * 1000); // every 30 minutes
 
 
 		//check if there are new notifications for the users

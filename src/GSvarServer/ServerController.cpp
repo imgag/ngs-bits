@@ -1849,10 +1849,10 @@ QString ServerController::getProcessedSampleFile(int ps_id, const PathType& type
 
 QString ServerController::createTempUrl(const QString& file, const QString& token)
 {
-    QString id = ServerHelper::generateUniqueStr();
+	QString id = ServerHelper::generateUniqueStr();
 	QSharedPointer<FastFileInfo> info = QSharedPointer<FastFileInfo>(new FastFileInfo(file));
-    UrlManager::addNewUrl(UrlEntity(id, info->fileName(), info->absolutePath(), file, id, info->size(), info->exists(), QDateTime::currentDateTime()));
-    return ClientHelper::serverApiUrl() + "temp/" + id + "/" + info->fileName() + "?token=" + token;
+	UrlManager::addNewUrl(UrlEntity(id, info->fileName(), info->absolutePath(), file, id, info->size(), info->exists(), QDateTime::currentDateTime()));
+	return ClientHelper::serverApiUrl() + "temp/" + id + "/" + info->fileName() + "?token=" + token;
 }
 
 QString ServerController::createTempUrl(const QString &ps_folder, const QString &file, const QString &token)
@@ -1867,7 +1867,11 @@ QString ServerController::createTempUrl(const QString &ps_folder, const QString 
 QString ServerController::createTempUrl(FastFileInfo& file_info, const QString& token, bool id_as_ps_folder)
 {
     QString id = ServerHelper::generateUniqueStr();
-	if (id_as_ps_folder) UrlManager::addNewUrl(UrlEntity(id, file_info.fileName(), file_info.absolutePath(), file_info.absoluteFilePath(), id, file_info.size(), file_info.exists(), QDateTime::currentDateTime(), id));
+	if (id_as_ps_folder)
+	{
+		Session current_session = SessionManager::getSessionBySecureToken(token);
+		UrlManager::addNewUrl(UrlEntity(id, file_info.fileName(), file_info.absolutePath(), file_info.absoluteFilePath(), id, file_info.size(), file_info.exists(), QDateTime::currentDateTime(), id, current_session.user_id));
+	}
 	else UrlManager::addNewUrl(UrlEntity(id, file_info.fileName(), file_info.absolutePath(), file_info.absoluteFilePath(), id, file_info.size(), file_info.exists(), QDateTime::currentDateTime()));
     return ClientHelper::serverApiUrl() + "temp/" + id + "/" + file_info.fileName() + "?token=" + token;
 }
