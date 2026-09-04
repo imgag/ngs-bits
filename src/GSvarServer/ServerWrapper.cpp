@@ -86,7 +86,7 @@ ServerWrapper::ServerWrapper(const quint16& port)
 
 			// Remove expired sessions and URLs on schedule
 			connect(&session_timer_, SIGNAL(timeout()), this, SLOT(cleanupSessionsAndUrls()));
-			session_timer_.start(60 * 2 * 1000); // every 5 minutes
+			session_timer_.start(60 * 5 * 1000); // every 5 minutes
 
 			// Update queing engine status
 			connect(&qe_status_update_timer_, SIGNAL(timeout()), this, SLOT(updateQueingEngineStatus()));
