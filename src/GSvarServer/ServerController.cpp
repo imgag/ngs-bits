@@ -1859,7 +1859,8 @@ QString ServerController::createTempUrl(const QString &ps_folder, const QString 
 {
 	QString id = ServerHelper::generateUniqueStr();
 	QSharedPointer<FastFileInfo> info = QSharedPointer<FastFileInfo>(new FastFileInfo(file));
-	UrlManager::addNewUrl(UrlEntity(id, info->fileName(), info->absolutePath(), file, id, info->size(), info->exists(), QDateTime::currentDateTime(), ps_folder));
+	Session current_session = SessionManager::getSessionBySecureToken(token);
+	UrlManager::addNewUrl(UrlEntity(id, info->fileName(), info->absolutePath(), file, id, info->size(), info->exists(), QDateTime::currentDateTime(), ps_folder, current_session.user_id));
 	return ClientHelper::serverApiUrl() + "temp/" + id + "/" + info->fileName() + "?token=" + token;
 }
 
