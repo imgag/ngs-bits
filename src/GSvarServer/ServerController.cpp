@@ -323,7 +323,7 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 					QString cached_filename = cached_object.value("filename").toString();
 					if (!cached_filename.isEmpty())
 					{
-						cached_object.insert("filename", createTempUrl(ps_url_id, cached_filename, request.getUrlParams()["token"]));
+						cached_object.insert("filename", createTempUrl(cached_filename, request.getUrlParams()["token"]));
 						updated_cached_array.append(cached_object);
 					}
 				}
@@ -532,7 +532,7 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 		{
 			try
             {
-				cur_json_item.insert("filename", createTempUrl(ps_url_id, file_list[i].filename, request.getUrlParams()["token"]));
+				cur_json_item.insert("filename", createTempUrl(file_list[i].filename, request.getUrlParams()["token"]));
             }
 			catch (Exception& e)
             {
@@ -1847,20 +1847,12 @@ QString ServerController::getProcessedSampleFile(int ps_id, const PathType& type
     return found_file_path;
 }
 
-QString ServerController::createTempUrl(const QString& file, const QString& token)
-{
-	QString id = ServerHelper::generateUniqueStr();
-	FastFileInfo info(file);
-	UrlManager::addNewUrl(UrlEntity(id, info.fileName(), info.absolutePath(), file, id, info.size(), info.exists(), QDateTime::currentDateTime()));
-	return ClientHelper::serverApiUrl() + "temp/" + id + "/" + info.fileName() + "?token=" + token;
-}
-
-QString ServerController::createTempUrl(const QString &ps_folder, const QString &file, const QString &token)
+QString ServerController::createTempUrl(const QString &file, const QString& token)
 {
 	QString id = ServerHelper::generateUniqueStr();
 	FastFileInfo info(file);
 	Session current_session = SessionManager::getSessionBySecureToken(token);
-	UrlManager::addNewUrl(UrlEntity(id, info.fileName(), info.absolutePath(), file, id, info.size(), info.exists(), QDateTime::currentDateTime(), ps_folder, current_session.user_id));
+	UrlManager::addNewUrl(UrlEntity(id, info.fileName(), info.absolutePath(), file, id, info.size(), info.exists(), QDateTime::currentDateTime(), current_session.user_id));
 	return ClientHelper::serverApiUrl() + "temp/" + id + "/" + info.fileName() + "?token=" + token;
 }
 
@@ -1870,7 +1862,7 @@ QString ServerController::createTempUrl(FastFileInfo& file_info, const QString& 
 	if (id_as_ps_folder)
 	{
 		Session current_session = SessionManager::getSessionBySecureToken(token);
-		UrlManager::addNewUrl(UrlEntity(id, file_info.fileName(), file_info.absolutePath(), file_info.absoluteFilePath(), id, file_info.size(), file_info.exists(), QDateTime::currentDateTime(), id, current_session.user_id));
+		UrlManager::addNewUrl(UrlEntity(id, file_info.fileName(), file_info.absolutePath(), file_info.absoluteFilePath(), id, file_info.size(), file_info.exists(), QDateTime::currentDateTime(), current_session.user_id));
 	}
 	else UrlManager::addNewUrl(UrlEntity(id, file_info.fileName(), file_info.absolutePath(), file_info.absoluteFilePath(), id, file_info.size(), file_info.exists(), QDateTime::currentDateTime()));
     return ClientHelper::serverApiUrl() + "temp/" + id + "/" + file_info.fileName() + "?token=" + token;

@@ -337,11 +337,11 @@ int ServerDB::getSessionsCount()
     return 0;
 }
 
-bool ServerDB::addUrl(const QString string_id, const QString filename, const QString path, const QString filename_with_path, const QString file_id, const qint64 size, const bool file_exists, const QDateTime created, const QString ps_folder, int user_id)
+bool ServerDB::addUrl(const QString string_id, const QString filename, const QString path, const QString filename_with_path, const QString file_id, const qint64 size, const bool file_exists, const QDateTime created, int user_id)
 {
     qint64 created_as_num = created.toSecsSinceEpoch();
-	QString query_text = "INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, size, file_exists, created, ps_folder, user_id)"
-						 " VALUES (\"" + string_id + "\", \"" + filename + "\", \"" + path + "\", \"" + filename_with_path + "\", \"" + file_id + "\", " +  QString::number(size) + ", " + QString::number(static_cast<int>(file_exists)) + ", " + QString::number(created_as_num) + ", \"" + ps_folder + "\", " + QString::number(user_id) + ")";
+	QString query_text = "INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, size, file_exists, created, user_id)"
+						 " VALUES (\"" + string_id + "\", \"" + filename + "\", \"" + path + "\", \"" + filename_with_path + "\", \"" + file_id + "\", " +  QString::number(size) + ", " + QString::number(static_cast<int>(file_exists)) + ", " + QString::number(created_as_num) + ", " + QString::number(user_id) + ")";
     QSqlQuery query(*(db_.data()));
     query.exec(query_text);
     bool success = query.lastError().text().trimmed().isEmpty();
@@ -355,7 +355,7 @@ bool ServerDB::addUrl(const QString string_id, const QString filename, const QSt
 
 bool ServerDB::addUrl(const UrlEntity new_url)
 {
-	return addUrl(new_url.string_id, new_url.filename, new_url.path, new_url.filename_with_path, new_url.file_id, new_url.size, new_url.file_exists, new_url.created, new_url.ps_folder, new_url.user_id);
+	return addUrl(new_url.string_id, new_url.filename, new_url.path, new_url.filename_with_path, new_url.file_id, new_url.size, new_url.file_exists, new_url.created, new_url.user_id);
 }
 
 bool ServerDB::addUrls(const QList<UrlEntity> all_urls)
@@ -373,13 +373,13 @@ bool ServerDB::addUrls(const QList<UrlEntity> all_urls)
     int processed_items = 0;
     for (int i=0; i<batch_count; i++)
     {
-		QString query_text = "INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, size, file_exists, created, ps_folder, user_id) VALUES";
+	QString query_text = "INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, size, file_exists, created, user_id) VALUES";
         for (int b=i*batch_size; b<((i+1)*batch_size); b++)
         {
             if (b>(all_urls.count()-1)) break;
 
             qint64 created_as_num = all_urls[b].created.toSecsSinceEpoch();
-			query_text+="\n(\"" + all_urls[b].string_id + "\", \"" + all_urls[b].filename + "\", \"" + all_urls[b].path + "\", \"" + all_urls[b].filename_with_path + "\", \"" + all_urls[b].file_id + "\", " + QString::number(all_urls[b].size) + ", " + QString::number(static_cast<int>(all_urls[b].file_exists)) + ", " + QString::number(created_as_num) + ", \"" + all_urls[b].ps_folder + "\", " + QString::number(all_urls[b].user_id) + "),";
+			query_text+="\n(\"" + all_urls[b].string_id + "\", \"" + all_urls[b].filename + "\", \"" + all_urls[b].path + "\", \"" + all_urls[b].filename_with_path + "\", \"" + all_urls[b].file_id + "\", " + QString::number(all_urls[b].size) + ", " + QString::number(static_cast<int>(all_urls[b].file_exists)) + ", " + QString::number(created_as_num) + ", " + QString::number(all_urls[b].user_id) + "),";
 
             processed_items++;
         }
@@ -462,22 +462,20 @@ UrlEntity ServerDB::getUrl(const QString& string_id)
         int index_file_id = query.record().indexOf("file_id");
         int index_size = query.record().indexOf("size");
         int index_file_exists = query.record().indexOf("file_exists");
-        int index_created = query.record().indexOf("created");
-		int index_ps_folder = query.record().indexOf("ps_folder");
-		int index_user_id = query.record().indexOf("user_id");
+        int index_created = query.record().indexOf("created");		
+	int index_user_id = query.record().indexOf("user_id");
 
         return UrlEntity(
-            query.value(index_string_id).toString(),
-            query.value(index_filename).toString(),
-            query.value(index_path).toString(),
-            query.value(index_filename_with_path).toString(),
-            query.value(index_file_id).toString(),
-            query.value(index_size).toLongLong(),
-            query.value(index_file_exists).toBool(),
-			QDateTime::fromSecsSinceEpoch(query.value(index_created).toLongLong()),
-			query.value(index_ps_folder).toString(),
-			query.value(index_user_id).toLongLong()
-            );
+	query.value(index_string_id).toString(),
+	query.value(index_filename).toString(),
+	query.value(index_path).toString(),
+	query.value(index_filename_with_path).toString(),
+	query.value(index_file_id).toString(),
+	query.value(index_size).toLongLong(),
+	query.value(index_file_exists).toBool(),
+	QDateTime::fromSecsSinceEpoch(query.value(index_created).toLongLong()),
+	query.value(index_user_id).toInt()
+	);
     }
 
     return UrlEntity();
@@ -498,9 +496,8 @@ QList<UrlEntity> ServerDB::getAllUrls()
         int index_file_id = query.record().indexOf("file_id");
         int index_size = query.record().indexOf("size");
         int index_file_exists = query.record().indexOf("file_exists");
-        int index_created = query.record().indexOf("created");		
-		int index_ps_folder = query.record().indexOf("ps_folder");
-		int index_user_id = query.record().indexOf("user_id");
+        int index_created = query.record().indexOf("created");				
+	int index_user_id = query.record().indexOf("user_id");
 
         results.append(
             UrlEntity(
@@ -511,9 +508,8 @@ QList<UrlEntity> ServerDB::getAllUrls()
                 query.value(index_file_id).toString(),
                 query.value(index_size).toLongLong(),
                 query.value(index_file_exists).toBool(),
-				QDateTime::fromSecsSinceEpoch(query.value(index_created).toLongLong()),
-				query.value(index_ps_folder).toString(),
-				query.value(index_user_id).toLongLong()
+		QDateTime::fromSecsSinceEpoch(query.value(index_created).toLongLong()),
+		query.value(index_user_id).toLongLong()
                 )
             );
     }
