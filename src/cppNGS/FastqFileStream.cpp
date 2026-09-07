@@ -157,9 +157,9 @@ void FastqFileStream::readEntry(FastqEntry& entry)
 	if (auto_validate_) entry.validate(long_read_);
 }
 
-FastqOutfileStream::FastqOutfileStream(QString filename, int compression_level, int compression_strategy)
+FastqOutfileStream::FastqOutfileStream(QString filename, int compression_level)
 	: filename_(filename)
-	, stream_(filename, false, compression_level, compression_strategy)
+	, stream_(filename, false, compression_level, false)
 	, is_closed_(false)
 {
 }

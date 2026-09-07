@@ -430,7 +430,7 @@ void VcfFile::storeAsTsv(const QString& filename)
 
 void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int compression_level) const
 {
-	VersatileOutStream output(filename, stdout_if_file_empty, compression_level);
+	VersatileOutStream output(filename, stdout_if_file_empty, compression_level, compression_level!=BGZF_NO_COMPRESSION);
 
 	QTextStream file_stream(&output);
 	file_stream.setEncoding(QStringConverter::Utf8);
