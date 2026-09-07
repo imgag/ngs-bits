@@ -9,8 +9,8 @@ VersatileOutStream::VersatileOutStream(QString filename, bool stdout_if_empty, i
 	, file_(filename)
 {
 	//check input
-	if (compression_level_<0 || compression_level_>NO_COMPRESSION) THROW(ArgumentException, "Invalid compression level '" + QString::number(compression_level_) + "' given for output file '" + filename_ + "'!");
-	if (bgz_ && !isCompressed()) THROW(ArgumentException, "BGZF output requires a compression level between 0 and 9!");
+	if (compression_level_<0 || compression_level_>9) THROW(ArgumentException, "Invalid compression level '" + QString::number(compression_level_) + "' given for output file '" + filename_ + "'!");
+	if (bgz_ && !isCompressed()) THROW(ArgumentException, "BGZF output requires a compression level between 1 to 9!");
 	if (isCompressed() && filename_.isEmpty()) THROW(ArgumentException, "Cannot write compressed output to stdout!");
 	if (isCompressed() && !filename.toLower().endsWith(".gz")) THROW(ArgumentException, "Compression requested, but filename does not end with '.gz'!");
 	if (!isCompressed() && filename.toLower().endsWith(".gz")) THROW(ArgumentException, "No compression requested, but filename ends with '.gz'!");

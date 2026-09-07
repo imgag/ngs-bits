@@ -20,7 +20,7 @@ public:
         addInfile("in", "Input variant list in VCF format.", false, true);
 		addOutfile("out", "Output variant list in VCF or VCF.GZ format.", false, true);
 		//optional
-		addInt("compression_level", "Output VCF compression level from 1 (fastest) to 9 (best compression). If unset, an unzipped VCF is written.", true, BGZF_NO_COMPRESSION);
+		addInt("compression_level", "Output VCF compression level from 1 (fastest) to 9 (best compression). If unset, an unzipped VCF is written.", true, Z_NO_COMPRESSION);
 		addFlag("remove_unused_contigs", "Remove comment lines of contigs, i.e. chromosomes, that are not used in the output VCF.");
 		addFlag("split_chrs", "Mode with reduced memory consumption for large files. Sorts only one chromosome at a time into a tmp file and merges all tmp files at the end.");
 		addFlag("debug", "Enable debug output to STDOUT.");
@@ -88,7 +88,7 @@ public:
 			}
 
 			//merge temporary files
-			VersatileOutStream out_stream(out, false, compression_level);
+			VersatileOutStream out_stream(out, false, compression_level, compression_level!=Z_NO_COMPRESSION);
 			for (int i=0; i<tmp_files.count(); ++i)
 			{
 				QSharedPointer<QFile> tmp_stream = Helper::openFileForReading(tmp_files[i]);

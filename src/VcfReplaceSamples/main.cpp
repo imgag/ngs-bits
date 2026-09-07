@@ -22,7 +22,7 @@ public:
 		//optional
 		addInfile("in", "Input variant list in VCF or VCF.GZ format. If unset, reads from STDIN.", true);
 		addOutfile("out", "Output variant list in VCF or VCF.GZ format. If unset, writes to STDOUT.", true);
-		addInt("compression_level", "Output VCF compression level from 1 (fastest) to 9 (best compression). If unset, an unzipped VCF is written.", true, BGZF_NO_COMPRESSION);
+		addInt("compression_level", "Output VCF compression level from 1 (fastest) to 9 (best compression). If unset, an unzipped VCF is written.", true, Z_NO_COMPRESSION);
 
 		changeLog(2025,  8, 27, "Initial version.");
 	}
@@ -35,7 +35,7 @@ public:
 		QString out = getOutfile("out");
 		if (in!="" && in==out) THROW(ArgumentException, "Parameters 'in' and 'out' cannot be the same file!");
 		int compression_level = getInt("compression_level");
-		VersatileOutStream out_file(out, true, compression_level);
+		VersatileOutStream out_file(out, true, compression_level, compression_level!=Z_NO_COMPRESSION);
 
 		//parse sample replacement
 		using IdPair=QPair<QByteArray,QByteArray>;

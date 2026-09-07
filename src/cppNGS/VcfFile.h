@@ -5,12 +5,7 @@
 #include "KeyValuePair.h"
 #include "ChromosomalIndex.h"
 #include "VariantList.h"
-#include "htslib/bgzf.h"
-
-#define BGZF_NO_COMPRESSION         10
-#define BGZF_GZIP_COMPRESSION		0
-#define BGZF_BEST_SPEED             1
-#define BGZF_BEST_COMPRESSION       9
+#include <zlib.h>
 
 ///Handling of VCF and VCF.GZ files
 class CPPNGSSHARED_EXPORT VcfFile
@@ -45,7 +40,7 @@ public:
 	void load(const QString& filename, bool stdin_if_file_empty = false);
 
 	///Stores the data in a file
-	void store(const QString& filename, bool stdout_if_file_empty = false, int compression_level = BGZF_NO_COMPRESSION) const;
+	void store(const QString& filename, bool stdout_if_file_empty = false, int compression_level = Z_NO_COMPRESSION) const;
 	///Stores a VCF file as a TSV representaton
 	void storeAsTsv(const QString& filename);
 

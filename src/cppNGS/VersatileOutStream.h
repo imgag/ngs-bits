@@ -12,11 +12,8 @@ class CPPNGSSHARED_EXPORT VersatileOutStream
 	: public QIODevice
 {
 public:
-	///Compression level NO_COMPRESSION selects plain output;
-	static constexpr int NO_COMPRESSION = 10;
-
-	///When bgz is true, BGZF output is written using htslib.
-	VersatileOutStream(QString filename, bool stdout_if_empty=false, int compression_level=NO_COMPRESSION, bool bgz=false);
+	///When compression level is 1 to 9, gzipped output is written. When additionally bgz is true, block-zipped output is written.
+	VersatileOutStream(QString filename, bool stdout_if_empty=false, int compression_level=Z_NO_COMPRESSION, bool bgz=false);
 	~VersatileOutStream() override;
 
 	///Flushes and closes the output. Throws FileAccessException on failure.
@@ -29,7 +26,12 @@ public:
 
 	bool isCompressed() const
 	{
-		return compression_level_!=NO_COMPRESSION;
+		return compression_level_!=Z_NO_COMPRESSION;
+	}
+
+	bool isBGZ()
+	{
+		return bgz_;
 	}
 
 protected:
