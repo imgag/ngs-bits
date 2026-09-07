@@ -121,8 +121,6 @@ bool UrlManager::extendActiveUrls(QString ps_folder, int user_id)
 		if (instance().url_storage_.value(keys[i]).string_id == ps_folder ||
 			(db.processedSampleId(instance().url_storage_.value(keys[i]).filename_with_path)==active_ps_id && instance().url_storage_.value(keys[i]).user_id==user_id))
 		{
-			Log::error(active_ps_id);
-			Log::error(instance().url_storage_.value(keys[i]).string_id + " >> " + instance().url_storage_.value(keys[i]).filename);
 			has_active_urls = true;
 			UrlEntity url_to_be_updated = instance().url_storage_.value(keys[i]);
 			url_to_be_updated.created = QDateTime::currentDateTime();
