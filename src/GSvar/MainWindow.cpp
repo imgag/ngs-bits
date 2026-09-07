@@ -2682,11 +2682,11 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 		}
 	}
 
-    QElapsedTimer timer;
+	QElapsedTimer timer;
         timer.start();
 
 	//mark IGV as not initialized
-	IgvSessionManager::get(0).setInitialized(false);
+	if (IgvSessionManager::count()>0) IgvSessionManager::get(0).setInitialized(false);
 
 	//reset GUI and data structures
 	setWindowTitle(appName());
