@@ -402,6 +402,10 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		{
 			conditions << "sys.type ='" + escapeForSql(p.sys_type) + "'";
 		}
+		if (p.sys_platform.trimmed()!="" && p.sys_platform.trimmed()!="n/a")
+		{
+			conditions << "sys.platform ='" + escapeForSql(p.sys_platform) + "'";
+		}
 
 		//add filters (run)
 		if (p.r_name.trimmed()!="")

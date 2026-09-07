@@ -452,6 +452,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	//filters processing system
 	QString sys_name;
 	QString sys_type;
+	QString sys_platform;
 
 	//filters sequencing run
 	QString r_name;
