@@ -32,6 +32,12 @@ private:
 		FastaFileIndex index(TESTDATA("data_in/example.fa"));
 		Sequence seq = index.seq("chr14", 1, 10, false);
 		S_EQUAL(seq, Sequence("ataaaccaac"));
+		seq = index.seq("chr14", 79, 2, false);
+		S_EQUAL(seq, Sequence("tg"));
+		seq = index.seq("chr14", 79, 2);
+		S_EQUAL(seq, Sequence("TG"));
+		seq = index.seq("chr14", 80, 3, false);
+		S_EQUAL(seq, Sequence("gag"));
 		seq = index.seq("chr14", 1500, 10, false);
 		S_EQUAL(seq, Sequence("tgaaaaataa"));
 

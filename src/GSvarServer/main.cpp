@@ -9,7 +9,7 @@
 #include "UrlManager.h"
 #include "SessionManager.h"
 #include "ToolBase.h"
-
+#include "EndpointManager.h"
 #include <csignal>
 #include <unistd.h>
 #include <sys/types.h>

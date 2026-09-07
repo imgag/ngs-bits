@@ -9,4 +9,5 @@ SOURCES += \
         VersatileFile_Test.cpp \
         VersatileTextStream_Test.cpp \
         HttpRequestHandler_Test.cpp \
+		VersatileOutStream_Test.cpp \
         main.cpp

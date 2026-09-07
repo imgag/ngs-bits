@@ -27,7 +27,7 @@ struct CPPNGSDSHARED_EXPORT BurdenTestResult
 	QString error;
 	QString warning;
 
-	bool operator<(const BurdenTestResult other) const
+	bool operator<(const BurdenTestResult& other) const
 	{
 		return p_value < other.p_value;
 	}

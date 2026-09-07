@@ -44,10 +44,10 @@ public:
 		//optional
 		addInt("min_depth", "Minimum depth for calling SNPs.", true, 3);
 		addInt("min_alt_count", "Minimum number of alternate observations for calling a SNP.", true, 1);
-		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg38");
 		addOutfile("out", "Output file. If unset, writes to STDOUT.", true);
 		addInfile("ref", "Reference genome for CRAM support (mandatory if CRAM is used).", true);
 
+		changeLog(2026,   9,  3, "Removed hg19 support and 'build' parameter.");
 		changeLog(2025,   5, 30, "Code refactoring and speed-up.");
 		changeLog(2020,  11, 27, "Added CRAM support.");
 		changeLog(2020,   6,  18, "Initial version of the tool.");
@@ -65,8 +65,7 @@ public:
 		int min_depth = getInt("min_depth");
 		int min_alt_count = getInt("min_alt_count");
 
-		GenomeBuild build = stringToBuild(getEnum("build"));
-		VcfFile snps = NGSHelper::getKnownVariants(build, true);
+		VcfFile snps = NGSHelper::getKnownVariants(true);
 		QSet<QByteArray> homozygous_variants;
 
 		//get relevant SNPs allele frequencies from BAMs

@@ -33,6 +33,15 @@ private:
 		VCF_IS_VALID(TESTDATA("data_out/VcfSort_out4.vcf.gz"));
 	}
 
+	TEST_METHOD(split_chrs_compression_level)
+	{
+		EXECUTE("VcfSort", "-in " + TESTDATA("data_in/VcfSort_in1.vcf") + " -split_chrs -compression_level 5 -out out/VcfSort_out_split.vcf.gz");
+		VcfFile output;
+		output.load("out/VcfSort_out_split.vcf.gz");
+		output.store("out/VcfSort_out_split.vcf");
+		COMPARE_FILES("out/VcfSort_out_split.vcf", TESTDATA("data_out/VcfSort_out2.vcf"));
+	}
+
 	TEST_METHOD(bug_GT_not_first_format_field)
 	{
 		EXECUTE("VcfSort", "-in " + TESTDATA("data_in/VcfSort_in2.vcf") + " -out out/VcfSort_out5.vcf");
@@ -40,5 +49,4 @@ private:
 		VCF_IS_VALID(TESTDATA("data_out/VcfSort_out5.vcf"));
 	}
 };
-
 

@@ -1,4 +1,5 @@
 #include "IgvLogWidget.h"
+#include <QSignalBlocker>
 #include "IgvSessionManager.h"
 #include "GUIHelper.h"
 
@@ -31,9 +32,10 @@ void IgvLogWidget::switchCurrentSession(int index)
 void IgvLogWidget::updateTable(QString name, QList<IGVCommand> commands)
 {
 	//set instance in combobox
-	ui_.igv_instance->blockSignals(true);
-	ui_.igv_instance->setCurrentText(name);
-	ui_.igv_instance->blockSignals(false);
+	{//do not remove scope - needed by QSignalBlocker
+		const QSignalBlocker blocker(ui_.igv_instance);
+		ui_.igv_instance->setCurrentText(name);
+	}
 
 	//update table
 	ui_.table->setRowCount(0);

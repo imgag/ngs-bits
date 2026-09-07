@@ -3,7 +3,6 @@
 #include "Helper.h"
 #include "Log.h"
 #include <QNetworkProxy>
-#include "HttpRequestHandler.h"
 
 using namespace std;
 
@@ -15,7 +14,7 @@ FastaFileIndex::FastaFileIndex(QString fasta_file)
     if (Helper::isHttpUrl(fasta_name_)) THROW(NotImplementedException, "FastaFileIndex does not support HTTP/HTTPS!");
 
     //open FASTA file handle
-    if (!file_.open(QIODevice::ReadOnly | QIODevice::Text))
+	if (!file_.open(QIODevice::ReadOnly))
     {
         THROW(FileAccessException, "Could not open FASTA file '" + fasta_name_ + "' for reading!");
     }
@@ -50,84 +49,137 @@ Sequence FastaFileIndex::seq(const Chromosome& chr, bool to_upper) const
 {
 	const FastaIndexEntry& entry = index(chr);
 
-    //jump to postion
-    if (!file_.seek(entry.offset))
-    {
-        THROW(FileAccessException, "QFile::seek did not work on " + fasta_name_ + "'!");
-    }
+	if (!file_.seek(entry.offset))
+	{
+		THROW(FileAccessException, "QFile::seek did not work on '" + fasta_name_ + "'!");
+	}
 
-	//read data
-	int newlines_in_sequence = entry.length / entry.line_blen;
-	int seqlen = newlines_in_sequence  + entry.length;
-	Sequence output;
+	const qint64 line_breaks = (entry.length - 1) / entry.line_blen;
+	const qint64 byte_count = entry.length + line_breaks * (entry.line_len - entry.line_blen);
 
-    output = file_.read(seqlen).replace('\n', "");
+	QByteArray data = file_.read(byte_count);
+	if (data.size() != byte_count)
+	{
+		THROW(FileAccessException, "Unexpected end of FASTA file while reading chromosome '" + chr.str() + "'!");
+	}
 
-	//output
-	if (to_upper) output = output.toUpper();
-	return output;
+	//in-place replacement of newlines and upper-case conversion
+	char* output = data.data();
+	qsizetype output_size = 0;
+	for (char base : std::as_const(data))
+	{
+		if (base == '\n' || base == '\r') continue;
+
+		if (to_upper && base >= 'a' && base <= 'z')
+		{
+			base -= 'a' - 'A';
+		}
+
+		output[output_size++] = base;
+	}
+
+	//check that we wrote the right numer of characters into the output
+	if (output_size != entry.length)
+	{
+		THROW(FileParseException, "FASTA index length does not match sequence length for chromosome '" + chr.str() + "'!");
+	}
+
+	data.truncate(output_size);
+	return data;
 }
 
 Sequence FastaFileIndex::seq(const Chromosome& chr, int start, int length, bool to_upper) const
 {
 	//subtract 1 to make the coordinates 0-based
-	start -= 1;
-	if (start < 0)
+	const qint64 start_zero_based = static_cast<qint64>(start) - 1;
+	if (start_zero_based < 0)
 	{
-		THROW(ProgrammingException, "FastaFileIndex::seq: Invalid start position (" + QString::number(start) + ") for " + chr.strNormalized(true) + ":" + QString::number(start+1) + "-" + QString::number(start+length));
+		THROW(ProgrammingException, "FastaFileIndex::seq: Invalid start position (" + QString::number(start_zero_based) + ") for " + chr.strNormalized(true) + ":" + QString::number(start) + "-" + QString::number(start_zero_based+length));
 	}
 	if (length < 0)
 	{
-		THROW(ProgrammingException, "FastaFileIndex::seq: Invalid length (" + QString::number(length) + ") for " + chr.strNormalized(true) + ":" + QString::number(start+1) + "-" + QString::number(start+length));
+		THROW(ProgrammingException, "FastaFileIndex::seq: Invalid length (" + QString::number(length) + ") for " + chr.strNormalized(true) + ":" + QString::number(start) + "-" + QString::number(start_zero_based+length));
 	}
 	const FastaIndexEntry& entry = index(chr);
-	if (start > entry.length)
+	if (start_zero_based > entry.length)
 	{
 		THROW(ProgrammingException, "FastaFileIndex::seq: Invalid start position " + chr.strNormalized(true) + ":" + QString::number(start) + " after chromosome end (" + QString::number(entry.length) + ")");
 	}
 
 	//restrict to chromosome length
-	if((start+length) > entry.length)
+	if (length > entry.length - start_zero_based)
 	{
-		Log::warn("FastaFileIndex::seq: Sequence length changed to chromosome end for: " + chr.strNormalized(true) + ":" + QString::number(start+1) + "-" + QString::number(start+length));
-		length = min(length, entry.length - start);
+		Log::warn("FastaFileIndex::seq: Sequence length changed to chromosome end for: " + chr.strNormalized(true) + ":" + QString::number(start) + "-" + QString::number(start_zero_based+length));
+		length = static_cast<int>(entry.length - start_zero_based);
+	}
+	if (length==0) return Sequence();
+	if (entry.line_blen<=0 || entry.line_len<entry.line_blen)
+	{
+		THROW(FileParseException, "Invalid line lengths in FASTA index for chromosome '" + chr.str() + "'!");
 	}
 
-	//jump to postion
-	int newlines_before = start > 0 ? (start - 1) / entry.line_blen : 0;
-	qint64 read_start_pos = entry.offset + newlines_before + start;
-    if (!file_.seek(read_start_pos))
-    {
-        THROW(FileAccessException, "QFile::seek did not work on " + fasta_name_ + "'!");
-    }
+	//calculate the physical byte range using the FASTA index
+	const qint64 end_zero_based = start_zero_based + length - 1;
+	const qint64 read_start_pos = entry.offset + (start_zero_based / entry.line_blen) * entry.line_len + (start_zero_based % entry.line_blen);
+	const qint64 read_end_pos = entry.offset + (end_zero_based / entry.line_blen) * entry.line_len + (end_zero_based % entry.line_blen);
+	const qint64 byte_count = read_end_pos - read_start_pos + 1;
 
-	//read data
-	int newlines_by_end = (start + length - 1) / entry.line_blen;
-	int newlines_inside = newlines_by_end - newlines_before;
-	int seqlen = length + newlines_inside;
-	Sequence output {};
+	if (!file_.seek(read_start_pos))
+	{
+		THROW(FileAccessException, "QFile::seek did not work on '" + fasta_name_ + "'!");
+	}
 
-    output = file_.read(seqlen).replace('\n', "");
+	QByteArray data = file_.read(byte_count);
+	if (data.size()!=byte_count)
+	{
+		THROW(FileAccessException, "Unexpected end of FASTA file while reading " + chr.str() + ":" + QString::number(start) + "-" + QString::number(start_zero_based+length) + "!");
+	}
+	if (!to_upper && byte_count==length) return data;
 
-	//output
-	if (to_upper) output = output.toUpper();
-	return output;
+	//remove line endings and optionally convert to upper case in one in-place pass
+	char* buffer = data.data();
+	qsizetype output_size = 0;
+	for (qsizetype i=0; i<data.size(); ++i)
+	{
+		char base = buffer[i];
+		if (base=='\n' || base=='\r') continue;
+		if (to_upper && base>='a' && base<='z') base -= 'a' - 'A';
+		buffer[output_size++] = base;
+	}
+
+	if (output_size!=length)
+	{
+		THROW(FileParseException, "FASTA index length does not match sequence length for " + chr.str() + ":" + QString::number(start) + "-" + QString::number(start_zero_based+length) + "!");
+	}
+
+	data.truncate(output_size);
+	return data;
 }
 
 int FastaFileIndex::n(const Chromosome& chr) const
 {
-	if (!n_.contains(chr))
+	const FastaIndexEntry& entry = index(chr);
+	if (!file_.seek(entry.offset))
 	{
-		int output = 0;
-		Sequence sequence = seq(chr, false);
-		for (int i=0; i<sequence.length(); ++i)
-		{
-			if (sequence[i]=='N' || sequence[i]=='n') ++output;
-		}
-		n_[chr] = output;
+		THROW(FileAccessException, "QFile::seek did not work on " + fasta_name_ + "'!");
 	}
 
-	return n_[chr];
+	const qint64 line_break_count = (entry.length - 1) / entry.line_blen;
+	qint64 bytes_remaining = entry.length + line_break_count * (entry.line_len - entry.line_blen);
+	int output = 0;
+	while (bytes_remaining>0)
+	{
+		QByteArray chunk = file_.read(qMin(1048576, bytes_remaining)); //1MB max
+		if (chunk.isEmpty()) THROW(FileAccessException, "Unexpected end of FASTA file while reading chromosome '" + chr.str() + "'!");
+
+		for (char base : std::as_const(chunk))
+		{
+			if (base=='N' || base=='n') ++output;
+		}
+		bytes_remaining -= chunk.size();
+	}
+
+	return output;
 }
 
 const FastaFileIndex::FastaIndexEntry& FastaFileIndex::index(const Chromosome& chr) const

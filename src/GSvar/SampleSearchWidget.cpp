@@ -59,6 +59,10 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	ui_.sys_name->fill(db.createTable("processing_system", "SELECT id, name_manufacturer FROM processing_system"), true);
 	ui_.sys_type->addItem("");
 	ui_.sys_type->addItems(db.getEnum("processing_system", "type"));
+	QStringList values = db.getEnum("processing_system", "platform");
+	values.removeAll("n/a");
+	values.prepend("");
+	ui_.sys_platform->addItems(values);
 	//run
 	ui_.r_name->fill(db.createTable("sequencing_run", "SELECT id, name FROM sequencing_run"), true);
 	ui_.r_device_name->fill(db.createTable("device", "SELECT id, name FROM device"), true);
@@ -111,6 +115,7 @@ void SampleSearchWidget::search()
 
 		params.sys_name = ui_.sys_name->text();
 		params.sys_type = ui_.sys_type->currentText();
+		params.sys_platform = ui_.sys_platform->currentText();
 
 		params.r_name = ui_.r_name->text();
 		params.include_bad_quality_runs = ui_.r_bad_quality->isChecked();

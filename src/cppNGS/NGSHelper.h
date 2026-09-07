@@ -51,8 +51,8 @@ class CPPNGSSHARED_EXPORT NGSHelper
 {
 public:
 	///Returns known SNPs and indels from gnomAD (AF>=1%, AN>=5000).
-	static VcfFile getKnownVariants(GenomeBuild build, bool only_snvs, const BedFile& roi, double min_af=0.0, double max_af=1.0);
-	static VcfFile getKnownVariants(GenomeBuild build, bool only_snvs, double min_af=0.0, double max_af=1.0);
+	static VcfFile getKnownVariants(bool only_snvs, const BedFile& roi, double min_af=0.0, double max_af=1.0);
+	static VcfFile getKnownVariants(bool only_snvs, double min_af=0.0, double max_af=1.0);
 
 	///Soft-clip alignment from the beginning or end (positions are 1-based)
 	static void softClipAlignment(BamAlignment& al, int start_ref_pos, int end_ref_pos);
@@ -73,12 +73,12 @@ public:
 	static char oneLetterCode(const QByteArray& aa_tree_letter_code);
 
 	///Returns the pseudoautomal region (PAR) on chrX/chrY .
-	static const BedFile& pseudoAutosomalRegion(GenomeBuild build);
+	static const BedFile& pseudoAutosomalRegion();
 
 	///Returns the cytogenetic band for to chromosomal position
-	static QByteArray cytoBand(GenomeBuild build, Chromosome chr, int pos);
+	static QByteArray cytoBand(Chromosome chr, int pos);
 	///Returns the chromosomal range of a cytoband or cytoband range.
-	static BedLine cytoBandToRange(GenomeBuild build, QByteArray cytoband);
+	static BedLine cytoBandToRange(QByteArray cytoband);
 
 	///Returns a map if imprinted genes and inherited allele.
 	static const QMap<QByteArray, ImprintingInfo>& imprintingGenes();
@@ -88,16 +88,15 @@ public:
 	static void parseRegion(const QString& text, Chromosome& chr, QByteArray& start, QByteArray& end, bool allow_chr_only = false);
 
 	///Returns Bed File with coordinates of centromeres.
-	static const BedFile& centromeres(GenomeBuild build);
-
+	static const BedFile& centromeres();
 	///Returns Bed file with coordinates of telomeres.
-	static const BedFile& telomeres(GenomeBuild build);
+	static const BedFile& telomeres();
 
 	///Converts the 3letter ancestry code to a human-readable text, see http://m.ensembl.org/Help/Faq?id=532
 	static QString populationCodeToHumanReadable(QString code);
 
 	///Returns a map with matching Ensembl, RefSeq and CCDS transcript identifiers (without version numbers).
-	static const QMap<QByteArray, QByteArrayList>& transcriptMatches(GenomeBuild build);
+	static const QMap<QByteArray, QByteArrayList>& transcriptMatches();
 
 	///Returns the MaxEntScan impact. 'score_pairs_with_impact' returns the score apirs with annotation of impact (if not low).
 	static MaxEntScanImpact maxEntScanImpact(const QByteArrayList& score_pairs, QByteArray& score_pairs_with_impact, bool splice_site_only);
@@ -105,7 +104,7 @@ public:
 	static double maxSpliceAiScore(QString annotation_string, QString* tooltip = nullptr);
 
 	///Returns a mapping from chromosome names to RefSeq NC identifiers including version number
-	static QHash<Chromosome, QString> chromosomeMapping(GenomeBuild build);
+	static QHash<Chromosome, QString> chromosomeMapping();
 
 	///Returns support read AF for a SV. Returns -1 if it could not be determined.
 	static double supportReadAf(const BedpeFile& svs, int sv_index, QByteArray sample, QByteArray read_type);

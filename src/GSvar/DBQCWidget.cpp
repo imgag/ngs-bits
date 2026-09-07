@@ -1,4 +1,5 @@
 #include "DBQCWidget.h"
+#include <QSignalBlocker>
 #include "BasicStatistics.h"
 #include "DBSelector.h"
 #include "GUIHelper.h"
@@ -540,9 +541,10 @@ void DBQCWidget::swapMetrics()
 	if (term1.isEmpty() || term2.isEmpty()) return;
 
 	//update - avoid updating the GUI twice by blocking the first signal
-	ui_.term->blockSignals(true);
-	ui_.term->setCurrentText(term2);
-	ui_.term->blockSignals(false);
+	{//do not remove scope - needed by QSignalBlocker
+		const QSignalBlocker blocker(ui_.term);
+		ui_.term->setCurrentText(term2);
+	}
 	ui_.term2->setCurrentText(term1);
 }
 

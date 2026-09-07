@@ -19,6 +19,29 @@ private:
 		}
 	}
 
+	TEST_METHOD(annotate)
+	{
+		VariantList variants;
+		variants.addAnnotation("existing", "Existing annotation.");
+		variants.append(Variant("chr1", 1, 1, "A", "C", QByteArrayList{"old"}));
+
+		VariantScores::Result result;
+		result.algorithm = "GSvar_v1";
+		result.scores << 1.5;
+		result.ranks << 1;
+		result.score_explanations << QStringList{"criterion: 1.5"};
+
+		I_EQUAL(VariantScores::annotate(variants, result, true), 1);
+		S_EQUAL(variants.annotations().at(0).name(), "GSvar_rank");
+		S_EQUAL(variants.annotations().at(1).name(), "GSvar_score");
+		S_EQUAL(variants.annotations().at(2).name(), "GSvar_score_explanations");
+		S_EQUAL(variants.annotations().at(3).name(), "existing");
+		S_EQUAL(variants[0].annotations().at(0), "1");
+		S_EQUAL(variants[0].annotations().at(1), "1.50");
+		S_EQUAL(variants[0].annotations().at(2), "criterion: 1.5");
+		S_EQUAL(variants[0].annotations().at(3), "old");
+	}
+
 	TEST_METHOD(rank_GSvar_v1)
 	{
 		//construct phenotype ROI

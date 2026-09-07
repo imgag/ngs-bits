@@ -93,7 +93,7 @@ private:
 	GapDetails writeCoverageDetails(QTextStream& stream, const TargetRegionInfo& roi);
 	void writeClosedGapsReport(QTextStream& stream);
 	void writeRNACoverageReport(QTextStream& stream);
-	static QString formatGenotype(GenomeBuild build, const QString& gender, const QString& genotype, const Variant& variant);
+	static QString formatGenotype(const QString& gender, const QString& genotype, const Variant& variant);
 	QString formatCodingSplicing(const Variant& v);
 	static QString convertOtherVariantType(const QString& type, bool xml=false);
 

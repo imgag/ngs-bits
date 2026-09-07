@@ -1,6 +1,7 @@
 #include "ToolBase.h"
 #include "VcfFile.h"
 #include "VersatileFile.h"
+#include "VersatileOutStream.h"
 
 class ConcreteTool
 		: public ToolBase
@@ -86,50 +87,19 @@ public:
 				VcfFile::clearCache();
 			}
 
-			//merge tmp files //TODO Alexandr: use VersatileOutFile both for zipped and unzipped output
-			if(compression_level == BGZF_NO_COMPRESSION)
+			//merge temporary files
+			VersatileOutStream out_stream(out, false, compression_level);
+			for (int i=0; i<tmp_files.count(); ++i)
 			{
-				//open output stream
-				QSharedPointer<QFile> out_stream = Helper::openFileForWriting(out);
-
-				//merge tmp files
-				for (int i=0; i<tmp_files.count(); ++i)
+				QSharedPointer<QFile> tmp_stream = Helper::openFileForReading(tmp_files[i]);
+				while(!tmp_stream->atEnd())
 				{
-					QSharedPointer<QFile> tmp_stream = Helper::openFileForReading(tmp_files[i]);
-					while(!tmp_stream->atEnd())
-					{
-						QByteArray line = tmp_stream->readLine();
-						if (i!=0 && line.startsWith('#')) continue; //headers only for first file
-
-						out_stream->write(line);
-					}
+					QByteArray line = tmp_stream->readLine();
+					if (i!=0 && line.startsWith('#')) continue; //headers only for first file
+					if (out_stream.write(line)!=line.size()) THROW(FileAccessException, "Writing VCF file '" + out + "' failed!");
 				}
 			}
-			else
-			{
-				//open output stream
-				QByteArray open_flags = "wb"+QByteArray::number(compression_level);
-				BGZF* out_stream = bgzf_open(out.toUtf8().data(), open_flags.data());
-				if (out_stream==nullptr) THROW(FileAccessException, "Could not open file '" + out + "' for writing!");
-
-				//merge tmp files
-				for (int i=0; i<tmp_files.count(); ++i)
-				{
-					QSharedPointer<QFile> tmp_stream = Helper::openFileForReading(tmp_files[i]);
-					while(!tmp_stream->atEnd())
-					{
-						QByteArray line = tmp_stream->readLine();
-						if (i!=0 && line.startsWith('#')) continue; //headers only for first file
-
-						int written_bytes = bgzf_write(out_stream, line.constData(), line.size());
-						if(written_bytes!=line.size()) THROW(FileAccessException, "Writing bgzipped VCF file '" + out + "' failed: not all bytes were written.");
-					}
-				}
-
-				//close file
-				int closed = bgzf_close(out_stream);
-				if (closed!=0) THROW(FileAccessException, "Writing bgzipped VCF file '" + out + "' failed: could not close file.");
-			}
+			out_stream.close();
 			printTime("merging tmp files");
 
 			//delete tmp files
@@ -162,4 +132,3 @@ int main(int argc, char *argv[])
 	ConcreteTool tool(argc, argv);
 	return tool.execute();
 }
-
