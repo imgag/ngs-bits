@@ -1,5 +1,11 @@
 # GSvar change log
 
+## 2026_06-127 (08.09.2026)
+
+- general: improved Mendelian error rate calculation to avoid false warning for ONT trios
+- sample search: added sample search parameter for sequencing platform.
+- report config: GSvar now also warns if overriding your own report config (before it only warned for report configs someone alse created)
+
 ## 2026_06-76 (24.07.2026)
 
 - general: added handling for new Illumina 5B flowcell
@@ -1237,6 +1243,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 
