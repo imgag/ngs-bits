@@ -39,6 +39,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	QTextStream stream(outfile.data());
     stream.setEncoding(QStringConverter::Utf8);
 	writeHtmlHeader(stream, data_.ps);
+	stream << "<!-- SECTION: MAIN -->" << Qt::endl;
 
 	//get trio data
 	bool is_trio = data_.variants.type() == GERMLINE_TRIO;
@@ -1817,7 +1818,6 @@ void GermlineReportGenerator::writeHtmlHeader(QTextStream& stream, QString sampl
 	stream << "	   </style>" << Qt::endl;
 	stream << "	</head>" << Qt::endl;
 	stream << "	<body>" << Qt::endl;
-	stream << "<!-- SECTION: MAIN -->" << Qt::endl;
 }
 
 void GermlineReportGenerator::writeHtmlFooter(QTextStream& stream)
@@ -2935,6 +2935,18 @@ QHash<QByteArray, QByteArray> GermlineReportGenerator::htmlSections(QByteArrayLi
 {
 	QHash<QByteArray, QByteArray> output;
 
+	//get html header/footer
+	QString tmp;
+	QTextStream stream(&tmp);
+	writeHtmlHeader(stream, data_.ps);
+	stream.flush();
+	QByteArray header = tmp.toUtf8();
+	QString tmp2;
+	QTextStream stream2(&tmp2);
+	writeHtmlFooter(stream2);
+	stream2.flush();
+	QByteArray footer = tmp2.toUtf8();
+
 	//determine section start/end
 	QHash<QByteArray, int> indices;
 	for (int i=0; i<html_full.count(); ++i)
@@ -2947,13 +2959,14 @@ QHash<QByteArray, QByteArray> GermlineReportGenerator::htmlSections(QByteArrayLi
 		}
 	}
 
+	//extract sections
 	for (const QByteArray& tag: QByteArrayList{"MAIN", "GAPS", "GENES", "PRS"})
 	{
 		int start = indices.value(tag, -1);
 		int end = indices.value(tag+" END", -1);
 		if (start!=-1 && end!=-1)
 		{
-			output[tag] = html_full.mid(start+1, end-start-1).join('\n');
+			output[tag] = header + html_full.mid(start+1, end-start-1).join('\n') + footer;
 		}
 	}
 
