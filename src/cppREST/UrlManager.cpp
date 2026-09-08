@@ -114,12 +114,15 @@ bool UrlManager::extendActiveUrls(QString ps_folder, int user_id)
 	UrlEntity active_url = instance().getURLById(ps_folder);
 	if (active_url.isEmpty()) return false;
 	NGSD db;
-	QString active_ps_id = db.processedSampleId(active_url.filename_with_path);
-
-	for (int i = 0; i < keys.count(); i++)
+	QString active_ps_id = db.processedSampleId(active_url.filename_with_path, false);
+	if (active_ps_id.isEmpty()) return false;
+	for (int i = 0; i < keys.count(); ++i)
 	{
-		if (instance().url_storage_.value(keys[i]).string_id == ps_folder ||
-			(db.processedSampleId(instance().url_storage_.value(keys[i]).filename_with_path)==active_ps_id && instance().url_storage_.value(keys[i]).user_id==user_id))
+		UrlEntity cur_url = instance().url_storage_.value(keys[i]);
+		QString cur_ps_id = db.processedSampleId(cur_url.filename_with_path, false);
+		if (cur_ps_id.isEmpty()) continue;
+
+		if (cur_url.string_id == ps_folder || (cur_ps_id==active_ps_id && cur_url.user_id==user_id))
 		{
 			has_active_urls = true;
 			UrlEntity url_to_be_updated = instance().url_storage_.value(keys[i]);
