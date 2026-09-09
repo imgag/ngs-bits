@@ -114,27 +114,19 @@ bool UrlManager::extendActiveUrls(QString ps_folder, int user_id)
 	bool has_active_urls = false;
 	UrlEntity active_url = instance().getURLById(ps_folder);
 	if (active_url.isEmpty()) return false;
-	Log::error("active_url.path = " + active_url.path);
-	Log::error("active_url.file = " + active_url.filename);
 
 	QStringList parts = active_url.path.split(QDir::separator());
 	QSet<QString> all_ps_names;
-	if (!parts.isEmpty())
-	{
-		QString folder_name = parts[parts.size()-1];
-		// Log::error(folder_name);
-		all_ps_names = ServerHelper::extractProcessSampleNames(folder_name);
-		for (const QString& item : all_ps_names)
-		{
-			Log::error(folder_name + " >> " + item);
-		}
-	}
+	if (!parts.isEmpty()) all_ps_names = ServerHelper::extractProcessSampleNames(parts.last());
 
 	for (int i = 0; i < keys.count(); ++i)
 	{
 		UrlEntity cur_url = instance().url_storage_.value(keys[i]);
+		QStringList cur_parts = cur_url.path.split(QDir::separator());
+		QSet<QString> cur_ps_names;
+		if (!cur_parts.isEmpty()) cur_ps_names = ServerHelper::extractProcessSampleNames(cur_parts.last());
 
-		if (cur_url.string_id == ps_folder || (all_ps_names.intersects(ServerHelper::extractProcessSampleNames(cur_url.path)) && cur_url.user_id==user_id))
+		if (cur_url.string_id == ps_folder || (all_ps_names.intersects(cur_ps_names) && cur_url.user_id==user_id))
 		{
 			has_active_urls = true;
 			UrlEntity url_to_be_updated = instance().url_storage_.value(keys[i]);
