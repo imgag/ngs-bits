@@ -1264,38 +1264,51 @@ QByteArray VariantHgvsAnnotator::getHgvsProteinAnnotation(const VcfLine& variant
                 aa_obs = "del";
             }
         }
-        //inframe deletion-insertion, more than one amino acid deleted
-        else if(!variant.isIns() && variant.ref().length() > (4 + pos_shift))
+        //inframe deletion-insertion: compare complete affected codons, then normalize on protein level
+        else if(variant.isInDel())
         {
-			if (debug) qDebug() << __LINE__;
-			int offset_end = (offset + variant.ref().length() - 1) % 3;
-            aa_ref.append("_");
-            if(plus_strand)
-            {
-				aa_ref.append(NGSHelper::translateCodonThreeLetterCode(genome_idx_.seq(variant.chr(), end - offset_end, 3), use_mito_table));
-            }
-            else
-            {
-				aa_ref.append(NGSHelper::translateCodonThreeLetterCode(genome_idx_.seq(variant.chr(), start - 2 + offset_end, 3).toReverseComplement(), use_mito_table));
-            }
-            aa_ref.append(QByteArray::number((pos_trans_start + variant.ref().length() - pos_shift - 1) / 3 + 1));
+			//The normalized alleles include an anchor; seq_ref/seq_obs start at a codon boundary.
+			//The common-prefix scan above may have shifted beyond the original affected codons.
+			int ref_length = ((offset + variant.ref().length() - 1 + 2) / 3) * 3;
+			ref_length = qMax(qMax(0, -frame_diff), ref_length - pos_shift);
+			QByteArray deleted = translate(seq_ref.left(ref_length), use_mito_table, true);
+			QByteArray inserted = translate(seq_obs.left(ref_length + frame_diff), use_mito_table, true);
 
-            //more than one amino acid inserted
-            if(variant.alt(0).length() > (4 + pos_shift))
-            {
-                aa_obs = "delins" + translate(seq_obs.left((variant.alt(0).length() - 1) + 1  - pos_shift));
-            }
-            else
-            {
-                aa_obs = "delins" + aa_obs;
-            }
-        }
-        //inframe deletion-insertion, more than one amino acid inserted
-        else if(!variant.isIns() && variant.alt(0).length() > (4 + pos_shift))
-        {
-			if (debug) qDebug() << __LINE__ << aa_ref << aa_obs;
-			if (debug) qDebug() << __LINE__ << pos_shift << ((variant.alt(0).length() - 1) + 1  - pos_shift);
-			aa_obs = "delins" + translate(seq_obs.left((variant.alt(0).length() - 1) + 1  - pos_shift));
+			//Remove matching suffix codons after the prefix scan to keep the most C-terminal representation.
+			while(!deleted.isEmpty() && !inserted.isEmpty() && deleted.right(3) == inserted.right(3))
+			{
+				deleted.chop(3);
+				inserted.chop(3);
+			}
+			int first_aa = (pos_trans_start - offset + pos_shift) / 3 + 1;
+			if(deleted.isEmpty() && inserted.isEmpty())
+			{
+				aa_obs = "=";
+			}
+			else if(deleted.isEmpty())
+			{
+				int duplication_start = (first_aa - 1) * 3 - inserted.length();
+				if(duplication_start >= 0 && translate(coding_sequence.mid(duplication_start, inserted.length()), use_mito_table) == inserted)
+				{
+					aa_ref = inserted.left(3) + QByteArray::number(duplication_start / 3 + 1);
+					if(inserted.length() > 3) aa_ref += "_" + inserted.right(3) + QByteArray::number(first_aa - 1);
+					aa_obs = "dup";
+				}
+				else
+				{
+					aa_ref = translate(coding_sequence.mid((first_aa - 2) * 3, 3), use_mito_table) + QByteArray::number(first_aa - 1)
+						+ "_" + translate(seq_ref.left(3), use_mito_table) + QByteArray::number(first_aa);
+					aa_obs = "ins" + inserted;
+				}
+			}
+			else
+			{
+				aa_ref = deleted.left(3) + QByteArray::number(first_aa);
+				if(deleted.length() > 3) aa_ref += "_" + deleted.right(3) + QByteArray::number(first_aa + deleted.length() / 3 - 1);
+				if(inserted.isEmpty()) aa_obs = "del";
+				else if(deleted.length() == 3 && inserted.length() == 3) aa_obs = inserted;
+				else aa_obs = "delins" + inserted;
+			}
         }
     }
 

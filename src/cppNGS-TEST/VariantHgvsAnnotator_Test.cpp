@@ -1408,6 +1408,13 @@ private:
 		S_EQUAL(variantImpactToString(hgvs.impact), "MODERATE");
 		I_EQUAL(hgvs.exon_number, 1);
 		I_EQUAL(hgvs.intron_number, -1);
+
+		//GSvar notation: the position is the first changed base, without a VCF anchor.
+		Variant gsvar_variant("chr7", 157009949, 157009949, "A", "CGCGGCGGCG");
+		VariantConsequence gsvar_hgvs = var_hgvs_anno.annotate(t, gsvar_variant);
+		S_EQUAL(gsvar_hgvs.hgvs_c, hgvs.hgvs_c);
+		S_EQUAL(gsvar_hgvs.hgvs_p, hgvs.hgvs_p);
+		IS_TRUE(gsvar_hgvs.types.contains(VariantConsequenceType::INFRAME_INSERTION));
 	}
 
 	//TODO Marc: fix consequence annotation for these variants:
