@@ -57,4 +57,5 @@ SOURCES += \
         PipelineSettings_Test.cpp \
         RepeatLocusList_Test.cpp \
         GffData_Test.cpp \
+        VersatileOutStream_Test.cpp \
         main.cpp

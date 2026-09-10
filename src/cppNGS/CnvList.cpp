@@ -615,7 +615,7 @@ KeyValuePair CnvList::split(const QByteArray& string, char sep)
 	return KeyValuePair(key, value);
 }
 
-int CnvList::determineReferenceCopyNumber(const CopyNumberVariant& cnv, const QString& gender, GenomeBuild build)
+int CnvList::determineReferenceCopyNumber(const CopyNumberVariant& cnv, const QString& gender)
 {
 	if (cnv.chr().isAutosome()) return 2;
 	if (cnv.chr().isY()) return 1;
@@ -626,7 +626,7 @@ int CnvList::determineReferenceCopyNumber(const CopyNumberVariant& cnv, const QS
 		if(gender == "male")
 		{
 			//calculate intersection with PAR
-			BedFile intersection = NGSHelper::pseudoAutosomalRegion(build);
+			BedFile intersection = NGSHelper::pseudoAutosomalRegion();
 			intersection.intersect(BedFile(cnv.chr(), cnv.start(), cnv.end()));
 			if ((intersection.baseCount()/cnv.size()) > 0.5)
 			{

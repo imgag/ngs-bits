@@ -78,6 +78,7 @@ public:
 		if (params.in!="" && params.in==params.out) THROW(ArgumentException, "Input and output files must be different when streaming!");
 		if (existence_only && (!file_path.isEmpty() || !info_keys.isEmpty() || !id_column.isEmpty())) THROW(ArgumentException, "Parameter 'existence_only' cannot be used together with '-config_file', '-info_keys' or '-id_column'!");
 		if (existence_only && existence_key_name.isEmpty()) THROW(ArgumentException, "Parameter 'existence_key_name' cannot be empty!");
+		if (params.out=="" && params.debug) THROW(ArgumentException, "Cannot output Vcf and debug to STDOUT!");
 
 		//get meta data
 		MetaData meta;

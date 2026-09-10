@@ -74,6 +74,13 @@ void ChainFileReader::load()
 			}
 		}
 	}
+
+	//add final chain alignment (all previous alignments are added when the next chain header is encountered)
+	if (!chromosomes_.contains(currentAlignment.ref_chr))
+	{
+		chromosomes_.insert(currentAlignment.ref_chr, QList<GenomicAlignment>());
+	}
+	chromosomes_[currentAlignment.ref_chr].append(currentAlignment);
 }
 
 BedLine ChainFileReader::lift(const Chromosome& chr, int start, int end) const

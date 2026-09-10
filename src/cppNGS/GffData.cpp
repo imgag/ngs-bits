@@ -364,7 +364,7 @@ GffData GffData::loadRefseq(QString filename, const GffSettings& settings, int& 
     //init
     QHash<QByteArray, Chromosome> id2chr; //refseq chromosome ID to normal chromosome name
     {
-        QHash<Chromosome, QString> tmp = NGSHelper::chromosomeMapping(GenomeBuild::HG38);
+		QHash<Chromosome, QString> tmp = NGSHelper::chromosomeMapping();
         foreach (Chromosome key, tmp.keys())
         {
             id2chr.insert(tmp[key].toUtf8(), key);

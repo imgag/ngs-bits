@@ -6,6 +6,14 @@
 #include "SomaticReportHelper.h"
 #include "VariantHgvsAnnotator.h"
 
+namespace
+{
+	QByteArray variantKey(const QByteArray& chr, int start, int end, const QByteArray& ref, const QByteArray& obs)
+	{
+		return chr + ':' + QByteArray::number(start) + '-' + QByteArray::number(end) + ' ' + ref + '>' + obs;
+	}
+}
+
 //
 ///METAFILE:
 //
@@ -568,6 +576,17 @@ void ExportCBioPortalStudy::exportSnvs(const QString& out_folder, bool debug)
 			<< "HGVSp_Short" << "t_alt_count" << "t_ref_count" << "n_alt_count" << "n_ref_count" << "ANNOTATION.VICC";
 
 	out_file->write(columns.join("\t") + "\n");
+
+	FastaFileIndex genome_idx(Settings::string("reference_genome"));
+	VariantHgvsAnnotator hgvs_annotator(genome_idx);
+	QHash<QByteArray, QByteArray> vicc_classifications;
+	SqlQuery vicc_query = db_.getQuery();
+	vicc_query.exec("SELECT v.chr, v.start, v.end, v.ref, v.obs, svi.classification FROM somatic_vicc_interpretation svi, variant v WHERE svi.variant_id=v.id");
+	while (vicc_query.next())
+	{
+		vicc_classifications.insert(variantKey(vicc_query.value(0).toByteArray(), vicc_query.value(1).toInt(), vicc_query.value(2).toInt(), vicc_query.value(3).toByteArray(), vicc_query.value(4).toByteArray()), vicc_query.value(5).toByteArray());
+	}
+
 	for(int idx=0; idx < settings_.sample_list.count(); idx++)
 	{
 		if(debug)
@@ -597,19 +616,16 @@ void ExportCBioPortalStudy::exportSnvs(const QString& out_folder, bool debug)
 		}
 
 
-		writeSnvVariants(out_file, vl_somatic, idx);
+		writeSnvVariants(out_file, vl_somatic, idx, hgvs_annotator, vicc_classifications);
 	}
 }
 
-void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, VariantList filtered_vl, int sample_idx)
+void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, const VariantList& filtered_vl, int sample_idx, VariantHgvsAnnotator& hgvs_annotator, const QHash<QByteArray, QByteArray>& vicc_classifications)
 {
 	//TODO Alexander: add switch for somatic vs Germline?
 
 	QByteArray build = settings_.getGenomeBuild(sample_idx).toUtf8();
 	QByteArray sample_id = settings_.getSampleId(sample_idx).toUtf8();
-
-	FastaFileIndex genome_idx(Settings::string("reference_genome"));
-	VariantHgvsAnnotator hgvs_annotator(genome_idx);
 
 	int idx_gene_anno = filtered_vl.annotationIndexByName("gene");
 	int idx_co_sp_anno = filtered_vl.annotationIndexByName("coding_and_splicing");
@@ -621,7 +637,7 @@ void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, Var
 	for (int i=0; i<filtered_vl.count(); i++)
 	{
 		QByteArrayList line_parts;
-		Variant var = filtered_vl[i];
+		const Variant& var = filtered_vl[i];
 
 		TranscriptList transcripts  = db_.transcriptsOverlapping(var.chr(), var.start(), var.end(), 5000);
 		transcripts.sortByRelevance();
@@ -630,7 +646,7 @@ void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, Var
 
 		//remove transcripts of close genes
 		TranscriptList remove;
-        for (auto trans : transcripts)
+        for (const Transcript& trans : transcripts)
 		{
 			if (! genes.contains(trans.gene()))
 			{
@@ -638,7 +654,7 @@ void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, Var
 			}
 		}
 
-        for (auto trans : remove)
+        for (const Transcript& trans : remove)
 		{
 			transcripts.removeAll(trans);
 		}
@@ -691,16 +707,7 @@ void ExportCBioPortalStudy::writeSnvVariants(QSharedPointer<QFile> out_file, Var
 
 
 
-		SomaticViccData vicc = db_.getSomaticViccData(var,false);
-		if (vicc.isValid())
-		{
-			QString vicc_class = SomaticVariantInterpreter::viccScoreAsString(vicc);
-			line_parts << vicc_class.toUtf8();
-		}
-		else
-		{
-			line_parts << "";
-		}
+		line_parts << vicc_classifications.value(variantKey(var.chr().strNormalized(true), var.start(), var.end(), var.ref(), var.obs()));
 		out_file->write(line_parts.join("\t") + "\n");
 	}
 }
@@ -1119,7 +1126,4 @@ QByteArray ExportCBioPortalStudy::formatVariantClassification(const Transcript& 
 	return annotated[0].split(':')[2];
 
 }
-
-
-
 

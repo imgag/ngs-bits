@@ -6,6 +6,7 @@
 #include "Sequence.h"
 #include <QString>
 #include "VersatileFile.h"
+#include "VersatileOutStream.h"
 
 ///Representation of a FASTQ entry.
 struct CPPNGSSHARED_EXPORT FastqEntry
@@ -91,7 +92,7 @@ class CPPNGSSHARED_EXPORT FastqOutfileStream
 {
 public:
     ///Constructor.
-	FastqOutfileStream(QString filename, int compression_level = Z_BEST_SPEED, int compression_strategy = Z_DEFAULT_STRATEGY);
+	FastqOutfileStream(QString filename, int compression_level = Z_BEST_SPEED);
     ///Destructor - closes the stream if not already done.
     ~FastqOutfileStream();
 
@@ -108,7 +109,7 @@ public:
 
 protected:
     QString filename_;
-	gzFile gzfile_;
+	VersatileOutStream stream_;
 	bool is_closed_;
 
     //declared away methods

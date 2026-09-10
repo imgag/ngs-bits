@@ -23,9 +23,9 @@ INSERT INTO project (id, name, type, internal_coordinator_id, analysis, archived
 (3, 'Third_project', 'diagnostic', 1, 'variants', 0);
 
 -- processing_system
-INSERT INTO processing_system (id, name_manufacturer, shotgun, name_short, genome_id) VALUES
-(1, 'HaloPlex System', '1', 'hpSYSv1', 1),
-(2, 'SureSelect Human All Exon v5', '1', 'ssHAEv5', 1);
+INSERT INTO processing_system (id, name_manufacturer, shotgun, name_short, genome_id, platform) VALUES
+(1, 'HaloPlex System', '1', 'hpSYSv1', 1, 'Illumina'),
+(2, 'SureSelect Human All Exon v5', '1', 'ssHAEv5', 1, 'Illumina');
 
 -- sample
 INSERT INTO sample (id, name, sample_type, species_id, gender, tumor, ffpe, sender_id, quality, disease_group, disease_status, tissue, received, year_of_birth) VALUES

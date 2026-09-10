@@ -16,7 +16,7 @@ public:
 	static QList<UrlEntity> getAllUrls();
 	static bool isValidUrl(QString token);
 	static void removeExpiredUrls();
-	static bool extendActiveUrls(QString ps_folder);
+	static bool extendActiveUrls(QString ps_folder, int user_id);
 
 protected:
 	UrlManager();

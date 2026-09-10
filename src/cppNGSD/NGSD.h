@@ -7,7 +7,6 @@
 #include <QTextStream>
 #include <QDateTime>
 #include <QRegularExpression>
-#include <QMutex>
 #include "VariantList.h"
 #include "BedFile.h"
 #include "Transcript.h"
@@ -27,6 +26,9 @@
 #include "TsvFile.h"
 
 const int MAX_VARIANT_SIZE = 500;
+
+class NGSDReferenceDataCache;
+class NGSDUserCache;
 
 ///Sample relation datastructure
 struct CPPNGSDSHARED_EXPORT SampleRelation
@@ -451,6 +453,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	//filters processing system
 	QString sys_name;
 	QString sys_type;
+	QString sys_platform;
 
 	//filters sequencing run
 	QString r_name;
@@ -822,7 +825,7 @@ public:
 	///Returns the gene ID, or -1 if no approved gene name could be found. Checks approved symbols, previous symbols and synonyms. Uses internal cache to speed up repeated queries of the same gene name.
 	int geneId(const QByteArray& gene);
 	///Returns the gene ID of the transcript, or -1 if no gene could be determined.
-	int geneIdOfTranscript(const QByteArray& name, bool throw_on_error=true, GenomeBuild build=GenomeBuild::HG38);
+	int geneIdOfTranscript(const QByteArray& name, bool throw_on_error=true);
 	///Returns the gene symbol for a gene ID. Throws a DatabaseException if the ID is not valid.
 	QByteArray geneSymbol(int id);
 	///Returns the HGNC identifier of a gene.
@@ -1160,6 +1163,8 @@ public:
 	int getSomaticViccId(const Variant& variant);
 	///Returns the VICC classification of a variant
 	SomaticViccData getSomaticViccData(const Variant& variant, bool throw_on_fail = true);
+	///Returns whether VICC classification data exists for a variant and writes it to output if present.
+	bool getSomaticViccData(const Variant& variant, SomaticViccData& output);
 	///Sets the VICC classification of a variant
 	void setSomaticViccData(const Variant& variant, const SomaticViccData& vicc_data, QString user_name);
 	///Deletes the VICC classification of a variant
@@ -1321,12 +1326,15 @@ signals:
 	void updateProgress(int percentage);
 
 protected:
+	friend class NGSDReferenceDataCache;
+	friend class NGSDUserCache;
 	///Copy constructor "declared away".
 	NGSD(const NGSD&) = delete;
 	static QString escapeForSql(const QString& text);
 
 	///Returns the maxiumn allele frequency of a variant.
 	static double maxAlleleFrequency(const Variant& v, QList<int> af_column_index);
+	bool getSomaticViccDataByVariantId(const QString& variant_id, SomaticViccData& output);
 
 	///Returns the target region folder.
 	static QString getTargetFilePath();
@@ -1337,52 +1345,11 @@ protected:
 	bool test_db_;
 	//Enable debugging (prints executed queries)
 	bool debug_;
+	//Separates caches for production, the standard test database and named test databases.
+	QString cache_context_;
 
-	///Caching functionality (static)
-	struct Cache
-	{
-		Cache();
-
-		//REMEMBER TO ADD ALL MEMBERS TO THE FUNCTION clearCache()!
-		QMap<QString, TableInfo> table_infos;
-		QHash<int, QSet<int>> same_samples;
-		QHash<int, QSet<int>> same_patients;
-		QHash<int, QSet<int>> related_samples;
-		GeneSet approved_gene_names;
-		QHash<QByteArray, int> gene2id;
-        QHash<int, QByteArray> id2gene;
-		QMap<QString, QStringList> enum_values;
-		QMap<QByteArray, QByteArray> non_approved_to_approved_gene_names;
-		QHash<int, Phenotype> phenotypes_by_id;
-		QHash<QByteArray, int> phenotypes_accession_to_id;
-        QHash<int, QList<QByteArray>> hpo_genes;
-        QHash<int, QList<int>> hpo_parent;
-		QMap<QString, SomaticGeneRole> gene_symbol_to_somatic_gene_role;
-		QMap<int, QByteArray> gene_id_to_hgnc;
-		QMap<QByteArray, int> hgnc_id_to_gene_id;
-
-		TranscriptList gene_transcripts;
-		ChromosomalIndex<TranscriptList> gene_transcripts_index;
-		QHash<int, int> gene_transcripts_id2index; //NGSD transcript id > index in 'gene_transcripts'
-		QHash<QByteArray, QSet<int>> gene_transcripts_symbol2indices; //gene symbol > indices in 'gene_transcripts'
-		QHash<QByteArray, int> gene_transcripts_name2id; //transcript name > transcript ID in NGSD
-
-		//gene expression
-		QMap<int, QByteArray> gene_expression_id2gene;
-		QMap<QByteArray, int> gene_expression_gene2id;
-
-		QMap<int, QByteArray> user_role;
-        QMap<int, QSet<int>> user_can_access;
-		QMap<int, QSet<ActionPermission>> user_can_perform_actions;
-	};
-	static Cache& getCache();
-	void initTranscriptCache();
-	void initGeneExpressionCache();
-
-private:
-	mutable QMutex cache_mutex_user_roles_; //mutex for Cache::user_can_access
-	mutable QMutex cache_mutex_user_access_; //mutex for Cache::user_can_access
-	mutable QMutex cache_mutex_user_actions_; //mutex for Cache::user_can_perform_actions
+	NGSDReferenceDataCache& referenceCache() const;
+	NGSDUserCache& userCache() const;
 };
 
 #endif // NGSD_H

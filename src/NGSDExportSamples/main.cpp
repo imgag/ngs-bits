@@ -52,6 +52,7 @@ public:
 		addFlag("no_archived_projects", "If set, samples in archived projects are excluded.");
 		addString("system", "Processing system name filter (short name).", true, "");
 		addString("system_type", "Type of processing system filter", true, "");
+		addString("system_platform", "Sequencing platform.", true, "");
 		addString("run", "Sequencing run name filter.", true, "");
 		addFlag("run_finished", "Only show samples where the analysis of the run is finished.");
 		addString("run_device", "Sequencing run device name filter.", true, "");
@@ -73,6 +74,7 @@ public:
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addEnum("preset", "Presets for different common searches. Note: presets are applied after argument parsing and thus override command line argument.", true, QStringList() << "none" << "germline", "none");
 
+		changeLog(2026,  9,  7, "Added 'platform' parameter.");
 		changeLog(2025, 12, 12, "Added 'ps_override' parameter.");
 		changeLog(2025,  5, 19, "Added 'preset' and 'no_resequencing' parameters.");
 		changeLog(2024,  8, 21, "Added 'add_study_column' flag.");
@@ -128,6 +130,7 @@ public:
 		params.include_archived_projects = !getFlag("no_archived_projects");
 		params.sys_name = getString("system");
 		params.sys_type = getString("system_type");
+		params.sys_platform = getString("system_platform");
 		params.r_name = getString("run");
 		params.include_bad_quality_runs = !getFlag("no_bad_runs");
 		params.run_finished = getFlag("run_finished");
@@ -320,6 +323,15 @@ public:
 			if (! values.contains(params.s_disease_status))
 			{
 				THROW(DatabaseException, "Invalid sample disease status '"+params.s_disease_status+"'.\nValid statuses are: " + values.join(", "));
+			}
+		}
+
+		if (params.sys_platform !="")
+		{
+			QStringList values = db.getEnum("processing_system", "platform");
+			if (! values.contains(params.sys_platform))
+			{
+				THROW(DatabaseException, "Invalid sequencing platform '"+params.sys_platform+"'.\nValid statuses are: " + values.join(", "));
 			}
 		}
 

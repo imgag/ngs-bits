@@ -301,7 +301,7 @@ public:
 		NGSD db(getFlag("test"));
 		QTextStream out(stdout);
 		bool all = getFlag("all");
-		const BedFile& par = NGSHelper::pseudoAutosomalRegion(GenomeBuild::HG38);
+		const BedFile& par = NGSHelper::pseudoAutosomalRegion();
 
 		//check tables exist
 		db.tableExists("gene");

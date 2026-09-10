@@ -9,7 +9,7 @@
 #include "UrlManager.h"
 #include "SessionManager.h"
 #include "ToolBase.h"
-
+#include "EndpointManager.h"
 #include <csignal>
 #include <unistd.h>
 #include <sys/types.h>
@@ -772,6 +772,7 @@ int main(int argc, char **argv)
 	{
 		ServerDB db = ServerDB();
 		db.initDbIfEmpty();
+		Log::info("Server database schema version in use: " + QString::number(db.getSchemaVersion()));
 		if (db.getSchemaVersion() < db.EXPECTED_SCHEMA_VERSION)
 		{
 			Log::info("Schema has changed. Reinitializing the server database...");

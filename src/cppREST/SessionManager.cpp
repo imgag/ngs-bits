@@ -92,7 +92,6 @@ void SessionManager::removeExpiredSessions()
 
     Log::info("Starting to cleanup session");
     QList<QString> to_be_removed {};
-    QList<Session> to_be_backedup {};
 
     QList<QString> keys = instance().session_storage_.keys();
     for (int i = 0; i < keys.count(); i++)
@@ -100,11 +99,7 @@ void SessionManager::removeExpiredSessions()
         if (instance().session_storage_.value(keys[i]).login_time.toSecsSinceEpoch() < (QDateTime::currentDateTime().toSecsSinceEpoch()-valid_period))
         {
             to_be_removed.append(keys[i]);
-        }
-        else
-        {
-            to_be_backedup.append(instance().session_storage_.value(keys[i]));
-        }
+        }      
     }
     for (int i = 0; i < to_be_removed.count(); ++i)
     {

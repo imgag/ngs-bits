@@ -28,16 +28,16 @@ public:
 		addInfile("tumor_bam", "Input tumor BAM/CRAM file for sample similarity.", true, true);
 		addInfileList("related_bams", "BAM files of related cfDNA samples to compute sample similarity.", true, true);
 		addInfile("error_rates", "Input TSV containing umiVar error rates.", true, true);
-		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg38");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addInt("min_mapq", "Set minimal mapping quality.", true, 0);
 		addFlag("txt", "Writes TXT format instead of qcML.");
 		addInt("threads", "The number of threads used for coverage calculation.", true, 1);
 
 		//changelog
+		changeLog(2026,  9,  3, "Removed HG19 support and 'build' parameter.");
 		changeLog(2022,  9, 16, "Added 'threads' parameter.");
 		changeLog(2021, 10, 22, "Initial version.");
-		changeLog(2021, 12, 3, "Added correllation between cfDNA samples.");
+		changeLog(2021, 12,  3, "Added correllation between cfDNA samples.");
 	}
 
 	virtual void main()
@@ -50,9 +50,8 @@ public:
 		QStringList related_bams = getInfileList("related_bams");
 		QString umivar_error_rate_file = getInfile("error_rates");
 		int min_mapq = getInt("min_mapq");
-		GenomeBuild build = stringToBuild(getEnum("build"));
 		QString ref = getInfile("ref");
-		if(ref.isEmpty())	ref = Settings::string("reference_genome", true);
+		if(ref.isEmpty()) ref = Settings::string("reference_genome", true);
 		if (ref=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 		int threads = getInt("threads");
 
@@ -118,14 +117,14 @@ public:
 
 		//extend cfDNA panel
 		cfdna_panel.extend(60);
-		SampleSimilarity::VariantGenotypes cfdna_genotype_data = SampleSimilarity::genotypesFromBam(build, bam, 30, 2000, false, cfdna_panel, ref);
+		SampleSimilarity::VariantGenotypes cfdna_genotype_data = SampleSimilarity::genotypesFromBam(bam, 30, 2000, false, cfdna_panel, ref);
 
 		// compute similarity
 		float tumor_correlation = 0.0;
 		if (!tumor_bam.isEmpty())
 		{
 			//get genotype data
-			SampleSimilarity::VariantGenotypes tumor_genotype_data = SampleSimilarity::genotypesFromBam(build, tumor_bam, 30, 2000, false, cfdna_panel, ref);
+			SampleSimilarity::VariantGenotypes tumor_genotype_data = SampleSimilarity::genotypesFromBam(tumor_bam, 30, 2000, false, cfdna_panel, ref);
 			SampleSimilarity sample_similarity;
 			sample_similarity.calculateSimilarity(cfdna_genotype_data, tumor_genotype_data);
 			tumor_correlation = sample_similarity.sampleCorrelation();
@@ -137,7 +136,7 @@ public:
 		QStringList related_correlation;
 		foreach (const QString& related_bam, related_bams)
 		{
-			SampleSimilarity::VariantGenotypes genotype_data = SampleSimilarity::genotypesFromBam(build, related_bam, 30, 2000, false, cfdna_panel, ref);
+			SampleSimilarity::VariantGenotypes genotype_data = SampleSimilarity::genotypesFromBam(related_bam, 30, 2000, false, cfdna_panel, ref);
 			SampleSimilarity sample_similarity;
 			sample_similarity.calculateSimilarity(cfdna_genotype_data, genotype_data);
 			related_correlation.append(QFileInfo(related_bam).baseName() + ":" + QString::number(sample_similarity.sampleCorrelation(), 'f', 2));

@@ -1,6 +1,6 @@
-monitoring variant read depth: 5595.40
+monitoring variant read depth: 1804.60
 monitoring variant count: 5
 250x coverage monitoring variant percentage: 100.00
 ID variant count: 9
-ID variant read depth: 4706.67
+ID variant read depth: 1641.00
 250x coverage ID variant percentage: 100.00

@@ -1,4 +1,5 @@
 #include "VcfFile.h"
+#include "VersatileOutStream.h"
 #include "Helper.h"
 #include "VersatileFile.h"
 #include <QRegularExpression>
@@ -112,7 +113,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 	if (!load_chr_.isEmpty() && !line.startsWith(load_chr_)) return;
 
 	//split line
-	QByteArrayList line_parts = line.split('\t'); //TODO Marc: massive speed-up possible when using QByteArrayView
+	QByteArrayList line_parts = line.split('\t');
 	if (line_parts.count()< MIN_COLS) THROW(FileParseException, "VCF data line needs at least 8 tab-separated columns! Found " + QString::number(line_parts.count()) + " column(s) in line number " + QString::number(line_number) + ": " + line);
 
 	VcfLine vcf_line;
@@ -429,44 +430,22 @@ void VcfFile::storeAsTsv(const QString& filename)
 
 void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int compression_level) const
 {
-	if(compression_level == BGZF_NO_COMPRESSION)
+	VersatileOutStream output(filename, stdout_if_file_empty, compression_level, compression_level!=Z_NO_COMPRESSION);
+
+	QTextStream file_stream(&output);
+	file_stream.setEncoding(QStringConverter::Utf8);
+
+	vcf_header_.storeHeaderInformation(file_stream);
+	storeHeaderColumns(file_stream);
+	foreach (const VcfLine& line, vcf_lines_)
 	{
-		//open stream
-		QSharedPointer<QFile> file = Helper::openFileForWriting(filename, stdout_if_file_empty);
-		QTextStream file_stream(file.data());
-        file_stream.setEncoding(QStringConverter::Utf8);        
-
-		//write header information
-		vcf_header_.storeHeaderInformation(file_stream);
-
-		//write header columns
-		storeHeaderColumns(file_stream);
-
-		//write vcf lines
-		foreach (const VcfLine& line, vcf_lines_)
-		{
-			storeLineInformation(file_stream, line);
-		}
+		storeLineInformation(file_stream, line);
 	}
-	else
-	{
-		if(filename.isEmpty()) THROW(ArgumentException, "Cannot write VCF.GZ to stdout! Specify a file name of disable compression!");
-		if (compression_level<0 || compression_level>9) THROW(ArgumentException, "Invalid gzip compression level '" + QString::number(compression_level) +"' given for VCF file '" + filename + "'!");
 
-		//open file
-		QByteArray open_flags = "wb"+QByteArray::number(compression_level);
-		BGZF* out_stream = bgzf_open(filename.toUtf8().data(), open_flags.data());
-		if (out_stream==nullptr) THROW(FileAccessException, "Could not open file '" + filename + "' for writing!");
+	file_stream.flush();
+	if (file_stream.status()!=QTextStream::Ok) THROW(FileAccessException, "Writing VCF file '" + filename + "' failed!");
 
-		//write text //TODO Alexandr: this is not efficient as it writes to entire file to memory and then to the disk - implement VersatileOutFile and use it for storing zipped and unzipped data
-		QByteArray text = toText();
-		int written_bytes = bgzf_write(out_stream, text.constData(), text.size());
-		if(written_bytes!=text.size()) THROW(FileAccessException, "Writing bgzipped VCF file '" + filename + "' failed: not all bytes were written.");
-
-		//close file
-		int closed = bgzf_close(out_stream);
-		if (closed!=0) THROW(FileAccessException, "Writing bgzipped VCF file '" + filename + "' failed: could not close file.");
-	}
+	output.close();
 }
 
 void VcfFile::leftNormalize(QString reference_genome)
@@ -510,24 +489,23 @@ void VcfFile::removeDuplicates(bool sort_by_quality)
 {
 	sort(sort_by_quality);
 
-	//remove duplicates (same chr, start, obs, ref) - avoid linear time remove() calls by copying the data to a new vector.
-	QList<VcfLine> output;
-	output.reserve(vcf_lines_.count());
+	//remove duplicates (same chr, start, alt, ref) by compacting unique variants in place
+	int output_index = 0;
 	for (int i=0; i<vcf_lines_.count()-1; ++i)
 	{
 		int j = i+1;
-        if (vcf_lines_[i].chr() != vcf_lines_[j].chr() || vcf_lines_[i].start() != vcf_lines_[j].start() || vcf_lines_[i].ref() !=vcf_lines_[j].ref() || !std::equal(vcf_lines_[i].alt().begin(),  vcf_lines_[i].alt().end(), vcf_lines_[j].alt().begin()))
+		if (vcf_lines_[i].chr()!=vcf_lines_[j].chr() || vcf_lines_[i].start()!=vcf_lines_[j].start() || vcf_lines_[i].ref()!=vcf_lines_[j].ref() || vcf_lines_[i].alt()!=vcf_lines_[j].alt())
 		{
-			output.append(vcf_lines_.at(i));
+			if (output_index!=i) vcf_lines_[output_index] = std::move(vcf_lines_[i]);
+			++output_index;
 		}
 	}
 	if (!vcf_lines_.isEmpty())
 	{
-		output.append(vcf_lines_.last());
+		if (output_index!=vcf_lines_.count()-1) vcf_lines_[output_index] = std::move(vcf_lines_.last());
+		++output_index;
 	}
-
-	//swap the old and new vector
-	vcf_lines_.swap(output);
+	vcf_lines_.resize(output_index);
 }
 
 void VcfFile::storeLineInformation(QTextStream& stream, const VcfLine& line) const
