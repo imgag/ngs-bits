@@ -121,6 +121,7 @@ private:
 		IS_FALSE(db.isProductionDb());
 
 		//log in user
+		LoginManager::updateLastLogin(db.userId("ahmustm1")); // no last_login value is set, we do not want to reset the password
 		LoginManager::login("ahmustm1", "", true);
 
 		//escapeText
@@ -1979,6 +1980,7 @@ private:
 		NGSD db(true);
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in2.sql"));
+		LoginManager::updateLastLogin(db.userId("ahmustm1")); // no last_login value is set, we do not want to reset the password
 		LoginManager::login("ahmustm1", "", true);
 
 		QDate report_date = QDate::fromString("2021-02-19", Qt::ISODate);
@@ -2237,6 +2239,7 @@ private:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
 		//log in user
+		LoginManager::updateLastLogin(db.userId("ahmustm1")); // no last_login value is set, we do not want to reset the password
 		LoginManager::login("ahmustm1", "", true);
 
 		//Test methods for somatic CNVs in NGSD

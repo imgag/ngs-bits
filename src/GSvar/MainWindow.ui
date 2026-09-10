@@ -532,7 +532,8 @@
      <addaction name="actionImportSampleRelations"/>
      <addaction name="actionImportStudy"/>
      <addaction name="actionImportMids"/>
-     <addaction name="actionImportCfDNAPanels"/>
+     <addaction name="actionImportCfDNAPanels"/>   
+     <addaction name="actionImportUsers"/>
     </widget>
     <widget class="QMenu" name="menuVariant_search">
      <property name="title">
@@ -1519,6 +1520,14 @@
   <action name="actionAnalysisTimePlot">
    <property name="text">
     <string>Analysis time plot</string>
+   </property>
+  </action>
+  <action name="actionImportUsers">
+   <property name="text">
+    <string>Users</string>
+   </property>
+   <property name="toolTip">
+    <string>Import NGSD users</string>
    </property>
   </action>
  </widget>

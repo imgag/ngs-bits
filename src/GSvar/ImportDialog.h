@@ -24,7 +24,8 @@ public:
 		MIDS,
 		STUDY_SAMPLE,
 		SAMPLE_RELATIONS,
-		SAMPLE_HPOS
+		SAMPLE_HPOS,
+		USERS
 	};
 
 	ImportDialog(QWidget* parent,  Type type);

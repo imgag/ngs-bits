@@ -25,6 +25,7 @@
 #include <QCoreApplication>
 #include <QSqlError> //Comment to prevent removal by fix_includes.php
 #include <QJsonArray>
+#include <QRandomGenerator>
 
 NGSD::NGSD(bool test_db, QString test_name_override)
 	: test_db_(test_db)
@@ -146,6 +147,11 @@ QString NGSD::userEmail(int user_id)
 	return getValue("SELECT email FROM user WHERE id=:0", false,  QString::number(user_id)).toString();
 }
 
+QDateTime NGSD::userLastLogin(QString user_login)
+{
+	return getValue("SELECT last_login FROM user WHERE user_id=:0", false,  user_login).toDateTime();
+}
+
 const QString& NGSD::passwordReplacement()
 {
 	static QString output = "********";
@@ -191,6 +197,44 @@ void NGSD::setPassword(int user_id, QString password)
 	QString hash = QCryptographicHash::hash((salt+password).toUtf8(), QCryptographicHash::Sha1).toHex();
 
 	getQuery().exec("UPDATE user SET password='" + hash + "', salt='" + salt + "' WHERE id=" + QString::number(user_id));
+}
+
+QString NGSD::generateInitialPassword(int length)
+{
+	if (length < 6) THROW(ArgumentException, "The password should have at least 6 characters");
+	const QString letters = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
+	const QString numbers = "23456789";
+	const QString all = letters + numbers;
+
+	QString password;
+	password.reserve(length);
+
+	auto random_char = [](const QString& chars) -> QChar
+	{
+		int index = QRandomGenerator::system()->bounded(chars.size());
+		return chars.at(index);
+	};
+
+	// Guarantee at least one letter and one number
+	password.append(random_char(letters));
+	password.append(random_char(numbers));
+
+	// Fill the remaining characters
+	for (int i = 2; i < length; ++i)
+	{
+		password.append(random_char(all));
+	}
+
+	// Fisher-Yates shuffle
+	for (int i = password.size() - 1; i > 0; --i)
+	{
+		int j = QRandomGenerator::system()->bounded(i+1);
+		QChar tmp = password[i];
+		password[i] = password[j];
+		password[j] = tmp;
+	}
+
+	return password;
 }
 
 QByteArray NGSD::getUserRole(int user_id)
@@ -10119,4 +10163,34 @@ AccessPermission stringToAccessPermission(const QString &in)
 	if (in.toLower() == "sample") {return AccessPermission::SAMPLE;}
 
 	THROW(ProgrammingException, "Unhandled access permission type '" + in + "' in stringToType()!");
+}
+
+DatabaseSchema::DatabaseSchema(NGSD &db)
+{
+	try
+	{
+		SqlQuery query = db.getQuery();
+		query.prepare("SELECT "
+		        "TABLE_NAME,"
+		        "COLUMN_NAME"
+		        " FROM INFORMATION_SCHEMA.COLUMNS"
+		        " WHERE TABLE_SCHEMA = :schema ORDER BY TABLE_NAME, ORDINAL_POSITION");
+
+		query.bindValue(":schema", db.databaseName());
+		query.exec();
+
+		while (query.next())
+		{
+			const QString table_name = query.value(0).toString();
+			const TableFieldInfo& field_info =  db.tableInfo(table_name).fieldInfo(query.value(1).toString());
+
+			TableSchema& table = tables_[table_name];
+			table.name = table_name;
+			table.columns.insert(query.value(1).toString(), field_info);
+		}
+	}
+	catch(DatabaseException& e)
+	{
+		Log::error("Failed to load the database schema: " + e.message());
+	}
 }
