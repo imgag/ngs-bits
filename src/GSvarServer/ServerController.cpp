@@ -2035,7 +2035,7 @@ HttpResponse ServerController::createStaticLocationResponse(const QString path, 
 HttpResponse ServerController::addRecordToDbTable(const QString &table_name, const HttpRequest& request)
 {
 	NGSD db;
-	DatabaseSchema db_schema = DatabaseSchema(db);
+	DatabaseSchema db_schema(db);
 
 	XmlImportValidator validator(db_schema);
 	const XmlValidationResult result = validator.validateInsert(request.getBody(), table_name);

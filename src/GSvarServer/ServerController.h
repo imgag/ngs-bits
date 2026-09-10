@@ -4,8 +4,8 @@
 #include "Log.h"
 #include "HttpResponse.h"
 #include "HttpRequest.h"
+#include "EndpointManager.h"
 #include "FastFileInfo.h"
-#include "FileLocation.h"
 
 class ServerController
 {

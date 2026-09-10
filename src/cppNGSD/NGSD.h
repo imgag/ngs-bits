@@ -721,6 +721,7 @@ class CPPNGSDSHARED_EXPORT DatabaseSchema
 	Q_OBJECT
 public:
 	DatabaseSchema(NGSD& db);
+
 	const TableSchema& table(const QString& name) const
 	{
 		const auto it = tables_.constFind(name);
