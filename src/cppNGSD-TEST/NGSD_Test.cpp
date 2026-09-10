@@ -26,10 +26,8 @@ private:
 
 	TEST_METHOD(test_and_production_caches_are_separate)
 	{
-		IS_TRUE(&NGSDReferenceDataCache::instance("test") != &NGSDReferenceDataCache::instance("production"));
-		IS_TRUE(&NGSDReferenceDataCache::instance("test") != &NGSDReferenceDataCache::instance("test:mvh"));
-		IS_TRUE(&NGSDUserCache::instance("test") != &NGSDUserCache::instance("production"));
-		IS_TRUE(&NGSDUserCache::instance("test") != &NGSDUserCache::instance("test:mvh"));
+		IS_TRUE(&NGSDReferenceDataCache::instance(1) != &NGSDReferenceDataCache::instance(0));
+		IS_TRUE(&NGSDUserCache::instance(0) != &NGSDUserCache::instance(1));
 	}
 
 	TEST_METHOD(dbtable_filtering)

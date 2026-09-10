@@ -29,7 +29,7 @@
 NGSD::NGSD(bool test_db, QString test_name_override)
 	: test_db_(test_db)
 	, debug_(false)
-	, cache_context_(test_db ? (test_name_override.isEmpty() ? "test" : "test:" + test_name_override) : "production")
+	, cache_context_(!test_name_override.isEmpty() ? -1 : (test_db ? 1 : 0))
 {
 	const QString db_identifier = "NGSD_" + QUuid::createUuid().toString();
 	try
@@ -193,9 +193,9 @@ QByteArray NGSD::getUserRole(int user_id)
 	return userCache().userRole(*this, user_id);
 }
 
-bool NGSD::userRoleIn(QString user, QStringList roles)
+bool NGSD::userRoleIn(QString user, QStringList roles, bool use_cache)
 {
-	const QStringList valid_roles = getEnum("user", "user_role");
+	const QStringList valid_roles = NGSDReferenceDataCache::getEnumValues(*this, "user", "user_role");
 
 	//check that role list contains only correct user role names
 	foreach(const QString& role, roles)
@@ -3808,9 +3808,9 @@ QStringList NGSD::tables() const
 	return db_->driver()->tables(QSql::Tables);
 }
 
-const TableInfo& NGSD::tableInfo(const QString& table, bool use_cache) const
+const TableInfo& NGSD::tableInfo(const QString& table) const
 {
-	return referenceCache().tableInfo(const_cast<NGSD&>(*this), table, use_cache);
+	return referenceCache().tableInfo(const_cast<NGSD&>(*this), table);
 }
 
 
@@ -5946,9 +5946,9 @@ QString NGSD::nextProcessingId(const QString& sample_id)
 	return max_num.isEmpty() ? "1" : QString::number(max_num.toInt()+1);
 }
 
-QStringList NGSD::getEnum(QString table, QString column, bool use_cache) const
+QStringList NGSD::getEnum(QString table, QString column) const
 {
-	return referenceCache().enumValues(const_cast<NGSD&>(*this), table, column, use_cache);
+	return referenceCache().enumValues(const_cast<NGSD&>(*this), table, column);
 }
 
 

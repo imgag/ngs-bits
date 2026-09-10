@@ -730,7 +730,7 @@ public:
 	///Returns the table list.
 	QStringList tables() const;
 	///Returns information about all fields of a table.
-	const TableInfo& tableInfo(const QString& table, bool use_cache = true) const;
+	const TableInfo& tableInfo(const QString& table) const;
 	///Checks if the value is valid for the table/field when used in an SQL query. Returns a non-empty error list in case it is not. 'check_unique' must not be used for existing entries.
 	QStringList checkValue(const QString& table, const QString& field, const QString& value, bool check_unique) const;
 	///Escapes SQL special characters in a text
@@ -775,7 +775,7 @@ public:
 	void executeQueriesFromFile(QString filename);
 
 	///Returns all possible values for a enum column.
-	QStringList getEnum(QString table, QString column, bool use_cache=true) const;
+	QStringList getEnum(QString table, QString column) const;
 	///Checks if a table exists.
 	bool tableExists(QString table, bool throw_error_if_not_existing=true) const;
 	///Checks if a row the given id exists in the table.
@@ -1025,7 +1025,7 @@ public:
 	QByteArray getUserRole(int user_id);
 
 	///Checks if the user has one of the given roles.
-	bool userRoleIn(QString user, QStringList roles);
+	bool userRoleIn(QString user, QStringList roles, bool use_cache=true);
 	///Checks if the user can access the processed sample. Use for users with role 'restricted_user' only, or it will be slow because the user role has to be checked every time. Uses caching for massive speed-up.
 	bool userCanAccess(int user_id, int ps_id);
 	///Returns the action permissions of a user. Action permissions can be restricted for users with role 'restricted_user' only.
@@ -1315,8 +1315,8 @@ protected:
 	bool test_db_;
 	//Enable debugging (prints executed queries)
 	bool debug_;
-	//Separates caches for production, the standard test database and named test databases.
-	QString cache_context_;
+	//production cache=0, test cache=1, no cache=-1
+	int cache_context_;
 
 	NGSDReferenceDataCache& referenceCache() const;
 	NGSDUserCache& userCache() const;

@@ -10,22 +10,23 @@
 class CPPNGSDSHARED_EXPORT NGSDReferenceDataCache
 {
 public:
-	static NGSDReferenceDataCache& instance(const QString& database_context);
+	static NGSDReferenceDataCache& instance(int index);
 
+	static QStringList getEnumValues(NGSD &db, QString table, QString column);
 private:
 	friend class NGSD;
 
 	void clear();
 	const QSet<int>& sameSamples(NGSD& db, int sample_id, SameSampleMode mode);
 	const QSet<int>& relatedSamples(NGSD& db, int sample_id);
-	const TableInfo& tableInfo(NGSD& db, const QString& table, bool use_cache);
+	const TableInfo& tableInfo(NGSD& db, const QString& table);
 	const GeneSet& approvedGeneNames(NGSD& db);
 	int geneId(NGSD& db, const QByteArray& gene);
 	QByteArray geneSymbol(NGSD& db, int id);
 	QByteArray geneHgncId(NGSD& db, int id);
 	int hgncIdToGeneId(NGSD& db, QByteArray hgnc_id);
 	QByteArray geneToApproved(NGSD& db, QByteArray gene, bool return_input_when_unconvertable);
-	QStringList enumValues(NGSD& db, const QString& table, const QString& column, bool use_cache);
+	QStringList enumValues(NGSD& db, const QString& table, const QString& column);
 	const QHash<int, QList<QByteArray>>& hpoGenes(NGSD& db);
 	const QHash<int, QList<int>>& hpoParent(NGSD& db);
 	SomaticGeneRole somaticGeneRole(NGSD& db, const QByteArray& gene, bool throw_on_fail);
@@ -101,7 +102,7 @@ private:
 class CPPNGSDSHARED_EXPORT NGSDUserCache
 {
 public:
-	static NGSDUserCache& instance(const QString& database_context);
+	static NGSDUserCache& instance(int index);
 
 private:
 	friend class NGSD;

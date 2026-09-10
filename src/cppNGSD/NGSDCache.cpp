@@ -4,13 +4,14 @@
 #include <QSqlDriver>
 #include <QSqlIndex>
 
-NGSDReferenceDataCache& NGSDReferenceDataCache::instance(const QString& database_context)
+NGSDReferenceDataCache& NGSDReferenceDataCache::instance(int index)
 {
-	static QMutex registry_mutex;
-	static QHash<QString, QSharedPointer<NGSDReferenceDataCache>> caches;
-	QMutexLocker locker(&registry_mutex);
-	if (!caches.contains(database_context)) caches.insert(database_context, QSharedPointer<NGSDReferenceDataCache>(new NGSDReferenceDataCache));
-	return *caches.value(database_context);
+	if (index!=0 && index!=1) THROW(ProgrammingException, "Invalid NGSD reference cache index:" + QString::number(index));
+
+	static NGSDReferenceDataCache cache_prod;
+	static NGSDReferenceDataCache cache_test;
+
+	return index==0 ? cache_prod : cache_test;
 }
 
 NGSDReferenceDataCache::NGSDReferenceDataCache()
@@ -257,24 +258,28 @@ QByteArray NGSDReferenceDataCache::geneToApproved(NGSD& db, QByteArray gene, boo
 	return return_input_when_unconvertable && approved.isEmpty() ? gene : approved;
 }
 
-QStringList NGSDReferenceDataCache::enumValues(NGSD& db, const QString& table, const QString& column, bool use_cache)
+QStringList NGSDReferenceDataCache::getEnumValues(NGSD& db, QString table, QString column)
 {
-	QMutexLocker locker(&mutex_);
-	const QString key = table + "." + column;
-	if (use_cache && enum_values_.contains(key)) return enum_values_.value(key);
 	SqlQuery query = db.getQuery();
 	query.exec("DESCRIBE " + table + " " + column);
-	if (query.next())
-	{
-		QString type = query.value(1).toString();
-		if (type.startsWith("enum(")) type = type.mid(6, type.length()-8);
-		else if (type.startsWith("set(")) type = type.mid(5, type.length()-7);
-		else THROW(ProgrammingException, "Could not determine enum values of column '"+column+"' in table '"+table+"'! Column type doesn't start with 'enum' or 'set'. Type: " + type);
-		enum_values_[key] = type.split("','");
-		return enum_values_.value(key);
-	}
-	THROW(ProgrammingException, "Could not determine enum values of column '"+column+"' in table '"+table+"'!");
+	if (!query.next()) THROW(ProgrammingException, "Could not determine type of column '"+column+"' in table '"+table+"'!");
+
+	QString type = query.value(1).toString();
+	if (type.startsWith("enum(")) type = type.mid(6, type.length()-8);
+	else if (type.startsWith("set(")) type = type.mid(5, type.length()-7);
+	else THROW(ProgrammingException, "Could not determine enum values of column '"+column+"' in table '"+table+"'! Column type doesn't start with 'enum' or 'set'. Type: " + type);
+
+	return type.split("','");
 }
+
+QStringList NGSDReferenceDataCache::enumValues(NGSD& db, const QString& table, const QString& column)
+{
+	QMutexLocker locker(&mutex_);
+	const QString key = table + "\t" + column;
+	if (!enum_values_.contains(key)) enum_values_[key] = getEnumValues(db, table, column);
+	return enum_values_.value(key);
+}
+
 
 const QHash<int, QList<QByteArray>>& NGSDReferenceDataCache::hpoGenes(NGSD& db)
 {
@@ -620,13 +625,13 @@ int NGSDReferenceDataCache::expressionGeneId(NGSD& db, const QByteArray& gene)
 	return gene_expression_gene2id_.value(gene);
 }
 
-const TableInfo& NGSDReferenceDataCache::tableInfo(NGSD& db, const QString& table, bool use_cache)
+const TableInfo& NGSDReferenceDataCache::tableInfo(NGSD& db, const QString& table)
 {
 	QMutexLocker cache_locker(&mutex_);
 	QMap<QString, TableInfo>& table_infos = table_infos_;
 
 	//create if necessary
-	if (!table_infos.contains(table) || !use_cache)
+	if (!table_infos.contains(table))
 	{
 		//check table exists
 		if (!db.tables().contains(table))
@@ -677,12 +682,12 @@ const TableInfo& NGSDReferenceDataCache::tableInfo(NGSD& db, const QString& tabl
 			else if(type.startsWith("enum("))
 			{
 				info.type = TableFieldInfo::ENUM;
-				info.type_constraints.valid_strings = enumValues(db, table, info.name, use_cache);
+				info.type_constraints.valid_strings = enumValues(db, table, info.name);
 			}
 			else if (type.startsWith("set("))
 			{
 				info.type = TableFieldInfo::SET;
-				info.type_constraints.valid_strings = enumValues(db, table, info.name, use_cache);
+				info.type_constraints.valid_strings = enumValues(db, table, info.name);
 			}
 			else if(type.startsWith("varchar("))
 			{
@@ -952,13 +957,14 @@ const TableInfo& NGSDReferenceDataCache::tableInfo(NGSD& db, const QString& tabl
 	return table_infos[table];
 }
 
-NGSDUserCache& NGSDUserCache::instance(const QString& database_context)
+NGSDUserCache& NGSDUserCache::instance(int index)
 {
-	static QMutex registry_mutex;
-	static QHash<QString, QSharedPointer<NGSDUserCache>> caches;
-	QMutexLocker locker(&registry_mutex);
-	if (!caches.contains(database_context)) caches.insert(database_context, QSharedPointer<NGSDUserCache>(new NGSDUserCache));
-	return *caches.value(database_context);
+	if (index<0 || index>1) THROW(ProgrammingException, "Invalid NGSD user cache index:" + QString::number(index));
+
+	static NGSDUserCache cache_prod;
+	static NGSDUserCache cache_test;
+
+	return index==0 ? cache_prod : cache_test;
 }
 
 QByteArray NGSDUserCache::userRole(NGSD& db, int user_id)

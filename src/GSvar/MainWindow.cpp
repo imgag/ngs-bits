@@ -7049,7 +7049,7 @@ void MainWindow::updateNGSDSupport()
 	if (ngsd_user_logged_in)
 	{
 		NGSD db;
-		if (db.userRoleIn(LoginManager::userLogin(), QStringList{"user_restricted"}))
+		if (db.userRoleIn(LoginManager::userLogin(), QStringList{"user_restricted"}, false)) //do not use the cache - it might still be initializing and then it can take more than 10 seconds...
 		{
 			auto actions = ui_.menuAdmin->actions();
 			foreach(QAction* action, actions)

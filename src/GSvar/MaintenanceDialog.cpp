@@ -869,8 +869,8 @@ void MaintenanceDialog::compareStructureOfTestAndProduction()
 	//check for differing columns
 	foreach(QString table, tables_both)
 	{
-		TableInfo info_p = db_p.tableInfo(table, false); //no cache, because the cache is shared between instances
-		TableInfo info_t = db_t.tableInfo(table, false); //no cache, because the cache is shared between instances
+		TableInfo info_p = db_p.tableInfo(table);
+		TableInfo info_t = db_t.tableInfo(table);
 
 		//missing/extra columns
 		QStringList fields_p = info_p.fieldNames();
