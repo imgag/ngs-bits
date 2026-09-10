@@ -542,6 +542,49 @@ void MainWindow::userSpecificDebugFunction()
 		qDebug() << ("Executing debug function for user "+user+" - time: "+QDateTime::currentDateTime().toString(Qt::ISODate));
 		if (user=="ahsturm1")
 		{
+			//export transcript definition from NGSD
+
+			QTextStream stream(stdout);
+			NGSD db;
+			foreach(QString trans, QStringList() << "ENST00000486207")
+			{
+				stream << "\n####################################\n";
+				SqlQuery query = db.getQuery();
+				query.exec("SELECT * FROM gene_transcript WHERE name='" + trans + "' AND source='ensembl'");
+				if (query.size()!=1)
+				{
+					stream << "Transcript " << trans << " not found in NGSD!\n";
+				}
+				while(query.next())
+				{
+					stream << "\t\tt.setGene(\"" << db.getValue("SELECT symbol FROM gene WHERE id="+query.value("gene_id").toString()).toString() << "\");\n";
+					stream << "\t\tt.setName(\"" << trans << "\");\n";
+					stream << "\t\tt.setVersion(" << query.value("version").toString() << ");\n";
+					stream << "\t\tt.setSource(Transcript::ENSEMBL);\n";
+					QString strand = (query.value("strand").toString()=="+" ? "PLUS" : "MINUS");
+					stream << "\t\tt.setStrand(Transcript::" << strand << ");\n";
+					stream << "\n";
+					stream << "\t\tBedFile regions;\n";
+
+					SqlQuery query2 = db.getQuery();
+					query2.exec("SELECT * FROM gene_exon WHERE transcript_id='" + query.value("id").toString() + "' ORDER BY start ASC");
+					while(query2.next())
+					{
+						stream << "\t\tregions.append(BedLine(\"chr" << query.value("chromosome").toString() << "\", " << query2.value("start").toString() << ", " << query2.value("end").toString() << "));\n";
+					}
+					QString start = query.value("start_coding").toString();
+					QString end = query.value("end_coding").toString();
+					if (strand=="MINUS") std::swap(start, end);
+					if (start==end)
+					{
+						stream << "\t\tt.setRegions(regions);\n";
+					}
+					else
+					{
+						stream << "\t\tt.setRegions(regions, " << start << ", " << end << ");\n";
+					}
+				}
+			}
 		}
 		else if (user=="ahschul1")
 		{

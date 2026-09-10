@@ -9,24 +9,25 @@ TEST_CLASS(VariantHgvsAnnotator_Test)
 private:
     Transcript trans_SLC51A()
     {
-        Transcript t;
+		Transcript t;
 
-        t.setGene("SLC51A");
-        t.setName("ENST00000296327"); //NM_152672
-        t.setSource(Transcript::ENSEMBL);
-        t.setStrand(Transcript::PLUS);
+		t.setGene("SLC51A");
+		t.setName("ENST00000296327");
+		t.setVersion(10);
+		t.setSource(Transcript::ENSEMBL);
+		t.setStrand(Transcript::PLUS);
 
-        BedFile regions;
-        regions.append(BedLine("chr3", 196216534, 196216750));
-        regions.append(BedLine("chr3", 196217842, 196217936));
-        regions.append(BedLine("chr3", 196226965, 196227119));
-        regions.append(BedLine("chr3", 196227664, 196227737));
-        regions.append(BedLine("chr3", 196228115, 196228273));
-        regions.append(BedLine("chr3", 196228809, 196228920));
-        regions.append(BedLine("chr3", 196229915, 196230061));
-        regions.append(BedLine("chr3", 196232419, 196232524));
-        regions.append(BedLine("chr3", 196233063, 196233427));
-        t.setRegions(regions, 196216713, 196233199);
+		BedFile regions;
+		regions.append(BedLine("chr3", 196216534, 196216750));
+		regions.append(BedLine("chr3", 196217842, 196217936));
+		regions.append(BedLine("chr3", 196226965, 196227119));
+		regions.append(BedLine("chr3", 196227664, 196227737));
+		regions.append(BedLine("chr3", 196228115, 196228273));
+		regions.append(BedLine("chr3", 196228809, 196228920));
+		regions.append(BedLine("chr3", 196229915, 196230061));
+		regions.append(BedLine("chr3", 196232419, 196232524));
+		regions.append(BedLine("chr3", 196233063, 196233427));
+		t.setRegions(regions, 196216713, 196233199);
 
         return t;
     }
@@ -35,18 +36,19 @@ private:
     {
         Transcript t;
 
-        t.setGene("APOD");
-        t.setName("ENST00000343267"); //NM_001647
-        t.setSource(Transcript::ENSEMBL);
-        t.setStrand(Transcript::MINUS);
+		t.setGene("APOD");
+		t.setName("ENST00000343267");
+		t.setVersion(8);
+		t.setSource(Transcript::ENSEMBL);
+		t.setStrand(Transcript::MINUS);
 
-        BedFile regions;
-        regions.append(BedLine("chr3", 195568705, 195569135));
-        regions.append(BedLine("chr3", 195571277, 195571365));
-        regions.append(BedLine("chr3", 195573850, 195573971));
-        regions.append(BedLine("chr3", 195579339, 195579495));
-        regions.append(BedLine("chr3", 195583878, 195583940));
-        t.setRegions(regions, 195579461, 195568900);
+		BedFile regions;
+		regions.append(BedLine("chr3", 195568705, 195569135));
+		regions.append(BedLine("chr3", 195571277, 195571365));
+		regions.append(BedLine("chr3", 195573850, 195573971));
+		regions.append(BedLine("chr3", 195579339, 195579495));
+		regions.append(BedLine("chr3", 195583878, 195583940));
+		t.setRegions(regions, 195579461, 195568900);
 
         return t;
     }
@@ -55,25 +57,26 @@ private:
     {
         Transcript t;
 
-        t.setGene("DECR1");
-        t.setName("ENST00000522161");
-        t.setSource(Transcript::ENSEMBL);
-        t.setStrand(Transcript::PLUS);
+		t.setGene("DECR1");
+		t.setName("ENST00000522161");
+		t.setVersion(5);
+		t.setSource(Transcript::ENSEMBL);
+		t.setStrand(Transcript::PLUS);
 
-        BedFile regions;
-        regions.append(BedLine("chr8", 90001477, 90001561));
-        regions.append(BedLine("chr8", 90005448, 90005845));
-        regions.append(BedLine("chr8", 90006036, 90006277));
-        regions.append(BedLine("chr8", 90017124, 90017326));
-        regions.append(BedLine("chr8", 90018909, 90018966));
-        regions.append(BedLine("chr8", 90019086, 90019172));
-        regions.append(BedLine("chr8", 90020909, 90021056));
-        regions.append(BedLine("chr8", 90036841, 90036940));
-        regions.append(BedLine("chr8", 90042728, 90042800));
-        regions.append(BedLine("chr8", 90044849, 90044995));
-        regions.append(BedLine("chr8", 90051677, 90051739));
-        regions.append(BedLine("chr8", 90051838, 90051999));
-        t.setRegions(regions, 90006236, 90051897);
+		BedFile regions;
+		regions.append(BedLine("chr8", 90001477, 90001561));
+		regions.append(BedLine("chr8", 90005448, 90005845));
+		regions.append(BedLine("chr8", 90006036, 90006277));
+		regions.append(BedLine("chr8", 90017124, 90017326));
+		regions.append(BedLine("chr8", 90018909, 90018966));
+		regions.append(BedLine("chr8", 90019086, 90019172));
+		regions.append(BedLine("chr8", 90020909, 90021056));
+		regions.append(BedLine("chr8", 90036841, 90036940));
+		regions.append(BedLine("chr8", 90042728, 90042800));
+		regions.append(BedLine("chr8", 90044849, 90044995));
+		regions.append(BedLine("chr8", 90051677, 90051739));
+		regions.append(BedLine("chr8", 90051838, 90051999));
+		t.setRegions(regions, 90006236, 90051897);
 
         return t;
 
@@ -83,18 +86,19 @@ private:
     {
         Transcript t;
 
-        t.setGene("CALCA");
-        t.setName("ENST00000361010");
-        t.setSource(Transcript::ENSEMBL);
-        t.setStrand(Transcript::MINUS);
+		t.setGene("CALCA");
+		t.setName("ENST00000486207");
+		t.setVersion(6);
+		t.setSource(Transcript::ENSEMBL);
+		t.setStrand(Transcript::MINUS);
 
-        BedFile regions;
-        regions.append(BedLine("chr11", 14966669, 14967101));
-        regions.append(BedLine("chr11", 14967674, 14967854));
-        regions.append(BedLine("chr11", 14969935, 14970075));
-        regions.append(BedLine("chr11", 14971107, 14971201));
-        regions.append(BedLine("chr11", 14972221, 14972286));
-        t.setRegions(regions, 14971192, 14967695);
+		BedFile regions;
+		regions.append(BedLine("chr11", 14966668, 14967101));
+		regions.append(BedLine("chr11", 14967674, 14967854));
+		regions.append(BedLine("chr11", 14969935, 14970075));
+		regions.append(BedLine("chr11", 14971107, 14971201));
+		regions.append(BedLine("chr11", 14972221, 14972351));
+		t.setRegions(regions, 14971192, 14967695);
 
         return t;
     }
@@ -102,6 +106,7 @@ private:
 	Transcript trans_CDKN1C()
 	{
 		Transcript t;
+
 		t.setGene("CDKN1C");
 		t.setName("ENST00000414822");
 		t.setVersion(8);
@@ -120,15 +125,16 @@ private:
 	Transcript trans_NEAT1()
 	{
 		Transcript t;
+
 		t.setGene("NEAT1");
 		t.setName("ENST00000499732");
-		t.setVersion(3);
+		t.setVersion(4);
 		t.setSource(Transcript::ENSEMBL);
 		t.setStrand(Transcript::PLUS);
 
 		BedFile regions;
 		regions.append(BedLine("chr11", 65422774, 65423383));
-		regions.append(BedLine("chr11", 65423627, 65426457));
+		regions.append(BedLine("chr11", 65423627, 65426526));
 		t.setRegions(regions);
 
 		return t;
@@ -137,7 +143,7 @@ private:
 	Transcript trans_SPTBN1()
 	{
 		Transcript t;
-		t.setGene("SPTBN1");
+
 		t.setName("ENST00000356805");
 		t.setVersion(9);
 		t.setSource(Transcript::ENSEMBL);
@@ -180,7 +186,6 @@ private:
 		regions.append(BedLine("chr2", 54665915, 54666088));
 		regions.append(BedLine("chr2", 54667604, 54667646));
 		regions.append(BedLine("chr2", 54668351, 54671446));
-
 		t.setRegions(regions, 54526419, 54668569);
 
 		return t;
@@ -189,6 +194,7 @@ private:
 	Transcript trans_GLMN()
 	{
 		Transcript t;
+
 		t.setGene("GLMN");
 		t.setName("ENST00000370360");
 		t.setVersion(8);
@@ -223,6 +229,7 @@ private:
 	Transcript trans_BCL11A()
 	{
 		Transcript t;
+
 		t.setGene("BCL11A");
 		t.setName("ENST00000642384");
 		t.setVersion(2);
@@ -242,6 +249,7 @@ private:
 	Transcript trans_CTU2()
 	{
 		Transcript t;
+
 		t.setGene("CTU2");
 		t.setName("ENST00000453996");
 		t.setVersion(7);
@@ -272,6 +280,7 @@ private:
 	Transcript trans_DNLZ()
 	{
 		Transcript t;
+
 		t.setGene("DNLZ");
 		t.setName("ENST00000371738");
 		t.setVersion(4);
@@ -287,7 +296,24 @@ private:
 		return t;
 	}
 
-private:
+	Transcript trans_MNX1()
+	{
+		Transcript t;
+
+		t.setGene("MNX1");
+		t.setName("ENST00000252971");
+		t.setVersion(11);
+		t.setSource(Transcript::ENSEMBL);
+		t.setStrand(Transcript::MINUS);
+
+		BedFile regions;
+		regions.append(BedLine("chr7", 157004854, 157005873));
+		regions.append(BedLine("chr7", 157006479, 157006639));
+		regions.append(BedLine("chr7", 157009660, 157010663));
+		t.setRegions(regions, 157010350, 157005520);
+
+		return t;
+	}
 
 	TEST_METHOD(annotate_plus_strand)
     {
@@ -929,7 +955,7 @@ private:
 		variant.setSingleAlt("C");
 		hgvs = var_hgvs_anno.annotate(t_2, variant);
         S_EQUAL(hgvs.hgvs_c, "c.209_212del");
-        S_EQUAL(hgvs.hgvs_p, "p.Gln70ArgfsTer20");
+		S_EQUAL(hgvs.hgvs_p, "p.Gln70ArgfsTer20");
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::CODING_SEQUENCE_VARIANT));
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
 		IS_TRUE(hgvs.types.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
@@ -1364,8 +1390,27 @@ private:
 		I_EQUAL(hgvs.intron_number, -1);
 	}
 
+	TEST_METHOD(bug_coding_sequence_length_multiple_of_three_var1)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		QString ref_file = Settings::string("reference_genome", true);
+		FastaFileIndex reference(ref_file);
+
+		VariantHgvsAnnotator var_hgvs_anno(reference);
+		VcfLine variant("chr7", 157009949, "A", QList<Sequence>() << "CGCGGCGGCG");
+
+		Transcript t = trans_MNX1();
+		VariantConsequence hgvs = var_hgvs_anno.annotate(t, variant);
+		S_EQUAL(hgvs.hgvs_c, "c.402delinsCGCCGCCGCG");
+		S_EQUAL(hgvs.hgvs_p, "p.Ala132_Ala134dup");
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::INFRAME_INSERTION));
+		S_EQUAL(variantImpactToString(hgvs.impact), "MODERATE");
+		I_EQUAL(hgvs.exon_number, 1);
+		I_EQUAL(hgvs.intron_number, -1);
+	}
+
 	//TODO Marc: fix consequence annotation for these variants:
-	//Error processing variant chr7:157009949 A>CGCGGCGGCG and transcript ENST00000252971.11: Coding sequence length must be multiple of three. (1 times, e.g. in DNA2206556A1_02)
 	//Error processing variant chr17:31229232 CGTA>TGTC: Coding sequence length must be multiple of three
 	//Error processing variant chr7:4781213-4781216 GGAT>TGCTGTAAACTGTAACTGTAAA: Coding sequence length must be multiple of three
 	//Error processing variant chr5:141573770-141574049 AAGGAGGTGGTGGTGGGGGGATTCTAGCACTCCCAGGCAAAGGAGGAGGTGGGGGGATGGCAGTACCTCCAGGCAAAGAAGAGGGTGAAGGGATGCCAACACCCTCAGGCAAAGGAGGGGGTGGAGGGATGGTAGCATCCCCAGACAAAGGAGGGGGTGGAGAGATAGCAGTACCTCCAGGTAAAGAAGGGGGTGAGGAGATGCAAACACCCCCAGGCAAAGGAGGTGGAGGAGGAGGAGGAGGAGGAGGAGGAGGAGGAGTGGTACTATCCCCAGGAGC>CAGG: Coding sequence length must be multiple of three
