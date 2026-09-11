@@ -94,6 +94,11 @@ bool NGSD::isAvailable(bool test_db)
 	return Settings::contains(prefix+"_host") && Settings::contains(prefix+"_port") && Settings::contains(prefix+"_name") && Settings::contains(prefix+"_user") && Settings::contains(prefix+"_pass");
 }
 
+QString NGSD::databaseName() const
+{
+	return db_->databaseName();
+}
+
 int NGSD::userId(QString user_name, bool only_active, bool throw_if_fails)
 {
 	// don't fail if user name is empty
@@ -10114,4 +10119,34 @@ AccessPermission stringToAccessPermission(const QString &in)
 	if (in.toLower() == "sample") {return AccessPermission::SAMPLE;}
 
 	THROW(ProgrammingException, "Unhandled access permission type '" + in + "' in stringToType()!");
+}
+
+DatabaseSchema::DatabaseSchema(NGSD &db)
+{
+	try
+	{
+		SqlQuery query = db.getQuery();
+		query.prepare("SELECT "
+		        "TABLE_NAME,"
+		        "COLUMN_NAME"
+		        " FROM INFORMATION_SCHEMA.COLUMNS"
+		        " WHERE TABLE_SCHEMA = :schema ORDER BY TABLE_NAME, ORDINAL_POSITION");
+
+		query.bindValue(":schema", db.databaseName());
+		query.exec();
+
+		while (query.next())
+		{
+			const QString table_name = query.value(0).toString();
+			const TableFieldInfo& field_info =  db.tableInfo(table_name).fieldInfo(query.value(1).toString());
+
+			TableSchema& table = tables_[table_name];
+			table.name = table_name;
+			table.columns.insert(query.value(1).toString(), field_info);
+		}
+	}
+	catch(DatabaseException& e)
+	{
+		Log::error("Failed to load the database schema: " + e.message());
+	}
 }

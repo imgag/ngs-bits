@@ -72,13 +72,13 @@ public:
 	static QList<Endpoint> getEndpointEntities();
 
 	static QString getEndpointHelpTemplate(QList<Endpoint> endpoint_list);
-    static QString formatResponseMessage(const HttpRequest& request, const QString& message);
+    static QString formatResponseMessage(const HttpRequest& request, const QString& message);	
 
 protected:
 	EndpointManager();
 
 private:	
-	static EndpointManager& instance();
+	static EndpointManager& instance();	
     static bool hasKey(const QString& key, const QList<QString>& list);
     static bool hasKey(const QString& key, const QMap<QString, QString>& map);
 	QHash<QString, Endpoint> endpoint_map_;
