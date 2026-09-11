@@ -4,9 +4,86 @@
 #include "Sequence.h"
 #include "Settings.h"
 
+//NOTE: to export transcripts from NGSD for these tests, you can use the function export_transcripts_from_ngsd() in NGSD_Test.cpp
+
 TEST_CLASS(VariantHgvsAnnotator_Test)
 {
 private:
+
+	Transcript trans_NF1()
+	{
+		Transcript t;
+
+		t.setGene("NF1");
+		t.setName("ENST00000358273");
+		t.setVersion(9);
+		t.setSource(Transcript::ENSEMBL);
+		t.setStrand(Transcript::PLUS);
+
+		BedFile regions;
+		regions.append(BedLine("chr17", 31094977, 31095369));
+		regions.append(BedLine("chr17", 31155983, 31156126));
+		regions.append(BedLine("chr17", 31159010, 31159093));
+		regions.append(BedLine("chr17", 31163186, 31163376));
+		regions.append(BedLine("chr17", 31169891, 31169997));
+		regions.append(BedLine("chr17", 31181422, 31181489));
+		regions.append(BedLine("chr17", 31181710, 31181785));
+		regions.append(BedLine("chr17", 31182508, 31182665));
+		regions.append(BedLine("chr17", 31200422, 31200595));
+		regions.append(BedLine("chr17", 31201037, 31201159));
+		regions.append(BedLine("chr17", 31201411, 31201485));
+		regions.append(BedLine("chr17", 31206240, 31206371));
+		regions.append(BedLine("chr17", 31214451, 31214585));
+		regions.append(BedLine("chr17", 31219005, 31219118));
+		regions.append(BedLine("chr17", 31221850, 31221929));
+		regions.append(BedLine("chr17", 31223444, 31223567));
+		regions.append(BedLine("chr17", 31225095, 31225250));
+		regions.append(BedLine("chr17", 31226435, 31226684));
+		regions.append(BedLine("chr17", 31227218, 31227291));
+		regions.append(BedLine("chr17", 31227523, 31227606));
+		regions.append(BedLine("chr17", 31229025, 31229465));
+		regions.append(BedLine("chr17", 31229835, 31229974));
+		regions.append(BedLine("chr17", 31230260, 31230382));
+		regions.append(BedLine("chr17", 31230842, 31230925));
+		regions.append(BedLine("chr17", 31232073, 31232189));
+		regions.append(BedLine("chr17", 31232700, 31232881));
+		regions.append(BedLine("chr17", 31233002, 31233213));
+		regions.append(BedLine("chr17", 31235611, 31235772));
+		regions.append(BedLine("chr17", 31235918, 31236021));
+		regions.append(BedLine("chr17", 31248984, 31249119));
+		regions.append(BedLine("chr17", 31252938, 31253000));
+		regions.append(BedLine("chr17", 31258344, 31258502));
+		regions.append(BedLine("chr17", 31259032, 31259129));
+		regions.append(BedLine("chr17", 31260369, 31260515));
+		regions.append(BedLine("chr17", 31261711, 31261857));
+		regions.append(BedLine("chr17", 31265229, 31265339));
+		regions.append(BedLine("chr17", 31325820, 31326252));
+		regions.append(BedLine("chr17", 31327499, 31327839));
+		regions.append(BedLine("chr17", 31330296, 31330498));
+		regions.append(BedLine("chr17", 31334838, 31335031));
+		regions.append(BedLine("chr17", 31336333, 31336473));
+		regions.append(BedLine("chr17", 31336635, 31336914));
+		regions.append(BedLine("chr17", 31337368, 31337582));
+		regions.append(BedLine("chr17", 31337819, 31337880));
+		regions.append(BedLine("chr17", 31338025, 31338139));
+		regions.append(BedLine("chr17", 31338704, 31338805));
+		regions.append(BedLine("chr17", 31340505, 31340645));
+		regions.append(BedLine("chr17", 31343009, 31343135));
+		regions.append(BedLine("chr17", 31349120, 31349251));
+		regions.append(BedLine("chr17", 31350183, 31350318));
+		regions.append(BedLine("chr17", 31352257, 31352414));
+		regions.append(BedLine("chr17", 31356460, 31356582));
+		regions.append(BedLine("chr17", 31356960, 31357090));
+		regions.append(BedLine("chr17", 31357269, 31357369));
+		regions.append(BedLine("chr17", 31358480, 31358622));
+		regions.append(BedLine("chr17", 31358969, 31359015));
+		regions.append(BedLine("chr17", 31360487, 31360703));
+		regions.append(BedLine("chr17", 31374013, 31377675));
+		t.setRegions(regions, 31095310, 31374155);
+
+		return t;
+	}
+
     Transcript trans_SLC51A()
     {
 		Transcript t;
@@ -311,6 +388,73 @@ private:
 		regions.append(BedLine("chr7", 157006479, 157006639));
 		regions.append(BedLine("chr7", 157009660, 157010663));
 		t.setRegions(regions, 157010350, 157005520);
+
+		return t;
+	}
+
+	Transcript trans_AP5Z1()
+	{
+		Transcript t;
+
+		t.setGene("AP5Z1");
+		t.setName("ENST00000649063");
+		t.setVersion(2);
+		t.setSource(Transcript::ENSEMBL);
+		t.setStrand(Transcript::PLUS);
+
+		BedFile regions;
+		regions.append(BedLine("chr7", 4775623, 4775756));
+		regions.append(BedLine("chr7", 4781175, 4781312));
+		regions.append(BedLine("chr7", 4781568, 4781754));
+		regions.append(BedLine("chr7", 4783316, 4783460));
+		regions.append(BedLine("chr7", 4783689, 4783798));
+		regions.append(BedLine("chr7", 4784203, 4784371));
+		regions.append(BedLine("chr7", 4784908, 4785048));
+		regions.append(BedLine("chr7", 4785415, 4785452));
+		regions.append(BedLine("chr7", 4785522, 4785684));
+		regions.append(BedLine("chr7", 4786250, 4786428));
+		regions.append(BedLine("chr7", 4787634, 4787776));
+		regions.append(BedLine("chr7", 4788154, 4788294));
+		regions.append(BedLine("chr7", 4788840, 4788951));
+		regions.append(BedLine("chr7", 4789832, 4789929));
+		regions.append(BedLine("chr7", 4790459, 4790591));
+		regions.append(BedLine("chr7", 4790673, 4790887));
+		regions.append(BedLine("chr7", 4791115, 4794397));
+		t.setRegions(regions, 4775716, 4791385);
+
+		return t;
+	}
+
+	Transcript trans_TEC()
+	{
+		Transcript t;
+
+		t.setGene("TEC");
+		t.setName("ENST00000381501");
+		t.setVersion(8);
+		t.setSource(Transcript::ENSEMBL);
+		t.setStrand(Transcript::MINUS);
+
+		BedFile regions;
+		regions.append(BedLine("chr4", 48135783, 48137499));
+		regions.append(BedLine("chr4", 48138665, 48138822));
+		regions.append(BedLine("chr4", 48138904, 48139022));
+		regions.append(BedLine("chr4", 48141355, 48141419));
+		regions.append(BedLine("chr4", 48145079, 48145295));
+		regions.append(BedLine("chr4", 48145408, 48145579));
+		regions.append(BedLine("chr4", 48146325, 48146399));
+		regions.append(BedLine("chr4", 48149557, 48149690));
+		regions.append(BedLine("chr4", 48150863, 48150942));
+		regions.append(BedLine("chr4", 48156680, 48156734));
+		regions.append(BedLine("chr4", 48163702, 48163767));
+		regions.append(BedLine("chr4", 48167778, 48167953));
+		regions.append(BedLine("chr4", 48168586, 48168626));
+		regions.append(BedLine("chr4", 48170248, 48170376));
+		regions.append(BedLine("chr4", 48171368, 48171449));
+		regions.append(BedLine("chr4", 48176082, 48176186));
+		regions.append(BedLine("chr4", 48228477, 48228659));
+		regions.append(BedLine("chr4", 48269752, 48269838));
+		t.setRegions(regions, 48228614, 48137416);
 
 		return t;
 	}
@@ -1409,7 +1553,7 @@ private:
 		I_EQUAL(hgvs.exon_number, 1);
 		I_EQUAL(hgvs.intron_number, -1);
 
-		//GSvar notation: the position is the first changed base, without a VCF anchor.
+		//GSvar notation: the position is the first changed base, without a VCF anchor
 		Variant gsvar_variant("chr7", 157009949, 157009949, "A", "CGCGGCGGCG");
 		VariantConsequence gsvar_hgvs = var_hgvs_anno.annotate(t, gsvar_variant);
 		S_EQUAL(gsvar_hgvs.hgvs_c, hgvs.hgvs_c);
@@ -1417,11 +1561,73 @@ private:
 		IS_TRUE(gsvar_hgvs.types.contains(VariantConsequenceType::INFRAME_INSERTION));
 	}
 
-	//TODO Marc: fix consequence annotation for these variants:
-	//Error processing variant chr17:31229232 CGTA>TGTC: Coding sequence length must be multiple of three
-	//Error processing variant chr7:4781213-4781216 GGAT>TGCTGTAAACTGTAACTGTAAA: Coding sequence length must be multiple of three
-	//Error processing variant chr5:141573770-141574049 AAGGAGGTGGTGGTGGGGGGATTCTAGCACTCCCAGGCAAAGGAGGAGGTGGGGGGATGGCAGTACCTCCAGGCAAAGAAGAGGGTGAAGGGATGCCAACACCCTCAGGCAAAGGAGGGGGTGGAGGGATGGTAGCATCCCCAGACAAAGGAGGGGGTGGAGAGATAGCAGTACCTCCAGGTAAAGAAGGGGGTGAGGAGATGCAAACACCCCCAGGCAAAGGAGGTGGAGGAGGAGGAGGAGGAGGAGGAGGAGGAGGAGTGGTACTATCCCCAGGAGC>CAGG: Coding sequence length must be multiple of three
-	//chr4	48145245	.	TG	TCATAGTTCATATAATGACTCTC
-	//chr4	48145250	.	GG	GATGAGTCATC
+	TEST_METHOD(bug_coding_sequence_length_multiple_of_three_var2)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		QString ref_file = Settings::string("reference_genome", true);
+		FastaFileIndex reference(ref_file);
+
+		VariantHgvsAnnotator var_hgvs_anno(reference);
+		VcfLine variant("chr17", 31229232, "CGTA", QList<Sequence>() << "TGTC");
+
+		Transcript t = trans_NF1();
+		VariantConsequence hgvs = var_hgvs_anno.annotate(t, variant);
+		S_EQUAL(hgvs.hgvs_c, "c.2617_2620delinsTGTC");
+		S_EQUAL(hgvs.hgvs_p, "p.Arg873_Lys874delinsCysGln");
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::MISSENSE_VARIANT));
+		S_EQUAL(variantImpactToString(hgvs.impact), "MODERATE");
+		I_EQUAL(hgvs.exon_number, 21);
+		I_EQUAL(hgvs.intron_number, -1);
+	}
+
+	TEST_METHOD(bug_coding_sequence_length_multiple_of_three_var3)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		QString ref_file = Settings::string("reference_genome", true);
+		FastaFileIndex reference(ref_file);
+
+		VariantHgvsAnnotator var_hgvs_anno(reference);
+		VcfLine variant("chr7", 4781213, "GGAT", QList<Sequence>() << "TGCTGTAAACTGTAACTGTAAA");
+
+		Transcript t = trans_AP5Z1();
+		VariantConsequence hgvs = var_hgvs_anno.annotate(t, variant);
+		S_EQUAL(hgvs.hgvs_c, "c.80_83delinsTGCTGTAAACTGTAACTGTAAA");
+		S_EQUAL(hgvs.hgvs_p, "p.Arg27_Ile28delinsLeuLeuTer");
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::STOP_GAINED));
+		S_EQUAL(variantImpactToString(hgvs.impact), "HIGH");
+		I_EQUAL(hgvs.exon_number, 2);
+		I_EQUAL(hgvs.intron_number, -1);
+	}
+
+	TEST_METHOD(bug_coding_sequence_length_multiple_of_three_var4and5)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		QString ref_file = Settings::string("reference_genome", true);
+		FastaFileIndex reference(ref_file);
+		Transcript t = trans_TEC();
+
+		VariantHgvsAnnotator var_hgvs_anno(reference);
+		VcfLine variant("chr4", 48145246, "G", QList<Sequence>() << "CATAGTTCATATAATGACTCTC");
+		VariantConsequence hgvs = var_hgvs_anno.annotate(t, variant);
+		S_EQUAL(hgvs.hgvs_c, "c.1303delinsGAGAGTCATTATATGAACTATG");
+		S_EQUAL(hgvs.hgvs_p, "p.Gln435delinsGluSerHisTyrMetAsnTyrGlu");
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+		S_EQUAL(variantImpactToString(hgvs.impact), "MODERATE");
+		I_EQUAL(hgvs.exon_number, 14);
+		I_EQUAL(hgvs.intron_number, -1);
+
+		VcfLine variant2("chr4", 48145251, "G", QList<Sequence>() << "ATGAGTCATC");
+		VariantConsequence hgvs2 = var_hgvs_anno.annotate(t, variant2);
+		S_EQUAL(hgvs2.hgvs_c, "c.1298delinsGATGACTCAT");
+		S_EQUAL(hgvs2.hgvs_p, "p.Thr433delinsArgTer");
+		IS_TRUE(hgvs2.types.contains(VariantConsequenceType::STOP_GAINED));
+		S_EQUAL(variantImpactToString(hgvs2.impact), "HIGH");
+		I_EQUAL(hgvs2.exon_number, 14);
+		I_EQUAL(hgvs2.intron_number, -1);
+	}
+
 	//TODO Marc: benchmark consequence annotation against BioCommons - see https://emea.illumina.com/science/genomics-research/articles/Connected-Annotations-blog.html
 };
