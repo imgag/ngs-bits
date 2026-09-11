@@ -429,6 +429,7 @@ private:
 		test_db.init();
 		test_db.executeQueriesFromFile(TESTDATA("data/NGSD_in5.sql"));
 
+		// project
 		QByteArray correct_xml_content =
 			"<project>"
 			"<name>Example_Project_Name</name>"
@@ -467,6 +468,7 @@ private:
 		IS_TRUE(!result.isValid());
 		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
 
+		// processing_system
 		correct_xml_content =
 			"<processing_system>"
 			"<name_short>NovaSeq_WGS3</name_short>"
@@ -502,6 +504,7 @@ private:
 		IS_TRUE(!result.isValid());
 		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
 
+		// device
 		correct_xml_content =
 			"<device>"
 			"<type>NovaSeq6000</type>"
@@ -522,6 +525,7 @@ private:
 		IS_TRUE(!result.isValid());
 		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
 
+		// sequencing_run
 		correct_xml_content =
 			"<sequencing_run>"
 			"<name>RUN_2026_08_19_001</name>"
@@ -565,6 +569,7 @@ private:
 		IS_TRUE(!result.isValid());
 		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
 
+		// sample
 		correct_xml_content =
 			"<sample>"
 			"<name>SAMPLE_001</name>"
@@ -622,6 +627,7 @@ private:
 		IS_TRUE(!result.isValid());
 		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
 
+		// processed_sample
 		correct_xml_content =
 			"<processed_sample>"
 			"<sample_id>1</sample_id>"
@@ -670,6 +676,7 @@ private:
 		IS_TRUE(!result.isValid());
 		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
 
+		// sender
 		correct_xml_content =
 			"<sender>"
 			"<name>Dr. Jane Smith</name>"
@@ -690,6 +697,32 @@ private:
 			"<affiliation>UKT</affiliation>"
 			"</sender>";
 		result = validator.validateInsert(incorrect_xml_content, "sender");
+		IS_TRUE(!result.isValid());
+		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
+
+		// user
+		correct_xml_content =
+			"<user>"
+			"<user_id>test_user</user_id>"
+			"<password>sdsdsd</password>"
+			"<user_role>user_restricted</user_role>"
+			"<name>Test User</name>"
+			"<email>jane.smith@example.org</email>"
+			"</user>";
+		result = validator.validateInsert(correct_xml_content, "user");
+		Log::error(result.errorsAsString());
+		IS_TRUE(result.isValid());
+		table = db_schema.table("user");
+		ServerController::importDataToNGSD(test_db, table, result.values);
+
+		incorrect_xml_content =
+			"<user>"
+			"<user_id>test_user</user_id>"
+			"<password>sdsdsd</password>"
+			"<user_role>fake_role</user_role>"
+			"<email>jane.smith@example.org</email>"
+			"</user>";
+		result = validator.validateInsert(incorrect_xml_content, "user");
 		IS_TRUE(!result.isValid());
 		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
 	}

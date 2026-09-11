@@ -1778,6 +1778,32 @@ HttpResponse ServerController::addSenderToDb(const HttpRequest &request)
 	return addRecordToDbTable("sender", request);
 }
 
+HttpResponse ServerController::addUserToDb(const HttpRequest &request)
+{
+	try
+	{
+		QString token = EndpointManager::getTokenIfAvailable(request);
+		if (token.isEmpty())
+		{
+			return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), EndpointManager::formatResponseMessage(request, "You are not allowed to access this information"));
+		}
+
+		Session current_session = SessionManager::getSessionBySecureToken(token);
+		QByteArray role = NGSD().getUserRole(current_session.user_id);
+		if (role!="admin")
+		{
+			THROW_HTTP(HttpException, "You are not allowed to add new users", 401,  {}, {});
+		}
+	}
+	catch (DatabaseException& e)
+	{
+		Log::error("Database error while checking permissions: " + e.message());
+		THROW_HTTP(HttpException, e.message(), 500,  {}, {});
+	}
+
+	return addRecordToDbTable("user", request);
+}
+
 HttpResponse ServerController::performBlatSearch(const HttpRequest& request)
 {
 	QString sequence = request.getUrlParams()["sequence"].trimmed();

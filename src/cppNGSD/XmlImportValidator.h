@@ -12,6 +12,10 @@ struct CPPNGSDSHARED_EXPORT XmlValidationResult
 {
 	QHash<QString, QVariant> values;
 	QStringList errors;
+	QString errorsAsString()
+	{
+		return errors.join(", ");
+	}
 
 	bool isValid() const
 	{

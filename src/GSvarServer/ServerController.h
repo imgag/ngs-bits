@@ -111,6 +111,8 @@ public:
 	static HttpResponse addProcessedSampleToDb(const HttpRequest& request);
 	/// Adds a new sender to NGSD database: returns OK (and a corresponding message) on success or error message when fails
 	static HttpResponse addSenderToDb(const HttpRequest& request);
+	/// Adds a new user to NGSD database
+	static HttpResponse addUserToDb(const HttpRequest& request);
 	/// ------------------
 	/// Returns BLAT-like search results for the given sequence (performed with BWA-mem2)
     static HttpResponse performBlatSearch(const HttpRequest& request);

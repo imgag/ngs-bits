@@ -609,6 +609,18 @@ int main(int argc, char **argv)
 						&ServerController::addSenderToDb
 					});
 
+	EndpointManager::appendEndpoint(Endpoint{
+						"user",
+						QMap<QString, ParamProps>{
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_XML,
+						AuthType::USER_TOKEN,
+						"Adds a new user to the database",
+						&ServerController::addUserToDb
+	});
+
     EndpointManager::appendEndpoint(Endpoint{
                         "blat_search",
                         QMap<QString, ParamProps> {
