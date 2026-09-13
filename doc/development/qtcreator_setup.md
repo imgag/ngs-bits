@@ -19,5 +19,31 @@ Change the QtCreator settings location by using the following command line argum
 
 `QtCreator -settingspath [PATH]`
 
+## Integrating Codex as AI coding assistent into QtCreator
+
+To use Codex in QtCreator, follow these instructions.
+
+1. Install [Node.js](https://nodejs.org/dist/v24.21.0/node-v24.21.0-x64.msi)
+
+	If `npm` is not in the path of new CMD windows, add `C:\Program Files\nodejs\` to the PATH environment variable.
+
+1. Install Codex CLI:
+
+	> powershell -ExecutionPolicy ByPass -c "irm https://chatgpt.com/codex/install.ps1 | iex"
+
+	During the installation, you have to log into your account, determine the sandbox and give a few preferences.
+
+1. Install [QtCreator 20.0 or higher](https://www.qt.io/development/offline-installers) (ACP/MCP protocol is available in QtCreator starting from version 20)
+
+1. Enable ACP/MCP in `Help → About Plugins`
+
+1. Add Codex as ACP server: `Edit → Preferences → AI → ACP servers → Add`
+	
+	Select `Codex`.
+
+1. Enable QtCreator MCP server at `Edit → Preferences → AI → ACP servers → QtCreator MCP server`
+
+1. Open AI panel: `Tools → ACP client → Show agentic AI chat in side panel`
 
 [Back to main page](index.md)
+
