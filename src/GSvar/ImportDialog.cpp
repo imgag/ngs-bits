@@ -109,6 +109,14 @@ void ImportDialog::setupGUI()
 		db_fields_ << "sample_id" << "disease_info";
 		db_extra_fields_ << "type" << "user_id";
 	}
+	else if (type_==USERS)
+	{
+		setWindowTitle("Import users");
+		ui_.label->setText("Batch import of NGSD users (paste tab-separated data to table)");
+		labels << "login" << "password" << "user role" << "name" << "email" << "active" << "comment";
+		db_table_ = "user";
+		db_fields_ << "user_id" << "password" << "user_role" << "name" << "email" << "active" << "comment";
+	}
 	else
 	{
 		THROW(ProgrammingException, "Unhandled type in ImportDialog::setupGUI");

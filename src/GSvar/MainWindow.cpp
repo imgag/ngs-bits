@@ -806,6 +806,12 @@ void MainWindow::on_actionImportVariants_triggered()
 	dlg.exec();
 }
 
+void MainWindow::on_actionImportUsers_triggered()
+{
+	ImportDialog dlg(this, ImportDialog::USERS);
+	dlg.exec();
+}
+
 void MainWindow::on_actionIgvClear_triggered()
 {
     IgvSessionManager::get(0).clear();
