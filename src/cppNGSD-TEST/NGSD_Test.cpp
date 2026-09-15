@@ -121,6 +121,7 @@ private:
 		IS_FALSE(db.isProductionDb());
 
 		//log in user
+		LoginManager::updateLastLogin(db.userId("ahmustm1")); // no last_login value is set, we do not want to reset the password
 		LoginManager::login("ahmustm1", "", true);
 
 		//escapeText

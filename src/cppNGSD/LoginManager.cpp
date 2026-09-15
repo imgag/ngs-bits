@@ -173,7 +173,7 @@ void LoginManager::login(QString user, QString password, bool test_db)
 	manager.user_name_ = db.userName(manager.user_id_);
 	manager.user_password_ = password;
 
-	QDateTime last_login = db.userLastLogin(manager.user_name_);
+	QDateTime last_login = db.userLastLogin(manager.user_login_);
 	if (last_login.isNull()) return;
 
 	//update last login date and time

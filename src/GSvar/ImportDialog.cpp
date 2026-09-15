@@ -194,6 +194,21 @@ void ImportDialog::pasteRow(int row_index, QString line)
 			ui_.table->setItem(row_index, 3, GUIHelper::createTableItem(class_info.classification));
 		}
 	}
+	else if (type_==USERS)
+	{
+		QStringList parts = line.split("\t");
+		checkNumberOfParts(parts);
+		for (int c=0; c<parts.count(); ++c)
+		{
+			// ui_.table->setItem(row_index, 0, GUIHelper::createTableItem(line));
+			QString value = parts[c];
+			QString actual = value;
+			QString validation_error;
+			QString notice;
+			all_valid &= addItem(row_index, c, value, actual, validation_error, notice);
+		}
+
+	}
 	else if (type_==SAMPLES || type_==RUNS || type_==PROCESSED_SAMPLES || type_==MIDS || type_==STUDY_SAMPLE || type_==SAMPLE_RELATIONS || type_==SAMPLE_HPOS)
 	{
 		QStringList parts = line.split("\t");
@@ -544,21 +559,19 @@ void ImportDialog::import()
 				}
 
 				// set the default initial password, if the password field is empty
-				if (import_data.contains("password"))
-				{
-					if (import_data["password"].isEmpty())
-					{
-						QString salt = Helper::randomString(40);
-						QString password = db.generateInitialPassword(8);
-						QString hash = QCryptographicHash::hash((salt+password).toUtf8(), QCryptographicHash::Sha1).toHex();
-						import_data["password"] = hash;
-						import_data.insert("salt", salt);
+				if (!import_data.contains("password")) import_data.insert("password", "");
 
-						// save initial login-password pairs
-						initial_user_password_pairs.insert(import_data["user_id"], hash);
-					}
+				QString salt = Helper::randomString(40);
+				QString password = import_data["password"];
+				if (import_data["password"].isEmpty()) password = db.generateInitialPassword(8);
 
-				}
+				QString hash = QCryptographicHash::hash((salt+password).toUtf8(), QCryptographicHash::Sha1).toHex();
+
+				import_data["password"] = hash;
+				import_data.insert("salt", salt);
+
+				// save initial login-password pairs
+				initial_user_password_pairs.insert(import_data["user_id"], password);
 
 				sendImportDataToServer("user", import_data);
 			}
@@ -577,7 +590,7 @@ void ImportDialog::import()
 				body << "";
 				for (auto it = initial_user_password_pairs.constBegin(); it != initial_user_password_pairs.constEnd(); ++it)
 				{
-					body << it.key() << " " << it.value();
+					body << it.key() + " " + it.value();
 				}
 				body << "";
 				body << "Best regards, ";
@@ -588,7 +601,8 @@ void ImportDialog::import()
 				dlg.exec();
 			}
 
-			ui_.warnings->appendPlainText("Import successful!");
+			if (ui_.table->rowCount()==skipped) ui_.warnings->appendPlainText("Nothing to import!");
+			else ui_.warnings->appendPlainText("Import successful!");
 			if (skipped>0)
 			{
 				ui_.warnings->appendPlainText("Skipped " + QString::number(skipped) + " rows!");
