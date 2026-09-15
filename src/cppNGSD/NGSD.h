@@ -1046,12 +1046,19 @@ public:
 	QString userName(int user_id);
 	///Returns the user email corresponding the given ID.
 	QString userEmail(int user_id);
+	///Returns the user last login date and time
+	QDateTime userLastLogin(QString user_login);
+
 	///Replacement for passwords when they are shown in the GUI.
 	static const QString& passwordReplacement();
 	///Checks if the given user/password tuple is correct. If ok, returns an empty string. If not, returns an error message.
 	QString checkPassword(QString user_name, QString password, bool only_active=true);
 	///Sets the password for a NGSD user using a new random salt.
 	void setPassword(int user_id, QString password);
+
+	///Generates a random initial password for the first login
+	QString generateInitialPassword(int length);
+
 	///Return a role for a given user.
 	QByteArray getUserRole(int user_id);
 

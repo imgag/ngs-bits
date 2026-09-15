@@ -13,6 +13,7 @@
 #include <QBuffer>
 #include <QXmlStreamWriter>
 #include "ClientHelper.h"
+#include "EmailDialog.h"
 
 ImportDialog::ImportDialog(QWidget* parent, Type type)
 	: QDialog(parent)
@@ -481,11 +482,10 @@ void ImportDialog::import()
 
 					// Don't send empty optional fields
 					if (!value.isEmpty()) import_data.insert(field_info.name, value);
-					c++;
+					++c;
 				}
 
-				sendImportDataToServer("sample", import_data);
-				QMessageBox::warning(this, "Test the database", "Check if the sample is in the database");
+				sendImportDataToServer("sample", import_data);			
 				import_data.clear();
 
 				// link corresponding tumor and cfDNA sample
@@ -514,6 +514,89 @@ void ImportDialog::import()
 			}
 			ui_.import_btn->setEnabled(false);
 		}
+		else if (type_==USERS)
+		{
+			QHash<QString, QString> initial_user_password_pairs;
+			//add entries
+			for (int r=0; r<ui_.table->rowCount(); ++r)
+			{
+				++row_num;
+				NGSD db;
+
+				//skip already imported users
+				QString user_id = ui_.table->item(r,0)->data(Qt::UserRole).toString();
+				if (db.getValue("SELECT id FROM user WHERE user_id=:0", true, user_id).toString()!="")
+				{
+					++skipped;
+					continue;
+				}
+
+				QHash<QString, QString> import_data;
+				// select table data for the import
+				int c = 0;
+				foreach (const QString& field, db_fields_)
+				{
+					QTableWidgetItem* item = ui_.table->item(r,c);
+					QString value = item==nullptr ? "" : item->data(Qt::UserRole).toString();
+					const TableFieldInfo& field_info = db_.tableInfo(db_table_).fieldInfo(field);
+					import_data.insert(field_info.name, value);
+					++c;
+				}
+
+				// set the default initial password, if the password field is empty
+				if (import_data.contains("password"))
+				{
+					if (import_data["password"].isEmpty())
+					{
+						QString salt = Helper::randomString(40);
+						QString password = db.generateInitialPassword(8);
+						QString hash = QCryptographicHash::hash((salt+password).toUtf8(), QCryptographicHash::Sha1).toHex();
+						import_data["password"] = hash;
+						import_data.insert("salt", salt);
+
+						// save initial login-password pairs
+						initial_user_password_pairs.insert(import_data["user_id"], hash);
+					}
+
+				}
+
+				sendImportDataToServer("user", import_data);
+			}
+
+			if (!initial_user_password_pairs.isEmpty())
+			{
+				//create email
+				QString to = NGSD().userEmail(LoginManager::userId());
+				QString subject = "Imported users";
+				QStringList body;
+
+				body << "Hi,";
+				body << "";
+				body << "these are the newly added users and their initial passwords.";
+				body << "The initial passwords will have to be changed on the first login attempt!";
+				body << "";
+				for (auto it = initial_user_password_pairs.constBegin(); it != initial_user_password_pairs.constEnd(); ++it)
+				{
+					body << it.key() << " " << it.value();
+				}
+				body << "";
+				body << "Best regards, ";
+				body << "  " + LoginManager::userName();
+
+				//send
+				EmailDialog dlg(this, QStringList() << to, subject, body);
+				dlg.exec();
+			}
+
+			ui_.warnings->appendPlainText("Import successful!");
+			if (skipped>0)
+			{
+				ui_.warnings->appendPlainText("Skipped " + QString::number(skipped) + " rows!");
+			}
+			ui_.import_btn->setEnabled(false);
+		}
+
+
 		else
 		{
 			THROW(ProgrammingException, "Unhandled type in ImportDialog::process");

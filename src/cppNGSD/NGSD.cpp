@@ -25,6 +25,7 @@
 #include <QCoreApplication>
 #include <QSqlError> //Comment to prevent removal by fix_includes.php
 #include <QJsonArray>
+#include <QRandomGenerator>
 
 NGSD::NGSD(bool test_db, QString test_name_override)
 	: test_db_(test_db)
@@ -146,6 +147,11 @@ QString NGSD::userEmail(int user_id)
 	return getValue("SELECT email FROM user WHERE id=:0", false,  QString::number(user_id)).toString();
 }
 
+QDateTime NGSD::userLastLogin(QString user_login)
+{
+	return getValue("SELECT last_login FROM user WHERE user_id=:0", false,  user_login).toDateTime();
+}
+
 const QString& NGSD::passwordReplacement()
 {
 	static QString output = "********";
@@ -191,6 +197,44 @@ void NGSD::setPassword(int user_id, QString password)
 	QString hash = QCryptographicHash::hash((salt+password).toUtf8(), QCryptographicHash::Sha1).toHex();
 
 	getQuery().exec("UPDATE user SET password='" + hash + "', salt='" + salt + "' WHERE id=" + QString::number(user_id));
+}
+
+QString NGSD::generateInitialPassword(int length)
+{
+	if (length < 6) THROW(ArgumentException, "The password should have at least 6 characters");
+	const QString letters = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ";
+	const QString numbers = "23456789";
+	const QString all = letters + numbers;
+
+	QString password;
+	password.reserve(length);
+
+	auto random_char = [](const QString& chars) -> QChar
+	{
+		int index = QRandomGenerator::system()->bounded(chars.size());
+		return chars.at(index);
+	};
+
+	// Guarantee at least one letter and one number
+	password.append(random_char(letters));
+	password.append(random_char(numbers));
+
+	// Fill the remaining characters
+	for (int i = 2; i < length; ++i)
+	{
+		password.append(random_char(all));
+	}
+
+	// Fisher-Yates shuffle
+	for (int i = password.size() - 1; i > 0; --i)
+	{
+		int j = QRandomGenerator::system()->bounded(i+1);
+		QChar tmp = password[i];
+		password[i] = password[j];
+		password[j] = tmp;
+	}
+
+	return password;
 }
 
 QByteArray NGSD::getUserRole(int user_id)
