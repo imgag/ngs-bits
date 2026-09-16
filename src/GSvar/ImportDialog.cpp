@@ -521,7 +521,6 @@ void ImportDialog::import()
 				sendImportDataToServer("sample_relations", import_data);
 			}
 
-			// db_.commit();
 			ui_.warnings->appendPlainText("Import successful!");
 			if (skipped>0)
 			{
