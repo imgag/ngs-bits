@@ -92,7 +92,10 @@ QStringList AnalysisDataController::loadFile(QString filename)
 
     QStringList errors;
 
-    if (filename=="") return errors;
+	if (filename=="")
+	{
+		THROW(ProgrammingException, "AnalysisDataController can't load an empty file path!");
+	}
 
     QElapsedTimer timer;
     //load variants

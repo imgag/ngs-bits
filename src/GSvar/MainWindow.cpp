@@ -2006,6 +2006,8 @@ void MainWindow::on_actionChangeLog_triggered()
 
 void MainWindow::loadFile(QString filename)
 {
+
+
     //store variant list in case it changed
     if (data_controller_.variantListModified())
     {
@@ -2015,6 +2017,8 @@ void MainWindow::loadFile(QString filename)
             data_controller_.storeSmallVariantList();
         }
     }
+
+	if (filename == "") return;
 
     QApplication::setOverrideCursor(Qt::BusyCursor);
 
@@ -2028,7 +2032,10 @@ void MainWindow::loadFile(QString filename)
         ui_.tabs->setCurrentIndex(0);
         ui_.filters->reset(true);
 
-        QMessageBox::warning(this, "Error loading analysis:", errors.join("\n"));
+		if (errors.count() > 0)
+		{
+			QMessageBox::warning(this, "Error loading analysis:", errors.join("\n"));
+		}
 
         //update GUI
         QString mode_title = data_controller_.isLocal() ? "(local mode)" : "";
