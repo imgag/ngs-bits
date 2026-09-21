@@ -477,47 +477,15 @@ void SequencingRunWidget::setQualityManually()
 
 void SequencingRunWidget::setQualityAutomatically()
 {
-	if (ui_->show_qc_cols->isChecked())
+	QStringList ids;
+	foreach (int row, ui_->samples->selectedRows())
 	{
-		int sample_column = ui_->samples->columnIndex("sample");
-		int tumor_column = ui_->samples->columnIndex("is_tumor");
-		int ps_column = ui_->samples->columnIndex("processing system");
-		NGSD db;
-		QcRuleMatcher qc_rule_matcher = GSvarHelper::qcRuleMatcher();
-
-		QList<int> selected_rows = ui_->samples->selectedRows().values();
-		int good_count = 0;
-		int medium_count = 0;
-		int bad_count = 0;
-		int n_a_count = 0;
-		int no_rules_count = 0;
-		foreach (int row, selected_rows)
-		{
-			QString ps_name = ui_->samples->item(row, sample_column)->text();
-			QString ps_id = db.processedSampleId(ps_name);
-			bool is_tumor = false;
-			if (tumor_column>-1) is_tumor = ui_->samples->item(row,tumor_column)->text()=="yes" ? true : false;
-			QString ps_name_manufacturer = ui_->samples->item(row,ps_column)->text();
-			QString sys_type = db.getValue("SELECT type FROM processing_system WHERE name_manufacturer=:0", true, ps_name_manufacturer).toString();
-			QCCollection qc_data = db.getQCData(ps_id);
-			QString qc_class = qc_rule_matcher.evaluate(qc_data, systemShortName(db, ps_name_manufacturer), sys_type, is_tumor);
-			if (qc_class == "good") good_count++;
-			if (qc_class == "medium") medium_count++;
-			if (qc_class == "bad") bad_count++;
-			if (qc_class == "n/a") n_a_count++;
-			if (qc_class.isEmpty())
-			{
-				// no changes to the database needed
-				no_rules_count++;
-				continue;
-			}
-
-			SqlQuery update_query = db.getQuery();
-			update_query.exec("UPDATE processed_sample SET quality='"+qc_class+"' WHERE id='"+ps_id+"'");
-		}
-		QMessageBox::information(this, "Setting quality automatically", "The quality has been automatically set to " + QString::number(good_count+medium_count+bad_count) + " sample(s): \n good - " + QString::number(good_count) + "\n medium - " + QString::number(medium_count) + "\n bad - " +QString::number(bad_count) + "\n n/a - " +QString::number(n_a_count) +  + "\n no rules - " +QString::number(no_rules_count));
-		updateGUI();
+		ids << ui_->samples->getId(row);
 	}
+	QString summary = GSvarHelper::setQuality(ids);
+	QMessageBox::information(this, "Setting quality automatically", summary);
+
+	updateGUI();
 }
 
 void SequencingRunWidget::toggleScheduleForResequencing()
@@ -527,8 +495,6 @@ void SequencingRunWidget::toggleScheduleForResequencing()
 	//prepare query
 	SqlQuery query = db.getQuery();
 	query.prepare("UPDATE processed_sample SET scheduled_for_resequencing=:0 WHERE id=:1");
-
-
 
 	int col = ui_->samples->columnIndex("sample");
     QList<int> selected_rows = ui_->samples->selectedRows().values();

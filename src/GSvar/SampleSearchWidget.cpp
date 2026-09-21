@@ -26,6 +26,9 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	action = new QAction(QIcon(":/Icons/Comment.png"), "Add text to processed sample comment", this);
 	ui_.sample_table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(amendSampleComments()));
+	action = new QAction("Set quality automatically", this);
+	ui_.sample_table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQualityAutomatically()));
 	action = new QAction(QIcon(":/Icons/Remove.png"), "Delete", this);
 	ui_.sample_table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(deleteSampleData()));
@@ -274,6 +277,18 @@ void SampleSearchWidget::amendSampleComments()
 	{
 		GUIHelper::showMessage("Add text to processed sample comment", e.message());
 	}
+}
+
+void SampleSearchWidget::setQualityAutomatically()
+{
+	QStringList ids;
+	foreach (int row, ui_.sample_table->selectedRows())
+	{
+		ids << ui_.sample_table->getId(row);
+	}
+	QString summary = GSvarHelper::setQuality(ids);
+	QMessageBox::information(this, "Setting quality automatically", summary);
+	search();
 }
 
 void SampleSearchWidget::queueAnalysis()

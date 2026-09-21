@@ -820,6 +820,40 @@ QcRuleMatcher GSvarHelper::qcRuleMatcher()
 	return QcRuleMatcher(QApplication::applicationDirPath() + QDir::separator() + "GSvar_qc_cutoffs.xml");
 }
 
+QString GSvarHelper::setQuality(QStringList ps_ngsd_ids)
+{
+	QcRuleMatcher qc_rule_matcher = GSvarHelper::qcRuleMatcher();
+	int good_count = 0;
+	int medium_count = 0;
+	int bad_count = 0;
+	int n_a_count = 0;
+	int no_rules_count = 0;
+
+	NGSD db;
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT ps.id, sys.name_short, sys.type, s.tumor FROM sample s, processed_sample ps, processing_system sys WHERE ps.sample_id=s.id AND ps.processing_system_id=sys.id AND ps.id in ("+ps_ngsd_ids.join(", ")+")");
+	while (query.next())
+	{
+		QString ps_id = query.value("id").toString();
+		QCCollection qc_data = db.getQCData(ps_id);
+		QString qc_class = qc_rule_matcher.evaluate(qc_data, query.value("name_short").toString(), query.value("type").toString(), query.value("tumor").toBool());
+		if (qc_class == "good") good_count++;
+		if (qc_class == "medium") medium_count++;
+		if (qc_class == "bad") bad_count++;
+		if (qc_class == "n/a") n_a_count++;
+		if (qc_class.isEmpty())
+		{
+			// no changes to the database needed
+			no_rules_count++;
+			continue;
+		}
+
+		SqlQuery update_query = db.getQuery();
+		update_query.exec("UPDATE processed_sample SET quality='"+qc_class+"' WHERE id='"+ps_id+"'");
+	}
+	return "The quality has been automatically set for " + QString::number(good_count+medium_count+bad_count) + " sample(s): \n good - " + QString::number(good_count) + "\n medium - " + QString::number(medium_count) + "\n bad - " +QString::number(bad_count) + "\n n/a - " +QString::number(n_a_count) +  + "\n no rules - " +QString::number(no_rules_count);
+}
+
 GSvarHelper::GSvarHelper()
 {
 }
