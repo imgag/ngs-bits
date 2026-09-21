@@ -494,6 +494,8 @@ void ImportDialog::import()
 				for (int e = 0; e < process_id_list.size(); ++e) import_data.insert(db_extra_fields_[e], process_id_list[e]);
 				sendImportDataToServer("processed_sample", import_data);
 			}
+			ui_.warnings->appendPlainText("Import successful!");
+			ui_.import_btn->setEnabled(false);
 		}
 		else if (type_==SAMPLES)
 		{
