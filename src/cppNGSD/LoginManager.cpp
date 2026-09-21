@@ -216,11 +216,12 @@ void LoginManager::renewLogin()
 		// request a new token, if the current one is about to expire (30 minutes in advance)
         if ((login_time + valid_period - (0.5 * 3600)) < QDateTime::currentDateTime().toSecsSinceEpoch())
 		{
+			Log::info("The current token is about to expire, it is being replaced");
 			if ((user_login.isEmpty()) || (user_password.isEmpty())) return;
             setAllTokens(user_login, user_password);
 		}
 	}
-    else if (session_info.contains("expired"))
+	else
     {
         // the server could not return session info, the current token is likely expired
         Log::info("Token has expired, request a new one");

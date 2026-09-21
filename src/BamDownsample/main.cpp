@@ -18,6 +18,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Downsamples a BAM file to the given percentage of reads.");
+		setExtendedDescription(QStringList() << "Note: Secondary and supplementary alignments are removed.");
 		addInfile("in", "Input BAM/CRAM file.", false, true);
 		addFloat("percentage", "Percentage of reads to keep.", false);
 		addOutfile("out", "Output BAM/CRAM file.", false, true);
@@ -49,13 +50,24 @@ public:
 		unsigned long long c_se_pass = 0;
 		unsigned long long c_pe = 0;
 		unsigned long long c_pe_pass = 0;
+		unsigned long long c_skip_sec = 0;
+		unsigned long long c_skip_supp = 0;
 
 		BamAlignment al;
 		QHash<QByteArray, BamAlignment> al_cache;
 		while (reader.getNextAlignment(al))
 		{
 			//skip secondary and supplementary alignments
-			if(al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
+			if(al.isSecondaryAlignment())
+			{
+				++c_skip_sec;
+				continue;
+			}
+			if (al.isSupplementaryAlignment())
+			{
+				++c_skip_supp;
+				continue;
+			}
 
 			if(!al.isPaired()) //single-end reads
 			{
@@ -97,7 +109,9 @@ public:
         out << "SE reads (written)          : " << c_se_pass << Qt::endl;
         out << "PE reads                    : " << c_pe << Qt::endl;
         out << "PE reads (written)          : " << c_pe_pass << Qt::endl;
-        out << "PE reads unmatched (skipped): " << al_cache.size() << Qt::endl;
+		out << "PE reads unmatched (skipped): " << al_cache.size() << Qt::endl;
+		out << "Skipped secondary reads     : " << c_skip_sec << Qt::endl;
+		out << "Skipped supplementary reads : " << c_skip_supp << Qt::endl;
 	}
 };
 

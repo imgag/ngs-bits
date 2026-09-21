@@ -146,7 +146,7 @@ bool IGVSession::isIgvRunning()
 	//no commands are executed > try to open a connection
 	QTcpSocket socket;
 	socket.connectToHost(igv_data_.host, igv_data_.port);
-	if (!socket.waitForConnected(1500))
+	if (!socket.waitForConnected(3000))
 	{
 		Log::info("Could not open socket to IGV");
 		return false;
