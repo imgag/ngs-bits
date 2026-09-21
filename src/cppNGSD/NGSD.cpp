@@ -193,7 +193,7 @@ QByteArray NGSD::getUserRole(int user_id)
 	return userCache().userRole(*this, user_id);
 }
 
-bool NGSD::userRoleIn(QString user, QStringList roles, bool use_cache)
+bool NGSD::userRoleIn(QString user, QStringList roles)
 {
 	const QStringList valid_roles = NGSDReferenceDataCache::getEnumValues(*this, "user", "user_role");
 
@@ -329,9 +329,14 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		{
 			conditions << "psa.population='" + escapeForSql(p.s_ancestry) + "'";
 		}
-		if (!p.include_bad_quality_samples)
+		if (!p.ps_quality.isEmpty())
 		{
-			conditions << "ps.quality!='bad'";
+			QStringList tmp;
+			foreach(QString qual, p.ps_quality)
+			{
+				tmp << "ps.quality='" + qual + "'";
+			}
+			conditions << "(" + tmp.join(" OR ") + ")";
 		}
 		if (!p.include_scheduled_for_resequencing_samples)
 		{
@@ -489,6 +494,12 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 			   << "u.name as operator"
 			   << "ps.processing_modus as processing_modus"
 			   << "ps.batch_number as batch_number";
+	}
+
+	//add patient id
+	if (p.add_patient_id)
+	{
+		fields << "s.patient_identifier";
 	}
 
 	DBTable output = createTable("processed_sample", "SELECT " + fields.join(", ") + " FROM " + tables.join(", ") +" WHERE " + conditions.join(" AND ") + " ORDER BY r.name ASC, s.name ASC, ps.process_id ASC");

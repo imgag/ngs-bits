@@ -1133,7 +1133,7 @@ private:
 		params.s_sender = "Coriell";
 		params.s_study = "SomeStudy";
 		params.s_tissue = "blood";
-		params.include_bad_quality_samples = false;
+		params.ps_quality = {"n/a", "good", "medium"};
 		params.include_tumor_samples = false;
 		params.include_ffpe_samples = false;
 		params.p_name = "KontrollDNACoriell";

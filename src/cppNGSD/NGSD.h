@@ -436,7 +436,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	PhenotypeList s_phenotypes;
 	QString s_tissue;
 	QString s_ancestry;
-	bool include_bad_quality_samples = true;
+	QStringList ps_quality = {"n/a", "good", "medium", "bad"};
 	bool include_tumor_samples = true;
 	bool include_germline_samples = true;
 	bool include_ffpe_samples = true;
@@ -480,6 +480,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool add_call_details = false;
 	bool add_lab_columns = false;
 	bool add_study_column = false;
+	bool add_patient_id = false;
 };
 
 ///Meta data about somatic report configuration (e.g. creation/update, target bed file)
@@ -1025,7 +1026,7 @@ public:
 	QByteArray getUserRole(int user_id);
 
 	///Checks if the user has one of the given roles.
-	bool userRoleIn(QString user, QStringList roles, bool use_cache=true);
+	bool userRoleIn(QString user, QStringList roles);
 	///Checks if the user can access the processed sample. Use for users with role 'restricted_user' only, or it will be slow because the user role has to be checked every time. Uses caching for massive speed-up.
 	bool userCanAccess(int user_id, int ps_id);
 	///Returns the action permissions of a user. Action permissions can be restricted for users with role 'restricted_user' only.

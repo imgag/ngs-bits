@@ -174,49 +174,127 @@
           </property>
          </widget>
         </item>
+        <item row="9" column="0">
+         <widget class="QLabel" name="label_23">
+          <property name="text">
+           <string>ancestry:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="9" column="1">
+         <widget class="QComboBox" name="s_ancestry">
+          <property name="maxVisibleItems">
+           <number>20</number>
+          </property>
+         </widget>
+        </item>
         <item row="10" column="0">
          <widget class="QLabel" name="label_5">
           <property name="text">
-           <string>include bad quality:</string>
+           <string>include quality:</string>
           </property>
          </widget>
         </item>
         <item row="10" column="1">
-         <widget class="QCheckBox" name="s_bad_quality">
-          <property name="text">
-           <string/>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <property name="spacing">
+           <number>3</number>
           </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
+          <item>
+           <widget class="QCheckBox" name="ps_qual_na">
+            <property name="text">
+             <string>n/a</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="ps_qual_good">
+            <property name="text">
+             <string>good</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="ps_qual_medium">
+            <property name="text">
+             <string>medium</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="ps_qual_bad">
+            <property name="text">
+             <string>bad</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
         <item row="11" column="0">
          <widget class="QLabel" name="label_6">
           <property name="text">
-           <string>include tumor:</string>
+           <string>include somatic:</string>
           </property>
          </widget>
         </item>
         <item row="11" column="1">
-         <widget class="QCheckBox" name="s_tumor">
+         <layout class="QHBoxLayout" name="horizontalLayout_7">
+          <item>
+           <widget class="QCheckBox" name="s_tumor">
+            <property name="text">
+             <string>tumor</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="s_ffpe">
+            <property name="text">
+             <string>ffpe</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
+        </item>
+        <item row="13" column="0">
+         <widget class="QLabel" name="label_26">
           <property name="text">
-           <string/>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
+           <string>include scheduled for resequencing:</string>
           </property>
          </widget>
         </item>
-        <item row="12" column="0">
-         <widget class="QLabel" name="label_7">
-          <property name="text">
-           <string>include ffpe:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="12" column="1">
-         <widget class="QCheckBox" name="s_ffpe">
+        <item row="13" column="1">
+         <widget class="QCheckBox" name="s_scheduled_for_resequencing">
           <property name="text">
            <string/>
           </property>
@@ -239,37 +317,6 @@
          <widget class="QCheckBox" name="s_only_with_variants">
           <property name="text">
            <string/>
-          </property>
-         </widget>
-        </item>
-        <item row="9" column="0">
-         <widget class="QLabel" name="label_23">
-          <property name="text">
-           <string>ancestry:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="9" column="1">
-         <widget class="QComboBox" name="s_ancestry">
-          <property name="maxVisibleItems">
-           <number>20</number>
-          </property>
-         </widget>
-        </item>
-        <item row="13" column="1">
-         <widget class="QCheckBox" name="s_scheduled_for_resequencing">
-          <property name="text">
-           <string/>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="13" column="0">
-         <widget class="QLabel" name="label_26">
-          <property name="text">
-           <string>include scheduled for resequencing:</string>
           </property>
          </widget>
         </item>
@@ -621,7 +668,7 @@
       <property name="spacing">
        <number>3</number>
       </property>
-      <item row="0" column="9">
+      <item row="0" column="10">
        <widget class="QCheckBox" name="add_call_details">
         <property name="toolTip">
          <string>Added variant caller, variant caller version and variant calling date for small variants, CNVs and SVs.</string>
@@ -631,53 +678,23 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="4">
-       <widget class="QCheckBox" name="add_report_config">
+      <item row="0" column="9">
+       <widget class="QCheckBox" name="add_dates">
         <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adds a column about the report configuration:&lt;br/&gt;- if it exists for the sample&lt;br/&gt;- if it contains causal small variants (variant, genotype, genes)&lt;br/&gt;- if it contains causal CNVs (CNV, copy-number)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         <string>Adds year of birth and year of sample entry</string>
         </property>
         <property name="text">
-         <string>add report configuration info</string>
+         <string>add dates</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="2">
-       <widget class="QCheckBox" name="add_outcome">
-        <property name="text">
-         <string>add diagnostic outcome</string>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="6">
+      <item row="0" column="7">
        <widget class="QCheckBox" name="add_normal_sample">
         <property name="toolTip">
          <string>Normal germline sample associated to a tumor sample.</string>
         </property>
         <property name="text">
          <string>add normal sample</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="10">
-       <widget class="QCheckBox" name="add_lab_columns">
-        <property name="toolTip">
-         <string>Adds columns input, molarity, operator, processing method and batch number.</string>
-        </property>
-        <property name="text">
-         <string>add lab columns</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QCheckBox" name="add_disease_details">
-        <property name="text">
-         <string>add disease details</string>
-        </property>
-        <property name="checked">
-         <bool>false</bool>
         </property>
        </widget>
       </item>
@@ -691,17 +708,7 @@
         </property>
        </widget>
       </item>
-      <item row="0" column="8">
-       <widget class="QCheckBox" name="add_dates">
-        <property name="toolTip">
-         <string>Adds year of birth and year of sample entry</string>
-        </property>
-        <property name="text">
-         <string>add dates</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="5">
+      <item row="0" column="1">
        <widget class="QCheckBox" name="add_qc">
         <property name="text">
          <string>add QC metrics</string>
@@ -709,9 +716,56 @@
        </widget>
       </item>
       <item row="0" column="11">
+       <widget class="QCheckBox" name="add_lab_columns">
+        <property name="toolTip">
+         <string>Adds columns input, molarity, operator, processing method and batch number.</string>
+        </property>
+        <property name="text">
+         <string>add lab columns</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="12">
        <widget class="QCheckBox" name="add_study_column">
         <property name="text">
          <string>add study column</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="0">
+       <widget class="QCheckBox" name="add_disease_details">
+        <property name="text">
+         <string>add disease details</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <widget class="QCheckBox" name="add_outcome">
+        <property name="text">
+         <string>add diagnostic outcome</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QCheckBox" name="add_patient_id">
+        <property name="text">
+         <string>add patient id column</string>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="2">
+       <widget class="QCheckBox" name="add_report_config">
+        <property name="toolTip">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Adds a column about the report configuration:&lt;br/&gt;- if it exists for the sample&lt;br/&gt;- if it contains causal small variants (variant, genotype, genes)&lt;br/&gt;- if it contains causal CNVs (CNV, copy-number)&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="text">
+         <string>add report configuration info</string>
         </property>
        </widget>
       </item>
@@ -781,16 +835,11 @@
  <tabstops>
   <tabstop>s_name</tabstop>
   <tabstop>s_species</tabstop>
-  <tabstop>s_bad_quality</tabstop>
-  <tabstop>s_tumor</tabstop>
-  <tabstop>s_ffpe</tabstop>
   <tabstop>p_name</tabstop>
   <tabstop>p_type</tabstop>
   <tabstop>sys_name</tabstop>
   <tabstop>sys_type</tabstop>
   <tabstop>r_name</tabstop>
-  <tabstop>add_disease_details</tabstop>
-  <tabstop>add_outcome</tabstop>
   <tabstop>search_btn</tabstop>
   <tabstop>sample_table</tabstop>
  </tabstops>

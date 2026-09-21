@@ -103,7 +103,12 @@ void SampleSearchWidget::search()
 		params.s_phenotypes = phenotypes_;
 		params.s_tissue = ui_.s_tissue->currentText();
 		params.s_ancestry = ui_.s_ancestry->currentText();
-		params.include_bad_quality_samples = ui_.s_bad_quality->isChecked();
+		QStringList ps_quality;
+		if (ui_.ps_qual_na->isChecked()) ps_quality << "n/a";
+		if (ui_.ps_qual_good->isChecked()) ps_quality << "good";
+		if (ui_.ps_qual_medium->isChecked()) ps_quality << "medium";
+		if (ui_.ps_qual_bad->isChecked()) ps_quality << "bad";
+		params.ps_quality = ps_quality;
 		params.include_tumor_samples = ui_.s_tumor->isChecked();
 		params.include_ffpe_samples = ui_.s_ffpe->isChecked();
 		params.include_scheduled_for_resequencing_samples = ui_.s_scheduled_for_resequencing->isChecked();
@@ -155,6 +160,7 @@ void SampleSearchWidget::search()
 		params.add_call_details = ui_.add_call_details->isChecked();
 		params.add_lab_columns = ui_.add_lab_columns->isChecked();
 		params.add_study_column = ui_.add_study_column->isChecked();
+		params.add_patient_id = ui_.add_patient_id->isChecked();
 
 		NGSD db;
 		if (db.getUserRole(LoginManager::userId())=="user_restricted")
