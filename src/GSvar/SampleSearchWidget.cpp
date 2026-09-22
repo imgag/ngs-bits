@@ -26,7 +26,7 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	action = new QAction(QIcon(":/Icons/Comment.png"), "Add text to processed sample comment", this);
 	ui_.sample_table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(amendSampleComments()));
-	action = new QAction("Set quality automatically", this);
+	action = new QAction(QIcon(":/Icons/qc_check.png"), "Set quality automatically", this);
 	ui_.sample_table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQualityAutomatically()));
 	action = new QAction(QIcon(":/Icons/Remove.png"), "Delete", this);

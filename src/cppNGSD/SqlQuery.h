@@ -15,6 +15,11 @@ public:
 		void exec(const QString& query);
 		void prepare(const QString& query);
 		void exec();
+
+		//Returns the headers of the SQL query result
+		QStringList headers() const;
+		//Convert SQL query result to TSV text (without newlines). Headers can be replaced by
+		QStringList toTSV();
 	protected:
 		//Enable debugging (prints executed queries)
 		bool debug_;

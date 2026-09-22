@@ -180,29 +180,22 @@ void DBQCWidget::copyQcMetricsToClipboard()
 		if(ui_.term->currentText().isEmpty()) THROW(ArgumentException, "QC metric 1 has to be set for export!");
 		if (ui_.processing_system->getCurrentId().isEmpty()) THROW(ArgumentException, "A processing system has to be set for export!");
 
-		//create output
+		//perform query
 		bool scatterplot = !ui_.term2->currentText().isEmpty();
-		QStringList output;
-		output << "#" + ui_.term->currentText() + (scatterplot ? "\t"+ui_.term2->currentText() : "")+"\tprocessed_sample\tprocessed_sample_quality\ttumor\tffpe\ttissue\trun\trun_date\tdevice\tproject\tproject_type";
 		QString term_id = ui_.term->getCurrentId();
 		QString sys_id = ui_.processing_system->getCurrentId();
 		SqlQuery query = db_.getQuery();
 		QString term2_id = ui_.term2->getCurrentId();
 		query.exec(QString("SELECT qc.value, ")+(scatterplot ? "qc2.value," : "")+" CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), ps.quality, s.tumor, s.ffpe, s.tissue, r.name, r.end_date, d.name, p.name, p.type FROM processed_sample_qc qc, "+(scatterplot ? "processed_sample_qc qc2," : "")+" processed_sample ps, sequencing_run r, device d, project p, sample s WHERE r.device_id=d.id AND ps.sample_id=s.id AND ps.project_id=p.id AND qc.processed_sample_id=ps.id "+(scatterplot ? "AND qc2.processed_sample_id=ps.id AND qc2.qc_terms_id='" + term2_id + "'" : "")+" AND ps.sequencing_run_id=r.id AND qc.qc_terms_id='" + term_id + "' AND ps.processing_system_id='" + sys_id + "' ORDER BY ps.id ASC");
-		int cols = query.record().count();
-		while(query.next())
-		{
-			QString tmp;
-			for (int i=0; i<cols; ++i)
-			{
-				if (!tmp.isEmpty()) tmp += "\t";
-				tmp += query.value(i).toString();
-			}
-			output << tmp;
-		}
 
 		//output
-		QApplication::clipboard()->setText(output.join("\n"));
+		QStringList tsv = query.toTSV();
+		QStringList headers;
+		headers << ui_.term->currentText();
+		if (scatterplot) headers << ui_.term2->currentText();
+		headers << "processed_sample" << "processed_sample_quality" << "tumor" << "ffpe" << "tissue" << "run" << "run_date" << "device" << "project" << "project_type";
+		tsv[0] = "#"+headers.join("\t");
+		QApplication::clipboard()->setText(tsv.join("\n"));
 		QApplication::restoreOverrideCursor();
 		QMessageBox::information(this, "QC export", "Copied " + QString::number(query.size()) + " QC values to clipboard.");
 	}

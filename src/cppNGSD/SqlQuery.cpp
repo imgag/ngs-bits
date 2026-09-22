@@ -4,6 +4,7 @@
 #include <QElapsedTimer>
 #include <QScopedPointer>
 #include "Helper.h"
+#include <QSqlRecord>
 
 SqlQuery::SqlQuery(QSqlDatabase db, bool debug)
 	: QSqlQuery(db)
@@ -56,4 +57,48 @@ void SqlQuery::exec()
 	{
 		THROW(DatabaseException, lastError().text() + "\nQuery: " + lastQuery());
 	}
+}
+
+QStringList SqlQuery::headers() const
+{
+	QStringList output;
+
+	QSqlRecord record_data = record();
+	for (int i=0; i<record().count(); ++i)
+	{
+		output << record_data.fieldName(i);
+	}
+
+	return output;
+}
+
+QStringList SqlQuery::toTSV()
+{
+	QStringList output;
+
+	//header
+	output << "#" + headers().join('\t');
+
+	//data
+	while (next())
+	{
+		QStringList row;
+
+		for (int i=0; i<record().count(); ++i)
+		{
+			QString field;
+			if (!isNull(i))
+			{
+				field = value(i).toString();
+				field.replace('\t', ' ');
+				field.replace('\r', ' ');
+				field.replace('\n', ' ');
+			}
+			row << field;
+		}
+
+		output << row.join('\t');
+	}
+
+	return output;
 }

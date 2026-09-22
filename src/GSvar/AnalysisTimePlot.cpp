@@ -8,6 +8,8 @@
 #include <QValueAxis>
 #include "GUIHelper.h"
 #include "BasicStatistics.h"
+#include <QClipboard>
+#include <QMessageBox>
 
 AnalysisTimePlot::AnalysisTimePlot(QWidget* parent)
 	: QWidget(parent)
@@ -15,6 +17,7 @@ AnalysisTimePlot::AnalysisTimePlot(QWidget* parent)
 {
 	ui_.setupUi(this);
 	connect(ui_.update_btn, &QPushButton::clicked, this, &AnalysisTimePlot::updatePlot);
+	connect(ui_.copy_clipboard_btn, &QPushButton::clicked, this, &AnalysisTimePlot::copyToClipboard);
 
 	//get enums from NGSD
 	NGSD db;
@@ -25,6 +28,10 @@ AnalysisTimePlot::AnalysisTimePlot(QWidget* parent)
 	sys_types.prepend("");
 	ui_.system_type->addItems(sys_types);
 	ui_.system_name->fill(db.createTable("processing_system", "SELECT sys.id, sys.name_manufacturer FROM processing_system sys, genome g WHERE sys.genome_id=g.id AND g.build='GRCh38' ORDER BY sys.name_manufacturer ASC"));
+	QStringList platforms = db.getEnum("processing_system", "platform");
+	platforms.prepend("");
+	platforms.removeAll("n/a");
+	ui_.platform->addItems(platforms);
 	QStringList servers = db.getValues("SELECT DISTINCT server FROM analysis_time ORDER BY server ASC");
 	servers.prepend("");
 	ui_.server->addItems(servers);
@@ -33,7 +40,7 @@ AnalysisTimePlot::AnalysisTimePlot(QWidget* parent)
 
 void AnalysisTimePlot::updatePlot()
 {
-	bool min_per_threads = ui_.min_per_threads->isChecked();
+	bool min_times_threads = ui_.min_times_threads->isChecked();
 
 	try
 	{
@@ -53,15 +60,7 @@ void AnalysisTimePlot::updatePlot()
 		double mins_max = -std::numeric_limits<double>::max();
 		NGSD db;
 		SqlQuery query = db.getQuery();
-		QStringList constraints;
-		constraints << "t.type='" + ui_.type->currentText()+"'";
-		if (!ui_.system_type->currentText().isEmpty()) constraints << "sys.type='"+ui_.system_type->currentText()+"'";
-		if (!ui_.system_name->currentText().isEmpty()) constraints << "sys.name_manufacturer='"+ui_.system_name->currentText()+"'";
-		if (!ui_.server->currentText().isEmpty()) constraints << "t.server='"+ui_.server->currentText()+"'";
-		QString dragen = ui_.dragen->currentText();
-		if (dragen=="with DRAGEN") constraints << "t.dragen_used=1";
-		if (dragen=="without DRAGEN") constraints << "t.dragen_used=0";
-		query.exec("SELECT t.datetime, t.min, t.threads FROM analysis_time t, processing_system sys WHERE sys.id=t.processing_system_id AND "+constraints.join(" AND "));
+		query.exec(getSqlQuery());
 		while(query.next())
 		{
 			QDateTime time = query.value(0).toDateTime();
@@ -74,7 +73,7 @@ void AnalysisTimePlot::updatePlot()
 
 				double min = query.value(1).toDouble();
 				double threads = query.value(2).toDouble();
-				double min_value = (min_per_threads ? min/threads : min);
+				double min_value = (min_times_threads ? min*threads : min);
 				mins << min_value;
 				if (min_value>mins_max) mins_max = min_value;
 			}
@@ -116,7 +115,7 @@ void AnalysisTimePlot::updatePlot()
 		chart->addAxis(x_axis, Qt::AlignBottom);
 
 		QValueAxis* y_axis = new QValueAxis();
-		y_axis->setTitleText(min_per_threads ? "min/threads" : "min");
+		y_axis->setTitleText("min");
 		y_axis->setTickCount(8);
 		chart->addAxis(y_axis, Qt::AlignLeft);
 
@@ -152,4 +151,43 @@ void AnalysisTimePlot::updatePlot()
 	{
 		GUIHelper::showException(this, e, "Analysis time plot exception");
 	}
+}
+
+void AnalysisTimePlot::copyToClipboard()
+{
+	try
+	{
+		QApplication::setOverrideCursor(Qt::BusyCursor);
+
+		NGSD db;
+		SqlQuery query = db.getQuery();
+		query.exec(getSqlQuery(", TRUNCATE(t.min*t.threads, 2) as min_x_threads, t.dragen_used, t.server, sys.type as system_type, sys.name_manufacturer as system_name"));
+		QStringList tsv = query.toTSV();
+		//TODO headers
+		QApplication::clipboard()->setText(tsv.join("\n"));
+		QApplication::restoreOverrideCursor();
+		QMessageBox::information(this, "QC export", "Copied " + QString::number(query.size()) + " QC values to clipboard.");
+	}
+	catch(Exception& e)
+	{
+		QApplication::restoreOverrideCursor();
+		QMessageBox::warning(this, "QC export", "Error: " + e.message());
+	}
+}
+
+QString AnalysisTimePlot::getSqlQuery(QString add_fields)
+{
+	QStringList constraints;
+
+	constraints << "t.type='" + ui_.type->currentText()+"'";
+	if (!ui_.system_type->currentText().isEmpty()) constraints << "sys.type='"+ui_.system_type->currentText()+"'";
+	if (!ui_.system_name->currentText().isEmpty()) constraints << "sys.name_manufacturer='"+ui_.system_name->currentText()+"'";
+	if (!ui_.platform->currentText().isEmpty()) constraints << "sys.platform='"+ui_.platform->currentText()+"'";
+	if (!ui_.server->currentText().isEmpty()) constraints << "t.server='"+ui_.server->currentText()+"'";
+
+	QString dragen = ui_.dragen->currentText();
+	if (dragen=="with DRAGEN") constraints << "t.dragen_used=1";
+	if (dragen=="without DRAGEN") constraints << "t.dragen_used=0";
+
+	return "SELECT t.datetime as date, t.min, t.threads " + add_fields + " FROM analysis_time t, processing_system sys WHERE sys.id=t.processing_system_id AND "+constraints.join(" AND ");
 }

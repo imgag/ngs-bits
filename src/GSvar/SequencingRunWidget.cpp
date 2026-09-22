@@ -48,12 +48,12 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, const QStringList& run
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSelectedSampleTabs()));
 
 	//set quality
-	action = new QAction("Set quality manually", this);
+	action = new QAction(QIcon(":/Icons/qc_check.png"), "Set quality manually", this);
 	ui_->samples->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQualityManually()));
 
 	//automatically determine quality, based on the available QC values
-	action = new QAction("Set quality automatically", this);
+	action = new QAction(QIcon(":/Icons/qc_check.png"), "Set quality automatically", this);
 	ui_->samples->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQualityAutomatically()));
 
