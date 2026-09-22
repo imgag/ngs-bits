@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <QValueAxis>
 #include <QDateTimeAxis>
+#include <QSqlRecord>
 
 DBQCWidget::DBQCWidget(QWidget *parent)
 	: QWidget(parent)
@@ -45,6 +46,10 @@ DBQCWidget::DBQCWidget(QWidget *parent)
 	ui_.sample_tissue->addItem("");
 	ui_.sample_tissue->addItems(db_.getEnum("sample", "tissue"));
 	connect(ui_.sample_tissue, SIGNAL(currentTextChanged(QString)), this, SLOT(updatePlot()));
+	connect(ui_.ps_qual_na, SIGNAL(checkStateChanged(Qt::CheckState)), this, SLOT(updatePlot()));
+	connect(ui_.ps_qual_good, SIGNAL(checkStateChanged(Qt::CheckState)), this, SLOT(updatePlot()));
+	connect(ui_.ps_qual_medium, SIGNAL(checkStateChanged(Qt::CheckState)), this, SLOT(updatePlot()));
+	connect(ui_.ps_qual_bad, SIGNAL(checkStateChanged(Qt::CheckState)), this, SLOT(updatePlot()));
 
 	//sequencing run
 	ui_.run_device->fill(db_.createTable("device", "SELECT id, CONCAT(name, ' (', type, ')') FROM device ORDER BY id DESC"));
@@ -176,15 +181,24 @@ void DBQCWidget::copyQcMetricsToClipboard()
 		if (ui_.processing_system->getCurrentId().isEmpty()) THROW(ArgumentException, "A processing system has to be set for export!");
 
 		//create output
+		bool scatterplot = !ui_.term2->currentText().isEmpty();
 		QStringList output;
-		output << "#" + ui_.term->currentText() + "\tsample\tsample_quality\trun\trun_date\tproject\tproject_type";
+		output << "#" + ui_.term->currentText() + (scatterplot ? "\t"+ui_.term2->currentText() : "")+"\tprocessed_sample\tprocessed_sample_quality\ttumor\tffpe\ttissue\trun\trun_date\tdevice\tproject\tproject_type";
 		QString term_id = ui_.term->getCurrentId();
 		QString sys_id = ui_.processing_system->getCurrentId();
 		SqlQuery query = db_.getQuery();
-		query.exec("SELECT qc.value, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), ps.quality, r.name, r.end_date, p.name, p.type FROM processed_sample_qc qc, processed_sample ps, sequencing_run r, project p, sample s WHERE ps.sample_id=s.id AND ps.project_id=p.id AND qc.processed_sample_id=ps.id AND ps.sequencing_run_id=r.id AND qc.qc_terms_id='" + term_id + "' AND ps.processing_system_id='" + sys_id + "' ORDER BY ps.id ASC");
+		QString term2_id = ui_.term2->getCurrentId();
+		query.exec(QString("SELECT qc.value, ")+(scatterplot ? "qc2.value," : "")+" CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), ps.quality, s.tumor, s.ffpe, s.tissue, r.name, r.end_date, d.name, p.name, p.type FROM processed_sample_qc qc, "+(scatterplot ? "processed_sample_qc qc2," : "")+" processed_sample ps, sequencing_run r, device d, project p, sample s WHERE r.device_id=d.id AND ps.sample_id=s.id AND ps.project_id=p.id AND qc.processed_sample_id=ps.id "+(scatterplot ? "AND qc2.processed_sample_id=ps.id AND qc2.qc_terms_id='" + term2_id + "'" : "")+" AND ps.sequencing_run_id=r.id AND qc.qc_terms_id='" + term_id + "' AND ps.processing_system_id='" + sys_id + "' ORDER BY ps.id ASC");
+		int cols = query.record().count();
 		while(query.next())
 		{
-			output << query.value(0).toString() + "\t" + query.value(1).toString() + "\t" + query.value(2).toString() + "\t" + query.value(3).toString() + "\t" + query.value(4).toString() + "\t" + query.value(5).toString() + "\t" + query.value(6).toString();
+			QString tmp;
+			for (int i=0; i<cols; ++i)
+			{
+				if (!tmp.isEmpty()) tmp += "\t";
+				tmp += query.value(i).toString();
+			}
+			output << tmp;
 		}
 
 		//output
@@ -274,7 +288,7 @@ void DBQCWidget::updatePlot()
 			query_string = "SELECT qc.value, ps.quality, r.end_date, ps.id FROM processed_sample_qc qc, processed_sample ps, sample s, sequencing_run r, processing_system sys, project p WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.sequencing_run_id=r.id AND qc.processed_sample_id=ps.id AND ps.sequencing_run_id=r.id AND ps.processing_system_id=sys.id AND qc.qc_terms_id='" + term_id + "'";
 		}
 
-		//add sample constraints to query
+		//add sample constraints
 		QString sample_type = ui_.sample_type->currentText().trimmed();
 		if (sample_type=="tumor (FFPE)")
 		{
@@ -298,7 +312,7 @@ void DBQCWidget::updatePlot()
 			query_string += " AND s.tissue='" + tissue + "'";
 		}
 
-		//add processed sample constraints to query
+		//add processed sample constraints
 		QString sys_id = ui_.processing_system->getCurrentId();
 		if (!sys_id.isEmpty())
 		{
@@ -318,7 +332,15 @@ void DBQCWidget::updatePlot()
 			query_string += " AND ps.processing_input>=" + QString::number(input_value-0.1) + " AND ps.processing_input<=" + QString::number(input_value+0.1);
 		}
 
-		//add run constraints to query
+		QStringList ps_quality;
+		if (ui_.ps_qual_na->isChecked()) ps_quality << "ps.quality='n/a'";
+		if (ui_.ps_qual_good->isChecked()) ps_quality << "ps.quality='good'";
+		if (ui_.ps_qual_medium->isChecked()) ps_quality << "ps.quality='medium'";
+		if (ui_.ps_qual_bad->isChecked()) ps_quality << "ps.quality='bad'";
+		if (ps_quality.isEmpty()) ps_quality << "FALSE";
+		query_string += " AND (" + ps_quality.join(" OR ") + ")";
+
+		//add run constraints
 		QString device_id = ui_.run_device->getCurrentId();
 		if (!device_id.isEmpty())
 		{
@@ -344,7 +366,7 @@ void DBQCWidget::updatePlot()
 			query_string += " AND r.end_date<='" + run_before_date.toString(Qt::ISODate) + "'";
 		}
 
-		//ad project constraints
+		//add project constraints
 		QString project_type = ui_.project_type->currentText().trimmed();
 		if (!project_type.isEmpty())
 		{

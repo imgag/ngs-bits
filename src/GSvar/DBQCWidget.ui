@@ -36,109 +36,19 @@
     <number>3</number>
    </property>
    <item>
-    <layout class="QGridLayout" name="gridLayout_2">
+    <layout class="QGridLayout" name="gridLayout_2" columnstretch="0,1,0">
      <property name="spacing">
       <number>3</number>
      </property>
-     <item row="2" column="1" colspan="2">
-      <widget class="QComboBox" name="sample_type">
-       <item>
-        <property name="text">
-         <string/>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>normal (no FFPE)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>normal (FFPE)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>tumor (no FFPE)</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>tumor (FFPE)</string>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="12" column="0">
-      <widget class="QLabel" name="label_6">
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_7">
        <property name="toolTip">
-        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Processed sample names to highlight.&lt;/p&gt;&lt;p&gt;Invalid processed sample names are listed in the tooltip of the text input field.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        <string>Second QC metric used to create a scatterplot.</string>
        </property>
        <property name="text">
-        <string>Highlight:</string>
+        <string>QC metric 2:</string>
        </property>
       </widget>
-     </item>
-     <item row="8" column="0">
-      <widget class="QLabel" name="label_11">
-       <property name="text">
-        <string>Run side:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="10" column="0">
-      <widget class="QLabel" name="label_14">
-       <property name="text">
-        <string>Run before:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="label_10">
-       <property name="text">
-        <string>Sample tissue:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="1">
-      <widget class="DBComboBox" name="run_device"/>
-     </item>
-     <item row="0" column="1">
-      <widget class="DBComboBox" name="term"/>
-     </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="label_9">
-       <property name="text">
-        <string>Processing modus:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="1" colspan="2">
-      <widget class="QLineEdit" name="processing_input"/>
-     </item>
-     <item row="9" column="0">
-      <widget class="QLabel" name="label_13">
-       <property name="text">
-        <string>Run after:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="0">
-      <widget class="QLabel" name="label_15">
-       <property name="text">
-        <string>Run device:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QLabel" name="label_4">
-       <property name="text">
-        <string>QC metric 1:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1" colspan="2">
-      <widget class="DBComboBox" name="processing_system"/>
      </item>
      <item row="0" column="2" rowspan="2">
       <widget class="QToolButton" name="swap_metrics">
@@ -154,91 +64,295 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="label_5">
-       <property name="text">
-        <string>Processing system:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="1" colspan="2">
-      <widget class="QComboBox" name="run_side"/>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label_7">
-       <property name="toolTip">
-        <string>Second QC metric used to create a scatterplot.</string>
-       </property>
-       <property name="text">
-        <string>QC metric 2:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="0">
-      <widget class="QLabel" name="label_12">
-       <property name="text">
-        <string>Processing input:</string>
-       </property>
-      </widget>
-     </item>
-     <item row="12" column="2">
-      <widget class="QToolButton" name="highlight_btn">
-       <property name="toolTip">
-        <string/>
-       </property>
-       <property name="text">
-        <string>...</string>
-       </property>
-       <property name="icon">
-        <iconset resource="GSvar.qrc">
-         <normaloff>:/Icons/Import.png</normaloff>:/Icons/Import.png</iconset>
-       </property>
-       <property name="popupMode">
-        <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
-       </property>
-      </widget>
-     </item>
      <item row="1" column="1">
       <widget class="DBComboBox" name="term2"/>
      </item>
-     <item row="9" column="1" colspan="2">
-      <widget class="QLineEdit" name="run_after"/>
-     </item>
-     <item row="10" column="1" colspan="2">
-      <widget class="QLineEdit" name="run_before"/>
-     </item>
-     <item row="3" column="1" colspan="2">
-      <widget class="QComboBox" name="sample_tissue"/>
-     </item>
-     <item row="5" column="1" colspan="2">
-      <widget class="QComboBox" name="processing_modus"/>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_8">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_4">
        <property name="text">
-        <string>Sample type:</string>
+        <string>QC metric 1:</string>
        </property>
       </widget>
      </item>
-     <item row="12" column="1">
-      <widget class="QLineEdit" name="highlight">
-       <property name="maxLength">
-        <number>999999</number>
-       </property>
-       <property name="clearButtonEnabled">
-        <bool>false</bool>
-       </property>
-      </widget>
+     <item row="0" column="1">
+      <widget class="DBComboBox" name="term"/>
      </item>
-     <item row="11" column="0">
-      <widget class="QLabel" name="label_16">
-       <property name="text">
-        <string>Project type:</string>
+     <item row="2" column="0" colspan="3">
+      <layout class="QGridLayout" name="gridLayout_3" columnstretch="0,1,0,1,0">
+       <property name="spacing">
+        <number>3</number>
        </property>
-      </widget>
-     </item>
-     <item row="11" column="1">
-      <widget class="QComboBox" name="project_type"/>
+       <item row="4" column="2">
+        <widget class="QLabel" name="label_14">
+         <property name="text">
+          <string>Run before:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="2">
+        <widget class="QLabel" name="label_17">
+         <property name="toolTip">
+          <string>Processed sample quality</string>
+         </property>
+         <property name="text">
+          <string>Quality:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="3" colspan="2">
+        <widget class="QComboBox" name="run_side"/>
+       </item>
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_8">
+         <property name="text">
+          <string>Sample type:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="1">
+        <widget class="DBComboBox" name="run_device"/>
+       </item>
+       <item row="5" column="0">
+        <widget class="QLabel" name="label_16">
+         <property name="text">
+          <string>Project type:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="1" colspan="3">
+        <widget class="QLineEdit" name="highlight">
+         <property name="maxLength">
+          <number>999999</number>
+         </property>
+         <property name="clearButtonEnabled">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item row="6" column="0">
+        <widget class="QLabel" name="label_6">
+         <property name="toolTip">
+          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Processed sample names to highlight.&lt;/p&gt;&lt;p&gt;Invalid processed sample names are listed in the tooltip of the text input field.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+         </property>
+         <property name="text">
+          <string>Highlight:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="2">
+        <widget class="QLabel" name="label_9">
+         <property name="text">
+          <string>Processing modus:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="DBComboBox" name="processing_system"/>
+       </item>
+       <item row="4" column="1">
+        <widget class="QLineEdit" name="run_after">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <widget class="QLabel" name="label_15">
+         <property name="text">
+          <string>Run device:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="5" column="1">
+        <widget class="QComboBox" name="project_type"/>
+       </item>
+       <item row="1" column="0">
+        <widget class="QLabel" name="label_5">
+         <property name="text">
+          <string>Processing system:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QComboBox" name="sample_type">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <item>
+          <property name="text">
+           <string/>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>normal (no FFPE)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>normal (FFPE)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>tumor (no FFPE)</string>
+          </property>
+         </item>
+         <item>
+          <property name="text">
+           <string>tumor (FFPE)</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+       <item row="6" column="4">
+        <widget class="QToolButton" name="highlight_btn">
+         <property name="toolTip">
+          <string/>
+         </property>
+         <property name="text">
+          <string>...</string>
+         </property>
+         <property name="icon">
+          <iconset resource="GSvar.qrc">
+           <normaloff>:/Icons/Import.png</normaloff>:/Icons/Import.png</iconset>
+         </property>
+         <property name="popupMode">
+          <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="1">
+        <widget class="QLineEdit" name="processing_input">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="3" colspan="2">
+        <widget class="QLineEdit" name="run_before">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_13">
+         <property name="text">
+          <string>Run after:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="3" colspan="2">
+        <widget class="QComboBox" name="sample_tissue">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="3" colspan="2">
+        <widget class="QComboBox" name="processing_modus"/>
+       </item>
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_12">
+         <property name="toolTip">
+          <string>Exact input for library prep in ng.</string>
+         </property>
+         <property name="text">
+          <string>Processing input:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="2">
+        <widget class="QLabel" name="label_11">
+         <property name="text">
+          <string>Run side:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <widget class="QLabel" name="label_10">
+         <property name="text">
+          <string>Sample tissue:</string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3" colspan="2">
+        <layout class="QHBoxLayout" name="horizontalLayout">
+         <property name="spacing">
+          <number>3</number>
+         </property>
+         <item>
+          <widget class="QCheckBox" name="ps_qual_na">
+           <property name="text">
+            <string>n/a</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="ps_qual_good">
+           <property name="text">
+            <string>good</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="ps_qual_medium">
+           <property name="text">
+            <string>medium</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QCheckBox" name="ps_qual_bad">
+           <property name="text">
+            <string>bad</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>
@@ -264,7 +378,7 @@
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Statistics for the first quality metric.&lt;/p&gt;&lt;p&gt;Values of processed samples with 'bad' quality are excluded. &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
      <property name="title">
-      <string>Statistics metric 1</string>
+      <string>Statistics</string>
      </property>
      <property name="flat">
       <bool>true</bool>
