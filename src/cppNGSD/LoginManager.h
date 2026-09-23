@@ -25,11 +25,16 @@ public:
 	static QString randomSecret();
 	static QString userPassword();
 
+	//Update user password, if it changes
+	static void setUserPassword(const QString& password);
+
 	//Returns if a user is logged in (and that the NGSD is enabled)
 	static bool active();
 
 	//User is logged in
-	static void login(QString user, QString password, bool test_db = false);
+	static void login(QString user, QString password, bool test_db = false);	
+	//Updates the last login time field
+	static void updateLastLogin(int id, bool test_db = false);
 	//Updates the user's session before it expires
 	static void renewLogin();
 	//Secure token to access the database

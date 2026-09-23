@@ -10,6 +10,10 @@
 #include "LoginManager.h"
 #include "Settings.h"
 #include <QClipboard>
+#include <QBuffer>
+#include <QXmlStreamWriter>
+#include "ClientHelper.h"
+#include "EmailDialog.h"
 
 ImportDialog::ImportDialog(QWidget* parent, Type type)
 	: QDialog(parent)
@@ -24,9 +28,13 @@ ImportDialog::ImportDialog(QWidget* parent, Type type)
 	connect(ui_.import_btn, SIGNAL(clicked()), this, SLOT(import()));
 
 	//add context menu item to paste data
-	QAction* action = new QAction("paste");
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(pasteTable()));
-	ui_.table->addAction(action);
+	QAction* paste_action = new QAction("paste");
+	connect(paste_action, SIGNAL(triggered(bool)), this, SLOT(pasteTable()));
+	ui_.table->addAction(paste_action);
+
+	QAction* clear_action = new QAction("clear");
+	connect(clear_action, SIGNAL(triggered(bool)), this, SLOT(clearTable()));
+	ui_.table->addAction(clear_action);
 
 	//type-specific UI setup
 	setupGUI();
@@ -102,6 +110,14 @@ void ImportDialog::setupGUI()
 		db_fields_ << "sample_id" << "disease_info";
 		db_extra_fields_ << "type" << "user_id";
 	}
+	else if (type_==USERS)
+	{
+		setWindowTitle("Import users");
+		ui_.label->setText("Batch import of NGSD users (paste tab-separated data to table)");
+		labels << "login" << "password" << "user role" << "name" << "email" << "active" << "comment";
+		db_table_ = "user";
+		db_fields_ << "user_id" << "password" << "user_role" << "name" << "email" << "active" << "comment";
+	}
 	else
 	{
 		THROW(ProgrammingException, "Unhandled type in ImportDialog::setupGUI");
@@ -148,6 +164,12 @@ void ImportDialog::pasteTable()
 	ui_.import_btn->setEnabled(ui_.warnings->toPlainText().trimmed().isEmpty());
 }
 
+void ImportDialog::clearTable()
+{
+	ui_.table->clearContents();
+	ui_.table->setRowCount(0);
+}
+
 void ImportDialog::pasteRow(int row_index, QString line)
 {
 	bool all_valid = true;
@@ -171,6 +193,21 @@ void ImportDialog::pasteRow(int row_index, QString line)
 			ClassificationInfo class_info = db_.getClassification(variant);
 			ui_.table->setItem(row_index, 3, GUIHelper::createTableItem(class_info.classification));
 		}
+	}
+	else if (type_==USERS)
+	{
+		QStringList parts = line.split("\t");
+		checkNumberOfParts(parts);
+		for (int c=0; c<parts.count(); ++c)
+		{
+			// ui_.table->setItem(row_index, 0, GUIHelper::createTableItem(line));
+			QString value = parts[c];
+			QString actual = value;
+			QString validation_error;
+			QString notice;
+			all_valid &= addItem(row_index, c, value, actual, validation_error, notice);
+		}
+
 	}
 	else if (type_==SAMPLES || type_==RUNS || type_==PROCESSED_SAMPLES || type_==MIDS || type_==STUDY_SAMPLE || type_==SAMPLE_RELATIONS || type_==SAMPLE_HPOS)
 	{
@@ -305,6 +342,38 @@ bool ImportDialog::addItem(int r, int c, const QString& value, const QString& ac
 	return true;
 }
 
+void ImportDialog::sendImportDataToServer(QString table, QHash<QString, QString> import_data)
+{
+	QByteArray xml_data;
+	QBuffer buffer(&xml_data);
+	buffer.open(QIODevice::WriteOnly);
+
+	QXmlStreamWriter xml(&buffer);
+	xml.setAutoFormatting(true);
+
+	xml.writeStartDocument();
+	xml.writeStartElement(table);
+
+	// create XML to be sent to the API endpoint
+	for (auto it = import_data.constBegin(); it != import_data.constEnd(); ++it)
+	{
+		xml.writeTextElement(it.key(), it.value());
+	}
+
+	xml.writeEndElement();
+	xml.writeEndDocument();
+
+	buffer.close();
+
+	qDebug().noquote() << QString::fromUtf8(xml_data);
+
+	HttpRequestHandler handler;
+	handler.setHeader("content-type", "text/xml; charset=utf-8");
+
+	ServerReply reply = handler.post(ClientHelper::serverApiUrl()+table+"?token="+LoginManager::userToken(), xml_data);
+	if (reply.status_code!=200) THROW(Exception, "Could not import the data to '" + db_table_ + "'");
+}
+
 void ImportDialog::checkNumberOfParts(const QStringList& parts)
 {
 	int max = db_fields_.count() + special_fields_;
@@ -384,7 +453,7 @@ void ImportDialog::import()
 			connect(worker, SIGNAL(loadFile(QString)), this, SLOT(loadFile(QString)));
 			GlobalServiceProvider::startJob(worker, true);
 		}
-		else if (type_==MIDS || type_==STUDY_SAMPLE || type_==RUNS || type_==PROCESSED_SAMPLES || type_==SAMPLE_RELATIONS || type_==SAMPLE_HPOS)
+		else if (type_==MIDS || type_==STUDY_SAMPLE || type_==RUNS || type_==SAMPLE_RELATIONS || type_==SAMPLE_HPOS)
 		{
 			//prepare query
 			SqlQuery query = db_.getQuery();
@@ -401,41 +470,84 @@ void ImportDialog::import()
 			ui_.warnings->appendPlainText("Import successful!");
 			ui_.import_btn->setEnabled(false);
 		}
+		else if (type_==PROCESSED_SAMPLES)
+		{
+			//add entries
+			for (int r=0; r<ui_.table->rowCount(); ++r)
+			{
+				QHash<QString, QString> import_data;
+				// select table data for the import
+				int c = 0;
+				foreach (const QString& field, db_fields_)
+				{
+					QTableWidgetItem* item = ui_.table->item(r,c);
+					QString value = item==nullptr ? "" : item->data(Qt::UserRole).toString();
+					const TableFieldInfo& field_info = db_.tableInfo(db_table_).fieldInfo(field);
+
+
+					// Don't send empty optional fields
+					if (!value.isEmpty()) import_data.insert(field_info.name, value);
+					++c;
+				}
+
+				QStringList process_id_list = extraValues(r);
+				for (int e = 0; e < process_id_list.size(); ++e) import_data.insert(db_extra_fields_[e], process_id_list[e]);
+				sendImportDataToServer("processed_sample", import_data);
+			}
+			ui_.warnings->appendPlainText("Import successful!");
+			ui_.import_btn->setEnabled(false);
+		}
 		else if (type_==SAMPLES)
 		{
-			//prepare query
-			SqlQuery query = db_.getQuery();
-			query.prepare(insertQuery());
-
 			//add entries
 			for (int r=0; r<ui_.table->rowCount(); ++r)
 			{
 				++row_num;
+				NGSD db;
 
 				//skip already imported samples
 				QString sample_name = ui_.table->item(r,0)->data(Qt::UserRole).toString();
-				if (db_.getValue("SELECT id FROM sample WHERE name=:0", true, sample_name).toString()!="")
+				if (db.getValue("SELECT id FROM sample WHERE name=:0", true, sample_name).toString()!="")
 				{
 					++skipped;
 					continue;
 				}
 
-				addRow(query, r);
+				QHash<QString, QString> import_data;
+				// select table data for the import
+				int c = 0;
+				foreach (const QString& field, db_fields_)
+				{
+					QTableWidgetItem* item = ui_.table->item(r,c);
+					QString value = item==nullptr ? "" : item->data(Qt::UserRole).toString();
+					const TableFieldInfo& field_info = db_.tableInfo(db_table_).fieldInfo(field);
 
-				//link corresponding tumor and cfDNA sample
+					// Don't send empty optional fields
+					if (!value.isEmpty()) import_data.insert(field_info.name, value);
+					++c;
+				}
+
+				sendImportDataToServer("sample", import_data);			
+				import_data.clear();
+
+				// link corresponding tumor and cfDNA sample
 				QByteArray cfdna_sample = ui_.table->item(r, 0)->text().trimmed().toUtf8();
 				QTableWidgetItem* tumor_item = ui_.table->item(r, db_fields_.count());
 				if (tumor_item==nullptr) continue;
 				QByteArray tumor_sample = tumor_item->text().trimmed().toUtf8();
 				if (tumor_sample.isEmpty()) continue;
-				if (!db_.getSampleData(db_.sampleId(tumor_sample)).is_tumor)
+				if (!db.getSampleData(db.sampleId(tumor_sample)).is_tumor)
 				{
 					THROW(DatabaseException, "Sample " + tumor_sample + " is not a tumor! Can't import relation.");
 				}
-				db_.addSampleRelation(SampleRelation{tumor_sample, "tumor-cfDNA", cfdna_sample});
+
+				import_data.insert("sample1_id", db.sampleId(tumor_sample));
+				import_data.insert("relation", "tumor-cfDNA");
+				import_data.insert("sample2_id", db.sampleId(cfdna_sample));
+				import_data.insert("user_id", QString::number(LoginManager::userId()));
+				sendImportDataToServer("sample_relations", import_data);
 			}
 
-			db_.commit();
 			ui_.warnings->appendPlainText("Import successful!");
 			if (skipped>0)
 			{
@@ -443,6 +555,88 @@ void ImportDialog::import()
 			}
 			ui_.import_btn->setEnabled(false);
 		}
+		else if (type_==USERS)
+		{
+			QHash<QString, QString> initial_user_password_pairs;
+			//add entries
+			for (int r=0; r<ui_.table->rowCount(); ++r)
+			{
+				++row_num;
+				NGSD db;
+
+				//skip already imported users
+				QString user_id = ui_.table->item(r,0)->data(Qt::UserRole).toString();
+				if (db.getValue("SELECT id FROM user WHERE user_id=:0", true, user_id).toString()!="")
+				{
+					++skipped;
+					continue;
+				}
+
+				QHash<QString, QString> import_data;
+				// select table data for the import
+				int c = 0;
+				foreach (const QString& field, db_fields_)
+				{
+					QTableWidgetItem* item = ui_.table->item(r,c);
+					QString value = item==nullptr ? "" : item->data(Qt::UserRole).toString();
+					const TableFieldInfo& field_info = db_.tableInfo(db_table_).fieldInfo(field);
+					import_data.insert(field_info.name, value);
+					++c;
+				}
+
+				// set the default initial password, if the password field is empty
+				if (!import_data.contains("password")) import_data.insert("password", "");
+
+				QString salt = Helper::randomString(40);
+				QString password = import_data["password"];
+				if (import_data["password"].isEmpty()) password = db.generateInitialPassword(8);
+
+				QString hash = QCryptographicHash::hash((salt+password).toUtf8(), QCryptographicHash::Sha1).toHex();
+
+				import_data["password"] = hash;
+				import_data.insert("salt", salt);
+
+				// save initial login-password pairs
+				initial_user_password_pairs.insert(import_data["user_id"], password);
+
+				sendImportDataToServer("user", import_data);
+			}
+
+			if (!initial_user_password_pairs.isEmpty())
+			{
+				//create email
+				QString to = NGSD().userEmail(LoginManager::userId());
+				QString subject = "Imported users";
+				QStringList body;
+
+				body << "Hi,";
+				body << "";
+				body << "these are the newly added users and their initial passwords.";
+				body << "The initial passwords will have to be changed on the first login attempt!";
+				body << "";
+				for (auto it = initial_user_password_pairs.constBegin(); it != initial_user_password_pairs.constEnd(); ++it)
+				{
+					body << it.key() + " " + it.value();
+				}
+				body << "";
+				body << "Best regards, ";
+				body << "  " + LoginManager::userName();
+
+				//send
+				EmailDialog dlg(this, QStringList() << to, subject, body);
+				dlg.exec();
+			}
+
+			if (ui_.table->rowCount()==skipped) ui_.warnings->appendPlainText("Nothing to import!");
+			else ui_.warnings->appendPlainText("Import successful!");
+			if (skipped>0)
+			{
+				ui_.warnings->appendPlainText("Skipped " + QString::number(skipped) + " rows!");
+			}
+			ui_.import_btn->setEnabled(false);
+		}
+
+
 		else
 		{
 			THROW(ProgrammingException, "Unhandled type in ImportDialog::process");

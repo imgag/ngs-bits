@@ -421,4 +421,309 @@ private:
         // it will always change when items are added or deleted
 		I_EQUAL(static_cast<int>(PathType::OTHER), 49);
     }
+
+	TEST_METHOD(test_data_import_api)
+	{
+		if (!NGSD::isAvailable(true)) SKIP("No test database found!");
+		NGSD test_db(true);
+		test_db.init();
+		test_db.executeQueriesFromFile(TESTDATA("data/NGSD_in5.sql"));
+
+		// project
+		QByteArray correct_xml_content =
+			"<project>"
+			"<name>Example_Project_Name</name>"
+			"<aliases>Example;TestProject</aliases>"
+			"<type>research</type>"
+			"<internal_coordinator_id>1</internal_coordinator_id>"
+			"<comment>Example project created through the API</comment>"
+			"<analysis>variants</analysis>"
+			"<preserve_fastqs>1</preserve_fastqs>"
+			"<email_notification>alice@example.org;bob@example.org</email_notification>"
+			"<archived>0</archived>"
+			"<matchmaking>yes</matchmaking>"
+			"</project>";
+
+		DatabaseSchema db_schema = DatabaseSchema(test_db);
+		XmlImportValidator validator(db_schema);
+		XmlValidationResult result = validator.validateInsert(correct_xml_content, "project");
+		IS_TRUE(result.isValid());
+		TableSchema table = db_schema.table("project");
+		ServerController::importDataToNGSD(test_db, table, result.values);
+
+		QByteArray incorrect_xml_content =
+			"<project>"
+			"<label>Project Label</label>"
+			"<aliases>Example;TestProject</aliases>"
+			"<type>research</type>"
+			"<internal_coordinator_id>1</internal_coordinator_id>"
+			"<comment>Example project created through the API</comment>"
+			"<analysis>variants</analysis>"
+			"<preserve_fastqs>1</preserve_fastqs>"
+			"<email_notification>alice@example.org;bob@example.org</email_notification>"
+			"<archived>0</archived>"
+			"<matchmaking>yes</matchmaking>"
+			"</project>";
+		result = validator.validateInsert(incorrect_xml_content, "project");
+		IS_TRUE(!result.isValid());
+		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
+
+		// processing_system
+		correct_xml_content =
+			"<processing_system>"
+			"<name_short>NovaSeq_WGS3</name_short>"
+			"<name_manufacturer>Illumina NovaSeq 60003</name_manufacturer>"
+			"<platform>Illumina</platform>"
+			"<adapter1_p5>AGATCGGAAGAGCACACGTCTGAACTCCAGTCA</adapter1_p5>"
+			"<adapter2_p7>AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT</adapter2_p7>"
+			"<type>WGS</type>"
+			"<shotgun>1</shotgun>"
+			"<umi_type>n/a</umi_type>"
+			"<target_file>subpanel.bed</target_file>"
+			"<genome_id>1</genome_id>"
+			"</processing_system>";
+		result = validator.validateInsert(correct_xml_content, "processing_system");
+		IS_TRUE(result.isValid());
+		table = db_schema.table("processing_system");
+		ServerController::importDataToNGSD(test_db, table, result.values);
+
+		incorrect_xml_content =
+			"<processing_system>"
+			"<name>NovaSeq_name</name>"
+			"<name_manufacturer>Illumina NovaSeq 60003</name_manufacturer>"
+			"<platform>illumina</platform>"
+			"<adapter1_p5>AGATCGGAAGAGCACACGTCTGAACTCCAGTCA</adapter1_p5>"
+			"<adapter2_p7>AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT</adapter2_p7>"
+			"<type>wgs</type>"
+			"<shotgun>1</shotgun>"
+			"<umi_type>n/a</umi_type>"
+			"<target_file>subpanel.bed</target_file>"
+			"<genome_id>1</genome_id>"
+			"</processing_system>";
+		result = validator.validateInsert(incorrect_xml_content, "processing_system");
+		IS_TRUE(!result.isValid());
+		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
+
+		// device
+		correct_xml_content =
+			"<device>"
+			"<type>NovaSeq6000</type>"
+			"<name>NovaSeq6000_01</name>"
+			"<comment>Main production sequencing instrument</comment>"
+			"</device>";
+		result = validator.validateInsert(correct_xml_content, "device");
+		IS_TRUE(result.isValid());
+		table = db_schema.table("device");
+		ServerController::importDataToNGSD(test_db, table, result.values);
+
+		incorrect_xml_content =
+			"<device>"
+			"<category>novaseq1000</category>"
+			"<name>NovaSeq6000_01</name>"
+			"</device>";
+		result = validator.validateInsert(incorrect_xml_content, "device");
+		IS_TRUE(!result.isValid());
+		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
+
+		// sequencing_run
+		correct_xml_content =
+			"<sequencing_run>"
+			"<name>RUN_2026_08_19_001</name>"
+			"<fcid>H7ABCXY123</fcid>"
+			"<flowcell_type>Illumina NovaSeq S4</flowcell_type>"
+			"<start_date>2026-08-19</start_date>"
+			"<end_date>2026-08-20</end_date>"
+			"<device_id>1</device_id>"
+			"<side>n/a</side>"
+			"<recipe>2x150+2x10+2x10</recipe>"
+			"<pool_molarity>10.5</pool_molarity>"
+			"<pool_quantification_method>qPCR</pool_quantification_method>"
+			"<comment>Example sequencing run</comment>"
+			"<quality>good</quality>"
+			"<status>run_finished</status>"
+			"<backup_done>1</backup_done>"
+			"</sequencing_run>";
+		result = validator.validateInsert(correct_xml_content, "sequencing_run");
+		IS_TRUE(result.isValid());
+		table = db_schema.table("sequencing_run");
+		ServerController::importDataToNGSD(test_db, table, result.values);
+
+		incorrect_xml_content =
+			"<sequencing_run>"
+			"<name>RUN_2026_08_19_001</name>"
+			"<fcid>H7ABCXY123</fcid>"
+			"<type>illumina novaseq s4</type>"
+			"<start_date>2026-08-19</start_date>"
+			"<end_date>2026-08-20</end_date>"
+			"<device_id>1</device_id>"
+			"<side>n/a</side>"
+			"<recipe>2x150+2x10+2x10</recipe>"
+			"<pool_molarity>10,5</pool_molarity>"
+			"<pool_quantification_method>qpcr</pool_quantification_method>"
+			"<comment>Example sequencing run</comment>"
+			"<quality>good</quality>"
+			"<status>run_finished</status>"
+			"<backup_done>1</backup_done>"
+			"</sequencing_run>";
+		result = validator.validateInsert(incorrect_xml_content, "sequencing_run");
+		IS_TRUE(!result.isValid());
+		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
+
+		// sample
+		correct_xml_content =
+			"<sample>"
+			"<name>SAMPLE_001</name>"
+			"<name_external>ExternalSample001</name_external>"
+			"<patient_identifier>PATIENT_001</patient_identifier>"
+			"<received>2026-08-19</received>"
+			"<receiver_id>1</receiver_id>"
+			"<sample_type>DNA</sample_type>"
+			"<tissue>blood</tissue>"
+			"<species_id>1</species_id>"
+			"<concentration>25.5</concentration>"
+			"<volume>50.0</volume>"
+			"<od_260_280>1.85</od_260_280>"
+			"<gender>male</gender>"
+			"<comment>Example DNA sample</comment>"
+			"<quality>good</quality>"
+			"<od_260_230>2.05</od_260_230>"
+			"<integrity_number>8.7</integrity_number>"
+			"<tumor>0</tumor>"
+			"<ffpe>0</ffpe>"
+			"<sender_id>1</sender_id>"
+			"<disease_group>n/a</disease_group>"
+			"<disease_status>n/a</disease_status>"
+			"<year_of_birth>1985</year_of_birth>"
+			"<order_date>2026-08-15</order_date>"
+			"<sampling_date>2026-08-18</sampling_date>"
+			"</sample>";
+		result = validator.validateInsert(correct_xml_content, "sample");
+		IS_TRUE(result.isValid());
+		table = db_schema.table("sample");
+		ServerController::importDataToNGSD(test_db, table, result.values);
+
+		incorrect_xml_content =
+			"<sample>"
+			"<sample_name>SAMPLE_001</sample_name>"
+			"<name_external>ExternalSample001</name_external>"
+			"<patient_identifier>PATIENT_001</patient_identifier>"
+			"<received>2026-08-19</received>"
+			"<receiver_id>1</receiver_id>"
+			"<sample_type>dna</sample_type>"
+			"<tissue>blood</tissue>"
+			"<species_id>1</species_id>"
+			"<concentration>25.5</concentration>"
+			"<volume>50.0</volume>"
+			"<od_260_280>1.85</od_260_280>"
+			"<gender>male</gender>"
+			"<comment>Example DNA sample</comment>"
+			"<quality>good</quality>"
+			"<od_260_230>2,05</od_260_230>"
+			"<integrity_number>8.7</integrity_number>"
+			"<tumor>0</tumor>"
+			"<sampling_date>2026-08-18</sampling_date>"
+			"</sample>";
+		result = validator.validateInsert(incorrect_xml_content, "sample");
+		IS_TRUE(!result.isValid());
+		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
+
+		// processed_sample
+		correct_xml_content =
+			"<processed_sample>"
+			"<sample_id>1</sample_id>"
+			"<process_id>1</process_id>"
+			"<sequencing_run_id>1</sequencing_run_id>"
+			"<lane>1,2</lane>"
+			"<mid1_i7>1</mid1_i7>"
+			"<mid2_i5>2</mid2_i5>"
+			"<operator_id>1</operator_id>"
+			"<processing_system_id>1</processing_system_id>"
+			"<comment>Example processed sample</comment>"
+			"<project_id>1</project_id>"
+			"<processing_input>25.0</processing_input>"
+			"<molarity>10.5</molarity>"
+			"<processing_modus>Biomek i5</processing_modus>"
+			"<batch_number>BATCH_2026_08_19_001</batch_number>"
+			"<quality>good</quality>"
+			"<folder_override>/data/projects/example/sample</folder_override>"
+			"<folder_override_client>/projects/example/sample</folder_override_client>"
+			"<scheduled_for_resequencing>0</scheduled_for_resequencing>"
+			"<urgent>0</urgent>"
+			"</processed_sample>";
+		result = validator.validateInsert(correct_xml_content, "processed_sample");
+		IS_TRUE(result.isValid());
+		table = db_schema.table("processed_sample");
+		ServerController::importDataToNGSD(test_db, table, result.values);
+
+		incorrect_xml_content =
+			"<processed_sample>"
+			"<mid2_i5>2</mid2_i5>"
+			"<operator_id>1</operator_id>"
+			"<processing_system_id>1</processing_system_id>"
+			"<comment>Example processed sample</comment>"
+			"<project_id>1</project_id>"
+			"<processing_input>25,0</processing_input>"
+			"<molarity>10,5</molarity>"
+			"<processing_modus>biomek i5</processing_modus>"
+			"<batch_number>BATCH_2026_08_19_001</batch_number>"
+			"<quality>good</quality>"
+			"<folder_override>/data/projects/example/sample</folder_override>"
+			"<folder_override_client>/projects/example/sample</folder_override_client>"
+			"<scheduled_for_resequencing>false</scheduled_for_resequencing>"
+			"<urgent>false</urgent>"
+			"</processed_sample>";
+		result = validator.validateInsert(incorrect_xml_content, "processed_sample");
+		IS_TRUE(!result.isValid());
+		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
+
+		// sender
+		correct_xml_content =
+			"<sender>"
+			"<name>Dr. Jane Smith</name>"
+			"<phone>+497071123456</phone>"
+			"<email>jane.smith@example.org</email>"
+			"<affiliation>UKT</affiliation>"
+			"</sender>";
+		result = validator.validateInsert(correct_xml_content, "sender");
+		IS_TRUE(result.isValid());
+		table = db_schema.table("sender");
+		ServerController::importDataToNGSD(test_db, table, result.values);
+
+		incorrect_xml_content =
+			"<sender>"
+			"<phone>+497071123456</phone>"
+			"<id>1</id>"
+			"<email>jane.smith@example.org</email>"
+			"<affiliation>UKT</affiliation>"
+			"</sender>";
+		result = validator.validateInsert(incorrect_xml_content, "sender");
+		IS_TRUE(!result.isValid());
+		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
+
+		// user
+		correct_xml_content =
+			"<user>"
+			"<user_id>test_user</user_id>"
+			"<password>sdsdsd</password>"
+			"<user_role>user_restricted</user_role>"
+			"<name>Test User</name>"
+			"<email>jane.smith@example.org</email>"
+			"</user>";
+		result = validator.validateInsert(correct_xml_content, "user");
+		Log::error(result.errorsAsString());
+		IS_TRUE(result.isValid());
+		table = db_schema.table("user");
+		ServerController::importDataToNGSD(test_db, table, result.values);
+
+		incorrect_xml_content =
+			"<user>"
+			"<user_id>test_user</user_id>"
+			"<password>sdsdsd</password>"
+			"<user_role>fake_role</user_role>"
+			"<email>jane.smith@example.org</email>"
+			"</user>";
+		result = validator.validateInsert(incorrect_xml_content, "user");
+		IS_TRUE(!result.isValid());
+		IS_THROWN(DatabaseException, ServerController::importDataToNGSD(test_db, table, result.values));
+	}
 };

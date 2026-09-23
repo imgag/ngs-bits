@@ -118,6 +118,7 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 
 	//index+key info
 	bool is_primary_key = false;
+	bool has_auto_increment = false;
 	bool is_unique = false;
 	QString fk_table; //target table of FK
 	QString fk_field; //target field of FK
@@ -707,6 +708,33 @@ struct  NsxAnalysisSettings
 	bool dragen_analysis = true;
 };
 
+///Contains information about the fields for a specific database table
+struct CPPNGSDSHARED_EXPORT TableSchema
+{
+	QString name;
+	QHash<QString, TableFieldInfo> columns;
+};
+
+///Contains information about all fields in all tables in a specific database
+class CPPNGSDSHARED_EXPORT DatabaseSchema
+	: public QObject
+{
+	Q_OBJECT
+public:
+	DatabaseSchema(NGSD& db);
+
+	const TableSchema& table(const QString& name) const
+	{
+		const auto it = tables_.constFind(name);
+		if (it == tables_.constEnd()) THROW(DatabaseException, QString("Table '%1' does not exist").arg(name));
+		return it.value();
+	}
+
+private:
+	QHash<QString, TableSchema> tables_;
+};
+
+
 ///NGSD access
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -727,6 +755,9 @@ public:
 
 	///Returns if the database is available (i.e. the credentials are in the settings file or the application is in client-server mode)
 	static bool isAvailable(bool test_db=false);
+
+	///Returns the database name
+	QString databaseName() const;
 
 	///Returns the table list.
 	QStringList tables() const;
@@ -1016,12 +1047,19 @@ public:
 	QString userName(int user_id);
 	///Returns the user email corresponding the given ID.
 	QString userEmail(int user_id);
+	///Returns the user last login date and time
+	QDateTime userLastLogin(QString user_login);
+
 	///Replacement for passwords when they are shown in the GUI.
 	static const QString& passwordReplacement();
 	///Checks if the given user/password tuple is correct. If ok, returns an empty string. If not, returns an error message.
 	QString checkPassword(QString user_name, QString password, bool only_active=true);
 	///Sets the password for a NGSD user using a new random salt.
 	void setPassword(int user_id, QString password);
+
+	///Generates a random initial password for the first login
+	QString generateInitialPassword(int length);
+
 	///Return a role for a given user.
 	QByteArray getUserRole(int user_id);
 

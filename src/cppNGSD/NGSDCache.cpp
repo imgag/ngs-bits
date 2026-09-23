@@ -728,6 +728,9 @@ const TableInfo& NGSDReferenceDataCache::tableInfo(NGSD& db, const QString& tabl
 			//default value
 			info.default_value =  query.value(4).isNull() ? QString() : query.value(4).toString();
 
+			//auto increment (in extra column)
+			info.has_auto_increment = query.value(5).toString().contains("auto_increment");
+
 			//FK
 			query_fk.seek(-1);
 			while (query_fk.next())
