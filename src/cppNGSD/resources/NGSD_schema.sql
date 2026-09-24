@@ -2847,7 +2847,7 @@ CREATE  TABLE IF NOT EXISTS `re_callset`
 (
   `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `processed_sample_id` INT(11) NOT NULL,
-  `caller` ENUM('ExpansionHunter', 'Straglr') NOT NULL,
+  `caller` ENUM('ExpansionHunter', 'Straglr', 'trgt') NOT NULL,
   `caller_version` varchar(25) NOT NULL,
   `call_date` DATE DEFAULT NULL,
   PRIMARY KEY (`id`),
