@@ -93,7 +93,8 @@ enum class ReCallerType
 {
 	INVALID,
 	EXPANSIONHUNTER,
-	STRAGLR
+	STRAGLR,
+	TRGT
 };
 
 //Repeat expansion list

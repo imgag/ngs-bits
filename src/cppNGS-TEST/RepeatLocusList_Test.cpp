@@ -41,6 +41,56 @@ private:
 		I_EQUAL(rl.refSize(), 7);
 	}
 
+	TEST_METHOD(base_tests_trgt)
+	{
+		RepeatLocusList res;
+		res.load(TESTDATA("data_in/RepeatLocusList_trgt.vcf"));
+
+		S_EQUAL(res.callerAsString(), "trgt");
+		S_EQUAL(res.callerVersion(), "V5.1.0-ec66463");
+		S_EQUAL(res.callingDate().toString(Qt::ISODate), "2026-09-24");
+		I_EQUAL(res.count(), 9);
+
+		//Test first repeat
+		RepeatLocus rl = res[0];
+		S_EQUAL(rl.allele1(), "2.0");
+		S_EQUAL(rl.allele2(), "2.0");
+		S_EQUAL(rl.alleles(), "2.0/2.0");
+		S_EQUAL(rl.confidenceIntervals(), "2.0-2.0/2.0-2.0");
+		S_EQUAL(rl.coverage(), "");
+		IS_TRUE(rl.filters().isEmpty());
+		S_EQUAL(rl.geneSymbol(), "VWA1");
+		S_EQUAL(rl.name(), "VWA1");
+		S_EQUAL(rl.unit(), "GGCGCGGAGC");
+
+		//Test repeat with CI
+		rl = res[5];
+		IS_TRUE(rl.region() == BedLine(Chromosome("chr17"), 80147003, 80147139));
+		S_EQUAL(rl.allele1(), "6.8");
+		S_EQUAL(rl.allele2(), "9.8");
+		S_EQUAL(rl.alleles(), "6.8/9.8");
+		S_EQUAL(rl.confidenceIntervals(), "6.8-6.8/9.8-9.8");
+		S_EQUAL(rl.coverage(), "");
+		IS_TRUE(rl.filters().isEmpty());
+		S_EQUAL(rl.geneSymbol(), "EIF4A3");
+		S_EQUAL(rl.name(), "EIF4A3");
+		S_EQUAL(rl.unit(), "CCTCGCTGYGCCGCTGCCGA");
+
+		//Test empty repeat
+		rl = res[7];
+		IS_TRUE(rl.region() == BedLine(Chromosome("chrX"), 149631723, 149631735));
+		S_EQUAL(rl.allele1(), "");
+		S_EQUAL(rl.allele2(), "");
+		S_EQUAL(rl.alleles(), "");
+		S_EQUAL(rl.confidenceIntervals(), "");
+		S_EQUAL(rl.coverage(), "");
+		IS_TRUE(rl.filters().isEmpty());
+		S_EQUAL(rl.geneSymbol(), "TMEM185A");
+		S_EQUAL(rl.name(), "TMEM185A_CGCCGT");
+		S_EQUAL(rl.unit(), "CGCCGT");
+
+	}
+
 	TEST_METHOD(findMatch)
 	{
 		RepeatLocusList res;

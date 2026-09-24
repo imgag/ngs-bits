@@ -141,6 +141,10 @@ void RepeatLocusList::load(QString filename)
 			{
 				caller_ = ReCallerType::EXPANSIONHUNTER;
 			}
+			else if (caller=="trgt")
+			{
+				caller_ = ReCallerType::TRGT;
+			}
 			else
 			{
 				THROW(FileParseException, "Unsupported RE caller: '" + caller + "'");
@@ -154,7 +158,7 @@ void RepeatLocusList::load(QString filename)
 			call_date_ = QDate::fromString(value, Qt::ISODate);
 			if (!call_date_.isValid()) THROW(FileParseException, "Cannot convert 'filedate' header value to datetime: '" + value + "'");
 		}
-		//Straglr: ##fileDate=20240606
+		//Straglr/trgt: ##fileDate=20240606
 		if (header_line.key=="fileDate")
 		{
 			QString value = header_line.value.trimmed();
@@ -210,6 +214,10 @@ void RepeatLocusList::load(QString filename)
 				//genotype CI
 				QByteArray genotype_ci = re.formatValueFromSample("ACR").trimmed();
 				rl.setConfidenceIntervals(genotype_ci);
+
+				//supporting reads
+				QByteArray reads_supporting = re.formatValueFromSample("AD").trimmed().replace(".", "-");
+				rl.setReadsInRepeat(reads_supporting);
 			}
 			else if (caller_version_.startsWith("V1.5."))
 			{
@@ -276,6 +284,10 @@ void RepeatLocusList::load(QString filename)
 				{
 					THROW(ArgumentException, "Invalid genotype entry '" + format_genotype + "' in " + repeat_id);
 				}
+
+				//supporting reads
+				QByteArray reads_supporting = re.formatValueFromSample("AS").trimmed().replace(".", "-");
+				rl.setReadsInRepeat(reads_supporting);
 			}
 			else
 			{
@@ -286,11 +298,8 @@ void RepeatLocusList::load(QString filename)
 			QByteArray coverage = re.formatValueFromSample("DP").trimmed();
 			rl.setCoverage(coverage);
 
-			//supporting reads
-			QByteArray reads_supporting = re.formatValueFromSample("AD").trimmed().replace(".", "-");
-			rl.setReadsInRepeat(reads_supporting);
 		}
-		else
+		else if (caller_==ReCallerType::EXPANSIONHUNTER)
 		{
 			//repeat ID
 			QByteArray repeat_id = re.info("REPID").trimmed();
@@ -333,6 +342,57 @@ void RepeatLocusList::load(QString filename)
 			QByteArray reads_spanning = re.formatValueFromSample("ADSP").trimmed().replace(".", "-");
 			rl.setReadsSpanning(reads_spanning);
 		}
+		else if (caller_==ReCallerType::TRGT)
+		{
+			//repeat ID
+			QByteArray repeat_id = re.info("TRID").trimmed();
+			rl.setName(repeat_id);
+
+			//region
+			int end = Helper::toInt(re.info("END"), "END entry in INFO", "Repeat locus " + repeat_id);
+			rl.setRegion(BedLine(re.chr(), re.start(), end));
+
+			//repreat unit
+			QByteArray repeat_unit = re.info("RefMotif").trimmed();
+			rl.setUnit(repeat_unit);
+
+			//filters
+			rl.setFilters(re.filters());
+
+			//genotype
+			if (re.formatValueFromSample("AL") != ".")
+			{
+				QByteArrayList genotypes = re.formatValueFromSample("AL").trimmed().split(',');
+				rl.setAllele1(QByteArray::number(Helper::toInt(genotypes[0], "GT (pos 1)", repeat_id) / (float) repeat_unit.length(), 'f', 1));
+				if (genotypes.count()==2) rl.setAllele2(QByteArray::number(Helper::toInt(genotypes[1], "GT (pos 2)", repeat_id) / (float) repeat_unit.length(), 'f', 1));
+				else if (genotypes.count()>2) THROW(ArgumentException, "Invalid number of genotypes in " + repeat_id +":" + re.formatValueFromSample("AL"));
+
+				//genotype CI
+				QByteArrayList genotype_ci;
+				for (const QByteArray& ci : re.formatValueFromSample("ALLR").trimmed().split(','))
+				{
+					QByteArrayList interval = ci.split('-');
+					float min = Helper::toInt(interval.at(0), "CI lower", repeat_id) / (float) repeat_unit.length();
+					float max = Helper::toInt(interval.at(1), "CI upper", repeat_id) / (float) repeat_unit.length();
+					genotype_ci.append(QByteArray::number(min, 'f', 1) + "-" + QByteArray::number(max, 'f', 1));
+				}
+
+				rl.setConfidenceIntervals(genotype_ci.join("/"));
+
+				//Not supported
+				// //local coverage
+				// QByteArray coverage = re.formatValueFromSample("LC").trimmed();
+				// rl.setCoverage(coverage);
+			}
+
+			//supporting reads
+			QByteArray reads_supporting = re.formatValueFromSample("SD").trimmed().replace(".", "-").replace(",", "/");
+			rl.setReadsInRepeat(reads_supporting);
+		}
+		else
+		{
+			THROW(ArgumentException, "Invalid repeat caller type!")
+		}
 
 		variants_.append(rl);
 	}
@@ -348,6 +408,7 @@ QByteArray RepeatLocusList::callerAsString() const
 	if (caller_==ReCallerType::INVALID) return "invalid";
 	if (caller_==ReCallerType::EXPANSIONHUNTER) return "ExpansionHunter";
 	if (caller_==ReCallerType::STRAGLR) return "Straglr";
+	if (caller_==ReCallerType::TRGT) return "trgt";
 
 	THROW(ProgrammingException, "Unknown RE caller type '" + QString::number((int)caller_) + "'!");
 }
