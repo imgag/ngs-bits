@@ -89,33 +89,32 @@ const QMap<QByteArray, QByteArrayList>& GSvarHelper::relevantTranscripts(bool re
 	static QMap<QByteArray, QByteArrayList> output;
 	static bool initialized = false;
 
-	if (LoginManager::active())
+	//forced reload
+	if (reload_preferred_transcripts)
 	{
 		NGSD db;
-		if (!initialized)
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT g.symbol, pt.name FROM gene g, gene_transcript gt, preferred_transcripts pt WHERE g.id=gt.gene_id AND gt.name=pt.name");
+		while(query.next())
 		{
+			QByteArray gene = query.value(0).toByteArray().trimmed();
+			QByteArray transcript = query.value(1).toByteArray().trimmed();
+			if (!output.contains(gene) || !output[gene].contains(transcript))
+			{
+				output[gene].append(transcript);
+			}
+		}
+	}
+
+	if (!initialized && LoginManager::active())
+	{
+			NGSD db;
 			output = db.relevantTranscripts();
 
 			//NGSDCacheInitializer not finished > abort
 			if (output.isEmpty()) return output;
 
 			initialized = true;
-		}
-
-		if (reload_preferred_transcripts)
-		{
-			SqlQuery query = db.getQuery();
-			query.exec("SELECT g.symbol, pt.name FROM gene g, gene_transcript gt, preferred_transcripts pt WHERE g.id=gt.gene_id AND gt.name=pt.name");
-			while(query.next())
-			{
-				QByteArray gene = query.value(0).toByteArray().trimmed();
-				QByteArray transcript = query.value(1).toByteArray().trimmed();
-				if (!output.contains(gene) || !output[gene].contains(transcript))
-				{
-					output[gene].append(transcript);
-				}
-			}
-		}
 	}
 
 	return output;

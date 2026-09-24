@@ -6176,6 +6176,43 @@ void MainWindow::on_actionOpenGSvarDataFolder_triggered()
 	QDesktopServices::openUrl("file:///"+ QFileInfo(Log::fileName()).absolutePath());
 }
 
+void MainWindow::on_actionPingGSvarServer_triggered()
+{
+	QString title = "GSvar server ping";
+	try
+	{
+		HttpRequestHandler handler;
+		QElapsedTimer timer;
+		timer.start();
+		ServerReply reply = handler.get("https://"+Settings::string("server_host")+":"+Settings::string("server_port"));
+		int elapsed = timer.nsecsElapsed();
+		QMessageBox::information(this, title, title + " time: " + QString::number(elapsed/1000000.0, 'f', 2) + " ms"
+		                                        + "\nHTTP code: " + QString::number(reply.status_code));
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, title, "Failed: " + e.message());
+	}
+}
+
+void MainWindow::on_actionPingNgsdServer_triggered()
+{
+	QString title = "NGSD ping";
+	try
+	{
+		NGSD db;
+		QElapsedTimer timer;
+		timer.start();
+		db.getQuery().exec("SELECT 1");
+		int elapsed = timer.nsecsElapsed();
+		QMessageBox::information(this, title, title + " time: " + QString::number(elapsed/1000000.0, 'f', 2) + " ms");
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, title, "Failed: " + e.message());
+	}
+}
+
 void MainWindow::editVariantClassification(VariantList& variants, int index)
 {
 	try
