@@ -240,12 +240,25 @@
             </property>
            </widget>
           </item>
+          <item>
+           <spacer name="horizontalSpacer_3">
+            <property name="orientation">
+             <enum>Qt::Orientation::Horizontal</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>40</width>
+              <height>20</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
          </layout>
         </item>
         <item row="11" column="0">
          <widget class="QLabel" name="label_6">
           <property name="text">
-           <string>include somatic:</string>
+           <string>include:</string>
           </property>
          </widget>
         </item>
@@ -272,6 +285,16 @@
            </widget>
           </item>
           <item>
+           <widget class="QCheckBox" name="s_scheduled_for_resequencing">
+            <property name="text">
+             <string> scheduled for resequencing:</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
            <spacer name="horizontalSpacer_2">
             <property name="orientation">
              <enum>Qt::Orientation::Horizontal</enum>
@@ -285,23 +308,6 @@
            </spacer>
           </item>
          </layout>
-        </item>
-        <item row="13" column="0">
-         <widget class="QLabel" name="label_26">
-          <property name="text">
-           <string>include scheduled for resequencing:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="13" column="1">
-         <widget class="QCheckBox" name="s_scheduled_for_resequencing">
-          <property name="text">
-           <string/>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
         </item>
         <item row="14" column="0">
          <widget class="QLabel" name="label_12">
