@@ -714,8 +714,8 @@ class CPPNGSDSHARED_EXPORT NGSD
 Q_OBJECT
 
 public:
-	///Default constructor that connects to the DB
-	NGSD(bool test_db=false, QString test_name_override="");
+	///Default constructor that connects to the DB. If @p open is false, the database connection is not opened. This can be useful if you just want to access the NGSD cache, but not execute any actual database queries (opening the database connect takes up to 0.3s).
+	NGSD(bool test_db=false, QString test_name_override="", bool open=true);
 	///Destructor.
 	~NGSD();
 	///Returns if the database connection is (still) open
@@ -839,7 +839,7 @@ public:
 	/// The return_quality int is higher the higher the quality of the returned transcript is. Exact numbers may not be constant: preferred > MANE > canonical > longest coding , longest non-coding , not found
 	Transcript bestTranscript(int gene_id, const QList<VariantTranscript>& var_transcripts=QList<VariantTranscript>(), int *return_quality=nullptr);
 	///Return the transcript with the highest impact given the variant transcript impacts
-	Transcript highestImpactTranscript(const TranscriptList &transcripts, const QList<VariantTranscript> &var_transcripts);
+	static Transcript highestImpactTranscript(const TranscriptList &transcripts, const QList<VariantTranscript> &var_transcripts);
 	///Returns a list of the most relevant transcripts for the gene. The order is: preferred, MANE select, MANE plus clinical, Ensembl canonical. If none of those exist, the longest coding or longest transcript are used.
 	TranscriptList relevantTranscripts(int gene_id);
 	///Returns the map of gene symbol to relevant transcripts names. Relevant are preferred, MANE, Ensembl canonical. If non of them exst, the longest coding or longest transcript are used. Note: transcript names do not contain version numbers.

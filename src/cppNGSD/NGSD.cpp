@@ -26,7 +26,7 @@
 #include <QSqlError> //Comment to prevent removal by fix_includes.php
 #include <QJsonArray>
 
-NGSD::NGSD(bool test_db, QString test_name_override)
+NGSD::NGSD(bool test_db, QString test_name_override, bool open)
 	: test_db_(test_db)
 	, debug_(false)
 	, cache_context_(!test_name_override.isEmpty() ? -1 : (test_db ? 1 : 0))
@@ -66,7 +66,7 @@ NGSD::NGSD(bool test_db, QString test_name_override)
 			db_->setConnectOptions("SSL_CA=" + db_ssl_ca);
 		}
 
-		if (!db_->open())
+		if (open && !db_->open())
 		{
 			THROW(DatabaseException, "Could not connect to NGSD database '" + db_name + "': " + db_->lastError().text());
 		}
