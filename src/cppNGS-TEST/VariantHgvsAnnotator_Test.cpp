@@ -3,6 +3,7 @@
 #include "Transcript.h"
 #include "Sequence.h"
 #include "Settings.h"
+#include "NGSHelper.h"
 
 //NOTE: to export transcripts from NGSD for these tests, you can use the function export_transcripts_from_ngsd() in NGSD_Test.cpp
 
@@ -1627,6 +1628,78 @@ private:
 		S_EQUAL(variantImpactToString(hgvs2.impact), "HIGH");
 		I_EQUAL(hgvs2.exon_number, 14);
 		I_EQUAL(hgvs2.intron_number, -1);
+	}
+
+	TEST_METHOD(regression_frameshift_is_not_stop_lost)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		FastaFileIndex reference(Settings::string("reference_genome", true));
+		VariantHgvsAnnotator annotator(reference);
+		VcfLine variant("chr11", 2884858, "GC", QList<Sequence>() << "GTT");
+
+		VariantConsequence hgvs = annotator.annotate(trans_CDKN1C(), variant);
+		S_EQUAL(hgvs.hgvs_c, "c.631delinsAA");
+		S_EQUAL(hgvs.hgvs_p, "p.Ala211AsnfsTer30");
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
+		IS_FALSE(hgvs.types.contains(VariantConsequenceType::STOP_LOST));
+	}
+
+	TEST_METHOD(regression_unknown_splice_effect_is_not_inframe_deletion)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		FastaFileIndex reference(Settings::string("reference_genome", true));
+		VariantHgvsAnnotator annotator(reference, VariantHgvsAnnotator::Parameters(5000, 3, 8, 8));
+
+		//Delete the last two coding bases of exon 2 and the canonical donor bases.
+		VcfLine variant("chr3", 196217934, "GAGGT", QList<Sequence>() << "G");
+		VariantConsequence hgvs = annotator.annotate(trans_SLC51A(), variant);
+
+		S_EQUAL(hgvs.hgvs_p, "p.?");
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::SPLICE_DONOR_VARIANT));
+		IS_FALSE(hgvs.types.contains(VariantConsequenceType::INFRAME_DELETION));
+	}
+
+	TEST_METHOD(regression_mitochondrial_inframe_insertion_uses_mitochondrial_code)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		FastaFileIndex reference(Settings::string("reference_genome", true));
+		VariantHgvsAnnotator annotator(reference);
+
+		Transcript transcript;
+		transcript.setGene("MT-CO1");
+		transcript.setName("synthetic_MT_CO1");
+		transcript.setSource(Transcript::ENSEMBL);
+		transcript.setStrand(Transcript::PLUS);
+		BedFile regions;
+		regions.append(BedLine("chrMT", 5904, 7445));
+		transcript.setRegions(regions, 5904, 7445);
+
+		VcfLine variant("chrMT", 5906, "G", QList<Sequence>() << "GATA");
+		VariantConsequence hgvs = annotator.annotate(transcript, variant);
+
+		S_EQUAL(hgvs.hgvs_p, "p.Met1_Phe2insMet");
+		IS_FALSE(hgvs.hgvs_p.contains("insIle"));
+	}
+
+
+	TEST_METHOD(regression_synonymous_mnp_is_not_stop_lost_or_missense)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		FastaFileIndex reference(Settings::string("reference_genome", true));
+		VariantHgvsAnnotator annotator(reference);
+
+		VcfLine variant("chr3", 196217855, "CTT", QList<Sequence>() << "TTA");
+		VariantConsequence hgvs = annotator.annotate(trans_SLC51A(), variant);
+		S_EQUAL(hgvs.hgvs_p, "p.Leu18=");
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::SYNONYMOUS_VARIANT));
+		IS_FALSE(hgvs.types.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+		IS_FALSE(hgvs.types.contains(VariantConsequenceType::MISSENSE_VARIANT));
+		IS_FALSE(hgvs.types.contains(VariantConsequenceType::STOP_LOST));
+		S_EQUAL(variantImpactToString(hgvs.impact), "LOW");
 	}
 
 	//TODO Marc: benchmark consequence annotation against BioCommons - see https://emea.illumina.com/science/genomics-research/articles/Connected-Annotations-blog.html
