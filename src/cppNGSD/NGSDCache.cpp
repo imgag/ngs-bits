@@ -31,11 +31,9 @@ void NGSDReferenceDataCache::clear()
 	same_patients_initialized_ = false;
 	related_samples_initialized_ = false;
 	approved_gene_names_.clear();
-	approved_gene_names_initialized_ = false;
 	gene2id_.clear();
-	gene2id_initialized_ = false;
 	id2gene_.clear();
-	id2gene_initialized_ = false;
+	gene_data_initialized_ = false;
 	enum_values_.clear();
 	non_approved_to_approved_gene_names_.clear();
 	phenotypes_by_id_.clear();
@@ -154,63 +152,40 @@ const QSet<int>& NGSDReferenceDataCache::relatedSamples(NGSD& db, int sample_id)
 const GeneSet& NGSDReferenceDataCache::approvedGeneNames(NGSD& db)
 {
 	QMutexLocker locker(&mutex_);
-	if (!approved_gene_names_initialized_)
-	{
-		for (const QString& symbol : db.getValues("SELECT symbol FROM gene")) approved_gene_names_.insert(symbol.toUtf8());
-		approved_gene_names_initialized_ = true;
-	}
+
+	if (!gene_data_initialized_) initGeneData(db);
+
 	return approved_gene_names_;
 }
 
 int NGSDReferenceDataCache::geneId(NGSD& db, const QByteArray& gene)
 {
 	QMutexLocker locker(&mutex_);
-	if (!gene2id_initialized_)
-	{
-		SqlQuery query = db.getQuery();
-		query.exec("SELECT symbol, id FROM gene");
-		while (query.next())
-		{
-			const QByteArray symbol = query.value(0).toByteArray();
-			const int id = query.value(1).toInt();
-			gene2id_[symbol] = id;
-			gene2id_[symbol.trimmed().toUpper()] = id;
-		}
-		gene2id_initialized_ = true;
-	}
-	if (gene2id_.contains(gene)) return gene2id_.value(gene);
-	const QByteArray normalized_gene = gene.trimmed().toUpper();
-	if (gene2id_.contains(normalized_gene))
-	{
-		const int id = gene2id_.value(normalized_gene);
-		gene2id_.insert(gene, id);
-		return id;
-	}
 
-	SqlQuery query = db.getQuery();
-	query.prepare("SELECT g.id FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:0 AND ga.type='previous'");
-	query.bindValue(0, gene);
-	query.exec();
-	if (query.size()==1) { query.next(); return gene2id_[gene] = query.value(0).toInt(); }
-	if (query.size()>1) return gene2id_[gene] = -1;
-	query.prepare("SELECT g.id FROM gene g, gene_alias ga WHERE g.id=ga.gene_id AND ga.symbol=:0 AND ga.type='synonym'");
-	query.bindValue(0, gene);
-	query.exec();
-	if (query.size()==1) { query.next(); return gene2id_[gene] = query.value(0).toInt(); }
-	return gene2id_[gene] = -1;
+	if (!gene_data_initialized_) initGeneData(db);
+
+	//gene name
+	int id = gene2id_.value(gene, -1);
+	if (id!=-1) return id;
+
+	//gene name (normalized)
+	id = gene2id_.value(gene.trimmed().toUpper(), -1);
+	if (id!=-1) return id;
+
+	//add to cache to speed up next query of same gene
+	gene2id_[gene] = -1;
+
+	return -1;
 }
 
 QByteArray NGSDReferenceDataCache::geneSymbol(NGSD& db, int id)
 {
 	QMutexLocker locker(&mutex_);
-	if (!id2gene_initialized_)
-	{
-		SqlQuery query = db.getQuery();
-		query.exec("SELECT id, symbol FROM gene");
-		while (query.next()) id2gene_[query.value(0).toInt()] = query.value(1).toByteArray();
-		id2gene_initialized_ = true;
-	}
+
+	if (!gene_data_initialized_) initGeneData(db);
+
 	if (!id2gene_.contains(id)) THROW(DatabaseException, "No gene with database ID '" + QString::number(id) + "' in NGSD!");
+
 	return id2gene_.value(id);
 }
 
@@ -416,6 +391,45 @@ PhenotypeList NGSDReferenceDataCache::phenotypes(NGSD& db)
 	for (const Phenotype& phenotype : std::as_const(phenotypes_by_id_)) output << phenotype;
 	output.sortByName();
 	return output;
+}
+
+void NGSDReferenceDataCache::initGeneData(NGSD &db)
+{
+	QMutexLocker locker(&mutex_);
+	if (gene_data_initialized_) return;
+
+	//init gene name caches
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT id, symbol FROM gene");
+	while (query.next())
+	{
+		int id = query.value(0).toInt();
+		QByteArray symbol = query.value(1).toByteArray();
+		gene2id_[symbol] = id;
+		gene2id_[symbol.trimmed().toUpper()] = id;
+		id2gene_[id] = symbol;
+		approved_gene_names_.insert(symbol);
+	}
+
+	//add previous and synonym symbols, if they are unique for one gene
+	QHash<QByteArray, QSet<int>> tmp;
+	query.exec("SELECT gene_id, symbol FROM gene_alias");
+	while (query.next())
+	{
+		QByteArray symbol = query.value(1).toByteArray();
+		if (approved_gene_names_.contains(symbol)) continue; //ignore alias symbols that are current gene symbols
+
+		tmp[symbol] << query.value(0).toInt();
+	}
+	for(auto it=tmp.constBegin(); it!=tmp.constEnd(); ++it)
+	{
+		if (it.value().count()==1)
+		{
+			gene2id_[it.key()] = *(it.value().begin());
+		}
+	}
+
+	gene_data_initialized_ = true;
 }
 
 void NGSDReferenceDataCache::initTranscriptCache(NGSD& db)

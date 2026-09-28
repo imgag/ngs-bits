@@ -770,6 +770,7 @@ public:
 	///Returns a SqlQuery object on the NGSD for custom queries.
 	SqlQuery getQuery() const
 	{
+		if(!open_) THROW(DatabaseException, "Cannot execute query on NGSD instance with not opened database connection!");
 		return SqlQuery(*db_, debug_);
 	}
 	///Executes all queries from a text file.
@@ -1318,6 +1319,8 @@ protected:
 	bool debug_;
 	//production cache=0, test cache=1, no cache=-1
 	int cache_context_;
+	//If database connection was actually opened in constructor.
+	bool open_;
 
 	NGSDReferenceDataCache& referenceCache() const;
 	NGSDUserCache& userCache() const;

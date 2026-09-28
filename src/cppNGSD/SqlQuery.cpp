@@ -36,7 +36,7 @@ void SqlQuery::prepare(const QString& query)
 	bool success = QSqlQuery::prepare(query);
 	if (!success)
 	{
-		THROW(DatabaseException, lastError().text() + "\nQuery: " + lastQuery());
+		THROW(DatabaseException, lastError().text() + "\nQuery: " + query);
 	}
 }
 

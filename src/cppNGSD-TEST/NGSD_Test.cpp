@@ -275,11 +275,12 @@ private:
 		S_EQUAL(gene_app3[1].second, "REPLACED: QARS is a previous symbol");
 
 		//geneID
-		int gene_app_id = db.geneId("BRCA1");
-		I_EQUAL(gene_app_id, 1);
-		I_EQUAL(db.geneId("BrCa1"), 1);
-		gene_app_id = db.geneId("BLABLA");
-		I_EQUAL(gene_app_id, -1);
+		I_EQUAL(db.geneId("BRCA1"), 1);
+		I_EQUAL(db.geneId("BrCa1"), 1); //wrong cases
+		I_EQUAL(db.geneId("BLABLA"), -1); //does not exist
+		I_EQUAL(db.geneId("SPG5C"), 652410); //alias for SPG7
+		I_EQUAL(db.geneId("COX2"), -1); //alias both for MT-CO2 and PTGS2
+		I_EQUAL(db.geneId("DAZ1"), 496483); //also listed as alias of SLC25A15, but ignored because current gene symbol
 
 		//geneHgncId
 		S_EQUAL(db.geneHgncId(433223), "HGNC:9605");
@@ -3557,7 +3558,7 @@ private:
 
         S_EQUAL(db.processedSampleId("NA12878_03"), "3999");
 
-		QSqlQuery query = db.getQuery();
+		SqlQuery query = db.getQuery();
 		query.exec("SELECT * FROM processed_sample WHERE id=3999");
 		I_EQUAL(query.size(), 1);
 		query.next();

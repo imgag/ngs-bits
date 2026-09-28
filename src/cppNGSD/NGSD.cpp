@@ -30,6 +30,7 @@ NGSD::NGSD(bool test_db, QString test_name_override, bool open)
 	: test_db_(test_db)
 	, debug_(false)
 	, cache_context_(!test_name_override.isEmpty() ? -1 : (test_db ? 1 : 0))
+	, open_(open)
 {
 	const QString db_identifier = "NGSD_" + QUuid::createUuid().toString();
 	try

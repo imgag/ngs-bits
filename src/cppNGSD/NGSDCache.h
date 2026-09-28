@@ -50,6 +50,7 @@ private:
 	NGSDReferenceDataCache();
 	NGSDReferenceDataCache(const NGSDReferenceDataCache&) = delete;
 	NGSDReferenceDataCache& operator=(const NGSDReferenceDataCache&) = delete;
+	void initGeneData(NGSD& db);
 	void initTranscriptCache(NGSD& db);
 	void initGeneExpressionCache(NGSD& db);
 	void initSomaticGeneRoleCache(NGSD& db);
@@ -63,12 +64,12 @@ private:
 	bool same_samples_initialized_ = false;
 	bool same_patients_initialized_ = false;
 	bool related_samples_initialized_ = false;
+
 	GeneSet approved_gene_names_;
-	bool approved_gene_names_initialized_ = false;
 	QHash<QByteArray, int> gene2id_;
-	bool gene2id_initialized_ = false;
 	QHash<int, QByteArray> id2gene_;
-	bool id2gene_initialized_ = false;
+	bool gene_data_initialized_ = false;
+
 	QMap<QString, QStringList> enum_values_;
 	QMap<QByteArray, QByteArray> non_approved_to_approved_gene_names_;
 	QHash<int, Phenotype> phenotypes_by_id_;
