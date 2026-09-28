@@ -516,18 +516,19 @@ const QList<ReportVariantConfiguration>& ReportConfiguration::variantConfig() co
 QList<int> ReportConfiguration::variantIndices(VariantType type, bool only_selected, QString report_type) const
 {
 	QList<int> output;
-
+	qDebug() << "ReportConfiguration:: getting variant indices...";
 	foreach(const ReportVariantConfiguration& var_conf, variant_config_)
 	{
+		qDebug() << "variant index: " << var_conf.variant_index;
 		if (var_conf.variant_type!=type) continue;
 		if (only_selected && !var_conf.showInReport()) continue;
 		if (!report_type.isNull() && report_type!="all" && var_conf.report_type!=report_type) continue;
 
 		output << var_conf.variant_index;
 	}
-
+	qDebug() << "ReportConfiguration:: FINISHED getting variant indices...";
 	std::sort(output.begin(), output.end());
-
+	qDebug() << "ReportConfiguration:: SORTING getting variant indices...";
 	return output;
 }
 

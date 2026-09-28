@@ -711,8 +711,10 @@ void VariantTable::update(AnalysisDataController& data_controller, int max_varia
 
     if (type==AnalysisType::GERMLINE_SINGLESAMPLE || type==AnalysisType::GERMLINE_TRIO || type==AnalysisType::GERMLINE_MULTISAMPLE)
     {
+		qDebug() << "getting germline report variant indicies...";
         foreach(int index, data_controller.getGermlineReportConfig()->variantIndices(VariantType::SNVS_INDELS, false))
         {
+			qDebug() << "checking germline Report Variant with index:" << index;
             const ReportVariantConfiguration& rc = data_controller.getGermlineReportConfig()->get(VariantType::SNVS_INDELS, index);
             index_show_report_icon[index] = rc.showInReport();
             if (rc.causal) index_causal << index;
@@ -720,8 +722,10 @@ void VariantTable::update(AnalysisDataController& data_controller, int max_varia
     }
     else if (type==AnalysisType::SOMATIC_SINGLESAMPLE || type==AnalysisType::SOMATIC_PAIR || type==AnalysisType::CFDNA)
     {
+		qDebug() << "getting somatic report variant indicies...";
         foreach(int index, data_controller.getSomaticReportConfig()->variantIndices(VariantType::SNVS_INDELS, false))
         {
+			qDebug() << "checking somatic Report Variant with index:" << index;
             index_show_report_icon[index] = data_controller.getSomaticReportConfig()->get(VariantType::SNVS_INDELS, index).showInReport();
         }
     }

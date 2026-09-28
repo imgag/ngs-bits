@@ -1281,18 +1281,12 @@ QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 	QString ps_num = parts[1];
 	if (ps_num.size()>2) ps_num = ps_num.left(2);
 
-    qDebug() << filename << ": " << sample << " - " << ps_num;
-
 	//get sample ID
 	SqlQuery query = getQuery(); //use binding (user input)
-    qDebug() << "before prepare";
-    query.prepare("SELECT ps.id FROM processed_sample ps, sample s WHERE s.name=:0 AND ps.sample_id=s.id AND ps.process_id=:1");
-    qDebug() << "before binding";
-    query.bindValue(0, sample);
+	query.prepare("SELECT ps.id FROM processed_sample ps, sample s WHERE s.name=:0 AND ps.sample_id=s.id AND ps.process_id=:1");
+	query.bindValue(0, sample);
 	query.bindValue(1, QString::number(ps_num.toInt()));
-    qDebug() << "before exec";
 	query.exec();
-    qDebug() << "after exec";
 	if (query.size()==0)
 	{
 		if(throw_if_fails)
@@ -1305,7 +1299,6 @@ QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 		}
 	}
 	query.next();
-    qDebug() << "end???";
 	return query.value(0).toString();
 }
 
