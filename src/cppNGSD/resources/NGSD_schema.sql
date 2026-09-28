@@ -1452,11 +1452,8 @@ CREATE TABLE IF NOT EXISTS `somatic_cnv`
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `unique_callset_cnv_pair`
-    UNIQUE(`somatic_cnv_callset_id`,`chr`,`start`,`end`),
-  INDEX `chr` (`chr` ASC),
-  INDEX `start` (`start` ASC),
-  INDEX `end` (`end` ASC),
-  INDEX `tumor_cn` (`tumor_cn` ASC)
+    UNIQUE(`chr`,`start`,`end`,`somatic_cnv_callset_id`),
+  INDEX `somatic_cnv_callset_id` (`somatic_cnv_callset_id` ASC)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
@@ -1542,7 +1539,7 @@ CREATE  TABLE IF NOT EXISTS `somatic_sv_deletion`
     REFERENCES `somatic_sv_callset` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`),
+  INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`, `somatic_sv_callset_id`),
   INDEX `overlap_match` (`chr`, `start_min`, `end_max`)
 )
 ENGINE = InnoDB
@@ -1568,7 +1565,7 @@ CREATE  TABLE IF NOT EXISTS `somatic_sv_duplication`
     REFERENCES `somatic_sv_callset` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`),
+  INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`, `somatic_sv_callset_id`),
   INDEX `overlap_match` (`chr`, `start_min`, `end_max`)
 )
 ENGINE = InnoDB
@@ -1621,7 +1618,7 @@ CREATE  TABLE IF NOT EXISTS `somatic_sv_inversion`
     REFERENCES `somatic_sv_callset` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`),
+  INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`, `somatic_sv_callset_id`),
   INDEX `overlap_match` (`chr`, `start_min`, `end_max`)
 )
 ENGINE = InnoDB
@@ -1648,7 +1645,8 @@ CREATE  TABLE IF NOT EXISTS `somatic_sv_translocation`
     REFERENCES `somatic_sv_callset` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  INDEX `match` (`chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`)
+  INDEX `match1` (`chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`, `somatic_sv_callset_id`),
+  INDEX `match2` (`chr2`, `start2`, `end2`, `somatic_sv_callset_id`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
@@ -1897,10 +1895,8 @@ CREATE  TABLE IF NOT EXISTS `cnv`
     REFERENCES `cnv_callset` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  INDEX `chr` (`chr` ASC),
-  INDEX `start` (`start` ASC),
-  INDEX `end` (`end` ASC),
-  INDEX `cn` (`cn` ASC)
+  INDEX `position` (`chr`, `start`, `end`, `cnv_callset_id`),
+  INDEX `callset_id` (`cnv_callset_id`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
@@ -1996,7 +1992,7 @@ CREATE  TABLE IF NOT EXISTS `sv_deletion`
     REFERENCES `sv_callset` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`),
+  INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`, `sv_callset_id`),
   INDEX `overlap_match` (`chr`, `start_min`, `end_max`)
 )
 ENGINE = InnoDB
@@ -2023,7 +2019,7 @@ CREATE  TABLE IF NOT EXISTS `sv_duplication`
     REFERENCES `sv_callset` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`),
+  INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`, `sv_callset_id`),
   INDEX `overlap_match` (`chr`, `start_min`, `end_max`)
 )
 ENGINE = InnoDB
@@ -2078,7 +2074,7 @@ CREATE  TABLE IF NOT EXISTS `sv_inversion`
     REFERENCES `sv_callset` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`),
+  INDEX `exact_match` (`chr`, `start_min`, `start_max`, `end_min`, `end_max`, `sv_callset_id`),
   INDEX `overlap_match` (`chr`, `start_min`, `end_max`)
 )
 ENGINE = InnoDB
@@ -2106,7 +2102,8 @@ CREATE  TABLE IF NOT EXISTS `sv_translocation`
     REFERENCES `sv_callset` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
-  INDEX `match` (`chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`)
+  INDEX `match1` (`chr1`, `start1`, `end1`, `chr2`, `start2`, `end2`, `sv_callset_id`),
+  INDEX `match2` (`chr2`, `start2`, `end2`, `sv_callset_id`)
 )
 ENGINE = InnoDB
 DEFAULT CHARACTER SET = utf8
@@ -2653,7 +2650,7 @@ CREATE TABLE IF NOT EXISTS `expression_exon`
   `raw` INT NOT NULL,
   PRIMARY KEY (`id`),
   INDEX(`processed_sample_id`),
-  UNIQUE INDEX `expression_exon_UNIQUE` (`processed_sample_id` ASC, `chr` ASC, `start` ASC, `end` ASC),
+  UNIQUE INDEX `expression_exon_UNIQUE` (`chr` ASC, `start` ASC, `end` ASC, `processed_sample_id` ASC),
   CONSTRAINT `fk_expression_exon_processed_sample_id`
     FOREIGN KEY (`processed_sample_id` )
     REFERENCES `processed_sample` (`id` )
