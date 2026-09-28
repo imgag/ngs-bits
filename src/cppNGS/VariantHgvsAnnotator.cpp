@@ -15,7 +15,8 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 	//check prerequisites
 	if (transcript.regions().count()==0) THROW(ProgrammingException, "Cannot annotate consequences for ranscripts without regions: " + transcript.name());
 	if (variant.isMultiAllelic()) THROW(ProgrammingException, "Cannot annotate consequences for multi-allelic variants: " + variant.toString());
-	if (!variant.isValid()) THROW(ProgrammingException, "Cannot annotate consequences for invalid variants: " + variant.toString());
+	if (variant.chr()!=transcript.chr()) THROW(ProgrammingException, "Cannot annotate variant on a different chromosome than the transcript: " + variant.toString());
+	if (!variant.isValid(genome_idx_)) THROW(ProgrammingException, "Cannot annotate consequences for invalid variant: " + variant.toString());
 
     //init
 	bool plus_strand = transcript.isPlusStrand();
@@ -339,7 +340,11 @@ VariantConsequence VariantHgvsAnnotator::annotate(const Transcript& transcript, 
 			hgvs.types.insert(VariantConsequenceType::STOP_LOST);
         }
 
-        if(hgvs.hgvs_p.contains("fs"))
+		if(hgvs.types.contains(VariantConsequenceType::START_LOST))
+		{
+			//The protein effect after loss of the start codon is unknown.
+		}
+		else if(hgvs.hgvs_p.contains("fs"))
         {
 			hgvs.types.insert(VariantConsequenceType::FRAMESHIFT_VARIANT);
         }
@@ -1595,7 +1600,7 @@ QByteArray VariantConsequence::exonOrIntron(const Transcript& trans)
 	}
 	else if (intron_number!=-1)
 	{
-		output = "intron"+QByteArray::number(intron_number)+"/"+QByteArray::number(trans.regions().count());
+		output = "intron"+QByteArray::number(intron_number)+"/"+QByteArray::number(trans.regions().count()-1);
 	}
 	return output;
 }

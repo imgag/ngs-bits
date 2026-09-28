@@ -3,7 +3,6 @@
 #include "Transcript.h"
 #include "Sequence.h"
 #include "Settings.h"
-#include "NGSHelper.h"
 
 //NOTE: to export transcripts from NGSD for these tests, you can use the function export_transcripts_from_ngsd() in NGSD_Test.cpp
 
@@ -1700,6 +1699,60 @@ private:
 		IS_FALSE(hgvs.types.contains(VariantConsequenceType::MISSENSE_VARIANT));
 		IS_FALSE(hgvs.types.contains(VariantConsequenceType::STOP_LOST));
 		S_EQUAL(variantImpactToString(hgvs.impact), "LOW");
+	}
+
+	TEST_METHOD(reject_variant_on_different_chromosome)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		FastaFileIndex reference(Settings::string("reference_genome", true));
+		VariantHgvsAnnotator annotator(reference);
+		Sequence ref = reference.seq("chr3", 65423403, 1);
+		Sequence alt = ref == "A" ? "C" : "A";
+		VcfLine variant("chr3", 65423403, ref, QList<Sequence>() << alt);
+
+		IS_THROWN(ProgrammingException, annotator.annotate(trans_NEAT1(), variant));
+	}
+
+	TEST_METHOD(reject_variant_with_incorrect_reference)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		FastaFileIndex reference(Settings::string("reference_genome", true));
+		VariantHgvsAnnotator annotator(reference);
+		Sequence ref = reference.seq("chr11", 65423403, 1) == "A" ? "C" : "A";
+		Sequence alt = ref == "G" ? "T" : "G";
+		VcfLine variant("chr11", 65423403, ref, QList<Sequence>() << alt);
+
+		IS_THROWN(ProgrammingException, annotator.annotate(trans_NEAT1(), variant));
+	}
+
+	TEST_METHOD(start_lost_deletion_is_not_inframe_deletion)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		FastaFileIndex reference(Settings::string("reference_genome", true));
+		VariantHgvsAnnotator annotator(reference);
+		Sequence ref = reference.seq("chr3", 196216711, 6);
+		VcfLine variant("chr3", 196216711, ref, QList<Sequence>() << ref.left(1));
+
+		VariantConsequence hgvs = annotator.annotate(trans_SLC51A(), variant);
+		S_EQUAL(hgvs.hgvs_p, "p.Met1?");
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::START_LOST));
+		IS_FALSE(hgvs.types.contains(VariantConsequenceType::INFRAME_DELETION));
+	}
+
+	TEST_METHOD(intron_total_uses_number_of_introns)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		FastaFileIndex reference(Settings::string("reference_genome", true));
+		VariantHgvsAnnotator annotator(reference);
+		Transcript transcript = trans_NEAT1();
+		VcfLine variant("chr11", 65423403, "C", QList<Sequence>() << "T");
+
+		VariantConsequence hgvs = annotator.annotate(transcript, variant);
+		S_EQUAL(hgvs.exonOrIntron(transcript), "intron1/1");
 	}
 
 	//TODO Marc: benchmark consequence annotation against BioCommons - see https://emea.illumina.com/science/genomics-research/articles/Connected-Annotations-blog.html
