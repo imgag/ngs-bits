@@ -29,6 +29,7 @@
 NGSD::NGSD(bool test_db, QString test_name_override, bool open)
 	: test_db_(test_db)
 	, debug_(false)
+	, debug_min_s_(-1)
 	, cache_context_(!test_name_override.isEmpty() ? -1 : (test_db ? 1 : 0))
 	, open_(open)
 {
@@ -718,7 +719,7 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id, s.tissue, s.patient_identifier, s.year_of_birth, s.order_date, s.sampling_date FROM sample s WHERE id=" + sample_id);
+	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, se.name, sp.name, s.received, s.receiver_id, s.tissue, s.patient_identifier, s.year_of_birth, s.order_date, s.sampling_date FROM sample s, sender se, species sp WHERE s.sender_id=se.id AND s.species_id=sp.id AND s.id=" + sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'sample' given: '" + sample_id + "'");
@@ -738,8 +739,8 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 	output.is_tumor = query.value(7).toString()=="1";
 	output.is_ffpe = query.value(8).toString()=="1";
 	output.type = query.value(9).toString();
-	output.sender = getValue("SELECT name FROM sender WHERE id=:0", false, query.value(10).toString()).toString();
-	output.species = getValue("SELECT name FROM species WHERE id=:0", false, query.value(11).toString()).toString();
+	output.sender = query.value(10).toString();
+	output.species = query.value(11).toString();
 	QVariant received_date = query.value(12);
 	if (!received_date.isNull())
 	{
@@ -786,7 +787,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, sys.name_manufacturer as sys_name, sys.type as sys_type, ps.quality, ps.comment, p.name as p_name, p.type as p_type, r.name as r_name, ps.normal_id, s.gender, ps.operator_id, ps.processing_input, ps.molarity, ps.processing_modus, ps.batch_number, ps.scheduled_for_resequencing, ps.urgent FROM sample s, project p, processing_system sys, processed_sample ps LEFT JOIN sequencing_run r ON ps.sequencing_run_id=r.id WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.processing_system_id=sys.id AND ps.id=" + processed_sample_id);
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, sys.type as sys_type, ps.quality, ps.comment, p.name as p_name, p.type as p_type, r.name as r_name, ps.normal_id, s.gender, ps.operator_id, ps.processing_input, ps.molarity, ps.processing_modus, ps.batch_number, ps.scheduled_for_resequencing, ps.urgent FROM sample s, project p, processing_system sys, processed_sample ps LEFT JOIN sequencing_run r ON ps.sequencing_run_id=r.id WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.processing_system_id=sys.id AND ps.id=" + processed_sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'processed_sample' given: '" + processed_sample_id + "'");
@@ -797,6 +798,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 	ProcessedSampleData output;
 	output.name = query.value("ps_name").toString().trimmed();
 	output.processing_system = query.value("sys_name").toString().trimmed();
+	output.processing_system_short = query.value("sys_name_short").toString().trimmed();
 	output.processing_system_type = query.value("sys_type").toString().trimmed();
 	output.quality = query.value("quality").toString().trimmed();
 	output.comments = query.value("comment").toString().trimmed();

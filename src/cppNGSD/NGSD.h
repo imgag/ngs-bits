@@ -321,7 +321,8 @@ struct CPPNGSDSHARED_EXPORT SampleDiseaseInfo
 struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 {
 	QString name;
-	QString processing_system;
+	QString processing_system; //long name
+	QString processing_system_short; //short name, used e.g. in file names
 	QString processing_system_type;
 	QString sequencer_type;
 	QString quality;
@@ -723,7 +724,7 @@ public:
 	///Returns if the database is a production database based on information in the table 'db_info'.
 	bool isProductionDb() const;
 	///Enables debuggins
-	void enableDebugging(bool enabled) { debug_ = enabled; }
+	void enableDebugging(bool enabled, double debug_min_s=-1) { debug_ = enabled; debug_min_s_ = debug_min_s; }
 
 	///Returns if the database is available (i.e. the credentials are in the settings file or the application is in client-server mode)
 	static bool isAvailable(bool test_db=false);
@@ -771,7 +772,7 @@ public:
 	SqlQuery getQuery() const
 	{
 		if(!open_) THROW(DatabaseException, "Cannot execute query on NGSD instance with not opened database connection!");
-		return SqlQuery(*db_, debug_);
+		return SqlQuery(*db_, debug_, debug_min_s_);
 	}
 	///Executes all queries from a text file.
 	void executeQueriesFromFile(QString filename);
@@ -1317,6 +1318,7 @@ protected:
 	bool test_db_;
 	//Enable debugging (prints executed queries)
 	bool debug_;
+	double debug_min_s_;
 	//production cache=0, test cache=1, no cache=-1
 	int cache_context_;
 	//If database connection was actually opened in constructor.

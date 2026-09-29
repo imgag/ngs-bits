@@ -85,6 +85,7 @@ private:
 	Ui::ProcessedSampleWidget* ui_;
     DelayedInitializationTimer init_timer_;
 	QString ps_id_;
+	QString s_id_;
 
 	QString sampleName() const;
 	QString processedSampleName() const;

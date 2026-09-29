@@ -6,9 +6,10 @@
 #include "Helper.h"
 #include <QSqlRecord>
 
-SqlQuery::SqlQuery(QSqlDatabase db, bool debug)
+SqlQuery::SqlQuery(QSqlDatabase db, bool debug, double debug_min_s)
 	: QSqlQuery(db)
 	, debug_(debug)
+	, debug_min_s_(debug_min_s)
 {
 }
 
@@ -21,7 +22,7 @@ void SqlQuery::exec(const QString& query)
 		timer->start();
 	}
 	bool success = QSqlQuery::exec(query);
-	if (debug_)
+	if (debug_ && (debug_min_s_<0 || timer->elapsed()>debug_min_s_*1000.0))
 	{
 		qDebug() << "SqlQuery::exec():" << lastQuery() << "took: " << Helper::elapsedTime(timer->elapsed()) << "success: " << success;
 	}
@@ -49,7 +50,7 @@ void SqlQuery::exec()
 		timer->start();
 	}
 	bool success = QSqlQuery::exec();
-	if (debug_)
+	if (debug_ && (debug_min_s_<0 || timer->elapsed()>debug_min_s_*1000.0))
 	{
 		qDebug() << "SqlQuery::exec():" << lastQuery() << "took: " << Helper::elapsedTime(timer->elapsed()) << "success: " << success;
 	}

@@ -344,6 +344,8 @@ private:
 		I_EQUAL(sample_data.phenotypes.count(), 0);
 		IS_FALSE(sample_data.is_tumor);
 		IS_FALSE(sample_data.is_ffpe);
+		S_EQUAL(sample_data.sender, "Coriell");
+		S_EQUAL(sample_data.species, "human");
 		//second sample (tumor)
 		sample_id = db.sampleId("NA12345_01");
 		sample_data = db.getSampleData(sample_id);
@@ -372,6 +374,7 @@ private:
 		S_EQUAL(processed_sample_data.run_name, "#00372");
 		S_EQUAL(processed_sample_data.normal_sample_name, "");
 		S_EQUAL(processed_sample_data.processing_system, "HaloPlex HBOC v5");
+		S_EQUAL(processed_sample_data.processing_system_short, "hpHBOCv5");
 		S_EQUAL(processed_sample_data.processing_system_type, "Panel Haloplex");
 		S_EQUAL(processed_sample_data.processing_modus, "manual");
 		S_EQUAL(processed_sample_data.batch_number, "batch 17");

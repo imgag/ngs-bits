@@ -15,4 +15,7 @@ void NGSDCacheInitializer::process()
 
 	//init transcript infos
 	db.transcripts();
+
+	//init phenotype infos
+	db.phenotypes(QStringList());
 }
