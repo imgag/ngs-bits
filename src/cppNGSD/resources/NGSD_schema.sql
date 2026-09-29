@@ -1412,7 +1412,6 @@ CREATE  TABLE IF NOT EXISTS `somatic_cnv_callset`
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`id`),
-  INDEX `caller` (`caller` ASC),
   INDEX `call_date` (`call_date` ASC),
   INDEX `quality` (`quality` ASC),
   UNIQUE INDEX `combo_ids` (`ps_tumor_id` ASC, `ps_normal_id` ASC),
@@ -1502,7 +1501,6 @@ CREATE  TABLE IF NOT EXISTS `somatic_sv_callset`
   `call_date` DATE DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `call_date` (`call_date` ASC),
-  INDEX `somatic_sv_caller` (`call_date` ASC),
   INDEX `somatic_sv_callset_references_processed_sample` (`ps_tumor_id` ASC),
   UNIQUE INDEX `combo_ids` (`ps_tumor_id` ASC, `ps_normal_id` ASC),
   CONSTRAINT `som_sv_callset_ps_normal_id`
@@ -1863,7 +1861,6 @@ CREATE  TABLE IF NOT EXISTS `cnv_callset`
   `quality_metrics` TEXT DEFAULT NULL COMMENT 'quality metrics as JSON key-value array',
   `quality` ENUM('n/a','good','medium','bad') NOT NULL DEFAULT 'n/a',
   PRIMARY KEY (`id`),
-  INDEX `caller` (`quality` ASC),
   INDEX `call_date` (`call_date` ASC),
   INDEX `quality` (`quality` ASC),
   UNIQUE KEY `cnv_callset_references_processed_sample` (`processed_sample_id`),
