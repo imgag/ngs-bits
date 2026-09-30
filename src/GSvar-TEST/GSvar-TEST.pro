@@ -41,7 +41,8 @@ unix: LIBS += -lxml2
 #include GSvar
 INCLUDEPATH += $$PWD/../GSvar
 
-SOURCES += $$files($$PWD/../GSvar/*.cpp, true)
+SOURCES += $$files($$PWD/../GSvar/*.cpp, true) \
+    BackgroundJobController_Test.cpp
 SOURCES -= $$PWD/../GSvar/main.cpp
 
 HEADERS += $$files($$PROJECT_ROOT/src/GSvar/*.h, true)
@@ -51,4 +52,5 @@ RESOURCES += $$files($$PROJECT_ROOT/src/GSvar/*.qrc, true)
 #test sources:
 SOURCES += \
     AnalysisDataController_Test.cpp \
+    BackgroundJobController_Test.cpp \
     main.cpp

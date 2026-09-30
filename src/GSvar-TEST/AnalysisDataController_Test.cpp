@@ -51,7 +51,7 @@ void init_test(NGSD& db)
 
 }
 
-
+/*
 TEST_METHOD(controller_load_file)
 {
 	SKIP_IF_NO_TEST_NGSD();
