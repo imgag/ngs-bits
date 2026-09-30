@@ -455,7 +455,7 @@ void ProcessedSampleWidget::updateQCMetrics()
 			double qc_value = ui_->qc_table->item(r,c)->text().toDouble(&ok);
 			if (!ok) continue;
 
-			QString qc_class = qc_rule_matcher.evaluate(terms.getByID(qc_table.row(r).value(0).toUtf8()).name(), qc_value, system_short, system_type, is_tumor);
+			QString qc_class = qc_rule_matcher.evaluate(db.getQCTermNameByAccession(qc_table.row(r).value(0)), qc_value, system_short, system_type, is_tumor);
 			GSvarHelper::colorQcItem(ui_->qc_table->item(r,c), qc_class);
 		}
 	}

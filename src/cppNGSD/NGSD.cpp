@@ -4291,7 +4291,7 @@ QVector<double> NGSD::getQCValues(const QString& accession, const QString& proce
 
 QString NGSD::getQCTermNameByAccession(const QString &accession)
 {
-	return getValue("SELECT qc_terms.name FROM qc_terms WHERE qcml_id='"+accession+"'").toString();
+	return referenceCache().getQCTermNameByAccession(*this, accession.toLatin1());
 }
 
 KaspData NGSD::kaspData(const QString& processed_sample_id)

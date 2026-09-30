@@ -46,6 +46,7 @@ private:
 	QMap<int, QByteArray> expressionIdToGene(NGSD& db);
 	QMap<QByteArray, int> expressionGeneToId(NGSD& db);
 	int expressionGeneId(NGSD& db, const QByteArray& gene);
+	QByteArray getQCTermNameByAccession(NGSD &db, const QByteArray& accession);
 
 	NGSDReferenceDataCache();
 	NGSDReferenceDataCache(const NGSDReferenceDataCache&) = delete;
@@ -97,6 +98,8 @@ private:
 	QMap<int, QByteArray> gene_expression_id2gene_;
 	QMap<QByteArray, int> gene_expression_gene2id_;
 	bool gene_expression_cache_initialized_ = false;
+
+	QHash<QByteArray, QByteArray> qc_term_accession_to_name_;
 };
 
 ///User-specific NGSD data that can be invalidated during normal operation.

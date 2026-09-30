@@ -61,6 +61,8 @@ void NGSDReferenceDataCache::clear()
 	gene_expression_id2gene_.clear();
 	gene_expression_gene2id_.clear();
 	gene_expression_cache_initialized_ = false;
+
+	qc_term_accession_to_name_.clear();
 }
 
 const QSet<int>& NGSDReferenceDataCache::sameSamples(NGSD& db, int sample_id, SameSampleMode mode)
@@ -637,6 +639,21 @@ int NGSDReferenceDataCache::expressionGeneId(NGSD& db, const QByteArray& gene)
 		gene_expression_id2gene_.insert(id, gene);
 	}
 	return gene_expression_gene2id_.value(gene);
+}
+
+QByteArray NGSDReferenceDataCache::getQCTermNameByAccession(NGSD& db, const QByteArray &accession)
+{
+	QMutexLocker locker(&mutex_);
+	if (qc_term_accession_to_name_.isEmpty())
+	{
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT qcml_id, name FROM qc_terms");
+		while(query.next())
+		{
+			qc_term_accession_to_name_.insert(query.value(0).toByteArray(), query.value(1).toByteArray());
+		}
+	}
+	return qc_term_accession_to_name_.value(accession);
 }
 
 const TableInfo& NGSDReferenceDataCache::tableInfo(NGSD& db, const QString& table)
