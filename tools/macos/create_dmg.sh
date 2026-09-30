@@ -6,12 +6,12 @@ set -euo pipefail
 # GSvar macOS DMG creation script
 #
 # Usage:
-#   ./create_dmg.sh <Developer-ID> <FULL_BIN_PATH>
+#   ./create_dmg.sh <Developer-ID> <bin_folder>
 #
 # Example:
 #   ./create_dmg.sh \
 #       "Developer ID Application: My Company (ABCDE12345)" \
-#       "/Users/me/gsvar/bin"
+#       "/Users/me/ngs-bits/bin"
 # ============================================================
 
 APP_NAME="GSvar.app"
@@ -74,22 +74,22 @@ show_help()
 {
     cat << EOF
 Usage:
-    $(basename "$0") <Developer-ID> <FULL_BIN_PATH>
+    $(basename "$0") <Developer-ID> <bin_folder>
 
 Create a signed macOS DMG for GSvar.
 
 Arguments:
     Developer-ID
-        The Apple Developer ID Application identity used for signing.
+        The Apple Developer ID Application identity used for signing. Assuming you already have a developer's account, it can be retrieved by running "security find-identity -v -p codesigning"
 
         Example:
         "Developer ID Application: My Company (ABCDE12345)"
 
-    FULL_BIN_PATH
-        Full path passed to macdeployqt's -libpath option.
+    bin_folder
+        Full path passed to macdeployqt's -libpath option (bin folder in ngs-bits repository).
 
         Example:
-        "/Users/me/gsvar/bin"
+        "/Users/me/ngs-bits/bin"
 
 Options:
     -h, --help
@@ -98,7 +98,7 @@ Options:
 Example:
     $(basename "$0") \\
         "Developer ID Application: My Company (ABCDE12345)" \\
-        "/Users/me/gsvar/bin"
+        "/Users/me/ngs-bits/bin"
 
 The script performs the following steps:
 
