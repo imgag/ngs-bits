@@ -7,6 +7,7 @@
 #include "NGSD.h"
 #include "GlobalServiceProvider.h"
 #include "Background/VariantAnnotator.h"
+#include "Background/BackgroundJobController.h"
 #include "LoginManager.h"
 #include "Settings.h"
 #include <QClipboard>
@@ -382,7 +383,7 @@ void ImportDialog::import()
 			VariantAnnotator* worker = new VariantAnnotator(variants);
 			connect(worker, SIGNAL(failed()), this, SLOT(variantImportFailed()));
 			connect(worker, SIGNAL(loadFile(QString)), this, SLOT(loadFile(QString)));
-			GlobalServiceProvider::startJob(worker, true);
+			BackgroundJobController::instance().start(worker, true);
 		}
 		else if (type_==MIDS || type_==STUDY_SAMPLE || type_==RUNS || type_==PROCESSED_SAMPLES || type_==SAMPLE_RELATIONS || type_==SAMPLE_HPOS)
 		{

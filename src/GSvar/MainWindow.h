@@ -426,12 +426,6 @@ public slots:
     void changeIgvIconToNormal();
 	//Open background jobs dialog
 	void showBackgroundJobDialog();
-    //Starts a background job and returns its id
-    int startJob(BackgroundWorkerBase* worker, bool show_busy_dialog);
-    //Returns information about a background job status by its id
-    QString getJobStatus(int id);
-    //Returns error messages for a background job by its id (if it failed)
-    QString getJobMessages(int id);
 	///Opens IVG at the position of a CNV/SV
 	void jumpToCnvOrSvPosition(int row);
 	//Set application style

@@ -21,6 +21,7 @@
 #include <QBuffer>
 #include "GermlineReportGenerator.h"
 #include "Background/ReportWorker.h"
+#include "Background/BackgroundJobController.h"
 
 AnalysisDataController& AnalysisDataController::instance()
 {
@@ -80,7 +81,7 @@ void AnalysisDataController::clear()
 	somatic_report_settings_ = SomaticReportSettings();
 	rna_report_config_ = QSharedPointer<RnaReportConfiguration>(new RnaReportConfiguration);
 
-	Log::perf("Clearing variant table took ", timer);
+	Log::perf("Clearing AnalysisDataController took ", timer);
 
 	emit dataCleared();
 }
@@ -2347,7 +2348,7 @@ void AnalysisDataController::generateGermlineReport(QString filepath, QString ty
 
 	//start worker in background
 	ReportWorker* worker = new ReportWorker(data, filepath);
-	GlobalServiceProvider::startJob(worker, true);
+	BackgroundJobController::instance().start(worker, true);
 }
 
 VariantValidation AnalysisDataController::getSmallVariantValidationEntry(int variant_idx, QString ps_name)

@@ -22,6 +22,7 @@ ICON = Icons/Icon.icns
 }
 
 SOURCES += main.cpp\
+    Background/BackgroundJobController.cpp \
     Background/BackgroundJobDialog.cpp \
     Background/BackgroundWorkerBase.cpp \
     Background/NGSDCacheInitializer.cpp \
@@ -162,6 +163,7 @@ SOURCES += main.cpp\
     AnalysisDataController.cpp
 
 HEADERS += MainWindow.h \
+    Background/BackgroundJobController.h \
     Background/BackgroundJobDialog.h \
     Background/BackgroundWorkerBase.h \
     Background/NGSDCacheInitializer.h \

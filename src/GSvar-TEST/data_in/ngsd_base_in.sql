@@ -18,8 +18,8 @@ INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `start_date`, `device_id`, `
 (1, '#00001', 'TEST1', '2000-01-01', 1, '158+8+8+158', 'analysis_finished');
 
 INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`, `comment`, `disease_group`, `disease_status`, `tissue`, `patient_identifier`, `year_of_birth`) VALUES
-(1, 'NA12878-DEFAULT', 'ex1', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the blood or blood-forming organs', 'Unaffected', 'blood', 'pat1', 1977),
-(2, 'NA12878-DRAGEN',  'ex2', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s2', 'Diseases of the blood or blood-forming organs', 'Unaffected', 'blood', 'pat1', 1977);
+(1, 'NA12878-WES-DEFAULT', 'ex1', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the blood or blood-forming organs', 'Unaffected', 'blood', 'pat1', 1977),
+(2, 'NA12878-WES-DRAGEN',  'ex2', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s2', 'Diseases of the blood or blood-forming organs', 'Unaffected', 'blood', 'pat1', 1977);
 
 INSERT INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES
 (1, 'same sample', 2);

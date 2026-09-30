@@ -1,4 +1,5 @@
 #include "BackgroundJobDialog.h"
+#include "Background/BackgroundJobController.h"
 #include <QDateTime>
 #include "GUIHelper.h"
 #include "Helper.h"
@@ -6,149 +7,29 @@
 BackgroundJobDialog::BackgroundJobDialog(QWidget* parent)
 	: QDialog(parent)
 	, ui_()
-	, pool_()
-	, next_id_(0)
+	, job_controller_(BackgroundJobController::instance())
 {
 	ui_.setupUi(this);
 
-	pool_.setMaxThreadCount(3);
+	connect(&job_controller_, SIGNAL(jobChanged(int)), this, SLOT(updateTable(int)));
+	connect(&job_controller_, SIGNAL(showBusyDialog(QString, BusyDialog*)), this, SLOT(showBusyDialog(QString, BusyDialog*)));
 }
 
-int BackgroundJobDialog::start(BackgroundWorkerBase* job, bool show_busy_dialog)
+void BackgroundJobDialog::showBusyDialog(QString name, BusyDialog* jobinfo_dlg)
 {
-	//set ID
-	job->setId(next_id_);
-	++next_id_;
-
-	//add to table
-	JobInfo job_info;
-	job_info.id = job->id();
-	job_info.name = job->name();
-	job_info.started = QDateTime::currentDateTime();
-	job_info.status = "queued";
-	if (show_busy_dialog)
-	{
-		job_info.busy_dlg = new BusyDialog(job->name(), this);
-		job_info.busy_dlg->init("Processing...", false);
-		job_info.busy_dlg->show();
-	}
-	jobs_.append(job_info);
-	updateTable(job->id());
-
-	//connect
-	connect(job, SIGNAL(started()), this, SLOT(started()));
-	connect(job, SIGNAL(finished()), this, SLOT(finished()));
-	connect(job, SIGNAL(failed()), this, SLOT(failed()));
-
-	//start
-	pool_.start(job);
-    return job_info.id;
-}
-
-QString BackgroundJobDialog::getJobStatus(int job_id)
-{
-    for (int i=0; i<jobs_.count(); ++i)
-    {
-        if (jobs_[i].id==job_id)
-        {
-            return jobs_[i].status;
-        }
-    }
-    return "";
-}
-
-QString BackgroundJobDialog::getJobMessages(int job_id)
-{
-    for (int i=0; i<jobs_.count(); ++i)
-    {
-        if (jobs_[i].id==job_id)
-        {
-            return jobs_[i].messages;
-        }
-    }
-    return "";
-}
-
-void BackgroundJobDialog::started()
-{	
-	BackgroundWorkerBase* worker = qobject_cast<BackgroundWorkerBase*>(sender());
-	if (worker==nullptr) THROW(ProgrammingException, "BackgroundJobDialog::started called by Qobject that is not a BackgroundWorkerBase!");
-
-	for (int r=0; r<jobs_.count(); ++r)
-	{
-		if (jobs_[r].id==worker->id())
-		{
-			jobs_[r].status = "started";
-		}
-	}
-	updateTable(worker->id());
-}
-
-void BackgroundJobDialog::finished()
-{
-	BackgroundWorkerBase* worker = qobject_cast<BackgroundWorkerBase*>(sender());
-	if (worker==nullptr) THROW(ProgrammingException, "BackgroundJobDialog::finished called by Qobject that is not a BackgroundWorkerBase!");
-
-	for (int r=0; r<jobs_.count(); ++r)
-	{
-		if (jobs_[r].id==worker->id())
-		{
-			jobs_[r].status = "finished";
-			jobs_[r].elapsed_ms = worker->elapsed();
-
-			//stop busy dialog
-			if (jobs_[r].busy_dlg!=nullptr)
-			{
-				jobs_[r].busy_dlg->hide();
-				jobs_[r].busy_dlg->deleteLater();
-			}
-
-			//user interaction
-			worker->userInteration();
-		}
-	}
-	updateTable(worker->id());
-
-	sender()->deleteLater();
-}
-
-void BackgroundJobDialog::failed()
-{
-	BackgroundWorkerBase* worker = qobject_cast<BackgroundWorkerBase*>(sender());
-	if (worker==nullptr) THROW(ProgrammingException, "BackgroundJobDialog::failed called by Qobject that is not a BackgroundWorkerBase!");
-
-	for (int r=0; r<jobs_.count(); ++r)
-	{
-		if (jobs_[r].id==worker->id())
-		{
-			jobs_[r].status = "failed";
-			jobs_[r].elapsed_ms = worker->elapsed();
-			jobs_[r].messages = worker->error();
-
-			//stop busy dialog
-			if (jobs_[r].busy_dlg!=nullptr)
-			{
-				jobs_[r].busy_dlg->hide();
-				jobs_[r].busy_dlg->deleteLater();
-			}
-
-			//user interaction
-			worker->userInteration();
-		}
-	}
-	updateTable(worker->id());
-
-	sender()->deleteLater();
+	jobinfo_dlg = new BusyDialog(name, this);
+	jobinfo_dlg->init("Processing...", false);
+	jobinfo_dlg->show();
 }
 
 void BackgroundJobDialog::updateTable(int id)
 {
 	//resize table
-	ui_.jobs->setRowCount(jobs_.count());
+	ui_.jobs->setRowCount(job_controller_.getJobs().count());
 
-	for (int r=0; r<jobs_.count(); ++r)
+	for (int r=0; r<job_controller_.getJobs().count(); ++r)
 	{
-		const JobInfo& job_info = jobs_[r];
+		const JobInfo& job_info = job_controller_.getJobs()[r];
 		if (id!=-1 && job_info.id!=id) continue;
 
 		ui_.jobs->setItem(r, 0, GUIHelper::createTableItem(job_info.name));

@@ -5,6 +5,7 @@
 #include "Settings.h"
 #include "GlobalServiceProvider.h"
 #include "Background/IGVInitCacheWorker.h"
+#include "Background/BackgroundJobController.h"
 #include <QMessageBox>
 #include <IgvDialog.h>
 #include "LoginManager.h"
@@ -203,9 +204,8 @@ IGVInitWindowItem IGVSession::getCachedItem(int i) const
 void IGVSession::startCachingForRegularIGV(const AnalysisType analysis_type, const QString current_filename)
 {
     removeCache();
-    MainWindow* main_window = GlobalServiceProvider::mainWindow();
     IGVInitCacheWorker* igv_init_cache_worker = new IGVInitCacheWorker(analysis_type, current_filename);
-    background_job_id_ = main_window->startJob(igv_init_cache_worker, false);
+	background_job_id_ = BackgroundJobController::instance().start(igv_init_cache_worker, false);
     Log::info("Started loading file location information needed for the IGV initialization");
 }
 
@@ -252,18 +252,18 @@ QColor IGVSession::statusToColor(IGVStatus status)
 QStringList IGVSession::initRegularIGV(bool& skip_init_for_session)
 {
     IgvDialog dlg(parent_);
-    MainWindow* main_window = GlobalServiceProvider::mainWindow();
-    QString job_status = main_window->getJobStatus(background_job_id_);
+	BackgroundJobController& job_controller = BackgroundJobController::instance();
+	QString job_status = job_controller.getJobStatus(background_job_id_);
 
     while(job_status != "failed" && job_status != "finished")
     {
         QThread::usleep(1000);
-        job_status = main_window->getJobStatus(background_job_id_);
+		job_status = job_controller.getJobStatus(background_job_id_);
     }
 
     if (job_status == "failed")
     {
-        QMessageBox::warning(parent_, "IGV initialization error", main_window->getJobMessages(background_job_id_));
+		QMessageBox::warning(parent_, "IGV initialization error", job_controller.getJobMessages(background_job_id_));
         return QStringList();
     }
 

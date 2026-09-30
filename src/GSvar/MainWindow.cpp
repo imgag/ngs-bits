@@ -123,6 +123,7 @@
 #include "FilterCascade.h"
 #include "FilterWidgetHelper.h"
 #include "Background/PingWorker.h"
+#include "Background/BackgroundJobController.h"
 #include "AboutDialog.h"
 
 
@@ -1247,8 +1248,8 @@ void MainWindow::delayedInitialization()
 	}
 
 	//ping
-	PingWorker* workter = new PingWorker();
-	startJob(workter, false);
+	PingWorker* worker = new PingWorker();
+	BackgroundJobController::instance().start(worker, false);
 
     if (NGSD::isAvailable())
     {
@@ -1270,7 +1271,7 @@ void MainWindow::delayedInitialization()
 
         //start initialization of NGSD gene/transcript cache
         NGSDCacheInitializer* ngsd_initializer = new NGSDCacheInitializer();
-        startJob(ngsd_initializer, false);
+		BackgroundJobController::instance().start(ngsd_initializer, false);
     }
 
 	//create default IGV session (variants)
@@ -4047,21 +4048,6 @@ void MainWindow::changeIgvIconToNormal()
 void MainWindow::showBackgroundJobDialog()
 {
 	bg_job_dialog_->show();
-}
-
-int MainWindow::startJob(BackgroundWorkerBase* worker, bool show_busy_dialog)
-{
-    return bg_job_dialog_->start(worker, show_busy_dialog);
-}
-
-QString MainWindow::getJobStatus(int id)
-{
-    return bg_job_dialog_->getJobStatus(id);
-}
-
-QString MainWindow::getJobMessages(int id)
-{
-	return bg_job_dialog_->getJobMessages(id);
 }
 
 void MainWindow::jumpToCnvOrSvPosition(int row)

@@ -13,6 +13,7 @@
 #include "VariantHgvsAnnotator.h"
 #include "ClientHelper.h"
 #include "Background/VariantAnnotator.h"
+#include "Background/BackgroundJobController.h"
 #include "Settings.h"
 #include <QClipboard>
 
@@ -544,6 +545,6 @@ void VariantWidget::openVariantInTab()
 	variants.append(variant_);
 
 	VariantAnnotator* worker = new VariantAnnotator(variants);
-	GlobalServiceProvider::startJob(worker, true);
+	BackgroundJobController::instance().start(worker, true);
 }
 

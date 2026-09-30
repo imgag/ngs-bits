@@ -134,11 +134,6 @@ MainWindow* GlobalServiceProvider::mainWindow()
 	THROW(ProgrammingException, "Could not find main window!");
 }
 
-void GlobalServiceProvider::startJob(BackgroundWorkerBase* worker, bool show_busy_dialog)
-{
-	mainWindow()->startJob(worker, show_busy_dialog);
-}
-
 const BedFile& GlobalServiceProvider::geneToRegions(QByteArray gene, NGSD& db)
 {
 	static QHash<QByteArray, BedFile> cache_;
