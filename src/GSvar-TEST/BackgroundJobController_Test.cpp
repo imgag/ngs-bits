@@ -48,7 +48,7 @@ TEST_METHOD(run_job)
 	int job_id = controller.start(wk1, true);
 
 
-	QTest::qWait(5);
+	QTest::qWait(30);
 	//execute called slots (started() , finished())
 	QCoreApplication::processEvents();
 
@@ -68,7 +68,7 @@ TEST_METHOD(run_job)
 
 	int job_id2 = controller.start(wk2, false);
 
-	QTest::qWait(5);
+	QTest::qWait(30);
 	QCoreApplication::processEvents();
 
 	I_EQUAL(job_id2, 1);
@@ -84,7 +84,7 @@ TEST_METHOD(run_long_job)
 {
 	BackgroundJobController& controller = BackgroundJobController::instance();
 
-	TestBackgroundWorker* wk = new TestBackgroundWorker("run_long_job", 20);
+	TestBackgroundWorker* wk = new TestBackgroundWorker("run_long_job", 200);
 
 	QSignalSpy start_signal(wk, SIGNAL(started()));
 	QSignalSpy finished_signal(wk, SIGNAL(finished()));
@@ -95,7 +95,7 @@ TEST_METHOD(run_long_job)
 	int job_id = controller.start(wk, true);
 	S_EQUAL(controller.getJobStatus(job_id), "queued")
 
-	QTest::qWait(5);
+	QTest::qWait(30);
 	QCoreApplication::processEvents();
 
 	I_EQUAL(start_signal.count(), 1);
@@ -104,7 +104,7 @@ TEST_METHOD(run_long_job)
 	I_EQUAL(busy_signal.count(), 1);
 	S_EQUAL(controller.getJobStatus(job_id), "started");
 
-	QTest::qWait(17);
+	QTest::qWait(200);
 	QCoreApplication::processEvents();
 
 	I_EQUAL(start_signal.count(), 1);
@@ -118,10 +118,10 @@ TEST_METHOD(run_multiple_jobs)
 {
 	BackgroundJobController& controller = BackgroundJobController::instance();
 
-	TestBackgroundWorker* wk1 = new TestBackgroundWorker("job1", 20);
-	TestBackgroundWorker* wk2 = new TestBackgroundWorker("job2", 20);
-	TestBackgroundWorker* wk3 = new TestBackgroundWorker("job3", 20);
-	TestBackgroundWorker* wk4 = new TestBackgroundWorker("job4", 20);
+	TestBackgroundWorker* wk1 = new TestBackgroundWorker("job1", 200);
+	TestBackgroundWorker* wk2 = new TestBackgroundWorker("job2", 200);
+	TestBackgroundWorker* wk3 = new TestBackgroundWorker("job3", 200);
+	TestBackgroundWorker* wk4 = new TestBackgroundWorker("job4", 200);
 
 	QSignalSpy busy_signal(&controller, SIGNAL(showBusyDialog(QString, BusyDialog*)));
 
@@ -147,7 +147,7 @@ TEST_METHOD(run_multiple_jobs)
 	S_EQUAL(controller.getJobStatus(job_id3), "queued");
 	S_EQUAL(controller.getJobStatus(job_id4), "queued");
 
-	QTest::qWait(5);
+	QTest::qWait(50);
 	QCoreApplication::processEvents();
 
 	I_EQUAL(start_signal1.count(), 1);
@@ -160,7 +160,7 @@ TEST_METHOD(run_multiple_jobs)
 	S_EQUAL(controller.getJobStatus(job_id3), "started");
 	S_EQUAL(controller.getJobStatus(job_id4), "queued");
 
-	QTest::qWait(20);
+	QTest::qWait(200);
 	QCoreApplication::processEvents();
 
 	I_EQUAL(start_signal4.count(), 1);
@@ -175,7 +175,7 @@ TEST_METHOD(run_multiple_jobs)
 	S_EQUAL(controller.getJobStatus(job_id3), "finished");
 	S_EQUAL(controller.getJobStatus(job_id4), "started");
 
-	QTest::qWait(20);
+	QTest::qWait(200);
 	QCoreApplication::processEvents();
 
 	I_EQUAL(finished_signal1.count(), 1);

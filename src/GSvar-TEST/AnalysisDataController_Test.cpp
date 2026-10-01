@@ -36,6 +36,10 @@ public:
 
 void init_test(NGSD& db)
 {
+	// before doing anything check we are on a test DB
+	QVariant is_production = db.getValue("SELECT value FROM db_info WHERE name='is_production'");
+	S_EQUAL(is_production.toString(), "false");
+
 	db.init();
 	db.executeQueriesFromFile(TESTDATA("data_in/NGSD_base_in.sql"));
 
@@ -51,8 +55,8 @@ void init_test(NGSD& db)
 
 }
 
-/*
-TEST_METHOD(controller_load_file)
+
+TEST_METHOD(controller_load_germline_file)
 {
 	SKIP_IF_NO_TEST_NGSD();
 
@@ -66,26 +70,84 @@ TEST_METHOD(controller_load_file)
 	IgvSessionManager::create(nullptr, "test", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), Settings::path("igv_genome"));
 
 	AnalysisDataController& controller = AnalysisDataController::instance();
+	QSignalSpy clear_signal(&controller, SIGNAL(dataCleared()));
+
 	IS_FALSE(controller.isValid());
+
+	//loading empty
+	QVERIFY_THROWS_EXCEPTION(ProgrammingException, controller.loadFile(""));
+
 
 	//load default analysis
 	controller.loadFile(gsvar_default);
+	I_EQUAL(clear_signal.count(), 1);
 	IS_TRUE(controller.isValid());
 	I_EQUAL(controller.getSmallVariantList().count(), 14351);
+	I_EQUAL(controller.getCnvList().count(), 403);
+	I_EQUAL(controller.getSvList().count(), 15);
+	I_EQUAL(controller.getReList().count(), 84);
 
-	//reset controller:
-	controller.loadFile();
-	IS_FALSE(controller.isValid());
-	I_EQUAL(controller.getSmallVariantList().count(), 0);
-	I_EQUAL(controller.getCnvList().count(), 0);
-	I_EQUAL(controller.getSvList().count(), 0);
-	I_EQUAL(controller.getReList().count(), 0);
+	//test filters:
+	//SNVs
 
-	//load dragen analysis
-	controller.loadFile(gsvar_dragen);
-	IS_TRUE(controller.isValid());
+	I_EQUAL(controller.getSmallVariantsFilterResult().countPassing(), 14351);
 
+	FilterState& snv_filters = controller.getSmallVariantsFilterState();
+	QSignalSpy apply_filter_signal(&snv_filters, SIGNAL(filterStateChanged()));
+
+	FilterCascade cascade;
+	QSharedPointer<FilterFilterColumnEmpty> fce(new FilterFilterColumnEmpty());;
+	cascade.add(fce);
+
+	snv_filters.setFilterCascade(cascade);
+	I_EQUAL(apply_filter_signal.count(), 1);
+	I_EQUAL(controller.getSmallVariantsFilterResult().countPassing(), 3682);
+
+	FilterCascade filters = FilterCascadeFile::load("GSvar_filters.ini", "rare variants (coding and splicing region)");
+	snv_filters.setFilterCascade(filters);
+	I_EQUAL(apply_filter_signal.count(), 2);
+	I_EQUAL(controller.getSmallVariantsFilterResult().countPassing(), 31);
+
+	filters[0]->toggleEnabled();
+	filters[1]->toggleEnabled();
+	filters[6]->toggleEnabled();
+
+	//TODO should this be necessary? applyFilter was not triggered automatically
+	controller.applySmallVariantFilter();
+
+	I_EQUAL(controller.getSmallVariantsFilterResult().countPassing(), 2988);
+
+	PhenotypeList ataxia;
+	ataxia << Phenotype("HP:0001251");
+	snv_filters.setPhenotypes(ataxia);
+	PhenotypeSettings phenotype_settings_ = snv_filters.getPhenotypeSettings();
+	GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(ataxia[0].accession()), phenotype_settings_.sources, phenotype_settings_.evidence_levels, true, false);
+
+	I_EQUAL(apply_filter_signal.count(), 3);
+	I_EQUAL(controller.getSmallVariantsFilterResult().countPassing(), 326);
+
+
+
+	// //reset controller:
+	// controller.clear();
+
+	// I_EQUAL(clear_signal.count(), 2);
+	// IS_FALSE(controller.isValid());
+	// I_EQUAL(controller.getSmallVariantList().count(), 0);
+	// I_EQUAL(controller.getCnvList().count(), 0);
+	// I_EQUAL(controller.getSvList().count(), 0);
+	// I_EQUAL(controller.getReList().count(), 0);
+
+	// //load dragen analysis
+	// controller.loadFile(gsvar_dragen);
+	// I_EQUAL(clear_signal.count(), 3);
+	// IS_TRUE(controller.isValid());
+	// I_EQUAL(controller.getSmallVariantList().count(), 14152);
+	// I_EQUAL(controller.getCnvList().count(), 518);
+	// I_EQUAL(controller.getSvList().count(), 18);
+	// I_EQUAL(controller.getReList().count(), 84);
 }
+
 
 /*
 

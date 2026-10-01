@@ -30,7 +30,7 @@ public:
 	static AnalysisDataController& instance();
 	void clear();
 
-	QStringList loadFile(QString filename="");
+	QStringList loadFile(QString filename);
 	QStringList availableAnalysis(QString processed_sample);
 
 	QList<QPair<Log::LogLevel, QString>> checkVariantList();

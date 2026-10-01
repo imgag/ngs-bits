@@ -89,14 +89,14 @@ void AnalysisDataController::clear()
 
 QStringList AnalysisDataController::loadFile(QString filename)
 {
+	if (filename=="")
+	{
+		THROW(ProgrammingException, "AnalysisDataController can't load an empty file path! Use AnalysisDataController::clear() to reset.");
+	}
+
 	clear();
 
 	QStringList errors;
-
-	if (filename=="")
-	{
-		THROW(ProgrammingException, "AnalysisDataController can't load an empty file path!");
-	}
 
 	QElapsedTimer timer;
 	//load variants
