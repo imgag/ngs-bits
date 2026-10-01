@@ -1,129 +1,98 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-set -euo pipefail
+set -e
 
 # ============================================================
 # GSvar macOS DMG creation script
-#
-# Usage:
-#   ./create_dmg.sh <Developer-ID> <bin_folder>
-#
-# Example:
-#   ./create_dmg.sh \
-#       "Developer ID Application: My Company (ABCDE12345)" \
-#       "/Users/me/ngs-bits/bin"
 # ============================================================
 
-APP_NAME="GSvar.app"
-APP_EXECUTABLE="${APP_NAME}/Contents/MacOS/GSvar"
-FRAMEWORKS_DIR="${APP_NAME}/Contents/Frameworks"
+APP="GSvar.app"
+EXECUTABLE="$APP/Contents/MacOS/GSvar"
+FRAMEWORKS="$APP/Contents/Frameworks"
 
-# ------------------------------------------------------------
-# Colors / formatting
-# ------------------------------------------------------------
 
-if [[ -t 1 ]]; then
-    BOLD='\033[1m'
-    GREEN='\033[0;32m'
-    BLUE='\033[0;34m'
-    YELLOW='\033[0;33m'
-    RED='\033[0;31m'
-    RESET='\033[0m'
-else
-    BOLD=''
-    GREEN=''
-    BLUE=''
-    YELLOW=''
-    RED=''
-    RESET=''
-fi
+# ============================================================
+# Functions
+# ============================================================
 
 print_section()
 {
     echo
-    echo -e "${BLUE}${BOLD}============================================================${RESET}"
-    echo -e "${BLUE}${BOLD} $1${RESET}"
-    echo -e "${BLUE}${BOLD}============================================================${RESET}"
+    echo "============================================================"
+    echo " $1"
+    echo "============================================================"
 }
 
 print_step()
 {
-    echo -e "${GREEN}▶${RESET} $1"
+    echo "  -> $1"
 }
 
-print_warning()
-{
-    echo -e "${YELLOW}⚠${RESET} $1"
-}
-
-print_error()
-{
-    echo -e "${RED}✖${RESET} $1" >&2
-}
-
-print_success()
-{
-    echo -e "${GREEN}${BOLD}✔ $1${RESET}"
-}
-
-# ------------------------------------------------------------
-# Help
-# ------------------------------------------------------------
 
 show_help()
 {
     cat << EOF
 Usage:
-    $(basename "$0") <Developer-ID> <bin_folder>
+    $(basename "$0") <Developer-ID> <Full_path_to_bin> [BUILD]
 
-Create a signed macOS DMG for GSvar.
+Create a macOS DMG for GSvar.
 
 Arguments:
     Developer-ID
-        The Apple Developer ID Application identity used for signing. Assuming you already have a developer's account, it can be retrieved by running "security find-identity -v -p codesigning"
+        The Developer ID Application identity used for code signing.
 
         Example:
-        "Developer ID Application: My Company (ABCDE12345)"
+        "Developer ID Application: NAME (xxxxx)"
 
-    bin_folder
-        Full path passed to macdeployqt's -libpath option (bin folder in ngs-bits repository).
+    Full_path_to_bin
+        Full path to the "ngs-bits/bin" directory containing GSvar.app and the
+        required libraries, resources (including the certificate chain file), configs, etc.
+
+        The script changes into this directory before executing
+        the packaging commands.
 
         Example:
-        "/Users/me/ngs-bits/bin"
+        "/Users/name/GSvar/bin"
+        
+    BUILD
+        Optional. Set to "true" to build the release libraries
+        and GUI before creating the DMG.
+
+        Default:
+        false
+
+        Example:
+        true
 
 Options:
     -h, --help
         Show this help page.
 
+Finding your Developer ID:
+    Run the following command to list available code signing identities:
+
+        security find-identity -v -p codesigning
+
 Example:
     $(basename "$0") \\
-        "Developer ID Application: My Company (ABCDE12345)" \\
-        "/Users/me/ngs-bits/bin"
-
-The script performs the following steps:
-
-    1. Validate the GSvar application and required files
-    2. Fix dylib paths using install_name_tool
-    3. Copy configuration/resources into the application
-    4. Bundle required cpp* dylibs
-    5. Remove extended attributes
-    6. Sign the application
-    7. Create the DMG using macdeployqt
+        "Developer ID Application: NAME (xxxxx)" \\
+        "/Users/name/GSvar/bin"
 
 EOF
 }
 
-# ------------------------------------------------------------
-# Parse arguments
-# ------------------------------------------------------------
 
-if [[ $# -eq 1 && ("$1" == "-h" || "$1" == "--help") ]]; then
+# ============================================================
+# Command line arguments
+# ============================================================
+
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
     show_help
     exit 0
 fi
 
-if [[ $# -ne 2 ]]; then
-    print_error "Expected 2 arguments, but received $#."
+if [[ $# -lt 2 || $# -gt 3 ]]; then
+    echo "Error: expected 2 or 3 arguments."
     echo
     show_help
     exit 1
@@ -131,190 +100,216 @@ fi
 
 DEVELOPER_ID="$1"
 FULL_BIN_PATH="$2"
+BUILD="${3:-false}"
 
-# ------------------------------------------------------------
-# Validation
-# ------------------------------------------------------------
+# ============================================================
+# Validate BUILD argument
+# ============================================================
 
-print_section "Checking environment"
-
-print_step "Developer ID: ${DEVELOPER_ID}"
-print_step "Library path: ${FULL_BIN_PATH}"
-
-if [[ ! -d "${APP_NAME}" ]]; then
-    print_error "${APP_NAME} not found in the current directory."
+if [[ "$BUILD" != "true" && "$BUILD" != "false" ]]; then
+    echo "Error: BUILD must be either 'true' or 'false'."
+    echo
+    show_help
     exit 1
 fi
 
-if [[ ! -f "${APP_EXECUTABLE}" ]]; then
-    print_error "GSvar executable not found: ${APP_EXECUTABLE}"
+# ============================================================
+# Change to application directory
+# ============================================================
+
+if [[ ! -d "$FULL_BIN_PATH" ]]; then
+    echo "Error: directory does not exist:"
+    echo "  $FULL_BIN_PATH"
     exit 1
 fi
 
-if [[ ! -d "${FULL_BIN_PATH}" ]]; then
-    print_error "Library path does not exist: ${FULL_BIN_PATH}"
+cd "$FULL_BIN_PATH"
+
+# ============================================================
+# Build release version
+# ============================================================
+
+if [[ "$BUILD" == "true" ]]; then
+
+    print_section "Building release version"
+
+    print_step "Running: make -C "$(dirname "$FULL_BIN_PATH")" build_libs_release build_gui_release"
+
+    make -C "$(dirname "$FULL_BIN_PATH")" build_libs_release build_gui_release
+
+    print_step "Release build completed."
+
+fi
+
+# ============================================================
+# Check required files
+# ============================================================
+
+print_section "Checking files"
+
+if [[ ! -d "$APP" ]]; then
+    echo "Error: $APP not found in:"
+    echo "  $FULL_BIN_PATH"
     exit 1
 fi
 
-for command in install_name_tool cp xattr codesign macdeployqt; do
-    if ! command -v "${command}" >/dev/null 2>&1; then
-        print_error "Required command not found: ${command}"
-        exit 1
-    fi
-done
+if [[ ! -f "$EXECUTABLE" ]]; then
+    echo "Error: GSvar executable not found:"
+    echo "  $EXECUTABLE"
+    exit 1
+fi
 
-print_success "Environment looks good."
+print_step "Working directory: $(pwd)"
+print_step "Developer ID: $DEVELOPER_ID"
+echo "Build: $BUILD"
 
-# ------------------------------------------------------------
-# Fix dylib references
-# ------------------------------------------------------------
+echo
+echo "Files look OK."
+
+
+# ============================================================
+# Fix dynamic library paths
+# ============================================================
 
 print_section "Fixing dynamic library paths"
 
-declare -A DYLIBS=(
-    ["libcppCORE.1.dylib"]="libcppCORE.1.dylib"
-    ["libcppXML.1.dylib"]="libcppXML.1.dylib"
-    ["libcppNGS.1.dylib"]="libcppNGS.1.dylib"
-    ["libcppGUI.1.dylib"]="libcppGUI.1.dylib"
-    ["libcppNGSD.1.dylib"]="libcppNGSD.1.dylib"
-    ["libcppVISUAL.1.dylib"]="libcppVISUAL.1.dylib"
-)
+print_step "libcppCORE"
+install_name_tool -change \
+    libcppCORE.1.dylib \
+    @executable_path/../Frameworks/libcppCORE.1.dylib \
+    GSvar.app/Contents/MacOS/GSvar
 
-for dylib in "${!DYLIBS[@]}"; do
-    print_step "Updating ${dylib}"
+print_step "libcppXML"
+install_name_tool -change \
+    libcppXML.1.dylib \
+    @executable_path/../Frameworks/libcppXML.1.dylib \
+    GSvar.app/Contents/MacOS/GSvar
 
-    install_name_tool \
-        -change "${dylib}" \
-        "@executable_path/../Frameworks/${dylib}" \
-        "${APP_EXECUTABLE}"
-done
+print_step "libcppNGS"
+install_name_tool -change \
+    libcppNGS.1.dylib \
+    @executable_path/../Frameworks/libcppNGS.1.dylib \
+    GSvar.app/Contents/MacOS/GSvar
 
-print_success "Dynamic library paths updated."
+print_step "libcppGUI"
+install_name_tool -change \
+    libcppGUI.1.dylib \
+    @executable_path/../Frameworks/libcppGUI.1.dylib \
+    GSvar.app/Contents/MacOS/GSvar
 
-# ------------------------------------------------------------
+print_step "libcppNGSD"
+install_name_tool -change \
+    libcppNGSD.1.dylib \
+    @executable_path/../Frameworks/libcppNGSD.1.dylib \
+    GSvar.app/Contents/MacOS/GSvar
+
+print_step "libcppVISUAL"
+install_name_tool -change \
+    libcppVISUAL.1.dylib \
+    @executable_path/../Frameworks/libcppVISUAL.1.dylib \
+    GSvar.app/Contents/MacOS/GSvar
+
+
+# ============================================================
 # Copy application resources
-# ------------------------------------------------------------
+# ============================================================
 
 print_section "Copying application resources"
 
-copy_files()
-{
-    local extension="$1"
+print_step "INI files"
+cp *.ini GSvar.app/Contents/MacOS/
 
-    shopt -s nullglob
-    local files=( *."${extension}" )
-    shopt -u nullglob
+print_step "XML files"
+cp *.xml GSvar.app/Contents/MacOS/
 
-    if [[ ${#files[@]} -eq 0 ]]; then
-        print_warning "No *.${extension} files found."
-        return
-    fi
+print_step "TSV files"
+cp *.tsv GSvar.app/Contents/MacOS/
 
-    for file in "${files[@]}"; do
-        print_step "Copying ${file}"
-        cp "${file}" "${APP_NAME}/Contents/MacOS/"
-    done
-}
+print_step "PEM files"
+cp *.pem GSvar.app/Contents/MacOS/
 
-copy_files "ini"
-copy_files "xml"
-copy_files "tsv"
-copy_files "pem"
+print_step "genomes directory"
+cp -r genomes GSvar.app/Contents/MacOS/
 
-if [[ -d "genomes" ]]; then
-    print_step "Copying genomes/"
-    cp -r genomes "${APP_NAME}/Contents/MacOS/"
-else
-    print_warning "genomes/ directory not found."
-fi
 
-print_success "Application resources copied."
-
-# ------------------------------------------------------------
+# ============================================================
 # Bundle libraries
-# ------------------------------------------------------------
+# ============================================================
 
-print_section "Bundling GSvar libraries"
+print_section "Bundling libraries"
 
-mkdir -p "${FRAMEWORKS_DIR}"
+mkdir -p GSvar.app/Contents/Frameworks
 
-for dylib in "${!DYLIBS[@]}"; do
-    if [[ ! -f "${dylib}" ]]; then
-        print_error "Required library not found: ${dylib}"
-        exit 1
-    fi
+print_step "libcppCORE"
+cp libcppCORE.1.dylib GSvar.app/Contents/Frameworks/
 
-    print_step "Bundling ${dylib}"
-    cp "${dylib}" "${FRAMEWORKS_DIR}/"
-done
+print_step "libcppXML"
+cp libcppXML.1.dylib GSvar.app/Contents/Frameworks/
 
-print_success "GSvar libraries bundled."
+print_step "libcppNGS"
+cp libcppNGS.1.dylib GSvar.app/Contents/Frameworks/
 
-# ------------------------------------------------------------
+print_step "libcppGUI"
+cp libcppGUI.1.dylib GSvar.app/Contents/Frameworks/
+
+print_step "libcppNGSD"
+cp libcppNGSD.1.dylib GSvar.app/Contents/Frameworks/
+
+print_step "libcppVISUAL"
+cp libcppVISUAL.1.dylib GSvar.app/Contents/Frameworks/
+
+
+# ============================================================
 # Remove extended attributes
-# ------------------------------------------------------------
+# ============================================================
 
-print_section "Cleaning extended attributes"
+print_section "Removing extended attributes"
 
-print_step "Removing extended attributes from ${APP_NAME}"
+print_step "Cleaning GSvar.app"
+xattr -cr GSvar.app
 
-xattr -cr "${APP_NAME}"
 
-print_success "Extended attributes removed."
-
-# ------------------------------------------------------------
+# ============================================================
 # Code signing
-# ------------------------------------------------------------
+# ============================================================
 
-print_section "Code signing application"
+print_section "Code signing"
 
-print_step "Signing ${APP_NAME}"
-print_step "Identity: ${DEVELOPER_ID}"
+print_step "Signing GSvar.app"
+print_step "Developer ID: $DEVELOPER_ID"
 
 codesign \
     --deep \
     --force \
     --verify \
     --verbose \
-    --sign "${DEVELOPER_ID}" \
-    "${APP_NAME}"
+    --sign "$DEVELOPER_ID" \
+    GSvar.app
 
-print_success "Application signed successfully."
 
-# ------------------------------------------------------------
-# DMG creation
-# ------------------------------------------------------------
+# ============================================================
+# Create DMG
+# ============================================================
 
 print_section "Creating DMG"
 
 print_step "Running macdeployqt"
-print_step "Library path: ${FULL_BIN_PATH}"
 
 macdeployqt \
-    "${APP_NAME}" \
+    GSvar.app \
     -dmg \
     -verbose=2 \
-    -libpath="${FULL_BIN_PATH}"
+    -libpath="$FULL_BIN_PATH"
 
-print_success "DMG created successfully."
 
-# ------------------------------------------------------------
-# Final output
-# ------------------------------------------------------------
+# ============================================================
+# Finished
+# ============================================================
 
-print_section "Finished"
+print_section "Done"
 
-echo -e "${GREEN}${BOLD}GSvar macOS distribution package is ready.${RESET}"
+echo "GSvar DMG creation completed successfully."
 echo
-
-shopt -s nullglob
-DMG_FILES=( *.dmg )
-shopt -u nullglob
-
-if [[ ${#DMG_FILES[@]} -gt 0 ]]; then
-    for dmg in "${DMG_FILES[@]}"; do
-        echo "DMG: ${dmg}"
-    done
-fi
-
+echo "Output directory:"
+echo "  $FULL_BIN_PATH"
 echo
