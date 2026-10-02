@@ -93,6 +93,8 @@ Following these steps to create a Mac bundle:
     
 It is recommended to have a developer account, which allows distributing your app easier (and even publishing it in the App Store)
 
+There is the script `tools/macos/create_dmg.sh` that allows to do the things listed above automatically.
+
 ## Server update (for cloud instances)
 
 Steps to update an existing cloud instance of GSvar server
