@@ -1,4 +1,6 @@
 #include "FilterWidgetCNV.h"
+
+#include <QSignalBlocker>
 #include "PhenotypeSelectionWidget.h"
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
@@ -87,9 +89,10 @@ QString FilterWidgetCNV::filterFileName() const
 
 void FilterWidgetCNV::reset(bool clear_roi)
 {
-	blockSignals(true);
-	resetSignalsUnblocked(clear_roi);
-	blockSignals(false);
+	{//do not remove scope - needed by QSignalBlocker
+		const QSignalBlocker blocker(this);
+		resetSignalsUnblocked(clear_roi);
+	}
 }
 
 void FilterWidgetCNV::markFailedFilters()
@@ -466,9 +469,10 @@ void FilterWidgetCNV::importText()
 
 void FilterWidgetCNV::customFilterLoaded()
 {
-	ui_.filters->blockSignals(true);
-	ui_.filters->setCurrentIndex(0);
-	ui_.filters->blockSignals(false);
+	{//do not remove scope - needed by QSignalBlocker
+		const QSignalBlocker blocker(ui_.filters);
+		ui_.filters->setCurrentIndex(0);
+	}
 
 	ui_.lab_modified->setHidden(false);
 }

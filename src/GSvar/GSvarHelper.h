@@ -3,12 +3,12 @@
 
 #include "GeneSet.h"
 #include "BedFile.h"
+#include "QcRuleMatcher.h"
 #include "VariantList.h"
 #include "GenomeBuild.h"
 #include "NGSD.h"
 #include <QTableWidgetItem>
 #include <QLabel>
-
 
 ///Helper class for GSvar (singleton)
 class GSvarHelper
@@ -35,7 +35,7 @@ public:
 	//colors imprinting and non-haploinsufficiency genes.
 	static void colorGeneItem(QTableWidgetItem* item, const GeneSet& genes);
 	//colors QC metric item background. Returns if the item was assigned a background color.
-	static bool colorQcItem(QTableWidgetItem* item, const QString& accession, const QString& sys_type, const QString& gender);
+	static void colorQcItem(QTableWidgetItem* item, const QString& qc_class);
 
 	//limit QLabel to certain number of lines
 	static void limitLines(QLabel* label, QString text, int max_lines=15);
@@ -73,6 +73,12 @@ public:
 
     //Returns a path for the settings file (Windows or Unix format), by substituting a placeholder with the current app path
     static QString appPathForTemplate(QString path);
+
+	//Returns a QC rule matcher
+	static QcRuleMatcher qcRuleMatcher();
+
+	//Automatically set quality. Returns a human-readable summary of the qualities set.
+	static QString setQuality(QStringList ps_ngsd_ids);
 
 };
 

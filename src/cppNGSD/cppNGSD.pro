@@ -35,7 +35,9 @@ SOURCES += \
     FileLocationList.cpp \
     FileLocationProviderLocal.cpp \
     FileLocationProviderRemote.cpp \
+    GeneBurdenTest.cpp \
     SqlQuery.cpp\
+    NGSDCache.cpp \
     NGSD.cpp \
     GenLabDB.cpp \
     DBTable.cpp \
@@ -45,14 +47,14 @@ SOURCES += \
     SomaticXmlReportGenerator.cpp \
     SomaticReportSettings.cpp \
     ReportSettings.cpp \
+    RnaReportConfiguration.cpp \
     GermlineReportGenerator.cpp \
     StatisticsServiceLocal.cpp \
     StatisticsServiceRemote.cpp \
     TumorOnlyReportWorker.cpp \
     SomaticReportHelper.cpp \
     SomaticRnaReport.cpp \
-    SomaticcfDNAReport.cpp \
-    RnaReportConfiguration.cpp
+    SomaticcfDNAReport.cpp
 
 HEADERS += \
     ApiCaller.h \
@@ -62,7 +64,9 @@ HEADERS += \
     FileLocationProvider.h \
     FileLocationProviderLocal.h \
     FileLocationProviderRemote.h \
+    GeneBurdenTest.h \
     SqlQuery.h \
+    NGSDCache.h \
     NGSD.h \
     GenLabDB.h \
     DBTable.h \
@@ -72,6 +76,7 @@ HEADERS += \
     SomaticXmlReportGenerator.h \
     SomaticReportSettings.h \
     ReportSettings.h \
+     RnaReportConfiguration.h \
     GermlineReportGenerator.h \
     StatisticsService.h \
     StatisticsServiceLocal.h \
@@ -79,9 +84,11 @@ HEADERS += \
     TumorOnlyReportWorker.h \
     SomaticReportHelper.h \
     SomaticRnaReport.h \
-    SomaticcfDNAReport.h \
-    UserPermissionList.h \
-    RnaReportConfiguration.h
+    SomaticcfDNAReport.h
 
 RESOURCES += \
     cppNGSD.qrc
+
+DISTFILES += \
+    resources/CCR80_GRCh38.bed \
+    resources/CCR_supported_genes.txt

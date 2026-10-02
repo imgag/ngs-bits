@@ -425,18 +425,18 @@ RtfTable SomaticRnaReport::partSnvTable()
 	int i_germl_freq_in_tum = germline_vl_.annotationIndexByName("freq_in_tum");
 
 	BamReader bam_file(data_.rna_bam_file, data_.ref_genome_fasta_file);
+	FastaFileIndex genome_reference(data_.ref_genome_fasta_file);
 
 	for(int i=0; i<dna_snvs_.count(); ++i)
 	{
 		const Variant& var = dna_snvs_[i];
 
-		if(db_.getSomaticViccId(var) == -1) continue;
-		SomaticViccData vicc_data = db_.getSomaticViccData(var);
+		SomaticViccData vicc_data;
+		if (!db_.getSomaticViccData(var, vicc_data)) continue;
 		SomaticVariantInterpreter::Result vicc_result = SomaticVariantInterpreter::viccScore(vicc_data);
 		if(vicc_result != SomaticVariantInterpreter::Result::ONCOGENIC && vicc_result != SomaticVariantInterpreter::Result::LIKELY_ONCOGENIC) continue;
 
 		RtfTableRow row = createSnvTableRow(var, i_co_sp, i_tum_af, bam_file);
-
 		table.addRow(row);
 	}
 	table.sortByCol(0);
@@ -799,18 +799,18 @@ RtfTable SomaticRnaReport::uncertainSnvTable()
 	int i_tum_af = dna_snvs_.annotationIndexByName("tumor_af");
 
 	BamReader bam_file(data_.rna_bam_file, data_.ref_genome_fasta_file);
+	FastaFileIndex genome_reference(data_.ref_genome_fasta_file);
 
 	for(int i=0; i<dna_snvs_.count(); ++i)
 	{
 		const Variant& var = dna_snvs_[i];
 
-		if(db_.getSomaticViccId(var) == -1) continue;
-		SomaticViccData vicc_data = db_.getSomaticViccData(var);
+		SomaticViccData vicc_data;
+		if (!db_.getSomaticViccData(var, vicc_data)) continue;
 		SomaticVariantInterpreter::Result vicc_result = SomaticVariantInterpreter::viccScore(vicc_data);
 		if(vicc_result != SomaticVariantInterpreter::Result::UNCERTAIN_SIGNIFICANCE) continue;
 
 		RtfTableRow row = createSnvTableRow(var, i_co_sp, i_tum_af, bam_file);
-
 		table.addRow(row);
 	}
 	table.sortByCol(0);

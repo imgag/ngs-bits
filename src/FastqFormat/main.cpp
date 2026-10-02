@@ -58,6 +58,10 @@ public:
 		{
 			output.append("Format: Sanger/Illumina1.8");
 		}
+		else if (min>=33 && max<=88)
+		{
+			output.append("Format: Sanger/Illumina1.8+");
+		}
         else if (min>=64 && max<=104)
 		{
 			output.append("Format: Illumina1.5");

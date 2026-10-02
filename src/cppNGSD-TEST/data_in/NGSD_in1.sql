@@ -79,7 +79,9 @@ INSERT INTO `gene_alias` (`gene_id`, `symbol`, `type`) VALUES
 (427667, 'COX2', 'synonym'),
 (433223, 'COX2', 'synonym'),
 (415153, 'QARS', 'previous'),
-(433401, 'QARS', 'previous');
+(433401, 'QARS', 'previous'),
+(652410, 'SPG5C', 'synonym'),
+(650913, 'DAZ1', 'synonym');
 
 INSERT INTO `gene_transcript`(`id`, `gene_id`, `name`, `version`, `source`, `chromosome`, `start_coding`, `end_coding`, `strand`, `is_gencode_basic`, `is_ensembl_canonical`, `is_mane_select`, `is_mane_plus_clinical`) VALUES
 (1, 1,'BRCA1_TR1','2','ccds','17',100,200,'+',1,0,1,0),

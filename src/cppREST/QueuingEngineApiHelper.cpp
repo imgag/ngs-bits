@@ -3,9 +3,8 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
-QueuingEngineApiHelper::QueuingEngineApiHelper(QString api_base_url, QNetworkProxy proxy, QString secure_token)
+QueuingEngineApiHelper::QueuingEngineApiHelper(QString api_base_url, QString secure_token)
 	: api_base_url_(api_base_url)
-	, proxy_(proxy)
 	, secure_token_(secure_token)
 {
 }
@@ -25,7 +24,7 @@ ServerReply QueuingEngineApiHelper::submitJob(int threads, QStringList queues, Q
 
 	HttpHeaders add_headers;
 	add_headers.insert("Content-Type", "application/json");
-	return HttpRequestHandler(proxy_).post(api_base_url_, json_doc_output.toJson(), add_headers);
+	return HttpRequestHandler().post(api_base_url_, json_doc_output.toJson(), add_headers);
 }
 
 ServerReply QueuingEngineApiHelper::updateRunningJob(QString sge_id, QString sge_queue) const
@@ -40,7 +39,7 @@ ServerReply QueuingEngineApiHelper::updateRunningJob(QString sge_id, QString sge
 
 	HttpHeaders add_headers;
 	add_headers.insert("Content-Type", "application/json");
-	return HttpRequestHandler(proxy_).post(api_base_url_, json_doc_output.toJson(), add_headers);
+	return HttpRequestHandler().post(api_base_url_, json_doc_output.toJson(), add_headers);
 }
 
 ServerReply QueuingEngineApiHelper::deleteJob(QString sge_id, QString type) const
@@ -55,5 +54,5 @@ ServerReply QueuingEngineApiHelper::deleteJob(QString sge_id, QString type) cons
 
 	HttpHeaders add_headers;
 	add_headers.insert("Content-Type", "application/json");
-	return HttpRequestHandler(proxy_).post(api_base_url_, json_doc_output.toJson(), add_headers);
+	return HttpRequestHandler().post(api_base_url_, json_doc_output.toJson(), add_headers);
 }

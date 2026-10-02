@@ -8,6 +8,7 @@
 #include <QSslConfiguration>
 #include <QList>
 #include <QThreadPool>
+#include <QTimer>
 #include "RequestWorker.h"
 
 class CPPRESTSHARED_EXPORT SslServer : public QTcpServer
@@ -19,7 +20,7 @@ public:
 	virtual ~SslServer();
 	QSslConfiguration getSslConfiguration() const;
 	void setSslConfiguration(const QSslConfiguration &ssl_configuration);
-    QSslSocket *nextPendingConnection();
+	QSslSocket *nextPendingConnection();
 
 Q_SIGNALS:	
 	void sslFailed(const QList<QSslError> &error);
@@ -28,20 +29,21 @@ Q_SIGNALS:
 
 
 private slots:
-    void resetEmailAlreadySentFlag();
-    void checkPoolStatus();
+	void resetEmailAlreadySentFlag();
+	void checkPoolStatus();
 
 protected:
-    virtual void incomingConnection(qintptr socket);
+	virtual void incomingConnection(qintptr socket);
 
 private:
 	QSslConfiguration current_ssl_configuration_;
 	QString client_version_;
-    QThreadPool thread_pool_;
-    RequestWorkerParams worker_params_;
-    bool email_already_sent_;
-    int thread_pool_check_count_;
-
+	QThreadPool thread_pool_;
+	RequestWorkerParams worker_params_;
+	bool email_already_sent_;
+	int thread_pool_check_count_;
+	QTimer monitor_timer_;
+	QTimer reset_email_already_sent_flag_timer_;
 };
 
 #endif // SSLSERVER_P_H

@@ -33,12 +33,6 @@ alamut_institution = ""
 alamut_apikey = ""
 HerediVar = ""
 
-#proxy settings for GSvar
-proxy_host = ""
-proxy_port = 
-proxy_user = ""
-proxy_password = ""
-
 #special folders for GSvar
 gsvar_report_folder = ""
 gsvar_report_archive = ""
@@ -49,9 +43,8 @@ gsvar_variantsheet_folder = ""
 gsvar_variant_export_folder = ""
 burden_test_files = ""
 
-#somatic data transfer to MTB/QBIC
+#MTB/QBIC upload
 mtb_xml_upload_url = ""
-qbic_data_path = ""
 
 #Number of threads to used for calculations that can be done in parallel (coverage, etc)
 threads = 4
@@ -71,4 +64,3 @@ server_host = ""
 server_port = 8443
 curl_ca_bundle = ""
 display_user_notifications = true
-use_proxy_for_gsvar_server = false

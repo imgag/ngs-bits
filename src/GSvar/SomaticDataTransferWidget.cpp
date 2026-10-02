@@ -1,11 +1,9 @@
 #include <QMessageBox>
-
 #include "SomaticDataTransferWidget.h"
 #include "Settings.h"
 #include "Exceptions.h"
 #include "NGSD.h"
 #include "Settings.h"
-
 #include "ui_SomaticDataTransferWidget.h"
 
 
@@ -14,7 +12,7 @@ SomaticDataTransferWidget::SomaticDataTransferWidget(QString t_ps_id, QString n_
 	ui(new Ui::SomaticDataTransferWidget),
 	init_timer_(this, true),
 	db_(),
-	http_handler_(true, this),
+	http_handler_(this),
 	t_ps_id_(t_ps_id),
 	n_ps_id_(n_ps_id),
 	api_ok_(false)
@@ -69,7 +67,7 @@ void SomaticDataTransferWidget::uploadXML()
 
 			VersatileFile file(xml_path_, false);
 			file.open(QFile::ReadOnly | QIODevice::Text);
-			res =  http_handler_.post(xml_url_ + "/mtb_imgag", file.readAll(), add_headers);
+			res = http_handler_.post(xml_url_ + "/mtb_imgag", file.readAll(), add_headers).body;
 		}
 		catch(Exception& e)
 		{
@@ -112,7 +110,7 @@ void SomaticDataTransferWidget::checkApiConnection()
 	QByteArray reply = "";
 	try
 	{
-		reply = http_handler_.get(xml_url_ + "/condition");
+		reply = http_handler_.get(xml_url_ + "/condition").body;
 	}
 	catch(Exception& e)  //connection to server failed
 	{

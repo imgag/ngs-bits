@@ -7,6 +7,7 @@
 #include "ui_UserPermissionsEditor.h"
 
 // This class implements a user interface for changing user permissions: i.e. access to a specific project, project type, study, or sample.
+// It also includes action permissions like changes the database, searching variants, running burden test, starting analysis jobs.
 // Setting such permissions is only available for the users with the role 'user_restricted'.
 // User permissions are necessary to restirct the access while working in a client-server mode.
 class UserPermissionsEditor
@@ -19,17 +20,17 @@ public:
 
 protected slots:
 	void delayedInitialization();
-	void updateTable();
-	void addProjectPermission();
-	void addProjectTypePermission();
-	void addStudyPermission();
-	void addSamplePermission();
-	void remove();
+	void updateAccessPermissions();
+	void addProjectAccessPermission();
+	void addProjectTypeAccessPermission();
+	void addStudyAccessPermission();
+	void addSampleAccessPermission();
+	void removeAccessPermission();
+	void updateActionPermissions();
 
 private:
-	void clearServerCache();
-	void createAddPermissionDialog(QString table_name);
-	void addPermissionToDatabase(QString permission, QString data, QString display_text);
+	void createAddAccessPermissionDialog(QString table_name);
+	void addAccessPermissionToDatabase(QString permission, QString data, QString display_text);
 	NGSD db_;
 	Ui::DBTablePermissions ui_;
 	QString table_;

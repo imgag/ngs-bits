@@ -39,6 +39,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	QTextStream stream(outfile.data());
     stream.setEncoding(QStringConverter::Utf8);
 	writeHtmlHeader(stream, data_.ps);
+	stream << "<!-- SECTION: MAIN -->" << Qt::endl;
 
 	//get trio data
     bool is_trio = data_.variants.type() == AnalysisType::GERMLINE_TRIO;
@@ -58,7 +59,6 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			info_additional <<  data_.variants.getSampleHeader().infoByID(ps);
 		}
 	}
-
 
 	//get data from database
 	QString sample_id = db_.sampleId(data_.ps);
@@ -232,21 +232,21 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<tr>" << Qt::endl;
 		stream << "<td>" << Qt::endl;
 		stream  << variant.chr().strNormalized(true) << ":" << variant.start() << "&nbsp;" << variant.ref() << "&nbsp;&gt;&nbsp;" << variant.obs() << "</td>";
-		QString geno = formatGenotype(data_.build, processed_sample_data.gender.toUtf8(), variant.annotations().at(i_genotype), variant);
+		QString geno = formatGenotype(processed_sample_data.gender.toUtf8(), variant.annotations().at(i_genotype), variant);
 		if (var_conf.de_novo) geno += " (de-novo)";
 		if (var_conf.mosaic) geno += " (mosaic)";
 		if (var_conf.comp_het) geno += " (comp-het)";
 		stream << "<td>" << geno << "</td>" << Qt::endl;
 		if (is_trio)
 		{
-			stream << "<td>" << formatGenotype(data_.build, "male", variant.annotations().at(info_additional[0].column_index), variant) << "</td>";
-			stream << "<td>" << formatGenotype(data_.build, "female", variant.annotations().at(info_additional[1].column_index), variant) << "</td>";
+			stream << "<td>" << formatGenotype("male", variant.annotations().at(info_additional[0].column_index), variant) << "</td>";
+			stream << "<td>" << formatGenotype("female", variant.annotations().at(info_additional[1].column_index), variant) << "</td>";
 		}
 		if (is_multi_with_extra_genotypes)
 		{
 			for (const SampleInfo& info : std::as_const(info_additional))
 			{
-				stream << "<td>" << formatGenotype(data_.build, info.gender(), variant.annotations().at(info.column_index), variant) << "</td>";
+				stream << "<td>" << formatGenotype(info.gender(), variant.annotations().at(info.column_index), variant) << "</td>";
 			}
 		}
 
@@ -522,10 +522,13 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "<br /><b>" << trans("Klasse 1: Benigne Ver&auml;nderungen") << ":</b> " << trans("Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden.") << Qt::endl;
 		stream << "</p>" << Qt::endl;
 	}
+	stream << "<!-- SECTION: MAIN END -->" << Qt::endl;
 
 	///low-coverage analysis
 	if (data_.report_settings.show_coverage_details)
 	{
+		stream << "<!-- SECTION: GAPS -->" << Qt::endl;
+
 		//get target region coverages (from NGSD or calculate)
 		double target_region_read_depth = -1.0;
 		if (data_.report_settings.recalculate_avg_depth)
@@ -626,11 +629,13 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		stream << "</p>" << Qt::endl;
 
 		writeRNACoverageReport(stream);
+		stream << "<!-- SECTION: GAPS END -->" << Qt::endl;
 	}
 
 	//OMIM table
 	if (data_.report_settings.show_omim_table)
 	{
+		stream << "<!-- SECTION: GENES -->" << Qt::endl;
 		stream << Qt::endl;
 		stream << "<p><b>" << trans("OMIM Gene und Phenotypen") << "</b>" << Qt::endl;
 		stream << "</p>" << Qt::endl;
@@ -698,12 +703,14 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			}
 		}
 		stream << "</table>" << Qt::endl;
+		stream << "<!-- SECTION: GENES END -->" << Qt::endl;
 	}
 
 	//PRS table
 	if (data_.prs.count()>0)
 	{
 		stream << Qt::endl;
+		stream << "<!-- SECTION: PRS -->" << Qt::endl;
 		stream << "<p><b>" << trans("Polygener Risiko-Score (PRS)") << (Settings::string("location", true)=="UKT" ? "*" : "") << "</b></p>" << Qt::endl;
 		stream << "<table>" << Qt::endl;
 		stream << "<tr><td><b>" << trans("Erkrankung") << "</b></td><td><b>PRS</b></td><td><b>" << trans("Publikation") << "</b></td><td><b>" << trans("Score") << "</b></td><td><b>" << trans("Z-Score") << "</b></td><td><b>" << trans("Population (gesch&auml;tzt aus NGS)") << "</b></td></tr>" << Qt::endl;
@@ -723,8 +730,8 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			//calcualte z-score - mean and standard deviation are taken from https://canrisk.atlassian.net/wiki/spaces/FAQS/pages/35979266/What+variants+are+used+in+the+PRS
 			if (id=="BRIDGES_306")
 			{
-				double mean = -0.422;
-				double stdev = 0.608;
+				double mean = -0.421862361518865;
+				double stdev = 0.607541543780287;
 				double zscore_num = (Helper::toDouble(score, "PRS score") - mean) / stdev;
 				zscore = formatFloat(zscore_num, 3);
 				if (zscore_num>=1.6 && population==NGSHelper::populationCodeToHumanReadable("EUR"))
@@ -738,8 +745,8 @@ void GermlineReportGenerator::writeHTML(QString filename)
 			}
 			if (id=="OCAC_36")
 			{
-				double mean = -0.259;
-				double stdev = 0.315;
+				double mean = -0.250;
+				double stdev = 0.322;
 				double zscore_num = (Helper::toDouble(score, "PRS score") - mean) / stdev;
 				zscore = formatFloat(zscore_num, 3);
 				if (zscore_num>=1.6 && population==NGSHelper::populationCodeToHumanReadable("EUR"))
@@ -776,6 +783,7 @@ void GermlineReportGenerator::writeHTML(QString filename)
 		{
 			stream << "<p>" << trans("*Diese Analyse ist nicht Teil des Akkreditierungsumfangs.") << "</p>" << Qt::endl;
 		}
+		stream << "<!-- SECTION: PRS END -->" << Qt::endl;
 	}
 
 	//close stream
@@ -807,7 +815,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element DiagnosticNgsReport
 	w.writeStartElement("DiagnosticNgsReport");
-	w.writeAttribute("version", "12");
+	w.writeAttribute("version", "13");
 	w.writeAttribute("type", data_.report_settings.report_type);
 
 	//element ReportGeneration
@@ -820,7 +828,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element ChromosomeAliases
 	w.writeStartElement("ChromosomeAliases");
-	QHash<Chromosome, QString> table = NGSHelper::chromosomeMapping(data_.build);
+	QHash<Chromosome, QString> table = NGSHelper::chromosomeMapping();
 	QList<Chromosome> chr_list = table.keys();
 	std::sort(chr_list.begin(), chr_list.end());
 	for (const Chromosome& key : std::as_const(chr_list))
@@ -1053,7 +1061,7 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		}
 		w.writeAttribute("allele_frequency", QString::number(allele_frequency, 'f', 2));
 		w.writeAttribute("depth", QString::number(depth));
-		w.writeAttribute("genotype", formatGenotype(data_.build, processed_sample_data.gender, variant.annotations()[geno_idx], variant));
+		w.writeAttribute("genotype", formatGenotype(processed_sample_data.gender, variant.annotations()[geno_idx], variant));
 		w.writeAttribute("causal", var_conf.causal ? "true" : "false");
 		w.writeAttribute("de_novo", var_conf.de_novo ? "true" : "false");
 		w.writeAttribute("comp_het", var_conf.comp_het ? "true" : "false");
@@ -1336,8 +1344,8 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 		w.writeAttribute("chr", cnv.chr().strNormalized(true));
 		w.writeAttribute("start", QString::number(cnv.start()));
 		w.writeAttribute("end", QString::number(cnv.end()));
-		w.writeAttribute("start_band", NGSHelper::cytoBand(data_.build, cnv.chr(), cnv.start()));
-		w.writeAttribute("end_band", NGSHelper::cytoBand(data_.build, cnv.chr(), cnv.end()));
+		w.writeAttribute("start_band", NGSHelper::cytoBand(cnv.chr(), cnv.start()));
+		w.writeAttribute("end_band", NGSHelper::cytoBand(cnv.chr(), cnv.end()));
 		int cn = cnv.copyNumber(data_.cnvs.annotationHeaders());
 		w.writeAttribute("type", cn>=2 ? "dup" : "del"); //2 can be dup in chrX/chrY
 		w.writeAttribute("cn", QString::number(cn));
@@ -1477,11 +1485,11 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 			v.setEnd(sv.end2());
 		}
 
-		w.writeAttribute("start_band", NGSHelper::cytoBand(data_.build, sv.chr1(), sv.start1()));
-		w.writeAttribute("end_band", NGSHelper::cytoBand(data_.build, sv.chr2(), sv.end2()));
+		w.writeAttribute("start_band", NGSHelper::cytoBand(sv.chr1(), sv.start1()));
+		w.writeAttribute("end_band", NGSHelper::cytoBand(sv.chr2(), sv.end2()));
 
 		QByteArray sv_gt = sv.genotypeHumanReadable(data_.svs.annotationHeaders(), false);
-		w.writeAttribute("genotype", formatGenotype(data_.build, processed_sample_data.gender, sv_gt, v));
+		w.writeAttribute("genotype", formatGenotype(processed_sample_data.gender, sv_gt, v));
 
 		if (i_qual!=-1)
 		{
@@ -1657,19 +1665,51 @@ void GermlineReportGenerator::writeXML(QString filename, QString html_document)
 
 	//element ReportDocument
 	w.writeStartElement("ReportDocument");
-	QString format = QFileInfo(html_document).suffix().toUpper();
-	w.writeAttribute("format", format);
-	QByteArray base64_data = "";
-	if (!test_mode_)
-	{
-		QFile file(html_document);
-		file.open(QIODevice::ReadOnly);
-		base64_data = file.readAll();
-		file.close();
-	}
-	base64_data = base64_data.toBase64();
-	w.writeCharacters(base64_data);
+	w.writeAttribute("format", "HTML");
+	QFile file(html_document);
+	file.open(QIODevice::ReadOnly);
+	QByteArray html_full = file.readAll();
+	file.close();
+	w.writeCharacters(html_full.toBase64());
 	w.writeEndElement();
+
+	//element ReportDocumentPartMain
+	QHash<QByteArray, QByteArray> sections = htmlSections(html_full.split('\n'));
+	if (sections.contains("MAIN"))
+	{
+		w.writeStartElement("ReportDocumentPartMain");
+		w.writeAttribute("format", "HTML");
+		w.writeCharacters(sections["MAIN"].toBase64());
+		w.writeEndElement();
+	}
+	else THROW(ProgrammingException, "Could not determine section MAIN in HTML report!");
+
+	//element ReportDocumentPartGaps
+	if (sections.contains("GAPS"))
+	{
+		w.writeStartElement("ReportDocumentPartGaps");
+		w.writeAttribute("format", "HTML");
+		w.writeCharacters(sections["GAPS"].toBase64());
+		w.writeEndElement();
+	}
+
+	//element ReportDocumentPartGenes
+	if (sections.contains("GENES"))
+	{
+		w.writeStartElement("ReportDocumentPartGenes");
+		w.writeAttribute("format", "HTML");
+		w.writeCharacters(sections["GENES"].toBase64());
+		w.writeEndElement();
+	}
+
+	//element ReportDocumentPartPRS
+	if (sections.contains("PRS"))
+	{
+		w.writeStartElement("ReportDocumentPartPRS");
+		w.writeAttribute("format", "HTML");
+		w.writeCharacters(sections["PRS"].toBase64());
+		w.writeEndElement();
+	}
 
 	w.writeEndDocument();
 	outfile->close();
@@ -2178,13 +2218,13 @@ void GermlineReportGenerator::writeRNACoverageReport(QTextStream& stream)
 
 }
 
-QString GermlineReportGenerator::formatGenotype(GenomeBuild build, const QString& gender, const QString& genotype, const Variant& variant)
+QString GermlineReportGenerator::formatGenotype(const QString& gender, const QString& genotype, const Variant& variant)
 {
 	//correct only hom variants on gonosomes outside the PAR for males
 	if (gender!="male") return genotype;
 	if (genotype!="hom") return genotype;
 	if (!variant.chr().isGonosome()) return genotype;
-	if (NGSHelper::pseudoAutosomalRegion(build).overlapsWith(variant.chr(), variant.start(), variant.end())) return genotype;
+	if (NGSHelper::pseudoAutosomalRegion().overlapsWith(variant.chr(), variant.start(), variant.end())) return genotype;
 
 	return "hemi";
 }
@@ -2207,7 +2247,7 @@ QString GermlineReportGenerator::formatCodingSplicing(const Variant& v)
 				QString refseq;
 				if (data_.report_settings.show_refseq_transcripts)
 				{
-					const QMap<QByteArray, QByteArrayList>& transcript_matches = NGSHelper::transcriptMatches(data_.build);
+					const QMap<QByteArray, QByteArrayList>& transcript_matches = NGSHelper::transcriptMatches();
                     for (const QByteArray& match : transcript_matches.value(trans.name()))
 					{
 						if (match.startsWith("NM_"))
@@ -2889,4 +2929,46 @@ void GermlineReportGenerator::writeGapsByGeneTable(QTextStream& stream, QMap<QBy
 	}
 	stream << "</table>" << Qt::endl;
 
+}
+
+QHash<QByteArray, QByteArray> GermlineReportGenerator::htmlSections(QByteArrayList html_full)
+{
+	QHash<QByteArray, QByteArray> output;
+
+	//get html header/footer
+	QString tmp;
+	QTextStream stream(&tmp);
+	writeHtmlHeader(stream, data_.ps);
+	stream.flush();
+	QByteArray header = tmp.toUtf8();
+	QString tmp2;
+	QTextStream stream2(&tmp2);
+	writeHtmlFooter(stream2);
+	stream2.flush();
+	QByteArray footer = tmp2.toUtf8();
+
+	//determine section start/end
+	QHash<QByteArray, int> indices;
+	for (int i=0; i<html_full.count(); ++i)
+	{
+		QByteArray line = html_full[i].trimmed();
+		if (line.startsWith("<!-- SECTION:") && line.endsWith("-->"))
+		{
+			QByteArray tag = line.replace("<!-- SECTION:", "").replace("-->", "").trimmed();
+			indices[tag] = i;
+		}
+	}
+
+	//extract sections
+	for (const QByteArray& tag: QByteArrayList{"MAIN", "GAPS", "GENES", "PRS"})
+	{
+		int start = indices.value(tag, -1);
+		int end = indices.value(tag+" END", -1);
+		if (start!=-1 && end!=-1)
+		{
+			output[tag] = header + html_full.mid(start+1, end-start-1).join('\n') + footer;
+		}
+	}
+
+	return output;
 }

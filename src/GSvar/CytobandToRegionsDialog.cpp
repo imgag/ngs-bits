@@ -25,7 +25,7 @@ void CytobandToRegionsDialog::convert()
 		{
 			try
 			{
-				line_out = NGSHelper::cytoBandToRange(GSvarHelper::build(), line.toUtf8()).toString(true);
+				line_out = NGSHelper::cytoBandToRange(line.toUtf8()).toString(true);
 			}
 			catch(ArgumentException& e)
 			{

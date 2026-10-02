@@ -2,10 +2,22 @@
 #include "Settings.h"
 #include "Exceptions.h"
 #include "Log.h"
+#include <QDir>
+#include "ServerHelper.h"
 
 UrlManager::UrlManager()
-    : url_storage_()
+	: url_storage_()
+	, current_url_lifetime_(0)
 {
+	try
+	{
+		current_url_lifetime_ = Settings::integer("url_lifetime");
+	}
+	catch(ProgrammingException& e)
+	{
+		current_url_lifetime_ = DEFAULT_URL_LIFETIME;
+		Log::warn(e.message() + " Using the default value for setting the URL lifetime: " + QString::number(current_url_lifetime_));
+	}
 }
 
 UrlManager& UrlManager::instance()
@@ -62,63 +74,65 @@ QList<UrlEntity> UrlManager::getAllUrls()
 
 bool UrlManager::isValidUrl(QString token)
 {
-    UrlEntity cur_url = instance().getURLById(token);
-    if (cur_url.isEmpty())
-    {
-        return false;
-    }
+	UrlEntity cur_url = instance().getURLById(token);
+	if (cur_url.isEmpty())
+	{
+		return false;
+	}
 
-    int url_lifetime = 0;
-    try
-    {
-        url_lifetime = Settings::integer("url_lifetime");
-    }
-    catch(ProgrammingException& e)
-    {
-        url_lifetime = DEFAULT_URL_LIFETIME;
-        Log::warn(e.message() + " Using the default value: " + QString::number(url_lifetime));
-    }
-
-    if (cur_url.created.addSecs(url_lifetime).toSecsSinceEpoch() <= QDateTime::currentDateTime().toSecsSinceEpoch())
-    {
-        return false;
-    }
-    return true;
+	if (cur_url.created.addSecs(instance().current_url_lifetime_).toSecsSinceEpoch() <= QDateTime::currentDateTime().toSecsSinceEpoch())
+	{
+		return false;
+	}
+	return true;
 }
 
 void UrlManager::removeExpiredUrls()
 {
-    int url_lifetime = 0;
-    try
-    {
-        url_lifetime = Settings::integer("url_lifetime");
-    }
-    catch(ProgrammingException& e)
-    {
-        url_lifetime = DEFAULT_URL_LIFETIME;
-        Log::warn(e.message() + " Using the default value: " + QString::number(url_lifetime));
-    }
+	Log::info("Starting to cleanup URLs");
+	QList<QString> to_be_removed {};
 
-    Log::info("Starting to cleanup URLs");
-    QList<QString> to_be_removed {};
-    QList<UrlEntity> to_be_backedup {};
+	QList<QString> keys = instance().url_storage_.keys();
+	for (int i = 0; i < keys.count(); i++)
+	{
+		if (instance().url_storage_.value(keys[i]).created.toSecsSinceEpoch() < (QDateTime::currentDateTime().toSecsSinceEpoch()-instance().current_url_lifetime_))
+		{
+			to_be_removed.append(keys[i]);
+		}
+	}
+	for (int i = 0; i < to_be_removed.count(); ++i)
+	{
+		instance().url_storage_.remove(to_be_removed[i]);
+	}
 
-    QList<QString> keys = instance().url_storage_.keys();
-    for (int i = 0; i < keys.count(); i++)
-    {
-        if (instance().url_storage_.value(keys[i]).created.toSecsSinceEpoch() < (QDateTime::currentDateTime().toSecsSinceEpoch()-url_lifetime))
-        {
-            to_be_removed.append(keys[i]);
-        }
-        else
-        {
-            to_be_backedup.append(instance().url_storage_.value(keys[i]));
-        }
-    }
-    for (int i = 0; i < to_be_removed.count(); ++i)
-    {
-        instance().url_storage_.remove(to_be_removed[i]);
-    }
+	Log::info("Number of removed URLs: " + QString::number(to_be_removed.length()));
+}
 
-    Log::info("Number of removed URLs: " + QString::number(to_be_removed.length()));
+bool UrlManager::extendActiveUrls(QString ps_folder, int user_id)
+{
+	QList<QString> keys = instance().url_storage_.keys();
+	bool has_active_urls = false;
+	UrlEntity active_url = instance().getURLById(ps_folder);
+	if (active_url.isEmpty()) return false;
+
+	QStringList parts = active_url.path.split(QDir::separator());
+	QSet<QString> all_ps_names;
+	if (!parts.isEmpty()) all_ps_names = ServerHelper::extractProcessSampleNames(parts.last());
+
+	for (int i = 0; i < keys.count(); ++i)
+	{
+		UrlEntity cur_url = instance().url_storage_.value(keys[i]);
+		QStringList cur_parts = cur_url.path.split(QDir::separator());
+		QSet<QString> cur_ps_names;
+		if (!cur_parts.isEmpty()) cur_ps_names = ServerHelper::extractProcessSampleNames(cur_parts.last());
+
+		if (cur_url.string_id == ps_folder || (all_ps_names.intersects(cur_ps_names) && cur_url.user_id==user_id))
+		{
+			has_active_urls = true;
+			UrlEntity url_to_be_updated = instance().url_storage_.value(keys[i]);
+			url_to_be_updated.created = QDateTime::currentDateTime();
+			instance().url_storage_.updateValue(keys[i], url_to_be_updated);
+		}
+	}
+	return has_active_urls;
 }

@@ -71,6 +71,8 @@ public slots:
     void updateSecureToken();
 	/// Checks (only in clinet-server mode) if the server is currently running
 	void checkServerAvailability();
+	/// Resets the expiration time for the URLs related to the currently opened sample
+	void updateActiveUrls();
 	/// Checks (only in clinet-server mode) if there is some new information needed to be displayed to the user (e.g. downtimes, maintenance, reboots, updates)
 	void checkUserNotifications();
 	///Loads a variant list. Unloads the variant list if no file name is given
@@ -137,8 +139,9 @@ public slots:
 	void on_actionCohortAnalysis_triggered();
 	void on_actionMaintenance_triggered();
 	void on_actionNotifyUsers_triggered();
+	void on_actionDetermineProxy_triggered();
+	void on_actionAnalysisTimePlot_triggered();
     void on_actionDesignSubpanel_triggered();
-
 
     ///Gender determination
 	void on_actionGenderXY_triggered();
@@ -276,6 +279,10 @@ public slots:
 	void on_actionClearLogFile_triggered();
 	///Opens AppData folder of GSvar
 	void on_actionOpenGSvarDataFolder_triggered();
+	///Ping GSvar server
+	void on_actionPingGSvarServer_triggered();
+	///Ping NGSD server
+	void on_actionPingNgsdServer_triggered();
 
 	///Calculate gaps based on current target region filter
 	void calculateGapsByTargetRegionFilter();

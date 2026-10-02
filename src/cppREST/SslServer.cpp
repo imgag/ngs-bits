@@ -1,58 +1,57 @@
 #include "SslServer.h"
-#include <QTimer>
 #include <QProcess>
 
 SslServer::SslServer(QObject *parent)
-    : QTcpServer(parent)
-    , thread_pool_()
-    , email_already_sent_(false)
-    , thread_pool_check_count_(0)
+	: QTcpServer(parent)
+	, thread_pool_()
+	, email_already_sent_(false)
+	, thread_pool_check_count_(0)
+	, monitor_timer_()
+	, reset_email_already_sent_flag_timer_()
 {
 	current_ssl_configuration_ = QSslConfiguration::defaultConfiguration();
-    int thread_timeout = Settings::integer("thread_timeout")*1000;
-    if (thread_timeout == 0)
-    {
-        Log::error("Thread timeout is not set or equals to zero");
-        exit(1);
-    }
-    thread_pool_.setExpiryTimeout(thread_timeout);
-    int thread_count = Settings::integer("thread_count");
-    if (thread_timeout == 0)
-    {
-        Log::error("Max number of threads is not set or equals to zero");
-        exit(1);
-    }
-    thread_pool_.setMaxThreadCount(thread_count);
+	int thread_timeout = Settings::integer("thread_timeout")*1000;
+	if (thread_timeout == 0)
+	{
+		Log::error("Thread timeout is not set or equals to zero");
+		exit(1);
+	}
+	thread_pool_.setExpiryTimeout(thread_timeout);
+	int thread_count = Settings::integer("thread_count");
+	if (thread_timeout == 0)
+	{
+		Log::error("Max number of threads is not set or equals to zero");
+		exit(1);
+	}
+	thread_pool_.setMaxThreadCount(thread_count);
 
-    worker_params_.socket_read_timeout = Settings::integer("socket_read_timeout")*1000;
-    if (worker_params_.socket_read_timeout == 0)
-    {
-        Log::error("Socket reading timeout is not set or equals to zero");
-        exit(1);
-    }
-    worker_params_.socket_write_timeout = Settings::integer("socket_write_timeout")*1000;
-    if (worker_params_.socket_write_timeout == 0)
-    {
-        Log::error("Socket writing timeout is not set or equals to zero");
-        exit(1);
-    }
-    worker_params_.socket_encryption_timeout = Settings::integer("socket_encryption_timeout")*1000;
-    if (worker_params_.socket_encryption_timeout == 0)
-    {
-        Log::error("Socket encryption timeout is not set or equals to zero");
-        exit(1);
-    }
+	worker_params_.socket_read_timeout = Settings::integer("socket_read_timeout")*1000;
+	if (worker_params_.socket_read_timeout == 0)
+	{
+		Log::error("Socket reading timeout is not set or equals to zero");
+		exit(1);
+	}
+	worker_params_.socket_write_timeout = Settings::integer("socket_write_timeout")*1000;
+	if (worker_params_.socket_write_timeout == 0)
+	{
+		Log::error("Socket writing timeout is not set or equals to zero");
+		exit(1);
+	}
+	worker_params_.socket_encryption_timeout = Settings::integer("socket_encryption_timeout")*1000;
+	if (worker_params_.socket_encryption_timeout == 0)
+	{
+		Log::error("Socket encryption timeout is not set or equals to zero");
+		exit(1);
+	}
 
-    // Timers to handle the situation when the thread pool runs out of available threads
-    // and it is continuing for at least 30 seconds, which prevents the server from accepting
-    // and processing new requests. From the outside, it looks like the server is hanging and not responding
-    QTimer* monitor_timer = new QTimer(this);
-    connect(monitor_timer, SIGNAL(timeout()), this,  SLOT(checkPoolStatus()));
-    monitor_timer->start(5000); // Check every 5 seconds if we have threads that "got stuck"
+	// Timers to handle the situation when the thread pool runs out of available threads
+	// and it is continuing for at least 30 seconds, which prevents the server from accepting
+	// and processing new requests. From the outside, it looks like the server is hanging and not responding
+	connect(&monitor_timer_, SIGNAL(timeout()), this,  SLOT(checkPoolStatus()));
+	monitor_timer_.start(5000); // Check every 5 seconds if we have threads that "got stuck"
 
-    QTimer* reset_email_already_sent_flag_timer = new QTimer(this);
-    connect(reset_email_already_sent_flag_timer, SIGNAL(timeout()), this,  SLOT(resetEmailAlreadySentFlag()));
-    reset_email_already_sent_flag_timer->start(1000*60*60); // Reseting the flag (a notification about the critial problem with the thread pool) every hour to avoid "spamming" the admins mailboxes
+	connect(&reset_email_already_sent_flag_timer_, SIGNAL(timeout()), this,  SLOT(resetEmailAlreadySentFlag()));
+	reset_email_already_sent_flag_timer_.start(1000*60*60); // Reseting the flag (a notification about the critial problem with the thread pool) every hour to avoid "spamming" the admins mailboxes
 }
 
 SslServer::~SslServer()

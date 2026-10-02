@@ -10,6 +10,8 @@
 #include "NGSD.h"
 #include "SomaticReportSettings.h"
 
+class VariantHgvsAnnotator;
+
 class CPPNGSDSHARED_EXPORT MetaFile
 {
 public:
@@ -287,7 +289,7 @@ private:
 	void exportCnvs(const QString& out_folder, bool debug);
 	void exportSvs(const QString& out_folder, bool debug);
 	void exportFusions(const QString& out_folder, bool debug);
-	void writeSnvVariants(QSharedPointer<QFile> out_file, VariantList filtered_vl, int sample_idx);
+	void writeSnvVariants(QSharedPointer<QFile> out_file, const VariantList& filtered_vl, int sample_idx, VariantHgvsAnnotator& hgvs_annotator, const QHash<QByteArray, QByteArray>& vicc_classifications);
 
 	QByteArray formatVariantClassification(const Transcript& trans, const QByteArray& coding_splicing);
 	QByteArray StructuratVariantTypeToStringLong(const StructuralVariantType& type);

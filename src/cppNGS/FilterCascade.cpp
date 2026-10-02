@@ -174,16 +174,17 @@ void FilterResult::removeFlagged(BedpeFile& svs)
     //skip if all variants pass
     if (countPassing()==svs.count()) return;
 
-    //remove non-passing structural variants from list
-    int removed_svs = 0; // index offset for already removed list entries
-    for (int i=0; i<pass.size(); ++i)
-    {
-        if (!pass[i])
-        {
-            svs.removeAt(i - removed_svs);
-            removed_svs++;
-        }
-    }
+	//move passing structural variants to the front of the list
+	int to_index = 0;
+	for (int i=0; i<pass.size(); ++i)
+	{
+		if (pass[i])
+		{
+			if (to_index!=i) svs[to_index] = svs[i];
+			++to_index;
+		}
+	}
+	svs.resize(to_index);
 
     //update flags
     pass = QBitArray(svs.count(), true);
@@ -2538,9 +2539,6 @@ FilterTrio::FilterTrio()
 	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
 	params_.last().constraints["valid"] = "male,female,n/a";
 
-	params_ << FilterParameter("build", FilterParameterType::STRING, "hg38", "Genome build used for pseudoautosomal region coordinates");
-	params_.last().constraints["valid"] = "hg19,hg38";
-
 	checkIsRegistered();
 }
 
@@ -2581,7 +2579,7 @@ void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
 	i_af_m = tmp.indexOf(i_m);
 
 	//get PAR region
-	BedFile par_region = NGSHelper::pseudoAutosomalRegion(stringToBuild(getString("build")));
+	BedFile par_region = NGSHelper::pseudoAutosomalRegion();
 
 	//pre-calculate genes with heterozygous variants
     QSet<QString> types = Helper::listToSet(getStringList("types"));
@@ -4553,7 +4551,7 @@ void FilterSvCompHet::apply(const BedpeFile& svs, FilterResult& result) const
 	{
 		if (!result.flags()[i]) continue;
 
-		GeneSet genes = GeneSet::createFromText(svs[i].annotations()[i_genes], ';');
+		GeneSet genes = GeneSet::createFromText(svs[i].annotations()[i_genes], ',');
 		for (const QByteArray& gene : std::as_const(genes))
 		{
 			gene_count[gene] += 1;
@@ -4592,7 +4590,7 @@ void FilterSvCompHet::apply(const BedpeFile& svs, FilterResult& result) const
 	{
 		if (!result.flags()[i]) continue;
 
-		GeneSet genes = GeneSet::createFromText(svs[i].annotations()[i_genes], ';');
+		GeneSet genes = GeneSet::createFromText(svs[i].annotations()[i_genes], ',');
 		result.flags()[i] = genes.intersectsWith(comphet_hit);
 	}
 }
@@ -4846,9 +4844,6 @@ FilterSvTrio::FilterSvTrio()
 	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
     params_.last().constraints["valid"] = "male,female,n/a";
 
-	params_ << FilterParameter("build", FilterParameterType::STRING, "hg19", "Genome build used for pseudoautosomal region coordinates");
-	params_.last().constraints["valid"] = "hg19,hg38";
-
     checkIsRegistered();
 }
 
@@ -4883,7 +4878,7 @@ void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
 	int i_format_col = svs.annotationIndexByName("FORMAT");
 
     //get PAR region
-	BedFile par_region = NGSHelper::pseudoAutosomalRegion(stringToBuild(getString("build")));
+	BedFile par_region = NGSHelper::pseudoAutosomalRegion();
 
     //pre-calculate genes with heterozygous variants
     QSet<QString> types = Helper::listToSet(getStringList("types"));

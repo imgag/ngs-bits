@@ -1,4 +1,5 @@
 #include "FilterWidget.h"
+#include <QSignalBlocker>
 #include "Settings.h"
 #include "Helper.h"
 #include "NGSD.h"
@@ -17,7 +18,6 @@
 #include "IgvSessionManager.h"
 #include <QSortFilterProxyModel>
 #include <QClipboard>
-#include "SubpanelDesignDialog.h"
 #include "FilterWidgetHelper.h"
 
 
@@ -138,9 +138,10 @@ void FilterWidget::updateNGSDSupport()
 
 void FilterWidget::reset(bool clear_roi)
 {
-	blockSignals(true);
-	resetSignalsUnblocked(clear_roi);
-	blockSignals(false);
+	{//do not remove scope - needed by QSignalBlocker
+		const QSignalBlocker blocker(this);
+		resetSignalsUnblocked(clear_roi);
+	}
 }
 
 bool FilterWidget::setTargetRegionByName(QString name)
@@ -438,9 +439,10 @@ void FilterWidget::removeRoi()
 
 void FilterWidget::customFilterLoaded()
 {
-	ui_.filters->blockSignals(true);
-	ui_.filters->setCurrentIndex(0);
-	ui_.filters->blockSignals(false);
+	{//do not remove scope - needed by QSignalBlocker
+		const QSignalBlocker blocker(ui_.filters);
+		ui_.filters->setCurrentIndex(0);
+	}
 
 	ui_.lab_modified->setHidden(false);
 }

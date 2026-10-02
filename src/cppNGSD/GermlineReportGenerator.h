@@ -93,7 +93,7 @@ private:
 	GapDetails writeCoverageDetails(QTextStream& stream, const TargetRegionInfo& roi);
 	void writeClosedGapsReport(QTextStream& stream);
 	void writeRNACoverageReport(QTextStream& stream);
-	static QString formatGenotype(GenomeBuild build, const QString& gender, const QString& genotype, const Variant& variant);
+	static QString formatGenotype(const QString& gender, const QString& genotype, const Variant& variant);
 	QString formatCodingSplicing(const Variant& v);
 	static QString convertOtherVariantType(const QString& type, bool xml=false);
 
@@ -113,7 +113,8 @@ private:
 	//determine gaps by gene
 	void gapsByGene(const BedFile& low_cov, const GeneSet& roi_genes, QMap<QByteArray, BedFile>& gaps_by_gene, long long& gap_bases_no_gene);
 	void writeGapsByGeneTable(QTextStream& stream, QMap<QByteArray, BedFile>& gaps_by_gene, long long& gap_bases_no_gene);
-
+	//returns a hash from section name to text
+	QHash<QByteArray, QByteArray> htmlSections(QByteArrayList html_full);
 	GermlineReportGenerator() = delete;
 };
 

@@ -5,6 +5,7 @@
 #include <QDir>
 #include <QJsonArray>
 #include <QLibraryInfo>
+#include "EndpointManager.h"
 #include "HttpUtils.h"
 #include "Settings.h"
 #include "HtmlEngine.h"
@@ -72,13 +73,13 @@ HttpResponse ServerController::createStaticFileRangeResponse(const QString& file
 		total_length = total_length + byte_ranges[i].length;
 	}
 
-    FastFileInfo *info = new FastFileInfo(filename);
+	FastFileInfo info(filename);
 
 	BasicResponseData response_data;
 	response_data.filename = filename;
 	response_data.length = total_length;
 	response_data.byte_ranges = byte_ranges;
-    response_data.file_size = info->size();
+	response_data.file_size = info.size();
 	response_data.is_stream = true;
 	response_data.content_type = type;
 	response_data.status = ResponseStatus::PARTIAL_CONTENT;
@@ -89,10 +90,10 @@ HttpResponse ServerController::createStaticFileRangeResponse(const QString& file
 
 HttpResponse ServerController::createStaticStreamResponse(const QString& filename, bool is_downloadable)
 {
-    FastFileInfo *info = new FastFileInfo(filename);
+	FastFileInfo info(filename);
 
     BasicResponseData response_data;
-    response_data.length = info->size();
+	response_data.length = info.size();
 	response_data.filename = filename;
 	response_data.file_size = response_data.length;
 	response_data.is_stream = true;
@@ -104,8 +105,8 @@ HttpResponse ServerController::createStaticStreamResponse(const QString& filenam
 
 HttpResponse ServerController::createStaticFileResponse(const QString& filename, const HttpRequest& request)
 {
-    FastFileInfo *info = new FastFileInfo(filename);
-    if ((filename.isEmpty()) || ((!filename.isEmpty()) && (!info->exists())))
+	FastFileInfo info(filename);
+	if ((filename.isEmpty()) || ((!filename.isEmpty()) && (!info.exists())))
     {
         Log::error(EndpointManager::formatResponseMessage(request, "Requested file does not exist: " + filename));
 		// Special case, when sending HEAD request for a file that does not exist
@@ -117,7 +118,7 @@ HttpResponse ServerController::createStaticFileResponse(const QString& filename,
         return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "Requested file could not be found"));
 	}
 
-    quint64 file_size = info->size();
+	quint64 file_size = info.size();
 	// Client wants to see only the size of the requested file (not its content)
 	if (request.getMethod() == RequestMethod::HEAD)
 	{
@@ -227,10 +228,13 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 		json_object.insert("name", ServerHelper::getAppName());
 		json_object.insert("description", "GSvar server");
 		json_object.insert("version", ToolBase::version());
+		json_object.insert("date", ToolBase::date());
 		json_object.insert("api_version", ClientHelper::serverApiVersion());
 		json_object.insert("start_time", ServerHelper::getServerStartDateTime().toSecsSinceEpoch());
         json_object.insert("server_url", Settings::string("server_host", true));
 		json_object.insert("htslib_version", hts_version());
+		json_object.insert("operating_system", QSysInfo::prettyProductName());
+		json_object.insert("architecture",  QSysInfo::buildCpuArchitecture());
         json_object.insert("qt_version", QLibraryInfo::version().toString());
         json_doc.setObject(json_object);
 
@@ -257,7 +261,7 @@ HttpResponse ServerController::serveResourceAsset(const HttpRequest& request)
 HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 {
     // Check all parameters
-    if (!request.getUrlParams().contains("ps_url_id"))
+	if (!request.getUrlParams().contains("ps_url_id"))
     {
         return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Sample id has not been provided"));
 	}
@@ -312,7 +316,7 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 			QJsonDocument cache_doc = db.getFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing);
 			db.updateFileLocation(found_file, request.getUrlParams()["type"].toUpper().trimmed(), locus, multiple_files, return_if_missing);
 			QJsonArray cached_array = cache_doc.array();
-			for (const QJsonValue &value : cached_array)
+			for (const QJsonValue& value : std::as_const(cached_array))
 			{
 				if (value.isObject())
 				{
@@ -349,7 +353,7 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 	{
 		VariantList variants;
 		variants.loadHeaderOnly(found_file);
-		FileLocationProviderLocal* file_locator = new FileLocationProviderLocal(found_file, variants.getSampleHeader(), variants.type());
+		QSharedPointer<FileLocationProvider> file_locator = QSharedPointer<FileLocationProviderLocal>(new FileLocationProviderLocal(found_file, variants.getSampleHeader(), variants.type()));
 
 		switch(requested_type)
 		{
@@ -529,7 +533,7 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 		{
 			try
             {
-                cur_json_item.insert("filename", createTempUrl(file_list[i].filename, request.getUrlParams()["token"]));
+				cur_json_item.insert("filename", createTempUrl(file_list[i].filename, request.getUrlParams()["token"]));
             }
 			catch (Exception& e)
             {
@@ -559,6 +563,21 @@ HttpResponse ServerController::locateFileByType(const HttpRequest& request)
 	response_data.content_type = request.getContentType();
 	response_data.is_downloadable = false;
 	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
+HttpResponse ServerController::prolongUrl(const HttpRequest &request)
+{
+	if (!request.getUrlParams().contains("ps_url_id"))
+	{
+		return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Sample id has not been provided"));
+	}
+	QString ps_url_id = request.getUrlParams()["ps_url_id"];
+	Session current_session = SessionManager::getSessionBySecureToken(EndpointManager::getTokenIfAvailable(request));
+	if(UrlManager::extendActiveUrls(ps_url_id, current_session.user_id))
+	{
+		return HttpResponse(ResponseStatus::OK, request.getContentType(), "Lifetimes for the given URLs have been extended: " + ps_url_id);
+	}
+	return HttpResponse(ResponseStatus::OK, request.getContentType(), "No URLs related to the given sample have been found: " + ps_url_id);
 }
 
 HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request)
@@ -596,7 +615,7 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
     }
 
     FastFileInfo file_info(found_file_path);
-    FileLocation project_file = FileLocation(ps_name, type, createTempUrl(file_info, request.getUrlParams()["token"]), file_info.lastModified(), file_info.exists());
+	FileLocation project_file = FileLocation(ps_name, type, createTempUrl(file_info, request.getUrlParams()["token"], true), file_info.lastModified(), file_info.exists());
 
 	QJsonDocument json_doc_output;
 	QJsonArray file_location_as_json_list;
@@ -631,7 +650,7 @@ HttpResponse ServerController::checkProjectFolder(const HttpRequest &request)
 
 		// access is restricted only for the user role 'admin'
 		NGSD db;
-		QString role = db.getUserRole(current_session.user_id);
+		QByteArray role = db.getUserRole(current_session.user_id);
 		if (role!="admin")
 		{
 			THROW_HTTP(HttpException, "You do not have permissions to change projects!", 401,  {}, {});
@@ -692,7 +711,7 @@ HttpResponse ServerController::getProjectFolderSettings(const HttpRequest &reque
 
 		// access is restricted only for the user role 'admin'
 		NGSD db;
-		QString role = db.getUserRole(current_session.user_id);
+		QByteArray role = db.getUserRole(current_session.user_id);
 		if (role!="admin")
 		{
 			THROW_HTTP(HttpException, "You do not have permissions to change projects!", 401,  {}, {});
@@ -1004,45 +1023,6 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 	return HttpResponse(ResponseStatus::OK, request.getContentType(), "No changes to the file detected");
 }
 
-HttpResponse ServerController::saveQbicFiles(const HttpRequest& request)
-{
-	QString qbic_data_path = Settings::string("qbic_data_path");
-	Helper::mkdir(qbic_data_path);
-	if (!qbic_data_path.endsWith(QDir::separator())) qbic_data_path = qbic_data_path + QDir::separator();
-
-	QString filename = request.getUrlParams()["filename"];
-	QString folder_name = request.getUrlParams()["id"];
-	QString content = request.getBody();
-
-	if ((filename.isEmpty()) || (folder_name.isEmpty()))
-    {
-        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Path or filename has not been provided"));
-	}
-
-	// It should not be possible to move up to the parent directory or to access system directories
-	folder_name = folder_name.replace(".", "");
-	folder_name = folder_name.replace(QDir::separator(), "");
-	folder_name = qbic_data_path + folder_name;
-
-	Helper::mkdir(folder_name);
-
-	if (!folder_name.endsWith(QDir::separator())) folder_name = folder_name + QDir::separator();
-
-	try
-	{
-		QSharedPointer<QFile> qBicFile = Helper::openFileForWriting(folder_name+filename);
-		QTextStream stream(qBicFile.data());
-		stream << content;
-		qBicFile->close();
-	}
-	catch (Exception& e)
-    {
-        return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not save the data: " + e.message()));
-	}
-
-	return HttpResponse(ResponseStatus::OK, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), filename + " has been saved");
-}
-
 HttpResponse ServerController::uploadFile(const HttpRequest& request)
 {	
     if (!request.getUrlParams().contains("ps_url_id"))
@@ -1118,8 +1098,8 @@ HttpResponse ServerController::calculateLowCoverage(const HttpRequest& request)
 		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
 	}
 
-    FastFileInfo *info = new FastFileInfo(bam_file_name);
-    if (!info->exists())
+	FastFileInfo info(bam_file_name);
+	if (!info.exists())
     {
         return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "BAM file does not exist: " + bam_file_name));
     }
@@ -1155,8 +1135,8 @@ HttpResponse ServerController::calculateAvgCoverage(const HttpRequest& request)
 		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
 	}
 
-    FastFileInfo *info = new FastFileInfo(bam_file_name);
-    if (!info->exists())
+	FastFileInfo info(bam_file_name);
+	if (!info.exists())
     {
         return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "BAM file does not exist: " + bam_file_name));
     }
@@ -1188,8 +1168,8 @@ HttpResponse ServerController::calculateTargetRegionReadDepth(const HttpRequest&
 		bam_file_name = UrlManager::getURLById(request.getFormUrlEncoded()["bam_url_id"]).filename_with_path;
 	}
 
-    FastFileInfo *info = new FastFileInfo(bam_file_name);
-    if (!info->exists())
+	FastFileInfo info(bam_file_name);
+	if (!info.exists())
     {
         return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "BAM file does not exist: " + bam_file_name));
     }
@@ -1598,8 +1578,8 @@ HttpResponse ServerController::getSecondaryAnalyses(const HttpRequest& request)
 		QStringList analyses = NGSD().secondaryAnalyses(processed_sample_name, type);
 		foreach(QString file, analyses)
 		{
-            FastFileInfo *info = new FastFileInfo(file);
-            if (info->exists())
+			FastFileInfo info(file);
+			if (info.exists())
 			{
 				secondary_analyses << file;
 			}
@@ -1848,7 +1828,7 @@ QString ServerController::getProcessedSampleFile(int ps_id, const PathType& type
 
         NGSD db;
         // access is restricted only for the user role 'user_restricted'
-        QString role = db.getUserRole(current_session.user_id);
+		QByteArray role = db.getUserRole(current_session.user_id);
         if (role=="user_restricted" && !db.userCanAccess(current_session.user_id, ps_id))
         {
             THROW_HTTP(HttpException, "You do not have permissions to the sample with id '" + QString::number(ps_id) + "'", 401,  {}, {});
@@ -1868,18 +1848,24 @@ QString ServerController::getProcessedSampleFile(int ps_id, const PathType& type
     return found_file_path;
 }
 
-QString ServerController::createTempUrl(const QString& file, const QString& token)
+QString ServerController::createTempUrl(const QString &file, const QString& token)
 {
-    QString id = ServerHelper::generateUniqueStr();
-    FastFileInfo *info = new FastFileInfo(file);
-    UrlManager::addNewUrl(UrlEntity(id, info->fileName(), info->absolutePath(), file, id, info->size(), info->exists(), QDateTime::currentDateTime()));
-    return ClientHelper::serverApiUrl() + "temp/" + id + "/" + info->fileName() + "?token=" + token;
+	QString id = ServerHelper::generateUniqueStr();
+	FastFileInfo info(file);
+	Session current_session = SessionManager::getSessionBySecureToken(token);
+	UrlManager::addNewUrl(UrlEntity(id, info.fileName(), info.absolutePath(), file, id, info.size(), info.exists(), QDateTime::currentDateTime(), current_session.user_id));
+	return ClientHelper::serverApiUrl() + "temp/" + id + "/" + info.fileName() + "?token=" + token;
 }
 
-QString ServerController::createTempUrl(FastFileInfo& file_info, const QString& token)
+QString ServerController::createTempUrl(FastFileInfo& file_info, const QString& token, bool id_as_ps_folder)
 {
     QString id = ServerHelper::generateUniqueStr();
-    UrlManager::addNewUrl(UrlEntity(id, file_info.fileName(), file_info.absolutePath(), file_info.absoluteFilePath(), id, file_info.size(), file_info.exists(), QDateTime::currentDateTime()));
+	if (id_as_ps_folder)
+	{
+		Session current_session = SessionManager::getSessionBySecureToken(token);
+		UrlManager::addNewUrl(UrlEntity(id, file_info.fileName(), file_info.absolutePath(), file_info.absoluteFilePath(), id, file_info.size(), file_info.exists(), QDateTime::currentDateTime(), current_session.user_id));
+	}
+	else UrlManager::addNewUrl(UrlEntity(id, file_info.fileName(), file_info.absolutePath(), file_info.absoluteFilePath(), id, file_info.size(), file_info.exists(), QDateTime::currentDateTime()));
     return ClientHelper::serverApiUrl() + "temp/" + id + "/" + file_info.fileName() + "?token=" + token;
 }
 
@@ -1995,6 +1981,6 @@ HttpResponse ServerController::uploadFileToFolder(QString upload_folder, const H
 HttpResponse ServerController::clearPermissionsCache(const HttpRequest &/*request*/)
 {
 	NGSD db;
-	db.clearUserPermissionsCache();
-	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "User permissions cache has been cleared");
+	db.clearUserCaches();
+	return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, "User role/permission/action cache has been cleared");
 }

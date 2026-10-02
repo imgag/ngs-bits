@@ -36,7 +36,7 @@ QByteArray LoginManager::sendPostApiRequest(QString path, QString content, HttpH
 {
     try
 	{
-        return HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(ClientHelper::serverApiUrl() + path, content.toUtf8(), add_headers).body;
+        return HttpRequestHandler().post(ClientHelper::serverApiUrl() + path, content.toUtf8(), add_headers).body;
 	}
     catch (HttpException& e)
 	{
@@ -51,7 +51,7 @@ QByteArray LoginManager::sendGetApiRequest(QString path, HttpHeaders add_headers
     QByteArray reply;
     try
 	{
-        reply = HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(ClientHelper::serverApiUrl() + path, add_headers).body;
+        reply = HttpRequestHandler().get(ClientHelper::serverApiUrl() + path, add_headers).body;
 	}
     catch (HttpException& e)
 	{
@@ -202,11 +202,12 @@ void LoginManager::renewLogin()
 		// request a new token, if the current one is about to expire (30 minutes in advance)
         if ((login_time + valid_period - (0.5 * 3600)) < QDateTime::currentDateTime().toSecsSinceEpoch())
 		{
+			Log::info("The current token is about to expire, it is being replaced");
 			if ((user_login.isEmpty()) || (user_password.isEmpty())) return;
             setAllTokens(user_login, user_password);
 		}
 	}
-    else if (session_info.contains("expired"))
+	else
     {
         // the server could not return session info, the current token is likely expired
         Log::info("Token has expired, request a new one");
@@ -365,4 +366,9 @@ void LoginManager::checkRoleNotIn(QStringList roles)
 
 		INFO(AccessDeniedException, "Access denied.\nOnly users with the following roles have access to this functionality: " + roles.join(", ") + ".\nThe user '" + manager.user_login_ + "' has the role '" + NGSD().getUserRole(manager.userId()) + "'!");
 	}
+}
+
+bool LoginManager::userCanPerformAction(ActionPermission action)
+{
+	return NGSD().userActionPermissions(instance().user_id_).contains(action);
 }

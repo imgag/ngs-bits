@@ -1,7 +1,7 @@
 ### VcfAnnotateFrequency tool help
-	VcfAnnotateFrequency (2025_12-49-gdb0c5d35)
+	VcfAnnotateFrequency (2025_12-290-g2cffd86c1)
 	
-	Annotates VCF variants with allele frequency from a BAM/CRAM file.
+	Annotates VCF variants with allele frequency and depth from a BAM/CRAM file.
 	
 	Mandatory parameters:
 	  -in <file>        Input variant list to annotate in VCF(.GZ) format.
@@ -24,7 +24,7 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### VcfAnnotateFrequency changelog
-	VcfAnnotateFrequency 2025_12-49-gdb0c5d35
+	VcfAnnotateFrequency 2025_12-290-g2cffd86c1
 	
 	2025-11-28 Initial version.
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

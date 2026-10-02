@@ -8,12 +8,10 @@ RC_FILE	 = icon.rc
 
 SOURCES += main.cpp \
     ExportHistoryDialog.cpp \
-    HttpHandler.cpp \
     MVHub.cpp
 
 HEADERS += MVHub.h \
-    ExportHistoryDialog.h \
-    HttpHandler.h
+    ExportHistoryDialog.h
 
 FORMS    += MVHub.ui \
     ExportHistoryDialog.ui

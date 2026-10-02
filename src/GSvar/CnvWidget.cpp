@@ -468,22 +468,29 @@ void CnvWidget::showContextMenu(QPoint p)
 	}
 	else if (action==a_rep_del)
 	{
-		if(!is_somatic_)
+		try
 		{
-			report_config_->remove(VariantType::CNVS, row);
-		}
-		else
-		{
-			//Delete som variant configuration for more than one cnv
-			QModelIndexList selectedRows = ui->cnvs->selectionModel()->selectedRows();
-			foreach(const auto& selected_row, selectedRows)
+			if(!is_somatic_)
 			{
-				if( ui->cnvs->isRowHidden(selected_row.row()) ) continue;
-				somatic_report_config_->remove(VariantType::CNVS, selected_row.row());
-				updateReportConfigHeaderIcon(selected_row.row());
+				report_config_->remove(VariantType::CNVS, row);
+			}
+			else
+			{
+				//Delete som variant configuration for more than one cnv
+				QModelIndexList selectedRows = ui->cnvs->selectionModel()->selectedRows();
+				foreach(const auto& selected_row, selectedRows)
+				{
+					if( ui->cnvs->isRowHidden(selected_row.row()) ) continue;
+					somatic_report_config_->remove(VariantType::CNVS, selected_row.row());
+					updateReportConfigHeaderIcon(selected_row.row());
+				}
 			}
 		}
-		updateReportConfigHeaderIcon(row);
+		catch(AccessDeniedException& e)
+		{
+			QMessageBox::information(this, "Access denied", e.message());
+			return;
+		}
 	}
 	else if (action==a_cnv_val)
 	{
@@ -702,20 +709,28 @@ void CnvWidget::cnvHeaderContextMenu(QPoint pos)
 	}
 	else if (action==a_delete)
 	{
-		if(!is_somatic_)
+		try
 		{
-			report_config_->remove(VariantType::CNVS, row);
-			updateReportConfigHeaderIcon(row);
-		}
-		else
-		{
-			//Delete som variant configuration for more than one cnv
-			QModelIndexList selectedRows = ui->cnvs->selectionModel()->selectedRows();
-			foreach(const auto& selected_row, selectedRows)
+			if(!is_somatic_)
 			{
-				somatic_report_config_->remove(VariantType::CNVS, selected_row.row());
-				updateReportConfigHeaderIcon(selected_row.row());
+				report_config_->remove(VariantType::CNVS, row);
+				updateReportConfigHeaderIcon(row);
 			}
+			else
+			{
+				//Delete som variant configuration for more than one cnv
+				QModelIndexList selectedRows = ui->cnvs->selectionModel()->selectedRows();
+				foreach(const auto& selected_row, selectedRows)
+				{
+					somatic_report_config_->remove(VariantType::CNVS, selected_row.row());
+					updateReportConfigHeaderIcon(selected_row.row());
+				}
+			}
+		}
+		catch(AccessDeniedException& e)
+		{
+			QMessageBox::information(this, "Access denied", e.message());
+			return;
 		}
 	}
 }

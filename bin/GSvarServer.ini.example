@@ -42,12 +42,6 @@ file_location_cache_lifespan = 300
 #enables file watcher for the files with notifications for users
 allow_notifying_users = false
 
-#proxy settings - set if proxy is needed to access files on the internet
-proxy_host = ""
-proxy_port = 
-proxy_user = ""
-proxy_password = ""
-
 #ClinVar API key for updating the status of subissions automatically every hour
 clinvar_api_key=""
 

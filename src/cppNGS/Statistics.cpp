@@ -783,9 +783,10 @@ QCCollection Statistics::mapping(const BedFile& bed_file, const QString& bam_fil
 	LinePlot plot3;
 	plot3.setXLabel("GC bin");
 	plot3.setYLabel("count [%]");
-	plot3.setXValues(BasicStatistics::range(0.0, 100.0, 1.0));
+	plot3.setXValues(BasicStatistics::range(100, 0.0, 1.0));
 	plot3.addLine(gc_roi_percentages, "target region");
 	plot3.addLine(gc_read_percentages, "reads");
+
 	plotname = Helper::tempFileName(".png");
 	plot3.store(plotname);
 	addQcPlot(output, "QC:2000061","GC bias plot", plotname);
@@ -915,14 +916,13 @@ QCCollection Statistics::mapping(const QString &bam_file, const QString& ref_fil
 	}
 	bases_usable -= bases_clipped;
 
-	//calcualte number of 'N' bases in genome (takes about 10s, but that's ok for WGS QC)
+	//calcualte number of 'N' bases in genome
 	double no_base = 0.0;
 	foreach(const Chromosome& c, reader.chromosomes())
 	{
 		if (c.isNonSpecial())
 		{
-			int n = ref_idx.n(c);
-			no_base +=n;
+			no_base += ref_idx.n(c);
 		}
 	}
 
@@ -1232,7 +1232,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		}
 	}
 
-	//calcualte number of 'N' bases in genome (takes about 10s, but that's ok for WGS QC)
+	//calcualte number of 'N' bases in genome
 	double no_base = 0.0;
 	foreach(const Chromosome& c, reader.chromosomes())
 	{
@@ -1245,7 +1245,14 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 
 	//output
 	QCCollection output;
-	addQcValue(output, "QC:2000019", "trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length);
+	if (paired_end)
+	{
+		addQcValue(output, "QC:2000019", "trimmed base percentage", 100.0 * bases_trimmed / al_total / max_length);
+	}
+	else
+	{
+		addQcValue(output, "QC:2000019", "trimmed base percentage", "n/a (single end)");
+	}
 	addQcValue(output, "QC:2000052", "clipped base percentage", 100.0 * bases_clipped / bases_mapped);
 	addQcValue(output, "QC:2000020", "mapped read percentage", 100.0 * al_mapped / al_total);
 	addQcValue(output, "QC:2000021", "on-target read percentage", 100.0 * al_ontarget / al_total);
@@ -1331,7 +1338,7 @@ QCCollection Statistics::mapping_wgs(const QString &bam_file, const QString& bed
 		LinePlot plot3;
 		plot3.setXLabel("GC bin");
 		plot3.setYLabel("count [%]");
-		plot3.setXValues(BasicStatistics::range(0.0, 100.0, 1.0));
+		plot3.setXValues(BasicStatistics::range(100, 0.0, 1.0));
 		plot3.addLine(gc_roi_percentages, "target region");
 		plot3.addLine(gc_read_percentages, "reads");
 		QString plotname = Helper::tempFileName(".png");
@@ -1701,14 +1708,14 @@ QCCollection Statistics::somaticCustomDepth(const BedFile& bed_file, QString bam
 	return output;
 }
 
-QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots)
+QCCollection Statistics::somatic(QString& tumor_bam, QString& normal_bam, QString& somatic_vcf, QString ref_fasta, const BedFile& target_file, bool skip_plots)
 {
 	QCCollection output;
 
 	//sample correlation
-	auto tumor_genotypes = SampleSimilarity::genotypesFromBam(build, tumor_bam, 30, 500, true, target_file, ref_fasta);
+	auto tumor_genotypes = SampleSimilarity::genotypesFromBam(tumor_bam, 30, 500, true, target_file, ref_fasta);
 
-	auto normal_genotypes = SampleSimilarity::genotypesFromBam(build, normal_bam, 30, 500, true, target_file, ref_fasta);
+	auto normal_genotypes = SampleSimilarity::genotypesFromBam(normal_bam, 30, 500, true, target_file, ref_fasta);
 	SampleSimilarity sc;
 
 	sc.calculateSimilarity(tumor_genotypes, normal_genotypes);
@@ -1987,8 +1994,8 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	plot1.setYLabel("normal allele frequency");
 	plot1.setXRange(-0.015,1.015);
 	plot1.setYRange(-0.015,1.015);
-    QList< std::pair<double,double> > points_black;
-    QList< std::pair<double,double> > points_green;
+	QList<QPointF> points_black;
+	QList<QPointF> points_green;
 	for(int i=0; i<variants.count(); ++i)
 	{
 		double af_tumor = -1;
@@ -2072,14 +2079,14 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 		}
 
 		//find AF and set x and y points, implement freebayes and strelka fields
-        std::pair<double,double> point;
-		point.first = af_tumor;
-		point.second = af_normal;
+		QPointF point;
+		point.setX(af_tumor);
+		point.setY(af_normal);
 		if (!variants[i].filtersPassed())	points_black.append(point);
 		else points_green.append(point);
 	}
 
-    QList< std::pair<double,double> > points;
+	QList<QPointF> points;
 	points  << points_black << points_green;
 
 	QString g = "black";
@@ -2280,7 +2287,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 			plot3.addVLine(chrom_starts_norm[c]);
 		}
 		//(2) calculate distance for each chromosome and convert it to x-coordinates
-        QList< std::pair<double,double> > points3;
+		QList<QPointF> points3;
 		QString tmp_chr = "";
 		int tmp_pos = 0;
 		double tmp_offset = 0;
@@ -2293,10 +2300,10 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 			if(tmp_chr == variants[i].chr().str())	//same chromosome
 			{
 				//convert distance to x-Axis position
-                std::pair<double,double> point;
-				point.first = tmp_offset + double(variants[i].start())/double(genome_size);
-				point.second = variants[i].start() - tmp_pos;
-				if(max < point.second)	max = point.second;
+				QPointF point;
+				point.setX(tmp_offset + double(variants[i].start())/double(genome_size));
+				point.setY(variants[i].start() - tmp_pos);
+				if(max < point.y())	max = point.y();
 				points3.append(point);
 			}
 
@@ -2322,7 +2329,7 @@ QCCollection Statistics::somatic(GenomeBuild build, QString& tumor_bam, QString&
 	return output;
 }
 
-QCCollection Statistics::contamination(GenomeBuild build, QString bam, QString ref_file, QString roi_file, bool debug, int min_cov, int min_snps, bool include_not_properly_paired)
+QCCollection Statistics::contamination(QString bam, QString ref_file, QString roi_file, bool debug, int min_cov, int min_snps, bool include_not_properly_paired)
 {
 	//open BAM
 	BamReader reader(bam, ref_file);
@@ -2338,7 +2345,7 @@ QCCollection Statistics::contamination(GenomeBuild build, QString bam, QString r
 	Histogram hist(0, 1, 0.05);
 	int passed = 0;
 	double passed_depth_sum = 0.0;
-	VcfFile snps = roi_file!="" ? NGSHelper::getKnownVariants(build, true, roi, 0.2, 0.8) : NGSHelper::getKnownVariants(build, true, 0.2, 0.8);
+	VcfFile snps = roi_file!="" ? NGSHelper::getKnownVariants(true, roi, 0.2, 0.8) : NGSHelper::getKnownVariants(true, 0.2, 0.8);
 	for(int i=0; i<snps.count(); ++i)
 	{
 		Pileup pileup = reader.getPileup(snps[i].chr(), snps[i].start(), -1, 1, include_not_properly_paired);
@@ -2377,7 +2384,7 @@ QCCollection Statistics::contamination(GenomeBuild build, QString bam, QString r
 	return output;
 }
 
-AncestryEstimates Statistics::ancestry(GenomeBuild build, QString filename, int min_snp, double abs_score_cutoff, double max_mad_dist)
+AncestryEstimates Statistics::ancestry(QString filename, int min_snp, double abs_score_cutoff, double max_mad_dist)
 {
 	//init score statistics
 	struct PopScore
@@ -2407,10 +2414,8 @@ AncestryEstimates Statistics::ancestry(GenomeBuild build, QString filename, int 
 	}
 
 	//copy ancestry SNP file from resources (gzopen cannot access Qt resources)
-	QString snp_file = ":/Resources/" + buildToString(build) + "_ancestry.vcf";
-	if (!QFile::exists(snp_file)) THROW(ProgrammingException, "Unsupported genome build '" + buildToString(build) + "' for ancestry estimation!");
-	QString tmp = Helper::tempFileNameNonRandom(buildToString(build) + "_ancestry.vcf");
-	QFile::copy(snp_file, tmp);
+	QString tmp = Helper::tempFileNameNonRandom("hg38_ancestry.vcf");
+	QFile::copy(":/Resources/hg38_ancestry.vcf", tmp);
 
 	//load ancestry SNP file
 	VcfFile vars_ancestry;
@@ -2606,32 +2611,28 @@ BedFile Statistics::lowOrHighCoverage(const BedFile& bed_file, const QString& ba
 	QThreadPool thread_pool;
 	thread_pool.setMaxThreadCount(threads);
 
+	if (debug) QTextStream(stdout) << "Creating BED index" << Qt::endl;
+	ChromosomalIndex<BedFile> bed_index(bed_file);
+
 	//start analysis chunks
 	for (int i=0; i<bed_chunks.count(); ++i)
 	{
 		if (!random_access)
 		{
-            if (debug) QTextStream(stdout) << "Creating BED index" << Qt::endl;
-			ChromosomalIndex<BedFile> bed_index(bed_file);
-
-            if (debug) QTextStream(stdout) << "Starting worker " << i << Qt::endl;
+			if (debug) QTextStream(stdout) << "Starting worker " << i << Qt::endl;
 			WorkerLowOrHighCoverageChr* worker = new WorkerLowOrHighCoverageChr(bed_chunks[i], bed_index, bam_file, cutoff, min_mapq, min_baseq, ref_file, is_high, debug);
 			thread_pool.start(worker);
-
-			//wait until finished
-            if (debug) QTextStream(stdout) << "Waiting for workers to finish..." << Qt::endl;
-			thread_pool.waitForDone();
 		}
 		else
 		{
 			WorkerLowOrHighCoverage* worker = new WorkerLowOrHighCoverage(bed_chunks[i], bam_file, cutoff, min_mapq, min_baseq, ref_file, is_high, debug);
 			thread_pool.start(worker);
-
-			//wait until finished
-            if (debug) QTextStream(stdout) << "Waiting for workers to finish..." << Qt::endl;
-			thread_pool.waitForDone();
 		}
 	}
+
+	//wait until finished
+	if (debug) QTextStream(stdout) << "Waiting for workers to finish..." << Qt::endl;
+	thread_pool.waitForDone();
 
 	//debug output
     if (debug) QTextStream(stdout) << "Writing output" << Qt::endl;
@@ -2829,7 +2830,7 @@ GenderEstimate Statistics::genderXY(QString bam_file, double max_female, double 
 	return output;
 }
 
-GenderEstimate Statistics::genderHetX(GenomeBuild build, QString bam_file, double max_male, double min_female, const QString& ref_file, bool include_not_properly_paired)
+GenderEstimate Statistics::genderHetX(QString bam_file, double max_male, double min_female, const QString& ref_file, bool include_not_properly_paired)
 {
 	//open BAM file
 	BamReader reader(bam_file, ref_file);
@@ -2838,8 +2839,8 @@ GenderEstimate Statistics::genderHetX(GenomeBuild build, QString bam_file, doubl
 	Chromosome chrx("chrX");
 	int chrx_end_pos = reader.chromosomeSize(chrx);
 	BedFile roi_chrx(chrx, 1, chrx_end_pos);
-	roi_chrx.subtract(NGSHelper::pseudoAutosomalRegion(build));
-	VcfFile snps = NGSHelper::getKnownVariants(build, true, roi_chrx, 0.2, 0.8);
+	roi_chrx.subtract(NGSHelper::pseudoAutosomalRegion());
+	VcfFile snps = NGSHelper::getKnownVariants(true, roi_chrx, 0.2, 0.8);
 
 	//count het SNPs
 	int c_all = 0;
@@ -2878,13 +2879,11 @@ GenderEstimate Statistics::genderHetX(GenomeBuild build, QString bam_file, doubl
 	return output;
 }
 
-GenderEstimate Statistics::genderSRY(GenomeBuild build, QString bam_file, double min_cov, const QString& ref_file)
+GenderEstimate Statistics::genderSRY(QString bam_file, double min_cov, const QString& ref_file)
 {
 	//construct ROI
-	int start = build==GenomeBuild::HG38 ? 2786989 : 2655031;
-	int end = build==GenomeBuild::HG38 ? 2787603 : 2655641;
 	BedFile roi;
-	roi.append(BedLine("chrY", start, end));
+	roi.append(BedLine("chrY", 2786989, 2787603));
 
 	//calculate coverage
 	Statistics::avgCoverage(roi, bam_file, 1, 1, 2 , ref_file);
@@ -2894,6 +2893,69 @@ GenderEstimate Statistics::genderSRY(GenomeBuild build, QString bam_file, double
 	GenderEstimate output;
 	output.add_info << KeyValuePair("coverage_sry", QString::number(cov, 'f', 2));
 	output.gender = cov>=min_cov ? "male" : "female";
+	return output;
+}
+
+GenderEstimate Statistics::genderDepthX(QString bam_file, QString roi, double min_ratio_female, int threads, const QString &ref_file)
+{
+	GenderEstimate output;
+
+	//load target region
+	BedFile reg;
+	reg.load(roi, false, false);
+
+	//determine depth for target region
+	Statistics::avgCoverage(reg, bam_file, 20, threads, 2, ref_file, false);
+
+	//calcualte ratio
+	QVector<double> depth_auto;
+	QVector<double> depth_chrx;
+	for (int i=0; i<reg.count(); ++i)
+	{
+		const BedLine& line = reg[i];
+
+		bool ok = false;
+		double depth = line.annotations()[0].toDouble(&ok);
+		if (!ok) continue;
+
+		if (line.chr().isAutosome())
+		{
+			depth_auto << depth;
+		}
+		else if (line.chr().isX())
+		{
+			depth_chrx << depth;
+		}
+	}
+
+	//check we have enough regions each
+	if (depth_auto.count()<10 || depth_chrx.count()<10)
+	{
+		output.gender = "unknown (too few target regions on autosomes/chrX)";
+		return output;
+	}
+	output.add_info << KeyValuePair("regs_chx", QString::number( depth_chrx.count()));
+	output.add_info << KeyValuePair("regs_auto", QString::number(depth_auto.count()));
+
+	//calcaulate ratio of median cov
+	std::sort(depth_auto.begin(), depth_auto.end());
+	double cov_auto = BasicStatistics::median(depth_auto);
+	std::sort(depth_chrx.begin(), depth_chrx.end());
+	double cov_chrx = BasicStatistics::median(depth_chrx);
+
+	//check that we have coverage
+	if (cov_auto==0 || cov_chrx==0)
+	{
+		output.gender = "unknown (average coverage on autosomes/chrX is zero)";
+		return output;
+	}
+
+	double ratio = cov_chrx/cov_auto;
+	output.add_info << KeyValuePair("cov_chrx", QString::number(cov_chrx, 'f', 2));
+	output.add_info << KeyValuePair("cov_auto", QString::number(cov_auto, 'f', 2));
+	output.add_info << KeyValuePair("ratio_chrx_auto", QString::number(ratio, 'f', 2));
+	output.gender = ratio>=min_ratio_female ? "female" : "male";
+
 	return output;
 }
 

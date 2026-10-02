@@ -1,20 +1,11 @@
 #ifndef SERVERCONTROLLER_H
 #define SERVERCONTROLLER_H
 
-
 #include "Log.h"
-#include "VariantList.h"
 #include "HttpResponse.h"
 #include "HttpRequest.h"
-#include "EndpointManager.h"
 #include "FastFileInfo.h"
-
-
-struct SampleMetadata
-{
-	SampleHeaderInfo header;
-	AnalysisType type;
-};
+#include "FileLocation.h"
 
 class ServerController
 {
@@ -37,6 +28,8 @@ public:
 	static HttpResponse serveTempUrl(const HttpRequest& request);
 	/// Returns a location object for a file based on its type
 	static HttpResponse locateFileByType(const HttpRequest& request);
+	/// Refreshes lifetimes for all URLs related to the given processed sample
+	static HttpResponse prolongUrl(const HttpRequest& request);
 	/// Returns the location of the processed sample
     static HttpResponse getProcessedSamplePath(const HttpRequest& request);
 	/// Checks every processed sample folder inside the given project folder: if a processed sample has any files (needed to handle project folder change)
@@ -53,8 +46,6 @@ public:
 	static HttpResponse getAnalysisJobLog(const HttpRequest& request);
 	/// Saves changes to a GSvar file
 	static HttpResponse saveProjectFile(const HttpRequest& request);
-	/// Saves qbic files in the folder on the server
-	static HttpResponse saveQbicFiles(const HttpRequest& request);
 	/// Uploads a file to the sample folder (via multipart form POST request)
 	static HttpResponse uploadFile(const HttpRequest& request);
 	/// Uploads a VCF file, annotates it, and converts into GSvar
@@ -120,7 +111,7 @@ private:
     static QString getProcessedSampleFile(int ps_id, const PathType& type, const QString& token);
     /// Returns a temporary URL for a file
 	static QString createTempUrl(const QString& file, const QString& token);
-    static QString createTempUrl(FastFileInfo& file_info, const QString& token);
+	static QString createTempUrl(FastFileInfo& file_info, const QString& token, bool id_as_ps_folder = false);
     /// Returns a temporary URL wihtout a parameters (e.g. ?token=123)
     static QString stripParamsFromTempUrl(const QString& url);
 

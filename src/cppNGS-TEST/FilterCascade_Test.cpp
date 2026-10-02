@@ -5,6 +5,22 @@ TEST_CLASS(FilterCascade_Test)
 private:
 
 	/********************************************* Filter factory *********************************************/
+	TEST_METHOD(FilterResult_removeFlagged_BedpeFile)
+	{
+		BedpeFile svs;
+		svs.append(BedpeLine("chr1", 10, 11, "chr1", 20, 21, StructuralVariantType::DEL, QByteArrayList()));
+		svs.append(BedpeLine("chr2", 30, 31, "chr2", 40, 41, StructuralVariantType::DUP, QByteArrayList()));
+		svs.append(BedpeLine("chr3", 50, 51, "chr3", 60, 61, StructuralVariantType::INV, QByteArrayList()));
+
+		FilterResult result(3);
+		result.flags()[0] = false;
+		result.flags()[2] = false;
+		result.removeFlagged(svs);
+
+		I_EQUAL(svs.count(), 1);
+		S_EQUAL(svs[0].chr1().strNormalized(true), "chr2");
+		I_EQUAL(result.countPassing(), 1);
+	}
 
 	TEST_METHOD(FilterFactory_filterNames)
 	{

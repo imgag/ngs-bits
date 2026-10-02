@@ -9,7 +9,7 @@
 #include "Exceptions.h"
 #include "Settings.h"
 #include "IgvSessionManager.h"
-#include "HttpHandler.h"
+#include "HttpRequestHandler.h"
 #include "ClientHelper.h"
 #include "GenLabDB.h"
 #include "GSvarHelper.h"
@@ -46,7 +46,8 @@ void AnalysisDataController::clear()
 
 	GlobalServiceProvider::clearFileLocationProvider();
 
-	IgvSessionManager::get(0).setInitialized(false);
+	//mark IGV as not initialized
+	if (IgvSessionManager::count()>0) IgvSessionManager::get(0).setInitialized(false);
 
 	filename_ = "";
 	Settings::setPath("path_variantlists", "");
@@ -401,6 +402,13 @@ QList<QPair<Log::LogLevel, QString>> AnalysisDataController::checkProcessedSampl
 		{
 			issues << qMakePair(Log::LOG_WARNING, "The processed sample " + ps + " is scheduled for resequencing!");
 		}
+
+		//check for non-tansferable variants:
+		if (db.getValue("SELECT COUNT(id) FROM report_configuration_failed_transfer WHERE status='open' AND processed_sample_id=" + ps_id).toInt() > 0)
+		{
+			issues << qMakePair(Log::LOG_WARNING, "The processed sample " + ps + " contains non-transferable variants from a previous report configuration with status 'open'!<BR>"
+									+ "    (see ProcessedSample tab -> report configuration for details)");
+		}
 	}
 
 	return issues;
@@ -508,11 +516,11 @@ void AnalysisDataController::storeSmallVariantList()
 			add_headers.insert("Content-Type", "application/json");
 			add_headers.insert("Content-Length", QByteArray::number(json_doc.toJson().size()));
 
-			QString reply = HttpHandler(true).put(
+			QString reply = HttpRequestHandler().put(
 				ClientHelper::serverApiUrl() + "project_file?ps_url_id=" + ps_url_id + "&token=" + LoginManager::userToken(),
 				json_doc.toJson(),
 				add_headers
-				);
+				).body;
 		}
 		catch (Exception& e)
 		{
@@ -598,13 +606,14 @@ void AnalysisDataController::storeGermlineReportConfig()
 		return;
 	}
 
-	//check if config exists and not edited by other user
+	//check if config in NGSD was modified since it was loaded
 	int conf_id = db.reportConfigId(processed_sample_id);
 	if (conf_id!=-1)
 	{
 		QSharedPointer<ReportConfiguration> report_config = db.reportConfig(conf_id, variants_, cnvs_, svs_, repeat_expansions_);
-		if (report_config->lastUpdatedBy()!="" && report_config->lastUpdatedBy()!=LoginManager::userName())
+		if (report_config->lastUpdatedAt()!=germline_report_settings_.report_config->lastUpdatedAt())
 		{
+			THROW(ProgrammingException, "Saving report config while another one exists is not fully implemented yet!");
 			// TODO
 			// if (QMessageBox::question(this, "Storing report configuration", report_config->history() + "\n\nDo you want to override it?")==QMessageBox::No)
 			{
@@ -616,9 +625,9 @@ void AnalysisDataController::storeGermlineReportConfig()
 	//store
 	try
 	{
-		germline_report_settings_.report_config.data()->blockSignals(true); //block signals - otherwise the variantsChanged signal is emitted and storeGermlineReportConfig is called again, which leads to hanging of the application because of database locks
+		//block signals - otherwise the variantsChanged signal is emitted and storeGermlineReportConfig is called again, which leads to hanging of the application because of database locks
+		const QSignalBlocker signal_blocker(germline_report_settings_.report_config.data());
 		db.setReportConfig(processed_sample_id, germline_report_settings_.report_config, variants_, cnvs_, svs_, repeat_expansions_);
-		germline_report_settings_.report_config.data()->blockSignals(false);
 	}
 	catch (Exception& e)
 	{
@@ -2180,13 +2189,6 @@ void AnalysisDataController::generateSomaticReport(QString filepath)
 	report.storeRtf(temp_filename);
 	Helper::moveFile(temp_filename, filepath);
 	Log::perf("Generating somatic report RTF took ", timer);
-
-	//Generate files for QBIC upload
-	timer.start();
-	QString path = getMainSampleName() + "-" + getNormalSampleName();
-	if (GlobalServiceProvider::fileLocationProvider().isLocal()) path = Settings::string("qbic_data_path") + "/" + path;
-	report.storeQbicData(path);
-	Log::perf("Generating somatic report QBIC data took ", timer);
 }
 
 //transforms png data into list of tuples (png data in hex format, width, height)
@@ -2198,7 +2200,7 @@ QList<RtfPicture> AnalysisDataController::pngsFromFiles(QStringList files)
 		QImage pic;
 		if (path.startsWith("http", Qt::CaseInsensitive))
 		{
-			QByteArray response = HttpHandler(true).get(path);
+			QByteArray response = HttpRequestHandler().get(path).body;
 			if (!response.isEmpty()) pic.loadFromData(response);
 		}
 		else
@@ -3366,41 +3368,55 @@ double AnalysisDataController::calcMendelianErrorRate(int& used, int& errors) co
 
 	int i_qual = variants_.annotationIndexByName("quality");
 
-	used = 0;
 	errors = 0;
+	used = 0;
+
 	for (int i=0; i<variants_.count(); ++i)
 	{
 		const Variant& v = variants_[i];
+
+		//only autosomes
 		if (!v.chr().isAutosome()) continue;
 
-		//remove no genotyping
+		//skip InDels (too many mendelian errors for ONT)
+		if (!v.isSNV()) continue;
+
+		//skip variant with filter entry
+		if (!v.filters().isEmpty()) continue;
+
+		//skip variant without genotyping
 		QString geno_c = v.annotations()[i_c];
 		QString geno_f = v.annotations()[i_f];
 		QString geno_m = v.annotations()[i_m];
 		if (geno_c=="n/a" || geno_f=="n/a" || geno_m=="n/a") continue;
 
-		//remove filter entry
-		if (!v.filters().isEmpty()) continue;
-
-		//remove low depth
+		//skip low depth loci and mosaic variant calls
 		bool low_depth = false;
+		bool mosaic_call = false;
 		QByteArrayList entries = v.annotations()[i_qual].split(';');
 		foreach(const QByteArray& entry, entries)
 		{
-			if (!entry.startsWith("DP=")) continue;
-			foreach(const QByteArray& value, entry.mid(3).split(','))
+			if (entry.startsWith("DP="))
 			{
-				if (value.toInt()<20) low_depth = true;
+				foreach(const QByteArray& value, entry.mid(3).split(','))
+				{
+					if (value.toInt()<20) low_depth = true;
+				}
+			}
+			if (entry.startsWith("CT="))
+			{
+				if (entry.contains("MO")) mosaic_call = true;
 			}
 		}
 		if (low_depth) continue;
+		if (mosaic_call) continue;
 
 		++used;
 
 		if ((geno_c=="wt" && (geno_f=="hom" || geno_m=="hom")) ||
-			(geno_c=="hom" && (geno_f=="wt" || geno_m=="wt")) ||
-			(geno_c!="hom" && (geno_f=="hom" && geno_m=="hom")) ||
-			(geno_c!="wt" && (geno_f=="wt" && geno_m=="wt")))
+				(geno_c=="hom" && (geno_f=="wt" || geno_m=="wt")) ||
+				(geno_c!="hom" && (geno_f=="hom" && geno_m=="hom")) ||
+				(geno_c!="wt" && (geno_f=="wt" && geno_m=="wt")))
 		{
 			++errors;
 			//qDebug() << v.toString() << geno_c << geno_f << geno_m << entries.join(" ");
@@ -3408,7 +3424,7 @@ double AnalysisDataController::calcMendelianErrorRate(int& used, int& errors) co
 	}
 
 	double percentage = 100.0 * errors / used;
-	qDebug() << used << errors << percentage;
+	qDebug() << "mendelian error rate (SNPs on autosomes without filter entry and with 20x cov): " << percentage << " (" << errors << "/" << used << ")" << Qt::endl;
 
 	return percentage;
 }

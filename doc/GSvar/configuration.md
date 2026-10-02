@@ -100,6 +100,48 @@ Filter names and parameters are described [here](../tools/SvFilterAnnotations.md
 
 ## Other files
 
+### GSvar_qc_cutoffs.xml
+
+This file stores rules used to determine sample quality. It uses XML, which simplifies rule validation and editing.
+
+The corresponding XML schema is located at `cppNGS/Resources/qc_rules_schema.xsd`. Whenever GSvar reads the rules file, its contents are validated against this schema. If validation fails (e.g. due to invalid XML structure, missing attributes, or incorrect data types), the user is notified.
+
+#### Structure
+
+* `SysTypeRules` define QC rules based on the processing system type (e.g. WGS, WES, RNA, cfDNA).
+* `SysNameRules` define QC rules for a specific processing system name.
+* The `tumor` attribute indicates whether the rules apply to tumor samples (`true`) or non-tumor samples (`false`).
+* Rules are defined inside `TermRules`, where `term_name` corresponds to the human-readable name of a QC metric.
+* `operation` – comparison operator (`less than`, `less equal`, `greater than`, `greater equal`)
+* `cutoff` – threshold value (`double`)
+* `result` – QC classification (`good`, `medium`, `bad`)
+
+#### Modifying Existing Thresholds
+
+To change a QC threshold, edit the `cutoff` value of the corresponding `<Rule>`.
+
+Example:
+
+```xml
+<Rule operation="greater than" cutoff="95.0" result="good"/>
+```
+
+Change `95.0` to the desired threshold.
+
+#### Adding a New QC Metric
+
+Add a new `TermRules` block inside the appropriate `SysTypeRules` or `SysNameRules` section.
+
+Example:
+
+```xml
+<TermRules term_name="new metric">
+    <Rule operation="less than" cutoff="10.0" result="bad"/>
+    <Rule operation="greater equal" cutoff="10.0" result="good"/>
+</TermRules>
+```
+
+
 ### GSvar_special_regions.tsv
 
 This file contains special regions for sub-panel design.

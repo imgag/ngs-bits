@@ -53,9 +53,6 @@ void SvSearchWidget::search()
 
 	try
 	{
-		//not for restricted users
-		LoginManager::checkRoleNotIn(QStringList{"user_restricted"});
-
 		// SV type/table
 		StructuralVariantType type = BedpeFile::stringToType(ui_.type->currentText().toUtf8());
 		QString sv_table = db_.svTableName(type);

@@ -10,6 +10,7 @@
 #include "ChainFileReader.h"
 #include "Log.h"
 #include "GlobalServiceProvider.h"
+#include "QcRuleMatcher.h"
 #include <QDir>
 #include <QMessageBox>
 #include <QStandardPaths>
@@ -88,33 +89,32 @@ const QMap<QByteArray, QByteArrayList>& GSvarHelper::relevantTranscripts(bool re
 	static QMap<QByteArray, QByteArrayList> output;
 	static bool initialized = false;
 
-	if (LoginManager::active())
+	//forced reload
+	if (reload_preferred_transcripts)
 	{
 		NGSD db;
-		if (!initialized)
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT g.symbol, pt.name FROM gene g, gene_transcript gt, preferred_transcripts pt WHERE g.id=gt.gene_id AND gt.name=pt.name");
+		while(query.next())
 		{
+			QByteArray gene = query.value(0).toByteArray().trimmed();
+			QByteArray transcript = query.value(1).toByteArray().trimmed();
+			if (!output.contains(gene) || !output[gene].contains(transcript))
+			{
+				output[gene].append(transcript);
+			}
+		}
+	}
+
+	if (!initialized && LoginManager::active())
+	{
+			NGSD db;
 			output = db.relevantTranscripts();
 
 			//NGSDCacheInitializer not finished > abort
 			if (output.isEmpty()) return output;
 
 			initialized = true;
-		}
-
-		if (reload_preferred_transcripts)
-		{
-			SqlQuery query = db.getQuery();
-			query.exec("SELECT g.symbol, pt.name FROM gene g, gene_transcript gt, preferred_transcripts pt WHERE g.id=gt.gene_id AND gt.name=pt.name");
-			while(query.next())
-			{
-				QByteArray gene = query.value(0).toByteArray().trimmed();
-				QByteArray transcript = query.value(1).toByteArray().trimmed();
-				if (!output.contains(gene) || !output[gene].contains(transcript))
-				{
-					output[gene].append(transcript);
-				}
-			}
-		}
 	}
 
 	return output;
@@ -209,123 +209,19 @@ void GSvarHelper::colorGeneItem(QTableWidgetItem* item, const GeneSet& genes)
 	}
 }
 
-bool GSvarHelper::colorQcItem(QTableWidgetItem* item, const QString& accession, const QString& sys_type, const QString& gender)
+void GSvarHelper::colorQcItem(QTableWidgetItem* item, const QString& qc_class)
 {
-	//init
-	static QColor orange = QColor(255,150,0,125);
 	static QColor red = QColor(255,0,0,125);
+	static QColor orange = QColor(255,150,0,125);
 
-	//check that value is numeric
-	bool ok = false;
-	double value = item->text().toDouble(&ok);
-	if (!ok) return false;
-
-	//determine color
-	QColor* color = nullptr;
-	if (accession=="QC:2000014") //known variants %
+	if (qc_class=="bad")
 	{
-		if (value<95) color = &orange;
-		if (value<90) color = &red;
+		item->setBackground(QBrush(red));
 	}
-	else if (accession=="QC:2000025") //avg depth
+	if (qc_class=="medium")
 	{
-		if (sys_type=="WGS")
-		{
-			if (value<35) color = &orange;
-			if (value<30) color = &red;
-		}
-		else if (sys_type=="lrGS")
-		{
-			if (value<30) color = &orange;
-			if (value<25) color = &red;
-		}
-		else
-		{
-			if (value<80) color = &orange;
-			if (value<50) color = &red;
-		}
+		item->setBackground(QBrush(orange));
 	}
-	else if (accession=="QC:2000027") //cov 20x
-	{
-		if (sys_type=="WGS")
-		{
-			if (value<99) color = &orange;
-			if (value<95) color = &red;
-		}
-		else if (sys_type=="lrGS")
-		{
-			if (value<95) color = &orange;
-			if (value<85) color = &red;
-		}
-		else
-		{
-			if (value<95) color = &orange;
-			if (value<90) color = &red;
-		}
-	}
-	else if (accession=="QC:2000051") //AF deviation
-	{
-		if (value>3) color = &orange;
-		if (value>6) color = &red;
-	}
-	else if(accession=="QC:2000045") //known somatic variants percentage
-	{
-		if (value>4) color = &orange;
-		if (value>5) color = &red;
-	}
-	else if(accession=="QC:2000139") //chrY/chrX read ratio
-	{
-		if (gender=="female" && value>0.02) color = &orange;
-	}
-	else if (accession=="QC:2000023") //insert size
-	{
-		if (value<190) color = &orange;
-		if (value<150) color = &red;
-	}
-	else if (accession=="QC:2000113") //CNV count
-	{
-		if (sys_type=="WGS")
-		{
-			if (value>2500 || value<500) color = &orange;
-			if (value>8000) color = &red;
-		}
-		if (value<1) color = &red;
-	}
-	else if (accession=="QC:2000024") //duplicate %
-	{
-		if (value>25) color = &orange;
-		if (value>35) color = &red;
-	}
-	else if (accession=="QC:2000021") //on target %
-	{
-		if (value<50) color = &orange;
-		if (value<25) color = &red;
-	}
-	else if (accession=="QC:2000071") //target region read depth 2-fold duplication
-	{
-		if (value<1000) color = &orange;
-		if (value<500) color = &red;
-	}
-	else if (accession=="QC:2000083") //cfDNA-tumor correlation
-	{
-		if (value<0.9) color = &orange;
-		if (value<0.75) color = &red;
-	}
-	else if (accession=="QC:2000131")// N50 value
-	{
-		if (sys_type=="lrGS")
-		{
-			if (value<10000) color = &orange;
-		}
-	}
-
-	//set color
-	if (color!=nullptr)
-	{
-        item->setBackground(QBrush(QColor(*color)));
-	}
-
-	return color!=nullptr;
 }
 
 void GSvarHelper::limitLines(QLabel* label, QString text, int max_lines)
@@ -493,6 +389,13 @@ bool GSvarHelper::queueSampleAnalysis(AnalysisType type, const QList<AnalysisJob
 	if (!LoginManager::active())
 	{
 		QMessageBox::warning(parent, "No access to the NGSD", "You need access to the NGSD to queue a anlysis!");
+		return false;
+	}
+
+	//check user can perform this action
+	if (!LoginManager::userCanPerformAction(ActionPermission::START_ANALYSIS_JOBS))
+	{
+		QMessageBox::information(parent, "Acces denied", "You do not have permissions to start analysis jobs!");
 		return false;
 	}
 
@@ -851,4 +754,43 @@ QString GSvarHelper::appPathForTemplate(QString path)
         }
     }
 	return path;
+}
+
+QcRuleMatcher GSvarHelper::qcRuleMatcher()
+{
+	return QcRuleMatcher(QApplication::applicationDirPath() + QDir::separator() + "GSvar_qc_cutoffs.xml");
+}
+
+QString GSvarHelper::setQuality(QStringList ps_ngsd_ids)
+{
+	QcRuleMatcher qc_rule_matcher = GSvarHelper::qcRuleMatcher();
+	int good_count = 0;
+	int medium_count = 0;
+	int bad_count = 0;
+	int n_a_count = 0;
+	int no_rules_count = 0;
+
+	NGSD db;
+	SqlQuery query = db.getQuery();
+	query.exec("SELECT ps.id, sys.name_short, sys.type, s.tumor FROM sample s, processed_sample ps, processing_system sys WHERE ps.sample_id=s.id AND ps.processing_system_id=sys.id AND ps.id in ("+ps_ngsd_ids.join(", ")+")");
+	while (query.next())
+	{
+		QString ps_id = query.value("id").toString();
+		QCCollection qc_data = db.getQCData(ps_id);
+		QString qc_class = qc_rule_matcher.evaluate(qc_data, query.value("name_short").toString(), query.value("type").toString(), query.value("tumor").toBool());
+		if (qc_class == "good") good_count++;
+		if (qc_class == "medium") medium_count++;
+		if (qc_class == "bad") bad_count++;
+		if (qc_class == "n/a") n_a_count++;
+		if (qc_class.isEmpty())
+		{
+			// no changes to the database needed
+			no_rules_count++;
+			continue;
+		}
+
+		SqlQuery update_query = db.getQuery();
+		update_query.exec("UPDATE processed_sample SET quality='"+qc_class+"' WHERE id='"+ps_id+"'");
+	}
+	return "The quality has been automatically set for " + QString::number(good_count+medium_count+bad_count) + " sample(s): \n good - " + QString::number(good_count) + "\n medium - " + QString::number(medium_count) + "\n bad - " +QString::number(bad_count) + "\n n/a - " +QString::number(n_a_count) +  + "\n no rules - " +QString::number(no_rules_count);
 }

@@ -45,19 +45,22 @@
    <item>
     <widget class="QTableWidget" name="table">
      <property name="editTriggers">
-      <set>QAbstractItemView::NoEditTriggers</set>
+      <set>QAbstractItemView::EditTrigger::NoEditTriggers</set>
      </property>
      <property name="alternatingRowColors">
       <bool>true</bool>
      </property>
      <property name="selectionMode">
-      <enum>QAbstractItemView::SingleSelection</enum>
+      <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
      </property>
      <property name="selectionBehavior">
-      <enum>QAbstractItemView::SelectRows</enum>
+      <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
      </property>
      <property name="cornerButtonEnabled">
       <bool>false</bool>
+     </property>
+     <property name="rowCount">
+      <number>0</number>
      </property>
      <attribute name="horizontalHeaderVisible">
       <bool>true</bool>
@@ -65,16 +68,6 @@
      <attribute name="verticalHeaderVisible">
       <bool>true</bool>
      </attribute>
-     <row>
-      <property name="text">
-       <string>bla</string>
-      </property>
-     </row>
-     <row>
-      <property name="text">
-       <string>bli</string>
-      </property>
-     </row>
      <column>
       <property name="text">
        <string>lrGS</string>

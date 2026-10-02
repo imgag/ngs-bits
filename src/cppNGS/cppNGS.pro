@@ -62,6 +62,7 @@ SOURCES += BedFile.cpp \
     VariantType.cpp \
     SomaticCnvInterpreter.cpp \
     PrsTable.cpp \
+    QcRuleMatcher.cpp \
     RtfDocument.cpp \
     GenomeBuild.cpp \
     ChainFileReader.cpp \
@@ -70,7 +71,8 @@ SOURCES += BedFile.cpp \
     WorkerAverageCoverage.cpp \
     WorkerLowOrHighCoverage.cpp \
     PipelineSettings.cpp \
-    GffData.cpp
+    GffData.cpp \
+    VersatileOutStream.cpp
 
 HEADERS += BedFile.h \
     ArribaFile.h \
@@ -114,6 +116,7 @@ HEADERS += BedFile.h \
     VariantType.h \
     SomaticCnvInterpreter.h \
     PrsTable.h \
+    QcRuleMatcher.h \
     RtfDocument.h \
     Graph.h \
     GraphNode.h \
@@ -125,7 +128,8 @@ HEADERS += BedFile.h \
     WorkerAverageCoverage.h \
     WorkerLowOrHighCoverage.h \
     PipelineSettings.h \
-    GffData.h
+    GffData.h \
+    VersatileOutStream.h
 
 RESOURCES += \
     cppNGS.qrc

@@ -1,5 +1,6 @@
 #include "ui_GenomeVisualizationWidget.h"
 #include "GenomeVisualizationWidget.h"
+#include <QSignalBlocker>
 #include "BedFile.h"
 #include "GUIHelper.h"
 #include <QToolTip>
@@ -28,14 +29,15 @@ void GenomeVisualizationWidget::setGenomeData(QSharedPointer<GenomeData> genome_
     genome_data_ = genome_data;
 
     //init chromosome list (ordered correctly)
-    ui_->chr_selector->blockSignals(true);
-    ui_->chr_selector->clear();
-    foreach(const Chromosome& chr, genome_data_->genome().chromosomes())
-    {
-        valid_chrs_ << chr.str();
-    }
-    ui_->chr_selector->addItems(valid_chrs_);
-    ui_->chr_selector->blockSignals(false);
+	{//do not remove scope - needed by QSignalBlocker
+		const QSignalBlocker blocker(ui_->chr_selector);
+		ui_->chr_selector->clear();
+		foreach(const Chromosome& chr, genome_data_->genome().chromosomes())
+		{
+			valid_chrs_ << chr.str();
+		}
+		ui_->chr_selector->addItems(valid_chrs_);
+	}
 
 	//init gene and transcript list
     for(int i=0; i<genome_data_->transcripts().size(); ++i)
@@ -166,13 +168,15 @@ void GenomeVisualizationWidget::zoomOut()
 
 void GenomeVisualizationWidget::updateRegionWidgets(const BedLine& reg)
 {
-	ui_->chr_selector->blockSignals(true);
-	ui_->chr_selector->setCurrentText(reg.chr().strNormalized(true));
-	ui_->chr_selector->blockSignals(false);
+	{//do not remove scope - needed by QSignalBlocker
+		const QSignalBlocker blocker(ui_->chr_selector);
+		ui_->chr_selector->setCurrentText(reg.chr().strNormalized(true));
+	}
 
-	ui_->search->blockSignals(true);
-	ui_->search->setText(reg.toString(true));
-	ui_->search->blockSignals(false);
+	{//do not remove scope - needed by QSignalBlocker
+		const QSignalBlocker blocker(ui_->search);
+		ui_->search->setText(reg.toString(true));
+	}
 
 	ui_->label_region_size->setText(QString::number(reg.length()));
 }
@@ -181,4 +185,3 @@ void GenomeVisualizationWidget::updateCoordinateLabel(QString text)
 {
 	ui_->label_coordinate->setText(text);
 }
-

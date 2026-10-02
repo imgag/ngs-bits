@@ -24,15 +24,12 @@ public:
 
 	static void styleQualityLabel(QLabel* label, const QString& quality);
 
-public slots:
-    ///Loads information needed for the GUI
-    void delayedInitialization();
-
 signals:
 	void clearMainTableSomReport(QString ps_name);
 	void addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize);
 
 protected slots:
+	void delayedInitialization();
 	void updateGUI();
 	void updateQCMetrics();
 	void showPlot();
@@ -85,6 +82,7 @@ private:
 	Ui::ProcessedSampleWidget* ui_;
     DelayedInitializationTimer init_timer_;
 	QString ps_id_;
+	QString s_id_;
 
 	QString sampleName() const;
 	QString processedSampleName() const;

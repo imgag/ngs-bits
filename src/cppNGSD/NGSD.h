@@ -7,7 +7,6 @@
 #include <QTextStream>
 #include <QDateTime>
 #include <QRegularExpression>
-#include <QMutex>
 #include "VariantList.h"
 #include "BedFile.h"
 #include "Transcript.h"
@@ -29,6 +28,9 @@
 #include "TsvFile.h"
 
 const int MAX_VARIANT_SIZE = 500;
+
+class NGSDReferenceDataCache;
+class NGSDUserCache;
 
 ///Sample relation datastructure
 struct CPPNGSDSHARED_EXPORT SampleRelation
@@ -63,6 +65,27 @@ struct CPPNGSDSHARED_EXPORT TableFieldConstraints
 	QStringList valid_strings; //ENUM (from schema)
 	int max_length; //VARCHAR (from schema)
 	QRegularExpression regexp; //VARCHAR
+};
+
+/// User permission items (used in user_permissions table)
+enum AccessPermission
+{
+	PROJECT, // only a specific project
+	PROJECT_TYPE, // only specific types of projects
+	STUDY, // only a specific study
+	SAMPLE, // only a specific sample
+};
+
+/// converts a valid string into AccessPermission enum value
+CPPNGSDSHARED_EXPORT AccessPermission stringToAccessPermission(const QString& in);
+
+/// User action permission items (used in user_action_permissions table)
+enum ActionPermission
+{
+	CHANGE_NGSD_DATA, // abilty to change data in NGSD (comments, report-config, ...)
+	PERFORM_VARIANT_SEARCH, // ability to perform variant search
+	PERFORM_BURDEN_TEST, // ability to perform burden test
+	START_ANALYSIS_JOBS, // ability to start analysis jobs
 };
 
 ///General database field information.
@@ -300,7 +323,8 @@ struct CPPNGSDSHARED_EXPORT SampleDiseaseInfo
 struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 {
 	QString name;
-	QString processing_system;
+	QString processing_system; //long name
+	QString processing_system_short; //short name, used e.g. in file names
 	QString processing_system_type;
 	QString sequencer_type;
 	QString quality;
@@ -415,7 +439,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	PhenotypeList s_phenotypes;
 	QString s_tissue;
 	QString s_ancestry;
-	bool include_bad_quality_samples = true;
+	QStringList ps_quality = {"n/a", "good", "medium", "bad"};
 	bool include_tumor_samples = true;
 	bool include_germline_samples = true;
 	bool include_ffpe_samples = true;
@@ -431,6 +455,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	//filters processing system
 	QString sys_name;
 	QString sys_type;
+	QString sys_platform;
 
 	//filters sequencing run
 	QString r_name;
@@ -458,6 +483,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool add_call_details = false;
 	bool add_lab_columns = false;
 	bool add_study_column = false;
+	bool add_patient_id = false;
 };
 
 ///Meta data about somatic report configuration (e.g. creation/update, target bed file)
@@ -713,14 +739,16 @@ class CPPNGSDSHARED_EXPORT NGSD
 Q_OBJECT
 
 public:
-	///Default constructor that connects to the DB
-	NGSD(bool test_db=false, QString test_name_override="");
+	///Default constructor that connects to the DB. If @p open is false, the database connection is not opened. This can be useful if you just want to access the NGSD cache, but not execute any actual database queries (opening the database connect takes up to 0.3s).
+	NGSD(bool test_db=false, QString test_name_override="", bool open=true);
 	///Destructor.
 	~NGSD();
 	///Returns if the database connection is (still) open
 	bool isOpen() const;
 	///Returns if the database is a production database based on information in the table 'db_info'.
 	bool isProductionDb() const;
+	///Enables debuggins
+	void enableDebugging(bool enabled, double debug_min_s=-1) { debug_ = enabled; debug_min_s_ = debug_min_s; }
 
 	///Returns if the database is available (i.e. the credentials are in the settings file or the application is in client-server mode)
 	static bool isAvailable(bool test_db=false);
@@ -728,7 +756,7 @@ public:
 	///Returns the table list.
 	QStringList tables() const;
 	///Returns information about all fields of a table.
-	const TableInfo& tableInfo(const QString& table, bool use_cache = true) const;
+	const TableInfo& tableInfo(const QString& table) const;
 	///Checks if the value is valid for the table/field when used in an SQL query. Returns a non-empty error list in case it is not. 'check_unique' must not be used for existing entries.
 	QStringList checkValue(const QString& table, const QString& field, const QString& value, bool check_unique) const;
 	///Escapes SQL special characters in a text
@@ -767,13 +795,14 @@ public:
 	///Returns a SqlQuery object on the NGSD for custom queries.
 	SqlQuery getQuery() const
 	{
-		return SqlQuery(*db_);
+		if(!open_) THROW(DatabaseException, "Cannot execute query on NGSD instance with not opened database connection!");
+		return SqlQuery(*db_, debug_, debug_min_s_);
 	}
 	///Executes all queries from a text file.
 	void executeQueriesFromFile(QString filename);
 
 	///Returns all possible values for a enum column.
-	QStringList getEnum(QString table, QString column, bool use_cache=true) const;
+	QStringList getEnum(QString table, QString column) const;
 	///Checks if a table exists.
 	bool tableExists(QString table, bool throw_error_if_not_existing=true) const;
 	///Checks if a row the given id exists in the table.
@@ -793,7 +822,7 @@ public:
 	///Returns the gene ID, or -1 if no approved gene name could be found. Checks approved symbols, previous symbols and synonyms. Uses internal cache to speed up repeated queries of the same gene name.
 	int geneId(const QByteArray& gene);
 	///Returns the gene ID of the transcript, or -1 if no gene could be determined.
-	int geneIdOfTranscript(const QByteArray& name, bool throw_on_error=true, GenomeBuild build=GenomeBuild::HG38);
+	int geneIdOfTranscript(const QByteArray& name, bool throw_on_error=true);
 	///Returns the gene symbol for a gene ID. Throws a DatabaseException if the ID is not valid.
 	QByteArray geneSymbol(int id);
 	///Returns the HGNC identifier of a gene.
@@ -836,7 +865,7 @@ public:
 	/// The return_quality int is higher the higher the quality of the returned transcript is. Exact numbers may not be constant: preferred > MANE > canonical > longest coding , longest non-coding , not found
 	Transcript bestTranscript(int gene_id, const QList<VariantTranscript>& var_transcripts=QList<VariantTranscript>(), int *return_quality=nullptr);
 	///Return the transcript with the highest impact given the variant transcript impacts
-	Transcript highestImpactTranscript(const TranscriptList &transcripts, const QList<VariantTranscript> &var_transcripts);
+	static Transcript highestImpactTranscript(const TranscriptList &transcripts, const QList<VariantTranscript> &var_transcripts);
 	///Returns a list of the most relevant transcripts for the gene. The order is: preferred, MANE select, MANE plus clinical, Ensembl canonical. If none of those exist, the longest coding or longest transcript are used.
 	TranscriptList relevantTranscripts(int gene_id);
 	///Returns the map of gene symbol to relevant transcripts names. Relevant are preferred, MANE, Ensembl canonical. If non of them exst, the longest coding or longest transcript are used. Note: transcript names do not contain version numbers.
@@ -1025,12 +1054,14 @@ public:
 	///Sets the password for a NGSD user using a new random salt.
 	void setPassword(int user_id, QString password);
 	///Return a role for a given user.
-	QString getUserRole(int user_id);
+	QByteArray getUserRole(int user_id);
 
 	///Checks if the user has one of the given roles.
 	bool userRoleIn(QString user, QStringList roles);
 	///Checks if the user can access the processed sample. Use for users with role 'restricted_user' only, or it will be slow because the user role has to be checked every time. Uses caching for massive speed-up.
 	bool userCanAccess(int user_id, int ps_id);
+	///Returns the action permissions of a user. Action permissions can be restricted for users with role 'restricted_user' only.
+	QSet<ActionPermission> userActionPermissions(int user_id);
 
 	/*** Main NGSD functions ***/
 	///Search for processed samples
@@ -1115,6 +1146,9 @@ public:
 	QCCollection getQCData(const QString& processed_sample_id);
 	///Returns all values for a QC term (from sample of the same processing system)
 	QVector<double> getQCValues(const QString& accession, const QString& processed_sample_id);
+	///Return QC term name as text, based on its QCML_ID
+	QString getQCTermNameByAccession(const QString& accession);
+
 	///Returns KASP data. Throws a DatabaseException if no valid KASP was performed for the sample.
 	KaspData kaspData(const QString& processed_sample_id);
 
@@ -1131,6 +1165,8 @@ public:
 	int getSomaticViccId(const Variant& variant);
 	///Returns the VICC classification of a variant
 	SomaticViccData getSomaticViccData(const Variant& variant, bool throw_on_fail = true);
+	///Returns whether VICC classification data exists for a variant and writes it to output if present.
+	bool getSomaticViccData(const Variant& variant, SomaticViccData& output);
 	///Sets the VICC classification of a variant
 	void setSomaticViccData(const Variant& variant, const SomaticViccData& vicc_data, QString user_name);
 	///Deletes the VICC classification of a variant
@@ -1305,71 +1341,41 @@ public:
 	//clearCache() should only be called outside of NGSD for tests!
 	void clearCache();
 
-	///Clears only the user permissions part of the cache
-	void clearUserPermissionsCache();
+	///Clears user-specific caches (user roles, sample access permissions, actions permissions)
+	void clearUserCaches();
 
 signals:
 	void initProgress(QString text, bool percentage);
 	void updateProgress(int percentage);
 
-
-
 protected:
+	friend class NGSDReferenceDataCache;
+	friend class NGSDUserCache;
 	///Copy constructor "declared away".
 	NGSD(const NGSD&) = delete;
 	static QString escapeForSql(const QString& text);
 
 	///Returns the maxiumn allele frequency of a variant.
 	static double maxAlleleFrequency(const Variant& v, QList<int> af_column_index);
+	bool getSomaticViccDataByVariantId(const QString& variant_id, SomaticViccData& output);
 
 	///Returns the target region folder.
 	static QString getTargetFilePath();
 
 	///The database adapter
 	QSharedPointer<QSqlDatabase> db_;
+	//Use test database instead of production database
 	bool test_db_;
+	//Enable debugging (prints executed queries)
+	bool debug_;
+	double debug_min_s_;
+	//production cache=0, test cache=1, no cache=-1
+	int cache_context_;
+	//If database connection was actually opened in constructor.
+	bool open_;
 
-	///Caching functionality (static)
-	struct Cache
-	{
-		Cache();
-
-		//REMEMBER TO ADD ALL MEMBERS TO THE FUNCTION clearCache()!
-		QMap<QString, TableInfo> table_infos;
-		QHash<int, QSet<int>> same_samples;
-		QHash<int, QSet<int>> same_patients;
-		QHash<int, QSet<int>> related_samples;
-		GeneSet approved_gene_names;
-		QHash<QByteArray, int> gene2id;
-        QHash<int, QByteArray> id2gene;
-		QMap<QString, QStringList> enum_values;
-		QMap<QByteArray, QByteArray> non_approved_to_approved_gene_names;
-		QHash<int, Phenotype> phenotypes_by_id;
-		QHash<QByteArray, int> phenotypes_accession_to_id;
-        QHash<int, QList<QByteArray>> hpo_genes;
-        QHash<int, QList<int>> hpo_parent;
-		QMap<QString, SomaticGeneRole> gene_symbol_to_somatic_gene_role;
-		QMap<int, QByteArray> gene_id_to_hgnc;
-		QMap<QByteArray, int> hgnc_id_to_gene_id;
-
-		TranscriptList gene_transcripts;
-		ChromosomalIndex<TranscriptList> gene_transcripts_index;
-		QHash<int, int> gene_transcripts_id2index; //NGSD transcript id > index in 'gene_transcripts'
-		QHash<QByteArray, QSet<int>> gene_transcripts_symbol2indices; //gene symbol > indices in 'gene_transcripts'
-		QHash<QByteArray, int> gene_transcripts_name2id; //transcript name > transcript ID in NGSD
-
-		//gene expression
-		QMap<int, QByteArray> gene_expression_id2gene;
-		QMap<QByteArray, int> gene_expression_gene2id;
-
-        QMap<int, QSet<int>> user_can_access;
-	};
-	static Cache& getCache();
-	void initTranscriptCache();
-	void initGeneExpressionCache();
-
-private:
-	mutable QMutex cache_mutex_user_access_; //mutex for Cache::user_can_access
+	NGSDReferenceDataCache& referenceCache() const;
+	NGSDUserCache& userCache() const;
 };
 
 #endif // NGSD_H

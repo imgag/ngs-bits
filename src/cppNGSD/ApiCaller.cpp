@@ -17,7 +17,7 @@ QByteArray ApiCaller::get(QString api_path, RequestUrlParams url_params, HttpHea
 		if (needs_user_token) addUserTokenIfExists(url_params);
 		if (needs_db_token) addDbTokenIfExists(url_params);
 
-        return HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).get(ClientHelper::serverApiUrl() + api_path + QUrl(url_params.asString()).toEncoded(), headers).body;
+        return HttpRequestHandler().get(ClientHelper::serverApiUrl() + api_path + QUrl(url_params.asString()).toEncoded(), headers).body;
 	}
     catch (HttpException& e)
 	{
@@ -38,7 +38,7 @@ QByteArray ApiCaller::post(QString api_path, RequestUrlParams url_params, HttpHe
 		if (needs_user_token) addUserTokenIfExists(url_params);
 		if (needs_db_token) addDbTokenIfExists(url_params);
 
-        return HttpRequestHandler(QNetworkProxy(QNetworkProxy::NoProxy)).post(ClientHelper::serverApiUrl() + api_path + QUrl(url_params.asString()).toEncoded(), data, headers).body;
+        return HttpRequestHandler().post(ClientHelper::serverApiUrl() + api_path + QUrl(url_params.asString()).toEncoded(), data, headers).body;
 	}
     catch (HttpException& e)
 	{				

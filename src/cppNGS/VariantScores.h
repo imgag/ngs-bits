@@ -44,7 +44,7 @@ public:
 	static QString description(QString algorithm);
 
 	//Returns a variant scores. Throws an error if the input is invalid.
-	static Result score(QString algorithm, const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const Parameters& parameters);
+	static Result score(QString algorithm, const VariantList& variants, const QHash<Phenotype, BedFile>& phenotype_rois, const Parameters& parameters);
 
     static int annotate(VariantList& variants, const VariantScores::Result& result, bool add_explanations);
 
@@ -53,9 +53,9 @@ private:
 	static QList<Variant> loadBlacklist();
 	static QStringList prefilters(const Parameters& parameters);
 
-	static Result score_GSvar_v1(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const Parameters& parameters);
-	static Result score_GSvar_v2_dominant(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const Parameters& parameters);
-	static Result score_GSvar_v2_recessive(const VariantList& variants, QHash<Phenotype, BedFile> phenotype_rois, const Parameters& parameters);
+	static Result score_GSvar_v1(const VariantList& variants, const QHash<Phenotype, BedFile>& phenotype_rois, const Parameters& parameters);
+	static Result score_GSvar_v2_dominant(const VariantList& variants, const QHash<Phenotype, BedFile>& phenotype_rois, const Parameters& parameters);
+	static Result score_GSvar_v2_recessive(const VariantList& variants, const QHash<Phenotype, BedFile>& phenotype_rois, const Parameters& parameters);
 };
 
 //Helper struct for scoring

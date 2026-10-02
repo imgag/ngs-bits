@@ -1,7 +1,7 @@
 #include "TestFramework.h"
 #include "VersatileFile.h"
-#include <QNetworkProxyFactory>
 #include "Settings.h"
+#include <QNetworkProxy>
 
 TEST_CLASS(VersatileFile_Test)
 {
@@ -84,4 +84,23 @@ private:
 		S_EQUAL(entire_file.trimmed(), "##comment\r\n#header\r\nthis is a gzipped text file");
 		IS_TRUE(file.atEnd())
 	}
+
+
+	TEST_METHOD(local_gz_with_line_longer_than_buffer)
+	{
+		VersatileFile file(TESTDATA("data_in/VersatileFile_long_line.vcf.gz"));
+		I_EQUAL(file.mode(), VersatileFile::LOCAL_GZ);
+
+		file.open();
+		while(!file.atEnd())
+		{
+			QByteArray line = file.readLine(true);
+			if (line.startsWith("#")) continue;
+
+			IS_TRUE(line.startsWith("chr12\t2256047\t.\tC\t"));
+			IS_TRUE(line.endsWith("\tGT:DP:AF:GQ:PS\t./1:48:0.104:3:."));
+		}
+	}
+
+
 };

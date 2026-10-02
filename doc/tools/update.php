@@ -78,12 +78,18 @@ foreach($tools as $tool)
 {
 	//print tool name
 	$tools_done[] = $tool;
-	$exe = "{$dir}/../../bin/{$tool}";
+	$exe = realpath("{$dir}/../../")."/bin/{$tool}";
+	if (PHP_OS=="WINNT") $exe .= ".exe";
+	if (!file_exists($exe))
+	{
+		print "Tool missing - skipping it: $exe\n";
+		continue;
+	}
 	
 	//get help text
 	$help = array();
-	exec("$exe --help 2>&1", $help, $ret);
-	if ($ret!=0) trigger_error("Executing tool $exe failed: ".implode("\n", $help), E_USER_ERROR);
+	exec("$exe --help 2>&1", $help, $exit_code);
+	if ($exit_code!=0) trigger_error("Executing tool $exe failed with exit code $exit_code: ".implode("\n", $help), E_USER_ERROR);
 	
 	//store help text
 	$output = array();
@@ -95,8 +101,8 @@ foreach($tools as $tool)
 	
 	//get changelog text and prepare output
 	$change	= array();
-	exec("$exe --changelog 2>&1", $change, $ret);
-	if ($ret!=0) trigger_error("Executing tool $exe failed: ".implode("\n", $change), E_USER_ERROR);
+	exec("$exe --changelog 2>&1", $change, $exit_code);
+	if ($exit_code!=0) trigger_error("Executing tool $exe exit code $exit_code: ".implode("\n", $change), E_USER_ERROR);
 	//store change test
 	$output[] = "### $tool changelog";
 	for($i=0; $i<count($change);++$i)
@@ -115,10 +121,13 @@ foreach($tools as $tool)
 	else
 	{
 		$original = file($out, FILE_IGNORE_NEW_LINES);
+		$max_lines = max(count($output), count($original));
+		while(count($output)<$max_lines) $output[] = "";
+		while(count($original)<$max_lines) $original[] = "";
 		
 		//compare file content
 		$first_difference = true;
-		for($i=0;$i<count($original);++$i)
+		for($i=0;$i<$max_lines;++$i)
 		{
 			//skip matching lines
 			if($output[$i]==$original[$i]) continue;

@@ -84,9 +84,12 @@ public:
 		in_p->close();
 		out_p->close();
 
-		//Statistics output
-		QTextStream stream(stdout);
-        stream << "Variants from in removed: " << removed_count << Qt::endl;
+		//Statistics output (deactivated if streaming)
+		if (out != "")
+		{
+			QTextStream stream(stdout);
+			stream << "Variants from in removed: " << removed_count << Qt::endl;
+		}
 	}
 
 private:
