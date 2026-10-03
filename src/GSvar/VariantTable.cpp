@@ -300,7 +300,6 @@ void VariantTable::customContextMenu(QPoint pos)
 			SharedData::setTranscripts(NGSD().transcripts());
 		}
 		SharedData::setRegion(variant.chr(), variant.start(), variant.end());
-		widget->
 		auto dlg = GUIHelper::createDialog(widget, "GSviewer");
 		dlg->exec();
 	}
