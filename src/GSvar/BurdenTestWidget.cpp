@@ -1188,7 +1188,7 @@ int BurdenTestWidget::countOccurences(const QSet<int>& variant_ids, const QSet<i
 				if (gender != "male") continue;
 				Variant var = db_.variant(QString::number(variant_id));
 				if (!var.chr().isX()) continue;
-				BedFile par = NGSHelper::pseudoAutosomalRegion(GSvarHelper::build());
+				BedFile par = NGSHelper::pseudoAutosomalRegion();
 				if (!par.overlapsWith(var.chr(), var.start(), var.end())) continue;
 
 				//else: variant is kept since it is a het variant on the chr X of a male sample

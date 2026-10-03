@@ -8,3 +8,4 @@ Pheno 3, (3)	ALDH2	100650	12q24.12
 Pheno 4, 444444 (3)	ALDH2	100650	12q24.12
 Pheno 5, (3)	ALDH2	100650	12q24.12
 Pheno 6, 666666 (3)	ALDH2	123456	12q24.12
+[XG blood group system, Xg(a-) phenotype], 314700 (3)	XGR, XG	100678	Xp22.32

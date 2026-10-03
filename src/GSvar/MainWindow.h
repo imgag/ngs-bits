@@ -312,6 +312,10 @@ public slots:
 	void on_actionClearLogFile_triggered();
 	///Opens AppData folder of GSvar
 	void on_actionOpenGSvarDataFolder_triggered();
+	///Ping GSvar server
+	void on_actionPingGSvarServer_triggered();
+	///Ping NGSD server
+	void on_actionPingNgsdServer_triggered();
 
 	///Calculate gaps based on current target region filter
 	void calculateGapsByTargetRegionFilter();

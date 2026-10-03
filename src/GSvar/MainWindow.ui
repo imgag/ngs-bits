@@ -348,7 +348,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -380,6 +380,9 @@
      <addaction name="actionOpenGSvarDataFolder"/>
      <addaction name="separator"/>
      <addaction name="actionDetermineProxy"/>
+     <addaction name="separator"/>
+     <addaction name="actionPingGSvarServer"/>
+     <addaction name="actionPingNgsdServer"/>
     </widget>
     <addaction name="actionOpenDocumentation"/>
     <addaction name="actionChangeLog"/>
@@ -1519,6 +1522,16 @@
   <action name="actionAnalysisTimePlot">
    <property name="text">
     <string>Analysis time plot</string>
+   </property>
+  </action>
+  <action name="actionPingGSvarServer">
+   <property name="text">
+    <string>Ping GSvar server</string>
+   </property>
+  </action>
+  <action name="actionPingNgsdServer">
+   <property name="text">
+    <string>Ping NGSD</string>
    </property>
   </action>
  </widget>

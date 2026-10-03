@@ -13,9 +13,11 @@ public:
 
 protected slots:
 	void updatePlot();
+	void copyToClipboard();
 
 private:
 	Ui::AnalysisTimePlot ui_;
+	QString getSqlQuery(QString add_fields = QString());
 };
 
 #endif // ANALYSISTIMEPLOT_H

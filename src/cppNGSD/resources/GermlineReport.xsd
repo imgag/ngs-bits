@@ -1770,7 +1770,7 @@
 				</xs:element>
 				<xs:element name="ReportDocument" nillable="false">
 					<xs:annotation>
-						<xs:documentation>Complete HTML report - base64 encoded -with html header and footer</xs:documentation>
+						<xs:documentation>Complete HTML report - base64 encoded</xs:documentation>
 					</xs:annotation>
 					<xs:complexType>
 						<xs:simpleContent>
@@ -1791,7 +1791,7 @@
 				</xs:element>
 				<xs:element name="ReportDocumentPartMain" nillable="false">
 					<xs:annotation>
-						<xs:documentation>main part of the report - base64 encoded - without html header/footer</xs:documentation>
+						<xs:documentation>main part of the report - base64 encoded</xs:documentation>
 					</xs:annotation>
 					<xs:complexType>
 						<xs:simpleContent>
@@ -1812,7 +1812,7 @@
 				</xs:element>
 				<xs:element name="ReportDocumentPartGaps" nillable="false" minOccurs="0">
 					<xs:annotation>
-						<xs:documentation>gaps table part of the report - base64 encoded - without html header/footer</xs:documentation>
+						<xs:documentation>gaps table part of the report - base64 encoded </xs:documentation>
 					</xs:annotation>
 					<xs:complexType>
 						<xs:simpleContent>
@@ -1833,7 +1833,7 @@
 				</xs:element>
 				<xs:element name="ReportDocumentPartGenes" nillable="false" minOccurs="0">
 					<xs:annotation>
-						<xs:documentation>gene table part of the report - base64 encoded - without html header/footer</xs:documentation>
+						<xs:documentation>gene table part of the report - base64 encoded</xs:documentation>
 					</xs:annotation>
 					<xs:complexType>
 						<xs:simpleContent>
@@ -1854,7 +1854,7 @@
 				</xs:element>
 				<xs:element name="ReportDocumentPartPRS" nillable="false" minOccurs="0">
 					<xs:annotation>
-						<xs:documentation>PRS part of the report - base64 encoded - without html header/footer</xs:documentation>
+						<xs:documentation>PRS part of the report - base64 encoded</xs:documentation>
 					</xs:annotation>
 					<xs:complexType>
 						<xs:simpleContent>

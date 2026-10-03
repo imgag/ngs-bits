@@ -10,7 +10,6 @@
 #include <QTableWidgetItem>
 #include <QLabel>
 
-
 ///Helper class for GSvar (singleton)
 class GSvarHelper
 {
@@ -87,6 +86,9 @@ public:
 
 	//Returns a QC rule matcher
 	static QcRuleMatcher qcRuleMatcher();
+
+	//Automatically set quality. Returns a human-readable summary of the qualities set.
+	static QString setQuality(QStringList ps_ngsd_ids);
 
 protected:
 	GSvarHelper();

@@ -70,7 +70,8 @@ SOURCES += BedFile.cpp \
     WorkerAverageCoverage.cpp \
     WorkerLowOrHighCoverage.cpp \
     PipelineSettings.cpp \
-    GffData.cpp
+    GffData.cpp \
+    VersatileOutStream.cpp
 
 HEADERS += BedFile.h \
     Chromosome.h \
@@ -125,7 +126,8 @@ HEADERS += BedFile.h \
     WorkerAverageCoverage.h \
     WorkerLowOrHighCoverage.h \
     PipelineSettings.h \
-    GffData.h
+    GffData.h \
+    VersatileOutStream.h
 
 RESOURCES += \
     cppNGS.qrc

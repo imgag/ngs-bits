@@ -10,14 +10,21 @@ class CPPNGSDSHARED_EXPORT SqlQuery
 	: public QSqlQuery
 {
 public:
-		SqlQuery(QSqlDatabase db, bool debug=false);
+		SqlQuery(QSqlDatabase db, bool debug=false, double debug_min_s=-1);
 
 		void exec(const QString& query);
 		void prepare(const QString& query);
 		void exec();
+
+		//Returns the headers of the SQL query result
+		QStringList headers() const;
+		//Convert SQL query result to TSV text (without newlines). Headers can be replaced by
+		QStringList toTSV();
 	protected:
 		//Enable debugging (prints executed queries)
 		bool debug_;
+		//Only print queries that take as least the given time
+		double debug_min_s_ = -1;
 };
 
 #endif // SQLQUERY_H

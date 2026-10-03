@@ -1,4 +1,5 @@
 #include "FilterWidgetSV.h"
+#include <QSignalBlocker>
 #include "PhenotypeSelectionWidget.h"
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
@@ -81,9 +82,10 @@ QString FilterWidgetSV::filterFileName() const
 
 void FilterWidgetSV::reset(bool clear_roi)
 {
-	blockSignals(true);
+	{//do not remove scope - needed by QSignalBlocker
+		const QSignalBlocker blocker(this);
 	resetSignalsUnblocked(clear_roi);
-	blockSignals(false);
+	}
 
 	if (clear_roi) emit targetRegionChanged();
 }
@@ -382,9 +384,10 @@ void FilterWidgetSV::updateFilterName()
 
 void FilterWidgetSV::customFilterLoaded()
 {
-	ui_.filters->blockSignals(true);
+	{//do not remove scope - needed by QSignalBlocker
+		const QSignalBlocker blocker(ui_.filters);
 	ui_.filters->setCurrentIndex(0);
-	ui_.filters->blockSignals(false);
+	}
 
 	ui_.lab_modified->setHidden(false);
 

@@ -304,3 +304,13 @@ void GenomeVisualizationWidget::loadSession()
 
 	ui_->panel_manager->loadFromXml(root);
 }
+
+
+//TODO Marc - GSviewer:
+//- "visualaize" > show CRAM
+//- show GenCode primary only does nothing
+//- chr selection does not work
+//- search does not work
+//- gene track:
+//  - context menu to show cDNA and protein position
+//  - show AAs in transcripts if zoomed in enough

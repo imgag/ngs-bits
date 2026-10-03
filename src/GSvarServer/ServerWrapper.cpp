@@ -3,6 +3,7 @@
 #include "ServerWrapper.h"
 #include "SessionAndUrlBackupWorker.h"
 #include "QueuingEngineController.h"
+#include "ClinVarSubmissionStatusWorker.h"
 #include "SessionManager.h"
 #include "UrlManager.h"
 #include "FileMetaCache.h"
@@ -130,18 +131,19 @@ bool ServerWrapper::isRunning() const
 
 void ServerWrapper::updateClinVarSubmissionStatus()
 {
+	Log::info("Updating ClinVar submission status");
 	try
 	{
-		QPair<int,int> var_counts = NGSD().updateClinvarSubmissionStatus(false);
-		Log::info("The submission status of " + QString::number(var_counts.first) + " published varaints has been checked, " + QString::number(var_counts.second) + " NGSD entries were updated." );
+		ClinVarSubmissionStatusWorker *clinvar_worker = new ClinVarSubmissionStatusWorker();
+		background_task_pool_.start(clinvar_worker);
 	}
 	catch (DatabaseException& e)
 	{
-		Log::error("A database error has been detected while updating a ClinVar submission status: " + e.message());
+		Log::error("Database error while trying to update ClinVar submission status: " + e.message());
 	}
-	catch (Exception& e)
+	catch (...)
 	{
-		Log::error("An error has been detected while updating a ClinVar submission status: " + e.message());
+		Log::error("Unexpected error while trying to update ClinVar submission status");
 	}
 }
 

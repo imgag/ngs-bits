@@ -76,21 +76,21 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="0">
+      <item row="4" column="0">
        <widget class="QLabel" name="label_4">
         <property name="text">
          <string>Server:</string>
         </property>
        </widget>
       </item>
-      <item row="3" column="1">
+      <item row="4" column="1">
        <widget class="QComboBox" name="server">
         <property name="maxVisibleItems">
          <number>20</number>
         </property>
        </widget>
       </item>
-      <item row="4" column="0">
+      <item row="5" column="0">
        <widget class="QLabel" name="label">
         <property name="toolTip">
          <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;If checked, only samples for which the primary data analysis was done with DRAGEN are shown.&lt;br/&gt;Otherwise, only samples without DRAGEN analysis are shown.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
@@ -100,18 +100,18 @@
         </property>
        </widget>
       </item>
-      <item row="5" column="0">
+      <item row="6" column="0">
        <widget class="QLabel" name="label_3">
         <property name="toolTip">
-         <string>Normalize runtime by number of threads.</string>
+         <string>Multiply runtime by number of threads.</string>
         </property>
         <property name="text">
-         <string>min/threads:</string>
+         <string>min*threads:</string>
         </property>
        </widget>
       </item>
-      <item row="5" column="1">
-       <widget class="QCheckBox" name="min_per_threads">
+      <item row="6" column="1">
+       <widget class="QCheckBox" name="min_times_threads">
         <property name="text">
          <string/>
         </property>
@@ -148,7 +148,7 @@
         </property>
        </widget>
       </item>
-      <item row="4" column="1">
+      <item row="5" column="1">
        <widget class="QComboBox" name="dragen">
         <item>
          <property name="text">
@@ -165,6 +165,20 @@
           <string>without DRAGEN</string>
          </property>
         </item>
+       </widget>
+      </item>
+      <item row="3" column="0">
+       <widget class="QLabel" name="label_7">
+        <property name="text">
+         <string>Platform:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="1">
+       <widget class="QComboBox" name="platform">
+        <property name="maxVisibleItems">
+         <number>20</number>
+        </property>
        </widget>
       </item>
      </layout>
@@ -204,7 +218,7 @@
         <string/>
        </property>
        <property name="textInteractionFlags">
-        <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard</set>
+        <set>Qt::TextInteractionFlag::LinksAccessibleByMouse|Qt::TextInteractionFlag::TextSelectableByKeyboard|Qt::TextInteractionFlag::TextSelectableByMouse</set>
        </property>
       </widget>
      </item>
@@ -220,6 +234,17 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="copy_clipboard_btn">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="GSvar.qrc">
+         <normaloff>:/Icons/CopyClipboard.png</normaloff>:/Icons/CopyClipboard.png</iconset>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -247,6 +272,8 @@
    <header>QtCharts</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="GSvar.qrc"/>
+ </resources>
  <connections/>
 </ui>

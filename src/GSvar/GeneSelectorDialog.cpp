@@ -1,4 +1,5 @@
 #include "GeneSelectorDialog.h"
+#include <QSignalBlocker>
 #include "ui_GeneSelectorDialog.h"
 #include "Helper.h"
 #include "NGSD.h"
@@ -42,7 +43,7 @@ void GeneSelectorDialog::updateGeneTable()
 
 	//set cursor
 	QApplication::setOverrideCursor(Qt::BusyCursor);
-	ui->details->blockSignals(true); //otherwise itemChanged is emitted
+	QSignalBlocker details_blocker(ui->details); //otherwise itemChanged is emitted
 
 	//check for CN calling results
 	QStringList seg_files = GlobalServiceProvider::fileLocationProvider().getCnvCoverageFiles(false).filterById(sample_name_).asStringList();
@@ -188,7 +189,7 @@ void GeneSelectorDialog::updateGeneTable()
 
 	//reset cursor
 	QApplication::restoreOverrideCursor();
-	ui->details->blockSignals(false);
+	details_blocker.unblock();
 	updateSelectedGenesStatistics();
 }
 
@@ -318,7 +319,6 @@ void GeneSelectorDialog::updateError(QString title, QString text)
 	ui->details->clearContents();
 	ui->details->setRowCount(0);
 
-	//clear cursor/block
+	//clear cursor (signal blocking is owned by updateGeneTable)
 	QApplication::restoreOverrideCursor();
-	ui->details->blockSignals(false);
 }

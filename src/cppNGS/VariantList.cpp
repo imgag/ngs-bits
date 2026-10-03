@@ -757,15 +757,42 @@ int VariantList::addAnnotationIfMissing(QString name, QString description, QByte
 
 int VariantList::prependAnnotation(QString name, QString description, QByteArray default_value)
 {
-	annotations().prepend(VariantAnnotationHeader(name));
-	for (int i=0; i<variants_.count(); ++i)
-	{
-		variants_[i].annotations().prepend(default_value);
-	}
-
-	annotationDescriptions().prepend(VariantAnnotationDescription(name, description));
+	prependAnnotations(QList<VariantAnnotationDescription>{VariantAnnotationDescription(name, description)}, QByteArrayList{default_value});
 
 	return 0;
+}
+
+void VariantList::prependAnnotations(const QList<VariantAnnotationDescription>& descriptions, const QByteArrayList& default_values)
+{
+	if (descriptions.count()!=default_values.count())
+	{
+		THROW(ArgumentException, "Annotation descriptions and default values differ in count!");
+	}
+	if (descriptions.isEmpty()) return;
+
+	QList<VariantAnnotationHeader> headers;
+	headers.reserve(descriptions.count() + annotation_headers_.count());
+	for (const VariantAnnotationDescription& description : descriptions)
+	{
+		headers.append(VariantAnnotationHeader(description.name()));
+	}
+	headers.append(annotation_headers_);
+	annotation_headers_.swap(headers);
+
+	QList<VariantAnnotationDescription> new_descriptions;
+	new_descriptions.reserve(descriptions.count() + annotation_descriptions_.count());
+	new_descriptions.append(descriptions);
+	new_descriptions.append(annotation_descriptions_);
+	annotation_descriptions_.swap(new_descriptions);
+
+	for (Variant& variant : variants_)
+	{
+		QByteArrayList annotations;
+		annotations.reserve(default_values.count() + variant.annotations().count());
+		annotations.append(default_values);
+		annotations.append(variant.annotations());
+		variant.annotations().swap(annotations);
+	}
 }
 
 void VariantList::removeAnnotation(int index)
@@ -1031,24 +1058,23 @@ void VariantList::removeDuplicates()
 {
 	sort();
 
-	//remove duplicates (same chr, start, obs, ref) - avoid linear time remove() calls by copying the data to a new vector.
-	QVector<Variant> output;
-	output.reserve(variants_.count());
+	//remove duplicates (same chr, start, obs, ref) by compacting unique variants in place
+	int output_index = 0;
 	for (int i=0; i<variants_.count()-1; ++i)
 	{
 		int j = i+1;
 		if (variants_[i].chr()!=variants_[j].chr() || variants_[i].start()!=variants_[j].start() || variants_[i].obs()!=variants_[j].obs() || variants_[i].ref()!=variants_[j].ref())
 		{
-			output.append(variants_[i]);
+			if (output_index!=i) variants_[output_index] = std::move(variants_[i]);
+			++output_index;
 		}
 	}
 	if (!variants_.isEmpty())
 	{
-		output.append(variants_.last());
+		if (output_index!=variants_.count()-1) variants_[output_index] = std::move(variants_.last());
+		++output_index;
 	}
-
-	//swap the old and new vector
-	variants_.swap(output);
+	variants_.resize(output_index);
 }
 
 void VariantList::clear()

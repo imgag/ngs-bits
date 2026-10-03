@@ -504,8 +504,15 @@ void RepeatExpansionWidget::displayRepeats()
 		setCell(row_idx, "genotype CI", re.confidenceIntervals());
 
 		//local coverage
-		double coverage = Helper::toDouble(re.coverage(), "RE coverage");
-		setCell(row_idx, "locus coverage", QString::number(coverage, 'f', 2));
+		if (re.coverage() != "")
+		{
+			double coverage = Helper::toDouble(re.coverage(), "RE coverage");
+			setCell(row_idx, "locus coverage", QString::number(coverage, 'f', 2));
+
+		}
+		else setCell(row_idx, "locus coverage", ""); //special case for trgt (PacBio)
+
+
 
 		//reads flanking
 		setCell(row_idx, "reads flanking", re.readsFlanking());
@@ -531,6 +538,7 @@ void RepeatExpansionWidget::displayRepeats()
 
 		//additional annotations
 		setCell(row_idx, "overlapping insertions", re.overlappingInsertions().join(", "));
+		setCell(row_idx, "reads supporting", re.readsInRepeat());
 	}
 }
 
@@ -659,7 +667,7 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
         }
         if (!hpo_like_clause.isEmpty())
         {
-            QSqlQuery hpo_query = db.getQuery();
+			SqlQuery hpo_query = db.getQuery();
             hpo_query.exec("SELECT hpo_id, name FROM hpo_term WHERE " + hpo_like_clause);
 
             int hpo_terms_counter = -1;

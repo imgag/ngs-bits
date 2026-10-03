@@ -31,7 +31,7 @@ public:
 		addInt("min_mapq", "Minmum mapping quality to consider a read mapped.", true, 1);
 		addFlag("no_cont", "Disables sample contamination calculation, e.g. for tumor or non-human samples.");
 		addFlag("debug", "Enables verbose debug outout.");
-		addEnum("build", "Genome build used to generate the input (needed for WGS and contamination only).", true, QStringList() << "hg19" << "hg38" << "non_human", "hg38");
+		addEnum("build", "Genome build used to generate the input (needed for WGS and contamination only).", true, QStringList() << "hg38" << "non_human", "hg38");
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addFlag("cfdna", "Add additional QC parameters for cfDNA samples. Only supported mit '-roi'.");
 		addInfile("somatic_custom_bed", "Somatic custom region of interest (subpanel of actual roi). If specified, additional depth metrics will be calculated.", true, true);
@@ -110,7 +110,7 @@ public:
 			}
 			else
 			{
-				QString qc_region = QString("://resources/") + (build=="hg19" ? "hg19_439_omim_genes.bed" : "hg38_440_omim_genes.bed");
+				QString qc_region = QString("://resources/hg38_440_omim_genes.bed");
 				metrics = Statistics::mapping_wgs(in, qc_region, min_mapq, ref_file);
 			}
 
@@ -145,8 +145,7 @@ public:
 		QCCollection metrics_cont;
 		if (!getFlag("no_cont") && getEnum("build") != "non_human")
 		{
-			GenomeBuild build = stringToBuild(getEnum("build"));
-			metrics_cont = Statistics::contamination(build, in, ref_file, roi_file, debug, 20, 50, single_end);
+			metrics_cont = Statistics::contamination(in, ref_file, roi_file, debug, 20, 50, single_end);
             if (debug) debug_stream << "Performing contamination check took: " << Helper::elapsedTime(timer) << Qt::endl;
 		}
 

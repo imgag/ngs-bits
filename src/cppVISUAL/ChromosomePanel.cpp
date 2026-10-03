@@ -54,7 +54,7 @@ void ChromosomePanel::paintEvent(QPaintEvent* /*event*/)
 
 	painter.setRenderHint(QPainter::Antialiasing, true);
 
-	static BedFile bands = NGSHelper::cytoBands(GenomeBuild::HG38);
+	static BedFile bands = NGSHelper::cytoBands();
 	static bool sorted = false;
 	if (!sorted)
 	{

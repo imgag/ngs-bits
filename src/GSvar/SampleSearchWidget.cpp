@@ -26,6 +26,9 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	action = new QAction(QIcon(":/Icons/Comment.png"), "Add text to processed sample comment", this);
 	ui_.sample_table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(amendSampleComments()));
+	action = new QAction(QIcon(":/Icons/qc_check.png"), "Set quality automatically", this);
+	ui_.sample_table->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQualityAutomatically()));
 	action = new QAction(QIcon(":/Icons/Remove.png"), "Delete", this);
 	ui_.sample_table->addAction(action);
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(deleteSampleData()));
@@ -59,6 +62,10 @@ SampleSearchWidget::SampleSearchWidget(QWidget* parent)
 	ui_.sys_name->fill(db.createTable("processing_system", "SELECT id, name_manufacturer FROM processing_system"), true);
 	ui_.sys_type->addItem("");
 	ui_.sys_type->addItems(db.getEnum("processing_system", "type"));
+	QStringList values = db.getEnum("processing_system", "platform");
+	values.removeAll("n/a");
+	values.prepend("");
+	ui_.sys_platform->addItems(values);
 	//run
 	ui_.r_name->fill(db.createTable("sequencing_run", "SELECT id, name FROM sequencing_run"), true);
 	ui_.r_device_name->fill(db.createTable("device", "SELECT id, name FROM device"), true);
@@ -99,7 +106,12 @@ void SampleSearchWidget::search()
 		params.s_phenotypes = phenotypes_;
 		params.s_tissue = ui_.s_tissue->currentText();
 		params.s_ancestry = ui_.s_ancestry->currentText();
-		params.include_bad_quality_samples = ui_.s_bad_quality->isChecked();
+		QStringList ps_quality;
+		if (ui_.ps_qual_na->isChecked()) ps_quality << "n/a";
+		if (ui_.ps_qual_good->isChecked()) ps_quality << "good";
+		if (ui_.ps_qual_medium->isChecked()) ps_quality << "medium";
+		if (ui_.ps_qual_bad->isChecked()) ps_quality << "bad";
+		params.ps_quality = ps_quality;
 		params.include_tumor_samples = ui_.s_tumor->isChecked();
 		params.include_ffpe_samples = ui_.s_ffpe->isChecked();
 		params.include_scheduled_for_resequencing_samples = ui_.s_scheduled_for_resequencing->isChecked();
@@ -111,6 +123,7 @@ void SampleSearchWidget::search()
 
 		params.sys_name = ui_.sys_name->text();
 		params.sys_type = ui_.sys_type->currentText();
+		params.sys_platform = ui_.sys_platform->currentText();
 
 		params.r_name = ui_.r_name->text();
 		params.include_bad_quality_runs = ui_.r_bad_quality->isChecked();
@@ -150,6 +163,7 @@ void SampleSearchWidget::search()
 		params.add_call_details = ui_.add_call_details->isChecked();
 		params.add_lab_columns = ui_.add_lab_columns->isChecked();
 		params.add_study_column = ui_.add_study_column->isChecked();
+		params.add_patient_id = ui_.add_patient_id->isChecked();
 
 		NGSD db;
 		if (db.getUserRole(LoginManager::userId())=="user_restricted")
@@ -263,6 +277,18 @@ void SampleSearchWidget::amendSampleComments()
 	{
 		GUIHelper::showMessage("Add text to processed sample comment", e.message());
 	}
+}
+
+void SampleSearchWidget::setQualityAutomatically()
+{
+	QStringList ids;
+	foreach (int row, ui_.sample_table->selectedRows())
+	{
+		ids << ui_.sample_table->getId(row);
+	}
+	QString summary = GSvarHelper::setQuality(ids);
+	QMessageBox::information(this, "Setting quality automatically", summary);
+	search();
 }
 
 void SampleSearchWidget::queueAnalysis()

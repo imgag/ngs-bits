@@ -1,5 +1,6 @@
 #include "TestFrameworkNGS.h"
 #include "NGSD.h"
+#include "NGSDCache.h"
 #include "LoginManager.h"
 #include "SomaticXmlReportGenerator.h"
 #include "SomaticReportSettings.h"
@@ -13,9 +14,140 @@
 #include "RepeatLocusList.h"
 #include <QThread>
 
+
+//export transcript definition from NGSD - used to create test data for VariantHgvsAnnotator_Test
+void export_transcripts_from_ngsd()
+{
+	QTextStream stream(stdout);
+	NGSD db;
+	foreach(QString trans, QStringList() << "ENST00000649063")
+	{
+		stream << "\n####################################\n";
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT * FROM gene_transcript WHERE name='" + trans + "' AND source='ensembl'");
+		if (query.size()!=1)
+		{
+			stream << "Transcript " << trans << " not found in NGSD!\n";
+		}
+		while(query.next())
+		{
+			stream << "\t\tt.setGene(\"" << db.getValue("SELECT symbol FROM gene WHERE id="+query.value("gene_id").toString()).toString() << "\");\n";
+			stream << "\t\tt.setName(\"" << trans << "\");\n";
+			stream << "\t\tt.setVersion(" << query.value("version").toString() << ");\n";
+			stream << "\t\tt.setSource(Transcript::ENSEMBL);\n";
+			QString strand = (query.value("strand").toString()=="+" ? "PLUS" : "MINUS");
+			stream << "\t\tt.setStrand(Transcript::" << strand << ");\n";
+			stream << "\n";
+			stream << "\t\tBedFile regions;\n";
+
+			SqlQuery query2 = db.getQuery();
+			query2.exec("SELECT * FROM gene_exon WHERE transcript_id='" + query.value("id").toString() + "' ORDER BY start ASC");
+			while(query2.next())
+			{
+				stream << "\t\tregions.append(BedLine(\"chr" << query.value("chromosome").toString() << "\", " << query2.value("start").toString() << ", " << query2.value("end").toString() << "));\n";
+			}
+			QString start = query.value("start_coding").toString();
+			QString end = query.value("end_coding").toString();
+			if (strand=="MINUS") std::swap(start, end);
+			if (start==end)
+			{
+				stream << "\t\tt.setRegions(regions);\n";
+			}
+			else
+			{
+				stream << "\t\tt.setRegions(regions, " << start << ", " << end << ");\n";
+			}
+		}
+	}
+}
+
 TEST_CLASS(NGSD_Test)
 {
 private:
+	TEST_METHOD(constructor_failure_does_not_leak_connection)
+	{
+		const QStringList connections_before = QSqlDatabase::connectionNames();
+		IS_THROWN(ProgrammingException, NGSD failing_db(true, "missing_ngsd_settings_for_connection_cleanup_test"));
+		IS_TRUE(QSqlDatabase::connectionNames() == connections_before);
+	}
+
+	TEST_METHOD(test_and_production_caches_are_separate)
+	{
+		IS_TRUE(&NGSDReferenceDataCache::instance(1) != &NGSDReferenceDataCache::instance(0));
+		IS_TRUE(&NGSDUserCache::instance(0) != &NGSDUserCache::instance(1));
+	}
+
+	TEST_METHOD(dbtable_filtering)
+	{
+		auto create_table = []()
+		{
+			DBTable table;
+			table.setHeaders({"first", "second"});
+			for (const QStringList& values : {QStringList{"keep", "alpha"}, QStringList{"drop", "beta"}, QStringList{"keep", "gamma"}})
+			{
+				DBRow row;
+				for (const QString& value : values) row.addValue(value);
+				table.addRow(row);
+			}
+			return table;
+		};
+
+		DBTable table = create_table();
+		table.filterRows("keep");
+		I_EQUAL(table.rowCount(), 2);
+		S_EQUAL(table.row(0).value(1), "alpha");
+		S_EQUAL(table.row(1).value(1), "gamma");
+
+		table = create_table();
+		table.filterRowsByColumn(1, "beta");
+		I_EQUAL(table.rowCount(), 1);
+		S_EQUAL(table.row(0).value(0), "drop");
+
+		table = create_table();
+		table.filterRowsByColumn(1, QStringList{"alpha", "gamma"});
+		I_EQUAL(table.rowCount(), 2);
+		S_EQUAL(table.row(0).value(0), "keep");
+		S_EQUAL(table.row(1).value(1), "gamma");
+
+		table = create_table();
+		table.removeRows(QSet<int>{0, 2});
+		I_EQUAL(table.rowCount(), 1);
+		S_EQUAL(table.row(0).value(0), "drop");
+		S_EQUAL(table.row(0).value(1), "beta");
+
+		table = create_table();
+		table.removeColumns(QSet<int>{0});
+		I_EQUAL(table.columnCount(), 1);
+		S_EQUAL(table.headers().at(0), "second");
+		S_EQUAL(table.row(0).value(0), "alpha");
+		S_EQUAL(table.row(2).value(0), "gamma");
+	}
+
+	TEST_METHOD(cache_invalidation)
+	{
+		SKIP_IF_NO_TEST_NGSD();
+
+		NGSD db(true);
+		db.init();
+		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
+
+		//User caches remain stable until their normal-operation invalidation function is called.
+		const int user_id = db.userId("ahmustm1");
+		S_EQUAL(db.getUserRole(user_id), "user");
+		db.getQuery().exec("UPDATE user SET user_role='admin' WHERE id=" + QString::number(user_id));
+		S_EQUAL(db.getUserRole(user_id), "user");
+		db.clearUserCaches();
+		S_EQUAL(db.getUserRole(user_id), "admin");
+
+		//Reference caches can still be rebuilt by the explicitly test-only clear operation.
+		const int transcript_count = db.transcripts().count();
+		IS_TRUE(transcript_count>0);
+		db.getQuery().exec("UPDATE user SET user_role='user' WHERE id=" + QString::number(user_id));
+		db.clearCache();
+		I_EQUAL(db.transcripts().count(), transcript_count);
+		S_EQUAL(db.getUserRole(user_id), "user");
+	}
+
 	//Normally, one member is tested in one QT slot.
 	//Because initializing the database takes very long, most NGSD functionality is tested in one slot.
 	TEST_METHOD(main_tests)
@@ -143,10 +275,12 @@ private:
 		S_EQUAL(gene_app3[1].second, "REPLACED: QARS is a previous symbol");
 
 		//geneID
-		int gene_app_id = db.geneId("BRCA1");
-		I_EQUAL(gene_app_id, 1);
-		gene_app_id = db.geneId("BLABLA");
-		I_EQUAL(gene_app_id, -1);
+		I_EQUAL(db.geneId("BRCA1"), 1);
+		I_EQUAL(db.geneId("BrCa1"), 1); //wrong cases
+		I_EQUAL(db.geneId("BLABLA"), -1); //does not exist
+		I_EQUAL(db.geneId("SPG5C"), 652410); //alias for SPG7
+		I_EQUAL(db.geneId("COX2"), -1); //alias both for MT-CO2 and PTGS2
+		I_EQUAL(db.geneId("DAZ1"), 496483); //also listed as alias of SLC25A15, but ignored because current gene symbol
 
 		//geneHgncId
 		S_EQUAL(db.geneHgncId(433223), "HGNC:9605");
@@ -210,6 +344,8 @@ private:
 		I_EQUAL(sample_data.phenotypes.count(), 0);
 		IS_FALSE(sample_data.is_tumor);
 		IS_FALSE(sample_data.is_ffpe);
+		S_EQUAL(sample_data.sender, "Coriell");
+		S_EQUAL(sample_data.species, "human");
 		//second sample (tumor)
 		sample_id = db.sampleId("NA12345_01");
 		sample_data = db.getSampleData(sample_id);
@@ -238,6 +374,7 @@ private:
 		S_EQUAL(processed_sample_data.run_name, "#00372");
 		S_EQUAL(processed_sample_data.normal_sample_name, "");
 		S_EQUAL(processed_sample_data.processing_system, "HaloPlex HBOC v5");
+		S_EQUAL(processed_sample_data.processing_system_short, "hpHBOCv5");
 		S_EQUAL(processed_sample_data.processing_system_type, "Panel Haloplex");
 		S_EQUAL(processed_sample_data.processing_modus, "manual");
 		S_EQUAL(processed_sample_data.batch_number, "batch 17");
@@ -549,6 +686,10 @@ private:
 		I_EQUAL(db.geneIdOfTranscript("NIPA1_TR2"), 3);
 		I_EQUAL(db.geneIdOfTranscript("NON-CODING_TR1"), 4);
 		I_EQUAL(db.geneIdOfTranscript("HARSTEM_ROX", false), -1); //not present
+		const Transcript& cached_transcript = db.transcript(db.transcriptId("NIPA1_TR2"));
+		const BedLine& cached_exon = cached_transcript.regions()[0];
+		const QByteArray cached_exon_key = cached_exon.chr().strNormalized(true) + ":" + QByteArray::number(cached_exon.start()) + "-" + QByteArray::number(cached_exon.end());
+		IS_TRUE(db.getExonTranscriptMapping().value(cached_exon_key).contains(cached_transcript.name()));
 
 		//transcriptToRegions
 		regions = db.transcriptToRegions("NIPA1_TR2", "gene");
@@ -622,7 +763,9 @@ private:
 		I_EQUAL(approved.count(), 20);
 
 		//phenotypes
-		PhenotypeList phenos = db.phenotypes(QStringList() << "aBNOrmality");
+		PhenotypeList phenos = db.phenotypes(QStringList());
+		IS_TRUE(!phenos.isEmpty());
+		phenos = db.phenotypes(QStringList() << "aBNOrmality");
 		I_EQUAL(phenos.count(), 1);
 		IS_TRUE(phenos.containsAccession("HP:0000118")); //Phenotypic abnormality
 		//synonyms
@@ -994,7 +1137,7 @@ private:
 		params.s_sender = "Coriell";
 		params.s_study = "SomeStudy";
 		params.s_tissue = "blood";
-		params.include_bad_quality_samples = false;
+		params.ps_quality = {"n/a", "good", "medium"};
 		params.include_tumor_samples = false;
 		params.include_ffpe_samples = false;
 		params.p_name = "KontrollDNACoriell";
@@ -1074,6 +1217,9 @@ private:
 		report_conf->set(report_var_conf4);
 
 		int conf_id1 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs, res);
+		S_EQUAL(report_conf->lastUpdatedBy(), "Max Mustermann");
+		IS_TRUE(report_conf->lastUpdatedAt().isValid());
+		QDateTime local_last_update_time_before_update = report_conf->lastUpdatedAt();
 
 		//reportConfigId
 		int conf_id = db.reportConfigId(ps_id);
@@ -1135,6 +1281,7 @@ private:
 		QThread::sleep(1);
 		int conf_id2 = db.setReportConfig(ps_id, report_conf, vl, cnvs, svs, res);
 		IS_TRUE(conf_id1==conf_id2);
+		IS_TRUE(local_last_update_time_before_update<report_conf->lastUpdatedAt());
 		//check that no double entries are inserted after second execution of setReportConfig
 		I_EQUAL(db.getValue("SELECT count(*) FROM cnv WHERE cnv_callset_id=1 AND chr='chr2' AND start=89246800 AND end=89545067 AND cn=1").toInt(), 1);
 
@@ -2618,7 +2765,10 @@ private:
 		//Variant does not exist
 		IS_THROWN(DatabaseException, db.getSomaticViccData(Variant("chr1", 112175770, 112175770, "C", "A")) );
 
-
+		SomaticViccData optional_vicc_data;
+		IS_FALSE(db.getSomaticViccData(Variant("chr5", 112175770, 112175770, "G", "A"), optional_vicc_data));
+		IS_FALSE(db.getSomaticViccData(Variant("chr1", 112175770, 112175770, "C", "A"), optional_vicc_data));
+		IS_TRUE(db.getSomaticViccData(Variant("chr13", 32929387, 32929387, "T", "C"), optional_vicc_data));
 
 		//somatic Variant Interpretation for Cancer Consortium
 		SomaticViccData vicc_data1 = db.getSomaticViccData(Variant("chr13", 32929387, 32929387, "T", "C"));
@@ -2735,6 +2885,8 @@ private:
 		I_EQUAL(db.getSomaticGeneRoleId("PTGS2"), 2);
 		I_EQUAL(db.getSomaticGeneRoleId("FOXP1"), -1);
 		I_EQUAL(db.getSomaticGeneRoleId("ASDFJKL"), -1);
+		I_EQUAL(db.getSomaticGeneRoles().count(), 3);
+		I_EQUAL(db.getSomaticGeneRoles(true).count(), 2);
 
 		IS_THROWN(DatabaseException, db.getSomaticGeneRole("FOXP1", true));
 		IS_THROWN(DatabaseException, db.getSomaticGeneRole("ASDFJKL", true));
@@ -2766,7 +2918,6 @@ private:
 		gene_role_res1.high_evidence = true;
 		gene_role_res1.comment = "comment update";
 		db.setSomaticGeneRole(gene_role_res1);
-		db.clearCache();
 		gene_role_res1 =  db.getSomaticGeneRole("PTGS2", true);
 		S_EQUAL(gene_role_res1.gene, "PTGS2");
 		I_EQUAL(gene_role_res1.role, SomaticGeneRole::Role::ACTIVATING);
@@ -2787,7 +2938,6 @@ private:
 		role_for_ins2.role = SomaticGeneRole::Role::ACTIVATING;
 		role_for_ins2.comment = "newly inserted test role";
 		db.setSomaticGeneRole(role_for_ins2);
-		db.clearCache();
 		SomaticGeneRole gene_role_res5 = db.getSomaticGeneRole("FOXP1");
 		S_EQUAL(gene_role_res5.gene, "FOXP1");
 		I_EQUAL(gene_role_res5.role, SomaticGeneRole::Role::ACTIVATING);
@@ -3411,7 +3561,7 @@ private:
 
         S_EQUAL(db.processedSampleId("NA12878_03"), "3999");
 
-		QSqlQuery query = db.getQuery();
+		SqlQuery query = db.getQuery();
 		query.exec("SELECT * FROM processed_sample WHERE id=3999");
 		I_EQUAL(query.size(), 1);
 		query.next();

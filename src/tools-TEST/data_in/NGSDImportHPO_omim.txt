@@ -39,7 +39,7 @@ Saethre-Chotzen syndrome, 101400 (2)	TWIST1, ACS3, SCS, CRS1	601622	7p21.1
 {?Breast cancer susceptibility}, 114480 (1)	NQO2, NMOR2	160998	6p25.2
 {Breast cancer, invasive ductal}, 114480 (3)	RAD54L, HR54, HRAD54	603615	1p34.1
 {Breast cancer, lobular}, 114480 (3)	CDH1, UVO, LCAM, ECAD	192090	16q22.1
-{Breast cancer, male, susceptibility to}, 114480 (4)	BRCA2, FANCD1, BROVCA2, GLM3, PNCA2	600185	13q13.1
+{Breast cancer, male, susceptibility to}, 114480 (3)	BRCA2, FANCD1, BROVCA2, GLM3, PNCA2	600185	13q13.1
 {Breast cancer, protection against}, 114480 (3)	CASP8, MCH5, ALPS2B	601763	2q33.1
 {Breast cancer, susceptibility to}, 114480 (3)	ATM, ATA, AT1	607585	11q22.3
 {Breast cancer, susceptibility to}, 114480 (3)	BARD1	601593	2q35
@@ -51,7 +51,7 @@ Saethre-Chotzen syndrome, 101400 (2)	TWIST1, ACS3, SCS, CRS1	601622	7p21.1
 {Breast cancer, susceptibility to}, 114480 (3)	XRCC3, CMM6	600675	14q32.33
 {Breast cancer}, 114480 (1)	ESR1, ESR, ESTRR	133430	6q25.1-q25.2
 {Breast-ovarian cancer, familial, 1}, 604370 (4)	BRCA1, PSCP, BROVCA1, PNCA4	113705	17q21.31
-{Breast-ovarian cancer, familial, 2}, 612555 (4)	BRCA2, FANCD1, BROVCA2, GLM3, PNCA2	600185	13q13.1
+{Breast-ovarian cancer, familial, 2}, 612555 (3)	BRCA2, FANCD1, BROVCA2, GLM3, PNCA2	600185	13q13.1
 {Ovarian cancer, somatic}, 167000 (3)	OPCML	600632	11q25
 46XY sex reversal 10 (4)	SRXY10	616425	17q24
 #

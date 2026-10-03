@@ -21,6 +21,7 @@ protected slots:
 	void openVariantList();
 	void deleteSampleData();
 	void amendSampleComments();
+	void setQualityAutomatically();
 	void queueAnalysis();
 	void phenotypeSelection();
 

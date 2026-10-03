@@ -30,6 +30,8 @@ public:
 	static QDateTime getServerStartDateTime();
 
     static QString getCurrentServerLogFile();
+	// extracts processed sample names from the folder name
+	static QSet<QString> extractProcessSampleNames(const QString& input);
 
 protected:
 	ServerHelper();

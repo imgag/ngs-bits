@@ -27,8 +27,8 @@ public:
 	static VariantGenotypes genotypesFromGSvar(QString filename, bool include_gonosomes);
 
 	//Extract genotypes from BAM
-	static VariantGenotypes genotypesFromBam(GenomeBuild build, const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile& roi, const QString& ref_file = QString(), bool include_not_properly_paired=false);
-	static VariantGenotypes genotypesFromBam(GenomeBuild build, const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const QString& ref_file = QString(), bool include_not_properly_paired=false);
+	static VariantGenotypes genotypesFromBam(const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile& roi, const QString& ref_file = QString(), bool include_not_properly_paired=false);
+	static VariantGenotypes genotypesFromBam(const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const QString& ref_file = QString(), bool include_not_properly_paired=false);
 
 	//Calculation of similarity
 	void calculateSimilarity(const VariantGenotypes& in1, const VariantGenotypes& in2);
@@ -88,7 +88,7 @@ private:
 	static float genoToDouble(const QString& geno);
 
 	static VariantGenotypes genotypesVcf(const VcfFile& variants, const QString& filename, bool include_gonosomes, bool skip_multi);
-	static VariantGenotypes genotypesGSvar(VariantList variants, QString filename, bool include_gonosomes);
+	static VariantGenotypes genotypesGSvar(const VariantList& variants, const QString& filename, bool include_gonosomes);
 	static VariantGenotypes genotypesBam(const VcfFile& snps, BamReader& reader, int min_cov, int max_snps, bool include_gonosomes, bool include_not_properly_paired=false);
 
 	//Returns a string pointer, which can be stored/compared instead of the string. Reduces memory and run-time.

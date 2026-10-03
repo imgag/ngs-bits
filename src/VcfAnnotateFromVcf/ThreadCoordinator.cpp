@@ -65,7 +65,7 @@ void ThreadCoordinator::annotate(int i)
 
 void ThreadCoordinator::write(int i)
 {
-    if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::write(" << i << ")" << Qt::endl;
+	if (params_.debug) QTextStream(stdout) << "ThreadCoordinator::write(" << i << ")" << Qt::endl;
 
 	OutputWorker* worker = new OutputWorker(job_pool_[i], out_stream_, params_);
 	connect(worker, SIGNAL(error(int,QString)), this, SLOT(error(int,QString)));
@@ -89,7 +89,7 @@ void ThreadCoordinator::inputDone(int /*i*/)
 	connect(&timer_done_, SIGNAL(timeout()), this, SLOT(checkDone()));
 	timer_done_.start(100);
 
-    QTextStream(stdout) << "Reading input done" << Qt::endl;
+	if (params_.debug) QTextStream(stdout) << "Reading input done" << Qt::endl;
 }
 
 void ThreadCoordinator::checkDone()
@@ -105,7 +105,7 @@ void ThreadCoordinator::checkDone()
 	//done > stop timer to prevent it from fireing again
 	timer_done_.stop();
 
-    QTextStream(stdout) << "Annotation jobs finished" << Qt::endl;
+	if (params_.debug) QTextStream(stdout) << "Annotation jobs finished" << Qt::endl;
 
 	emit finished();
 }

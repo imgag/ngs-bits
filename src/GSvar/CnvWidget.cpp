@@ -1232,13 +1232,13 @@ void CnvWidget::uploadToClinvar(int index1, int index2)
 		//get copy number variant info
 		data.cnv1 = cnvs_[index1];
 		data.cn1 = data.cnv1.copyNumber(cnvs_.annotationHeaders());
-		data.ref_cn1 = CnvList::determineReferenceCopyNumber(data.cnv1, sample_data.gender, GSvarHelper::build());
+		data.ref_cn1 = CnvList::determineReferenceCopyNumber(data.cnv1, sample_data.gender);
 
 		if(data.submission_type == ClinvarSubmissionType::CompoundHeterozygous)
 		{
 			data.cnv2 = cnvs_[index2];
 			data.cn2 = data.cnv2.copyNumber(cnvs_.annotationHeaders());
-			data.ref_cn2 = CnvList::determineReferenceCopyNumber(data.cnv2, sample_data.gender, GSvarHelper::build());
+			data.ref_cn2 = CnvList::determineReferenceCopyNumber(data.cnv2, sample_data.gender);
 		}
 
 		// get report info

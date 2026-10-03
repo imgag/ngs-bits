@@ -47,6 +47,9 @@ private:
 
 		file.loadHeaderOnly(TESTDATA("data_in/SV_Sniffles_germline.bedpe"));
 		S_EQUAL(file.caller(), "Sniffles");
+
+		file.loadHeaderOnly(TESTDATA("data_in/SV_sawfish_germline.bedpe"));
+		S_EQUAL(file.caller(), "Sawfish");
 	}
 
 	TEST_METHOD(callerVersion)
@@ -60,6 +63,9 @@ private:
 
 		file.loadHeaderOnly(TESTDATA("data_in/SV_Sniffles_germline.bedpe"));
 		S_EQUAL(file.callerVersion(), "2.0.7");
+
+		file.loadHeaderOnly(TESTDATA("data_in/SV_sawfish_germline.bedpe"));
+		S_EQUAL(file.callerVersion(), "2.2.1");
 	}
 
 	TEST_METHOD(callingDate)
@@ -73,6 +79,9 @@ private:
 
 		file.loadHeaderOnly(TESTDATA("data_in/SV_Sniffles_germline.bedpe"));
 		S_EQUAL(file.callingDate().toString("yyyyMMdd"), "20240127");
+
+		file.loadHeaderOnly(TESTDATA("data_in/SV_sawfish_germline.bedpe"));
+		S_EQUAL(file.callingDate().toString("yyyyMMdd"), "20260920");
 	}
 
 	TEST_METHOD(toTsv)

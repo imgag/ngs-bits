@@ -331,9 +331,10 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 		w.writeAttribute( "af_normal", QString(snv.annotations()[i_normal_af]) );
 		w.writeAttribute( "depth_normal", QString(snv.annotations()[i_normal_depth]) );
 
-		if(db.getSomaticViccId(snv) != -1)
+		SomaticViccData vicc_data;
+		if(db.getSomaticViccData(snv, vicc_data))
 		{
-			w.writeAttribute( "effect", SomaticVariantInterpreter::viccScoreAsString(db.getSomaticViccData(snv)).toLower() );
+			w.writeAttribute( "effect", SomaticVariantInterpreter::viccScoreAsString(vicc_data).toLower() );
 		}
 
 			QByteArrayList genes = snv.annotations()[i_genes].split(',');
@@ -423,9 +424,10 @@ void SomaticXmlReportGenerator::generateXML(const SomaticXmlReportGeneratorData 
 		w.writeAttribute( "af_tumor", QString(snv.annotations()[i_germl_freq_in_tum]) );
 		w.writeAttribute( "depth_tumor", QString(snv.annotations()[i_germl_depth_in_tum]) );
 		w.writeAttribute( "af_normal", (snv.annotations()[i_germl_hom_het].contains("het") ? "0.5" : "1.0" ) );
-		if(db.getSomaticViccId(snv) != -1)
+		SomaticViccData vicc_data;
+		if(db.getSomaticViccData(snv, vicc_data))
 		{
-			w.writeAttribute( "effect", SomaticVariantInterpreter::viccScoreAsString(db.getSomaticViccData(snv)).toLower() );
+			w.writeAttribute( "effect", SomaticVariantInterpreter::viccScoreAsString(vicc_data).toLower() );
 		}
 
 		//Elements transcript information
