@@ -9,6 +9,10 @@ DEFINES += CPPVISUAL_LIBRARY
 INCLUDEPATH += $$PWD/../cppCORE
 LIBS += -L$$PWD/../../bin -lcppCORE
 
+#include cppCORE library
+INCLUDEPATH += $$PWD/../cppXML
+LIBS += -L$$PWD/../../bin -lcppXML
+
 #include cppNGS library
 INCLUDEPATH += $$PWD/../cppNGS
 LIBS += -L$$PWD/../../bin -lcppNGS
@@ -28,14 +32,46 @@ unix: QMAKE_CXXFLAGS += $$system(pkg-config --cflags libxml-2.0)
 unix: LIBS += -lxml2
 
 SOURCES += \
+    BamAlignmentTrack.cpp \
+    BamCoverageTrack.cpp \
+    BamTrackData.cpp \
+    BamTrackDataManager.cpp \
+    BedTrack.cpp \
+    ChromosomeContextPanel.cpp \
+    FileLoader.cpp \
     GenomeVisualizationWidget.cpp \
     GenePanel.cpp \
-    GenomeData.cpp
+    ChromosomePanel.cpp \
+    IgvTrack.cpp \
+    IgvTrackSettings.cpp \
+    PanelManager.cpp \
+    RowPacker.cpp \
+    SharedData.cpp \
+    TrackGroup.cpp \
+    TrackWidget.cpp
 
 HEADERS += \
+    BamAlignmentTrack.h \
+    BamCoverageTrack.h \
+    BamTrackData.h \
+    BamTrackDataManager.h \
+    BedTrack.h \
+    ChromosomeColors.h \
+    ChromosomeContextPanel.h \
+    FileLoader.h \
     GenomeVisualizationWidget.h \
     GenePanel.h \
-    GenomeData.h
+    ChromosomePanel.h \
+    IgvTrack.h \
+    IgvTrackSettings.h \
+    PanelManager.h \
+    RowPacker.h \
+    SharedData.h \
+    TrackGroup.h \
+    TrackWidget.h
 
 FORMS += \
     GenomeVisualizationWidget.ui
+
+RESOURCES += \
+    cppVISUAL.qrc

@@ -1,33 +1,44 @@
 #include "MainWindow.h"
 #include "Settings.h"
 #include "GffData.h"
+#include "SharedData.h"
+#include <QFileDialog>
+#include <QStyleFactory>
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
-    , genome_data_(new GenomeData())
 {
-    ui_.setupUi(this);
+	ui_.setupUi(this);
+
+	//sginals and slots
+	connect(ui_.actionLoadFile, SIGNAL(triggered()), ui_.gvw, SLOT(loadFile()));
+	connect(ui_.actionReloadTracks, SIGNAL(triggered()), ui_.gvw, SLOT(reloadTracks()));
+	connect(ui_.actionNewSession, SIGNAL(triggered()), ui_.gvw, SLOT(newSession()));
+	connect(ui_.actionStore_session, SIGNAL(triggered()), ui_.gvw, SLOT(saveSession()));
+	connect(ui_.actionLoadSession, SIGNAL(triggered()), ui_.gvw, SLOT(loadSession()));
+
+	//set windows 10 style
+	QStyle* style = QStyleFactory::create("windowsvista");
+	QApplication::setStyle(style);
 
 	try
 	{
-        QElapsedTimer timer;
-        timer.start();
-
 		//load transcripts from GFF
+		QElapsedTimer timer;
+		timer.start();
         {
-            GffSettings gff_settings;
+			GffSettings gff_settings;
             gff_settings.source = "ensembl";
             gff_settings.include_all = false;
             gff_settings.skip_not_hgnc = false;
             gff_settings.print_to_stdout = true;
-            GffData data = GffData::load(Settings::string("ensembl_gff", false), gff_settings);
-            genome_data_->setTranscripts(data.transcripts);
+			GffData data = GffData::load(Settings::string("ensembl_gff", false), gff_settings);
+			SharedData::setTranscripts(data.transcripts);
         }
-        qDebug() << "Parsing transcripts took: " << Helper::elapsedTime(timer);
+		qDebug() << "Parsing transcripts took: " << Helper::elapsedTime(timer);
 
-        ui_.gvw->setGenomeData(genome_data_);
-        ui_.gvw->setRegion("chr17", 43042292, 43172245);
+		SharedData::setRegion("chr17", 43091889, 43093530);
     }
 	catch (Exception e)
 	{

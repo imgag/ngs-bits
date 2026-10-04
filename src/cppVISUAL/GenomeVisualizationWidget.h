@@ -2,20 +2,12 @@
 #define GENOMEVISUALIZATIONWIDGET_H
 
 #include "cppVISUAL_global.h"
-#include "GenomeData.h"
 #include "BedFile.h"
 #include <QWidget>
 
 namespace Ui {
 class GenomeVisualizationWidget;
 }
-
-//Settings for GenomeVisualizationWidget
-struct CPPVISUALSHARED_EXPORT GenomeVisualizationSettings
-{
-	int min_window_size = 40;
-	int transcript_padding = 2000;
-};
 
 //Widget for genome visaulization, similar to IGV
 class CPPVISUALSHARED_EXPORT GenomeVisualizationWidget
@@ -24,17 +16,29 @@ class CPPVISUALSHARED_EXPORT GenomeVisualizationWidget
 	Q_OBJECT
 
 public:
-    //Default constructor. Make sure to call setGenomeData before doing anything else!
+	//Default constructor
 	GenomeVisualizationWidget(QWidget* parent);
 
-    //Sets genome data
-    void setGenomeData(QSharedPointer<GenomeData> data);
+	//display errors to user
+	static void displayError(QString msg);
+	//opens file dialog and returns selected the file path
+	static QString getOpenFileName(QString caption, QString dir, QString options);
 
 public slots:
-    //Sets visualized region (1-based)
-    void setRegion(const Chromosome& chr, int start, int end);
-    //Sets the region of the whole chromosome
-    void setChromosomeRegion(QString chromsome);
+	//Triggers the 'open file' dialog
+	void loadFile();
+	//Triggers reload tracks for all tracks
+	void reloadTracks();
+	//Clears everything
+	void newSession();
+	//Save current session
+	void saveSession();
+	// load session from file, triggers 'open file dialog' and loads the session
+	void loadSession();
+
+protected:
+	// handles zoom in/out
+	void wheelEvent(QWheelEvent* event) override;
 
 protected slots:
 	//Perform search based on input field (chromosome, region, gene, transcript, ...)
@@ -43,10 +47,18 @@ protected slots:
 	void zoomIn();
 	//Zoom out
 	void zoomOut();
-	//Update widgets that show the current region
-	void updateRegionWidgets(const BedLine& reg);
-    //Uodate the label that shows the genomic coordinate under the cursor
+	//Zoom in centered at genome pos x
+	void zoomIn(int x);
+	//Zoom out centered at genome pos x
+	void zoomOut(int x);
+	//Updates the region displayed by this widget
+	void updateRegion();
+	//Update the label that shows the genomic coordinate under the cursor
 	void updateCoordinateLabel(QString text);
+	//Updates indices (called when transcripts changed)
+	void updateIndices();
+	//Sets the region of the whole chromosome
+	void setChromosomeRegion(QString chromsome);
 
 signals:
 	//Emitted when the displayed region has changed.
@@ -54,13 +66,10 @@ signals:
 
 private:
 	Ui::GenomeVisualizationWidget* ui_;
-    GenomeVisualizationSettings settings_;
-    QSharedPointer<GenomeData> genome_data_;
 
 	QStringList valid_chrs_; //chromosome list (normalized)
 	QHash<QByteArray, QSet<int>> gene_to_trans_indices_;
 	QHash<QByteArray, int> trans_to_index_;
-	BedLine current_reg_;
 };
 
 #endif // GENOMEVISUALIZATIONWIDGET_H
