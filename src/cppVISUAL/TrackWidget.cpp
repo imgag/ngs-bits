@@ -49,7 +49,7 @@ void TrackWidget::populateContextMenu(QMenu& menu, const QPoint&)
 void TrackWidget::handleTrackRename()
 {
 	bool ok;
-	QString new_name = QInputDialog::getText(this, tr("Enter Track Name"), "", QLineEdit::Normal, name_, &ok);
+	QString new_name = QInputDialog::getText(this, "Enter Track Name", "", QLineEdit::Normal, name_, &ok);
 
 	if (ok && !new_name.isEmpty()) name_ = new_name;
 }

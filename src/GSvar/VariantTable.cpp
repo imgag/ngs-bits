@@ -293,12 +293,23 @@ void VariantTable::customContextMenu(QPoint pos)
 
 	if (action==a_visualize)
 	{
-		GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this);
+		//load transcripts
 		if (SharedData::transcripts().isEmpty())
 		{
 			SharedData::setTranscripts(NGSD().transcripts());
 		}
+
+		//create view
+		GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this);
+		foreach(const FileLocation& loc, GlobalServiceProvider::fileLocationProvider().getBamFiles(false))
+		{
+			widget->loadFile(loc.filename);
+		}
+		
+		//set region
 		SharedData::setRegion(variant.chr(), variant.start(), variant.end());
+		
+		//show
 		auto dlg = GUIHelper::createDialog(widget, "GSviewer");
 		dlg->exec();
 	}

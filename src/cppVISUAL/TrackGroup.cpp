@@ -1,7 +1,5 @@
 #include "FileLoader.h"
-#include "GenomeVisualizationWidget.h"
 #include "TrackGroup.h"
-
 #include <QApplication>
 #include <QMenu>
 #include <QMessageBox>
@@ -60,7 +58,7 @@ void TrackGroup::trackMoved()
 	}
 }
 
-void TrackGroup::addTrackWidgets(TrackWidgetList widgets)
+void TrackGroup::addTrackWidgets(QVector<TrackWidget*> widgets)
 {
 	foreach (TrackWidget* widget, widgets)
 	{
@@ -73,13 +71,13 @@ void TrackGroup::addTrackWidgets(TrackWidgetList widgets)
 
 void TrackGroup::loadTracksFromFile()
 {
-	TrackWidgetList widgets = loadTrackWidgetsFromFile();
+	QVector<TrackWidget*> widgets = loadTrackWidgetsFromFile();
 	addTrackWidgets(widgets);
 }
 
 TrackGroup* TrackGroup::fromFile()
 {
-	TrackWidgetList widgets = loadTrackWidgetsFromFile();
+	QVector<TrackWidget*> widgets = loadTrackWidgetsFromFile();
 	if (widgets.isEmpty()) return nullptr;
 
 	TrackGroup* tr = new TrackGroup;
@@ -87,13 +85,19 @@ TrackGroup* TrackGroup::fromFile()
 	return tr;
 }
 
-TrackWidgetList TrackGroup::loadTrackWidgetsFromFile()
+TrackGroup* TrackGroup::fromFile(QString filename)
 {
-	QString file_path =  QFileDialog::getOpenFileName(QApplication::activeWindow(), tr("Open file(s)"), "", tr("Bed Files(*.bed);;Bam Files(*.bam);;Cram Files(*.cram);;BAF Files(*.igv)"));
-	if (file_path.isEmpty()) return TrackWidgetList();
+	TrackGroup* tr = new TrackGroup;
+	tr->addTrackWidgets(FileLoader::loadTracks(filename, nullptr));
+	return tr;
+}
 
-	TrackWidgetList widgets = FileLoader::loadTracks(file_path, nullptr);
-	return widgets;
+QVector<TrackWidget*> TrackGroup::loadTrackWidgetsFromFile()
+{
+	QString file_path =  QFileDialog::getOpenFileName(QApplication::activeWindow(), "Open file(s)", "", "NGS files(*.bam, *.cram, *.bed, *.igv);;All files(*.*)");
+	if (file_path.isEmpty()) return QVector<TrackWidget*>();
+
+	return FileLoader::loadTracks(file_path, nullptr);
 }
 
 void TrackGroup::reloadTracks()
@@ -266,7 +270,7 @@ void TrackGroup::loadFromXml(const QDomElement& dom_element)
 TrackGroup* TrackGroup::fromXml(const QDomElement& dom_element)
 {
 	QDomNodeList elements = dom_element.elementsByTagName("Track");
-	TrackWidgetList tracks;
+	QVector<TrackWidget*> tracks;
 	for (int i =0; i < elements.count(); ++i)
 	{
 		const QDomElement& track_element = elements.at(i).toElement();

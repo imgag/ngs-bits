@@ -36,7 +36,9 @@ public:
 
 public slots:
 	// opens a file dialog and creates a TrackGroup if file is valid
-	void loadFile();
+	void loadFile(); //TODO Marc: remove?!
+	//creates a TrackGroup from a file
+	void loadFile(QString filename);
 	// creates empty panel above the panel that emitted this signal
 	void addPanelAbove();
 	// creates empty panel below the panel that emitted this signal

@@ -21,7 +21,9 @@ public:
 
 public slots:
 	//Triggers the 'open file' dialog
-	void loadFile();
+	void loadFile(); //TODO Marc: rename to openFileDialog()
+	//Loads a file
+	void loadFile(QString filename);
 	//Triggers reload tracks for all tracks
 	void reloadTracks();
 	//Clears everything

@@ -5,46 +5,33 @@
 #include "BamCoverageTrack.h"
 #include <QApplication>
 #include <QMessageBox>
+#include "Exceptions.h"
 
-TrackWidgetList FileLoader::loadTracks(QString file_path, QWidget* parent)
+QVector<TrackWidget*> FileLoader::loadTracks(QString file_path, QWidget* parent)
 {
-	if (file_path.endsWith(".bed")) return loadBedFileTracks(file_path, parent);
-	if (file_path.endsWith(".bam") || file_path.endsWith(".cram")) return loadBamFileTracks(file_path, parent);
-	if (file_path.endsWith(".igv")) return loadIgvFileTracks(file_path, parent);
-	QMessageBox::critical(QApplication::activeWindow(), "Error", file_path + ": Unsupported file type.");
-	return TrackWidgetList();
-}
+	//get file name - for URLs removes paramters
+	QString filename = file_path.trimmed();
+	if (Helper::isHttpUrl(filename))
+	{
+		filename = filename.split('?')[0];
+	}
 
-TrackWidgetList FileLoader::loadBedFileTracks(QString file_path, QWidget* parent)
-{
-	TrackWidgetList out;
-	const QFileInfo info(file_path);
+	QVector<TrackWidget*> output;
+	if (filename.endsWith(".bed"))
+	{
+		output << BedTrack::createTrack(parent, file_path, filename);
+	}
+	if (filename.endsWith(".bam") || filename.endsWith(".cram"))
+	{
+		output << BamAlignmentTrack::createTrack(parent, file_path, filename);
+		output << BamCoverageTrack::createTrack(parent, file_path, filename);
+	}
+	if (filename.endsWith(".igv"))
+	{
+		output << IgvTrack::createTrack(parent, file_path, filename);
+	}
 
-	BedTrack* bed_track = BedTrack::createTrack(parent, file_path, info.fileName());
-	if (bed_track) out << bed_track;
-
-	return out;
-}
-
-TrackWidgetList FileLoader::loadBamFileTracks(QString file_path, QWidget* parent)
-{
-	TrackWidgetList out;
-	QFileInfo info(file_path);
-	BamAlignmentTrack* align_track = BamAlignmentTrack::createTrack(parent, file_path, info.fileName());
-	BamCoverageTrack* cov_track	   = BamCoverageTrack::createTrack(parent, file_path, info.fileName());
-	if (cov_track) out << cov_track;
-	if (align_track) out << align_track;
-
-	return out;
-}
-
-TrackWidgetList FileLoader::loadIgvFileTracks(QString file_path, QWidget* parent)
-{
-	TrackWidgetList out;
-	QFileInfo info(file_path);
-	IgvTrack* baf_track = IgvTrack::createTrack(parent, file_path, "");
-	if (baf_track) out << baf_track;
-	return out;
+	THROW(FileAccessException, "Unsupported file type for file: " + filename);
 }
 
 QSharedPointer<BedFile> FileLoader::loadBedFile(QString file_path)

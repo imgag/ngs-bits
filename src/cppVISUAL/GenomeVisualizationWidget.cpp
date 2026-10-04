@@ -29,7 +29,16 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 
 void GenomeVisualizationWidget::loadFile()
 {
-	ui_->panel_manager->loadFile();
+	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", "", "NGS files(*.bam, *.cram, *.bed, *.igv);;All files(*.*)");
+	foreach(QString file, files)
+	{
+		ui_->panel_manager->loadFile(file);
+	}
+}
+
+void GenomeVisualizationWidget::loadFile(QString filename)
+{
+	ui_->panel_manager->loadFile(filename);
 }
 
 void GenomeVisualizationWidget::reloadTracks()
@@ -219,7 +228,7 @@ void GenomeVisualizationWidget::updateCoordinateLabel(QString text)
 
 void GenomeVisualizationWidget::saveSession()
 {
-	QString file_path = QFileDialog::getSaveFileName(this, tr("Open Session"), "", tr("Session Files (*.xml)"));
+	QString file_path = QFileDialog::getSaveFileName(this, "Open session", "", "Session files (*.xml)");
 	if (file_path.isEmpty()) return;
 
 	if (!file_path.endsWith(".xml"))
@@ -256,7 +265,7 @@ void GenomeVisualizationWidget::saveSession()
 
 void GenomeVisualizationWidget::loadSession()
 {
-	QString file_path = QFileDialog::getOpenFileName(this, tr("Open file(s)"), "", tr("Session files(*.xml);;All files(*.*)"));
+	QString file_path = QFileDialog::getOpenFileName(this, "Open file(s)", "", "Session files(*.xml);;All files(*.*)");
 	if (file_path.isEmpty()) return;
 
 	if (!file_path.endsWith(".xml"))

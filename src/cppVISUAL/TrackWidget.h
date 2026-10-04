@@ -85,8 +85,4 @@ protected:
 	QString name_;
 };
 
-using TrackWidgetList = QVector<TrackWidget*>;
-
-
-
 #endif // TRACKWIDGET_H

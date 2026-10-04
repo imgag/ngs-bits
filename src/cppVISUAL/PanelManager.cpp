@@ -89,6 +89,16 @@ void PanelManager::loadFile()
 	}
 }
 
+void PanelManager::loadFile(QString filename)
+{
+	TrackGroup* new_panel = TrackGroup::fromFile(filename);
+	if (new_panel)
+	{
+		connectSignals(new_panel);
+		insertWidget(0, new_panel);
+	}
+}
+
 void PanelManager::addPanelAbove()
 {
 	QWidget* senderWidget = qobject_cast<QWidget*>(sender());
