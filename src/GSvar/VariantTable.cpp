@@ -296,7 +296,6 @@ void VariantTable::customContextMenu(QPoint pos)
 		GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this);
 		if (SharedData::transcripts().isEmpty())
 		{
-			qDebug() << "SET";
 			SharedData::setTranscripts(NGSD().transcripts());
 		}
 		SharedData::setRegion(variant.chr(), variant.start(), variant.end());

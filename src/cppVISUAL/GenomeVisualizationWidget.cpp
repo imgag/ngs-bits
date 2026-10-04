@@ -217,20 +217,6 @@ void GenomeVisualizationWidget::updateCoordinateLabel(QString text)
 	ui_->label_coordinate->setText(text);
 }
 
-
-void GenomeVisualizationWidget::displayError(QString msg)
-{
-	auto ptr = QApplication::instance()->findChild<GenomeVisualizationWidget*>();
-	QMessageBox::critical(ptr, "Error", msg);
-}
-
-QString GenomeVisualizationWidget::getOpenFileName(QString caption, QString dir, QString filter)
-{
-	auto ptr = QApplication::instance()->findChild<GenomeVisualizationWidget*>();
-	return QFileDialog::getOpenFileName(ptr, caption, dir, filter);
-}
-
-
 void GenomeVisualizationWidget::saveSession()
 {
 	QString file_path = QFileDialog::getSaveFileName(this, tr("Open Session"), "", tr("Session Files (*.xml)"));
@@ -238,13 +224,13 @@ void GenomeVisualizationWidget::saveSession()
 
 	if (!file_path.endsWith(".xml"))
 	{
-		displayError("Only XML files are supported");
+		QMessageBox::warning(this, "Error", "Only XML files are supported");
 		return;
 	}
 
 	QFile file(file_path);
 	if (!file.open(QIODevice::WriteOnly)) {
-		displayError("Failed to open file for writing: " + file.errorString());
+		QMessageBox::warning(this, "Error", "Failed to open file for writing: " + file.errorString());
 		return;
 	}
 
@@ -268,23 +254,21 @@ void GenomeVisualizationWidget::saveSession()
 	file.close();
 }
 
-
 void GenomeVisualizationWidget::loadSession()
 {
-	QString file_path = QFileDialog::getOpenFileName(this, tr("Load Session"), "", tr("Session Files (*.xml)"));
+	QString file_path = QFileDialog::getOpenFileName(this, tr("Open file(s)"), "", tr("Session files(*.xml);;All files(*.*)"));
 	if (file_path.isEmpty()) return;
 
 	if (!file_path.endsWith(".xml"))
 	{
-		displayError("Only XML files are supported");
+		QMessageBox::warning(this, "Error", "Only XML files are supported");
 		return;
 	}
 
 	QString error = XmlHelper::isValidXml(file_path, ":Resources/GSviewerSession.xsd");
-
 	if (!error.isEmpty())
 	{
-		displayError(error);
+		QMessageBox::warning(this, "Error", error);
 		return;
 	}
 
@@ -307,10 +291,11 @@ void GenomeVisualizationWidget::loadSession()
 
 
 //TODO Marc - GSviewer:
-//- "visualaize" > show CRAM
+//- "visualaize" > show BAM/CRAM
 //- show GenCode primary only does nothing
-//- chr selection does not work
-//- search does not work
+//- chr selection does not work from GSvar
+//- search does not work from GSvar
+//- GSviewer Help > about does nothing
 //- gene track:
 //  - context menu to show cDNA and protein position
 //  - show AAs in transcripts if zoomed in enough

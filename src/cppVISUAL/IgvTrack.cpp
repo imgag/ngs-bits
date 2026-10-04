@@ -3,7 +3,7 @@
 #include "FileLoader.h"
 #include "GenomeVisualizationWidget.h"
 #include "SharedData.h"
-
+#include <QMessageBox>
 #include <QActionGroup>
 #include <QApplication>
 #include <QPainter>
@@ -25,7 +25,7 @@ IgvTrack* IgvTrack::createTrack(QWidget* parent, QString file_path, QString name
 
 	if (errors != "")
 	{
-		GenomeVisualizationWidget::displayError(errors);
+		QMessageBox::warning(QApplication::activeWindow(), "Error", errors);
 		return nullptr;
 	}
 

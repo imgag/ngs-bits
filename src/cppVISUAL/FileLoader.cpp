@@ -3,15 +3,15 @@
 #include "BedTrack.h"
 #include "BamAlignmentTrack.h"
 #include "BamCoverageTrack.h"
-#include "GenomeVisualizationWidget.h"
+#include <QApplication>
+#include <QMessageBox>
 
 TrackWidgetList FileLoader::loadTracks(QString file_path, QWidget* parent)
 {
 	if (file_path.endsWith(".bed")) return loadBedFileTracks(file_path, parent);
 	if (file_path.endsWith(".bam") || file_path.endsWith(".cram")) return loadBamFileTracks(file_path, parent);
 	if (file_path.endsWith(".igv")) return loadIgvFileTracks(file_path, parent);
-
-	GenomeVisualizationWidget::displayError(file_path + ": Unsupported file type.");
+	QMessageBox::critical(QApplication::activeWindow(), "Error", file_path + ": Unsupported file type.");
 	return TrackWidgetList();
 }
 
@@ -54,7 +54,7 @@ QSharedPointer<BedFile> FileLoader::loadBedFile(QString file_path)
 
 	if (!info.isFile())
 	{
-		GenomeVisualizationWidget::displayError(file_path + " not found");
+		QMessageBox::critical(QApplication::activeWindow(), "Error", file_path + " not found");
 		return nullptr;
 	}
 	try
@@ -66,7 +66,7 @@ QSharedPointer<BedFile> FileLoader::loadBedFile(QString file_path)
 	}
 	catch (const Exception& e)
 	{
-		GenomeVisualizationWidget::displayError(e.message());
+		QMessageBox::critical(QApplication::activeWindow(), "Error", e.message());
 		return nullptr;
 	}
 }
@@ -78,7 +78,7 @@ QSharedPointer<BedFile> FileLoader::loadIgvFile(QString file_path)
 
 	if (!info.isFile())
 	{
-		GenomeVisualizationWidget::displayError(file_path + " not found");
+		QMessageBox::critical(QApplication::activeWindow(), "Error", file_path + " not found");
 		return nullptr;
 	}
 	try
@@ -88,7 +88,7 @@ QSharedPointer<BedFile> FileLoader::loadIgvFile(QString file_path)
 
 		if (!isValidIgvFile(bedfile))
 		{
-			GenomeVisualizationWidget::displayError(file_path + " is not a valid IGV file (header does not contain 5 columns)");
+			QMessageBox::critical(QApplication::activeWindow(), "Error", file_path + " is not a valid IGV file (header does not contain 5 columns)");
 			return nullptr;
 		}
 
@@ -97,7 +97,7 @@ QSharedPointer<BedFile> FileLoader::loadIgvFile(QString file_path)
 	}
 	catch (const Exception& e)
 	{
-		GenomeVisualizationWidget::displayError(e.message());
+		QMessageBox::critical(QApplication::activeWindow(), "Error", e.message());
 		return nullptr;
 	}
 }
@@ -107,7 +107,7 @@ QSharedPointer<BamReader> FileLoader::loadBamFile(QString file_path)
 	const QFileInfo info(file_path);
 	if (!info.isFile())
 	{
-		GenomeVisualizationWidget::displayError(file_path + " not found");
+		QMessageBox::critical(QApplication::activeWindow(), "Error", file_path + " not found");
 		return nullptr;
 	}
 	try
@@ -117,7 +117,7 @@ QSharedPointer<BamReader> FileLoader::loadBamFile(QString file_path)
 	}
 	catch (const Exception& e)
 	{
-		GenomeVisualizationWidget::displayError(e.message());
+		QMessageBox::critical(QApplication::activeWindow(), "Error", e.message());
 		return nullptr;
 	}
 }

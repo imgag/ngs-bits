@@ -6,7 +6,7 @@
 #include "BamCoverageTrack.h"
 #include "GenomeVisualizationWidget.h"
 #include "QInputDialog"
-
+#include <QMessageBox>
 #include <QApplication>
 #include <QFileInfo>
 #include <QDrag>
@@ -211,7 +211,7 @@ TrackWidget* TrackWidget::fromType(QString type, QWidget* parent, QString file_p
 	if (type == BamCoverageTrack::staticType()) return BamCoverageTrack::createTrack(parent, file_path, display_name);
 	if (type == IgvTrack::staticType()) return IgvTrack::createTrack(parent, file_path, display_name);
 
-	GenomeVisualizationWidget::displayError("Track type: " + type + " not supported.");
+	QMessageBox::warning(QApplication::activeWindow(), "Error", "Track type: " + type + " not supported.");
 	return nullptr;
 }
 
