@@ -26,6 +26,11 @@
 #include <QSqlError> //Comment to prevent removal by fix_includes.php
 #include <QJsonArray>
 
+NGSD::NGSD()
+        : NGSD(NGSD::default_is_test_db_)
+{
+}
+
 NGSD::NGSD(bool test_db, QString test_name_override, bool open)
 	: test_db_(test_db)
 	, debug_(false)
@@ -10526,4 +10531,9 @@ AccessPermission stringToAccessPermission(const QString &in)
 	if (in.toLower() == "sample") {return AccessPermission::SAMPLE;}
 
 	THROW(ProgrammingException, "Unhandled access permission type '" + in + "' in stringToType()!");
+}
+
+void NGSD::setDefaultDbToTest(bool use_test_as_default)
+{
+	default_is_test_db_ = use_test_as_default;
 }

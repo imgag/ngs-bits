@@ -40,6 +40,9 @@ void init_test(NGSD& db)
 	QVariant is_production = db.getValue("SELECT value FROM db_info WHERE name='is_production'");
 	S_EQUAL(is_production.toString(), "false");
 
+	//all new NGSD connections should be connections to the test DB by default
+	db.setDefaultDbToTest(true);
+
 	db.init();
 	db.executeQueriesFromFile(TESTDATA("data_in/NGSD_base_in.sql"));
 
@@ -70,6 +73,7 @@ TEST_METHOD(controller_load_germline_file)
 	IgvSessionManager::create(nullptr, "test", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), Settings::path("igv_genome"));
 
 	AnalysisDataController& controller = AnalysisDataController::instance();
+	controller.setTestMode(true);
 	QSignalSpy clear_signal(&controller, SIGNAL(dataCleared()));
 
 	IS_FALSE(controller.isValid());
@@ -121,31 +125,47 @@ TEST_METHOD(controller_load_germline_file)
 	ataxia << Phenotype("HP:0001251");
 	snv_filters.setPhenotypes(ataxia);
 	PhenotypeSettings phenotype_settings_ = snv_filters.getPhenotypeSettings();
-	GeneSet genes = db.phenotypeToGenesbySourceAndEvidence(db.phenotypeIdByAccession(ataxia[0].accession()), phenotype_settings_.sources, phenotype_settings_.evidence_levels, true, false);
 
 	I_EQUAL(apply_filter_signal.count(), 3);
-	I_EQUAL(controller.getSmallVariantsFilterResult().countPassing(), 326);
+	I_EQUAL(controller.getSmallVariantsFilterResult().countPassing(), 67);
+
+	// ignore invalid BedLines
+	snv_filters.setRegionFilter(BedLine());
+	I_EQUAL(controller.getSmallVariantsFilterResult().countPassing(), 67);
+
+	snv_filters.setRegionFilter(BedLine("chr1", 1041940, 152303680));
+	I_EQUAL(controller.getSmallVariantsFilterResult().countPassing(), 16);
+
+	GeneSet genes;
+	genes << "AGRN" << "TOE1";
+	snv_filters.setGenes(genes);
+	I_EQUAL(controller.getSmallVariantsFilterResult().countPassing(), 11);
+
+	snv_filters.setTextFilter("AGRN");
+	I_EQUAL(controller.getSmallVariantsFilterResult().countPassing(), 10);
+
+	snv_filters.setTargetRegionInfoByName("Sub-panel: test_region");
+	I_EQUAL(controller.getSmallVariantsFilterResult().countPassing(), 5);
 
 
+	//reset controller:
+	controller.clear();
 
-	// //reset controller:
-	// controller.clear();
+	I_EQUAL(clear_signal.count(), 2);
+	IS_FALSE(controller.isValid());
+	I_EQUAL(controller.getSmallVariantList().count(), 0);
+	I_EQUAL(controller.getCnvList().count(), 0);
+	I_EQUAL(controller.getSvList().count(), 0);
+	I_EQUAL(controller.getReList().count(), 0);
 
-	// I_EQUAL(clear_signal.count(), 2);
-	// IS_FALSE(controller.isValid());
-	// I_EQUAL(controller.getSmallVariantList().count(), 0);
-	// I_EQUAL(controller.getCnvList().count(), 0);
-	// I_EQUAL(controller.getSvList().count(), 0);
-	// I_EQUAL(controller.getReList().count(), 0);
-
-	// //load dragen analysis
-	// controller.loadFile(gsvar_dragen);
-	// I_EQUAL(clear_signal.count(), 3);
-	// IS_TRUE(controller.isValid());
-	// I_EQUAL(controller.getSmallVariantList().count(), 14152);
-	// I_EQUAL(controller.getCnvList().count(), 518);
-	// I_EQUAL(controller.getSvList().count(), 18);
-	// I_EQUAL(controller.getReList().count(), 84);
+	//load dragen analysis
+	controller.loadFile(gsvar_dragen);
+	I_EQUAL(clear_signal.count(), 3);
+	IS_TRUE(controller.isValid());
+	I_EQUAL(controller.getSmallVariantList().count(), 14152);
+	I_EQUAL(controller.getCnvList().count(), 518);
+	I_EQUAL(controller.getSvList().count(), 18);
+	I_EQUAL(controller.getReList().count(), 84);
 }
 
 

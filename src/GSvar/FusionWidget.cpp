@@ -8,7 +8,7 @@
 #include <GlobalServiceProvider.h>
 #include "QImageReader"
 #include "QMessageBox"
-#include <HttpHandler.h>
+#include "HttpRequestHandler.h"
 #include "RnaReportFusionDialog.h"
 
 
@@ -283,7 +283,7 @@ QList<QImage> FusionWidget::imagesFromFiles(const QStringList& files)
 		QImage pic;
 		if (path.startsWith("http", Qt::CaseInsensitive))
 		{
-			QByteArray response = HttpHandler(true).get(path);
+			QByteArray response = HttpRequestHandler().get(path).body;
 			if (!response.isEmpty()) pic.loadFromData(response);
 		}
 		else

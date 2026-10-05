@@ -205,6 +205,10 @@ public:
 
 	TumorOnlyReportWorkerConfig getTumorOnlyReportWorkerConfig();
 
+
+	void setTestMode(bool test);
+	bool isTest();
+
 public slots:
 	///reset all filters to pass all variants
 	void resetFilters();
@@ -316,6 +320,10 @@ private:
 	ReportSettings germline_report_settings_;
 	SomaticReportSettings somatic_report_settings_;
 	QSharedPointer<RnaReportConfiguration> rna_report_config_;
+
+	//is in test mode
+	//used as when creating new NGSD connections to connect to the correct DB
+	bool test_;
 };
 
 #endif // ANALYSISDATACONTROLLER_H

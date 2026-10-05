@@ -338,7 +338,7 @@ public:
 			{
 				n_match++;
 				//transfer to new report
-				int ngsd_id = db.svId(target_svs[idx], target_sv_callset_id, target_svs).toInt();
+				int ngsd_id = db.svId(target_svs[idx], target_sv_callset_id, target_svs);
 				ReportVariantConfiguration rvc = pair.first;
 				rvc.id = -1; //delete previous id to generate a new variant config in NGSD
 				rvc.variant_index = idx;

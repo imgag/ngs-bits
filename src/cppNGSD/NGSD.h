@@ -739,8 +739,11 @@ class CPPNGSDSHARED_EXPORT NGSD
 Q_OBJECT
 
 public:
-	///Default constructor that connects to the DB. If @p open is false, the database connection is not opened. This can be useful if you just want to access the NGSD cache, but not execute any actual database queries (opening the database connect takes up to 0.3s).
-	NGSD(bool test_db=false, QString test_name_override="", bool open=true);
+	///Default constructor that connects to the DB. Connects production DB by default except static default_is_test_db_ is set to true;
+	///Internally it calls NGSD(test_db=default_is_test_db_)
+	NGSD();
+	///If @p open is false, the database connection is not opened. This can be useful if you just want to access the NGSD cache, but not execute any actual database queries (opening the database connect takes up to 0.3s).
+	NGSD(bool test_db, QString test_name_override="", bool open=true);
 	///Destructor.
 	~NGSD();
 	///Returns if the database connection is (still) open
@@ -752,6 +755,8 @@ public:
 
 	///Returns if the database is available (i.e. the credentials are in the settings file or the application is in client-server mode)
 	static bool isAvailable(bool test_db=false);
+
+	static void setDefaultDbToTest(bool use_test_as_default);
 
 	///Returns the table list.
 	QStringList tables() const;
@@ -1366,6 +1371,9 @@ protected:
 	QSharedPointer<QSqlDatabase> db_;
 	//Use test database instead of production database
 	bool test_db_;
+	//create a test DB if Constructor is called without bool
+	static inline bool default_is_test_db_=false;
+
 	//Enable debugging (prints executed queries)
 	bool debug_;
 	double debug_min_s_;

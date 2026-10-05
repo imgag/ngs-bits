@@ -17,19 +17,20 @@
 #include <QtSvg/QSvgRenderer>
 #include <QPainter>
 
-RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusList& res, QSharedPointer<ReportConfiguration> report_config, QString sys_name)
+RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent)
 	: QWidget(parent)
 	, ui_()
-	, res_(res)
-	, sys_name_(sys_name)
+	, res_(AnalysisDataController::instance().getReList())
+	, sys_name_(AnalysisDataController::instance().getSystemName())
+	, sys_type_(AnalysisDataController::instance().getSystemType(false))
 	, sys_type_cutoff_col_("")
-	, report_config_(report_config)
+	, report_config_(AnalysisDataController::instance().getGermlineReportConfig())
     , ngsd_user_logged_in_(LoginManager::active())
     , rc_enabled_(ngsd_user_logged_in_ && report_config_!=nullptr && !report_config_->isFinalized())
 {
     ui_.setupUi(this);
     ui_.filter_hpo->setEnabled(ngsd_user_logged_in_);
-	ui_.filter_hpo->setEnabled(!GlobalServiceProvider::filterWidget()->phenotypes().isEmpty());
+	ui_.filter_hpo->setEnabled(!AnalysisDataController::instance().getSmallVariantsFilterState().getPhenotypes().isEmpty());
 
 	connect(ui_.table, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(cellDoubleClicked(int, int)));
 	connect(ui_.table, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
@@ -43,8 +44,6 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 	connect(ui_.table->verticalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(svHeaderContextMenu(QPoint)));
 
 	//allow statistical filtering only if there is a cutoff for the system type
-	NGSD db;
-	sys_type_ = db.getValue("SELECT type FROM processing_system WHERE name_manufacturer LIKE '" + sys_name_ + "'").toString();
 	if (sys_type_=="WGS")
 	{
 		sys_type_cutoff_col_ = "statisticial_cutoff_wgs";
@@ -77,7 +76,7 @@ RepeatExpansionWidget::RepeatExpansionWidget(QWidget* parent, const RepeatLocusL
 		ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "statistical cutoff"), true);
 	}
 	//show annotation column only if annotation exists
-	ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "overlapping insertions"), !res.ContainsInsertionAnnotation());
+	ui_.table->setColumnHidden(GUIHelper::columnIndex(ui_.table, "overlapping insertions"), !res_.ContainsInsertionAnnotation());
 
     if (!res_.isEmpty())
     {
@@ -935,9 +934,9 @@ void RepeatExpansionWidget::updateRowVisibility()
 	if (ui_.filter_hpo->isChecked())
 	{
 		//determine hpo subtree of patient
-		PhenotypeList pheno_subtrees = GlobalServiceProvider::filterWidget()->phenotypes();
+		PhenotypeList pheno_subtrees = AnalysisDataController::instance().getSmallVariantsFilterState().getPhenotypes();
 		NGSD db;
-        for (const Phenotype& pheno : GlobalServiceProvider::filterWidget()->phenotypes())
+		for (const Phenotype& pheno : AnalysisDataController::instance().getSmallVariantsFilterState().getPhenotypes())
 		{
 			pheno_subtrees << db.phenotypeChildTerms(db.phenotypeIdByAccession(pheno.accession()), true);
 		}

@@ -448,9 +448,9 @@ void MainWindow::checkServerAvailability()
 
 void MainWindow::updateActiveUrls()
 {
-	if (filename_.isEmpty()) return;
+	if (! data_controller_.isValid()) return;
 
-	QList<QString> filename_parts = filename_.split("/");
+	QList<QString> filename_parts = data_controller_.getFilename().split("/");
 	QString ps_url_id;
 	if (filename_parts.size()>3) ps_url_id = filename_parts[filename_parts.size()-2];
 
