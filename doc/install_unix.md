@@ -76,4 +76,4 @@ GSvar is usually running in client-server mode. Thus, you need to [setup the GSv
 
 ## Integration with IGV
 
-For all the questions related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).
+For all the questions related to IGV, please see the [`IGV installation page`](GSvar/install_igv.md).
