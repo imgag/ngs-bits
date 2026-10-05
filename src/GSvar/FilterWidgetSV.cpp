@@ -88,7 +88,7 @@ void FilterWidgetSV::reset(bool clear_roi)
 {
 	{//do not remove scope - needed by QSignalBlocker
 		const QSignalBlocker blocker(this);
-		resetSignalsUnblocked(clear_roi);
+	resetSignalsUnblocked(clear_roi);
 	}
 }
 
@@ -303,8 +303,8 @@ void FilterWidgetSV::updateGuiPhenotypes()
 	QString tooltip = "Phenotype/inheritance filter based on HPO terms.<br><br>Notes:<br>- This functionality is only available when NGSD is enabled.<br>- Filters based on the phenotype-associated gene loci including 5000 flanking bases.";
 	if (!state_.getPhenotypes().isEmpty())
 	{
-		tooltip += "<br><br><nobr>Selected HPO terms:</nobr>";
-		for (const Phenotype& pheno : state_.getPhenotypes())
+		tooltip += "<br><br><nobr>Currently selected HPO terms:</nobr>";
+		for (const Phenotype& pheno : std::as_const(state_.getPhenotypes()))
 		{
 			tooltip += "<br><nobr>" + pheno.toString() + "</nobr>";
 		}
@@ -449,7 +449,7 @@ void FilterWidgetSV::customFilterLoaded()
 {
 	{//do not remove scope - needed by QSignalBlocker
 		const QSignalBlocker blocker(ui_.filters);
-		ui_.filters->setCurrentIndex(0);
+	ui_.filters->setCurrentIndex(0);
 	}
 
 	ui_.lab_modified->setHidden(false);

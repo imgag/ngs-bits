@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Resources/GSviewerSession.xsd</file>
+    </qresource>
+</RCC>

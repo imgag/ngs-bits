@@ -7,6 +7,7 @@
 #include "GlobalServiceProvider.h"
 #include "GeneInfoDBs.h"
 #include "GenomeVisualizationWidget.h"
+#include "SharedData.h"
 #include "ColumnConfig.h"
 #include <QBitArray>
 #include <QApplication>
@@ -296,12 +297,14 @@ void VariantTable::customContextMenu(QPoint pos)
 
 	if (action==a_visualize)
 	{
-        QSharedPointer<GenomeData> genome_data(new GenomeData());
-        genome_data->setTranscripts(NGSD().transcripts());
 		GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this);
-        widget->setGenomeData(genome_data);
-		widget->setRegion(variant.chr(), variant.start(), variant.end());
-        auto dlg = GUIHelper::createDialog(widget, "GSviewer");
+		if (SharedData::transcripts().isEmpty())
+		{
+			qDebug() << "SET";
+			SharedData::setTranscripts(NGSD().transcripts());
+		}
+		SharedData::setRegion(variant.chr(), variant.start(), variant.end());
+		auto dlg = GUIHelper::createDialog(widget, "GSviewer");
 		dlg->exec();
 	}
 	else if (parent_menu && parent_menu->title()=="Open link")

@@ -11,9 +11,9 @@ ngs-bits depends on the following software to be installed
 
 ### Qt
 
-We recommend using Ubuntu 24.04, since it is the current LTS release of Ubuntu that has Qt 6 by default. On Ubuntu 24.04 ngs-bits requires the following packages:
+We recommend using Ubuntu 26.04, since it is the current LTS release of Ubuntu that has Qt 6 by default. On Ubuntu 26.04 ngs-bits requires the following packages:
 
-        > sudo apt-get install git make g++ unzip qt6-base-dev qmake6 libqt6sql6 libqt6sql6-mysql libqt6charts6-dev libbz2-dev libqt6svg6-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev ca-certificates libtool pkg-config libxml2 libxml2-dev libssl-dev libdeflate-dev qt6-httpserver-dev qt6-websockets-dev
+        > sudo apt-get install make g++ git qt6-base-dev qmake6 libqt6sql6 libqt6sql6-mysql libqt6charts6-dev libbz2-dev libqt6svg6-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev ca-certificates libtool pkg-config libxml2-16 libxml2-dev libssl-dev libdeflate-dev qt6-httpserver-dev qt6-websockets-dev unzip
         
     
 ### Resolving proxy issues with git
@@ -76,4 +76,4 @@ GSvar is usually running in client-server mode. Thus, you need to [setup the GSv
 
 ## Integration with IGV
 
-For all the questions related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).
+For all the questions related to IGV, please see the [`IGV installation page`](GSvar/install_igv.md).
