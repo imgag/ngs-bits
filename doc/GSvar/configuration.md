@@ -18,7 +18,7 @@ The settings are:
 
 - *reference_genome*: the path to the reference genome FASTA file
 - *ngsd_...*: Database credentials for the NGSD (if available)
-- *db_ssl_ca: SSL certificate authorities needed to validate connections to the SQL database server, if not provided by the OS certificate store.
+- *db_ssl_ca: SSL certificate `.pem` file used for the SQL database server. This has to be provided when using NGSD and the certificate is not provided by the OS certificate store.
 - *genlab_...*: Database credentials for the GenLab (if available)
 - *projects_folder_...*: Prject data folders for different project types (diagnostic, research, test, external)
 - *data_folder*: megSAP data folder used to find target region BED files of processing systems
@@ -61,7 +61,7 @@ If you want to run GSvar with a GSvar server, you need to provide these settings
 
 - *server_host*: Server name.
 - *server_port*: Server port.
-- *curl_ca_bundle*: Path to the certificate bundle `.crt` file used by the server. If not provided, the GSvar and/or IGV cannot access BAM files over HTTPS.
+- *curl_ca_bundle*: SSL certificate `.pem` file used for the GSvar server. If not provided, the GSvar and/or IGV cannot access BAM/CRAM files over HTTPS.
 - *display_user_notifications*: Enable/Disable showing user notifications from the server in the client.
 
 ## Filters

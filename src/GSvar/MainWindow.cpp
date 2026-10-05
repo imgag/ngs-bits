@@ -391,8 +391,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int, int)), this, SLOT(uploadToClinvar(int, int)));
 	connect(ui_.vars, SIGNAL(alamutTriggered(QAction*)), this, SLOT(openAlamut(QAction*)));
 
-	// Environment variable containing the file path to the list of certificate authorities
-	// (needed for HTTPS to work correctly, especially for htslib and BamReader)
+	//Set environment variable containing SSL certificates - needed for HTTPS to work for BamReader/htslib
 	QString curl_ca_bundle = Settings::string("curl_ca_bundle", true);
 	if ((Helper::isWindows()) && (!curl_ca_bundle.isEmpty()))
 	{

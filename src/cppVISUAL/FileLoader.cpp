@@ -20,15 +20,18 @@ QVector<TrackWidget*> FileLoader::loadTracks(QString file_path, QWidget* parent)
 	if (filename.endsWith(".bed"))
 	{
 		output << BedTrack::createTrack(parent, file_path, filename);
+		return output;
 	}
 	if (filename.endsWith(".bam") || filename.endsWith(".cram"))
 	{
 		output << BamAlignmentTrack::createTrack(parent, file_path, filename);
 		output << BamCoverageTrack::createTrack(parent, file_path, filename);
+		return output;
 	}
 	if (filename.endsWith(".igv"))
 	{
 		output << IgvTrack::createTrack(parent, file_path, filename);
+		return output;
 	}
 
 	THROW(FileAccessException, "Unsupported file type for file: " + filename);
@@ -36,14 +39,6 @@ QVector<TrackWidget*> FileLoader::loadTracks(QString file_path, QWidget* parent)
 
 QSharedPointer<BedFile> FileLoader::loadBedFile(QString file_path)
 {
-	const QFileInfo info(file_path);
-	const QString abs_path = info.absoluteFilePath();
-
-	if (!info.isFile())
-	{
-		QMessageBox::critical(QApplication::activeWindow(), "Error", file_path + " not found");
-		return nullptr;
-	}
 	try
 	{
 		QSharedPointer<BedFile> bedfile = QSharedPointer<BedFile>::create();
@@ -60,14 +55,6 @@ QSharedPointer<BedFile> FileLoader::loadBedFile(QString file_path)
 
 QSharedPointer<BedFile> FileLoader::loadIgvFile(QString file_path)
 {
-
-	const QFileInfo info(file_path);
-
-	if (!info.isFile())
-	{
-		QMessageBox::critical(QApplication::activeWindow(), "Error", file_path + " not found");
-		return nullptr;
-	}
 	try
 	{
 		QSharedPointer<BedFile> bedfile = QSharedPointer<BedFile>::create();
@@ -91,12 +78,6 @@ QSharedPointer<BedFile> FileLoader::loadIgvFile(QString file_path)
 
 QSharedPointer<BamReader> FileLoader::loadBamFile(QString file_path)
 {
-	const QFileInfo info(file_path);
-	if (!info.isFile())
-	{
-		QMessageBox::critical(QApplication::activeWindow(), "Error", file_path + " not found");
-		return nullptr;
-	}
 	try
 	{
 		QSharedPointer<BamReader> reader = QSharedPointer<BamReader>::create(file_path);
