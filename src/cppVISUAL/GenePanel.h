@@ -24,6 +24,8 @@ private slots:
 	void updateRegion();
 
 private:
+	//only show GENCODE primary data
+	bool show_only_gencode_primary = true;
 	//strand for which the bases are shown
 	bool strand_forward_ = true;
 	//show all three posible codon translations

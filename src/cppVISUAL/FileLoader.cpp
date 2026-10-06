@@ -14,6 +14,11 @@ QVector<TrackWidget*> FileLoader::loadTracks(QString file_path, QWidget* parent)
 	if (Helper::isHttpUrl(filename))
 	{
 		filename = filename.split('?')[0];
+		if (filename.contains("/")) filename = filename.split("/").last();
+	}
+	else
+	{
+		filename = QFileInfo(filename).fileName();
 	}
 
 	QVector<TrackWidget*> output;
@@ -24,8 +29,8 @@ QVector<TrackWidget*> FileLoader::loadTracks(QString file_path, QWidget* parent)
 	}
 	if (filename.endsWith(".bam") || filename.endsWith(".cram"))
 	{
+		output << BamCoverageTrack::createTrack(parent, file_path, filename + " coverage");
 		output << BamAlignmentTrack::createTrack(parent, file_path, filename);
-		output << BamCoverageTrack::createTrack(parent, file_path, filename);
 		return output;
 	}
 	if (filename.endsWith(".igv"))

@@ -113,7 +113,6 @@ void GenomeVisualizationWidget::search()
 		foreach(int index, gene_to_trans_indices_[text.toUtf8()])
 		{
 			const Transcript& trans = SharedData::transcripts()[index];
-			if (SharedData::settings().show_only_primary && !trans.isGencodePrimaryTranscript()) continue;
 			roi.append(BedLine(trans.chr(), trans.start(), trans.end()));
 		}
 		roi.extend(SharedData::settings().transcript_padding);
@@ -295,16 +294,21 @@ void GenomeVisualizationWidget::loadSession()
 
 	SharedData::loadFromXml(general);
 
-	ui_->panel_manager->loadFromXml(root);
+	ui_->panel_manager->loadFromXml(root);G
 }
 
 
 //TODO Marc - GSviewer:
-//- "visualaize" > show BAM/CRAM
-//- show GenCode primary only does nothing
-//- chr selection does not work from GSvar
-//- search does not work from GSvar
-//- GSviewer Help > about does nothing
-//- gene track:
-//  - context menu to show cDNA and protein position
-//  - show AAs in transcripts if zoomed in enough
+//- all
+//	- coverage track click popup text layout off
+//  - BAM track click popup text layout off
+//	- BAM tracillumina > PE by default
+//- from GSvar:
+//	- chr selection does not
+//	- search for gene does not work
+//- GSviewer standalone
+//	- "Help > about" does nothing
+//	- gene track:
+//		- context menu to show cDNA and protein position
+//		- show AAs in transcripts if zoomed in enough
+//	- add default INI file: ensembl_gff

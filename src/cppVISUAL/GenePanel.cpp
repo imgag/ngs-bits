@@ -24,7 +24,7 @@ void GenePanel::contextMenu(QPoint pos)
 	a_show_translation->setChecked(show_translation_);
 	QAction* a_show_ensebl_only = menu.addAction("Show GENCODE primary only");
 	a_show_ensebl_only->setCheckable(true);
-	a_show_ensebl_only->setChecked(SharedData::settings().show_only_primary);
+	a_show_ensebl_only->setChecked(show_only_gencode_primary);
 
 	//show menu
 	QAction* action = menu.exec(mapToGlobal(pos));
@@ -42,9 +42,8 @@ void GenePanel::contextMenu(QPoint pos)
 	}
 	else if (action==a_show_ensebl_only)
 	{
-		GlobalSettings settings = SharedData::settings();
-		settings.show_only_primary = !settings.show_only_primary;
-		SharedData::setSettings(settings);
+		show_only_gencode_primary = !show_only_gencode_primary;
+		repaint();
 	}
 }
 
@@ -143,7 +142,7 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 		const Transcript& trans = SharedData::transcripts().at(i);
 
         //only GENCODE primary
-		if (SharedData::settings().show_only_primary && !trans.isGencodePrimaryTranscript()) continue;
+		if (show_only_gencode_primary && !trans.isGencodePrimaryTranscript()) continue;
 
         if (trans.isPreferredTranscript() || trans.isManePlusClinicalTranscript() || trans.isManeSelectTranscript() || trans.isEnsemblCanonicalTranscript())
         {

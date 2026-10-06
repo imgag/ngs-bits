@@ -107,7 +107,7 @@ void BamTrackData::updateRegion()
 		loaded_region_.setStart(p_start);
 		loaded_region_.setEnd(p_end);
 		is_loading_ = false;
-		// TODO: need to check if this is too slow
+		//TODO: need to check if this is too slow
 		// std::sort(alignments_.begin(), alignments_.end(),
 		// 		  [](const BamAlignmentWrapper& a, const BamAlignmentWrapper&b){
 		// 			return a.start() < b.start();}
@@ -245,7 +245,7 @@ void BamTrackData::computeInsertSizeStats()
 
 	std::sort(sizes.begin(), sizes.end());
 	int n = sizes.size();
-	// TODO: these percentiles should come from settings somewhere!
+	//TODO: these percentiles should come from settings somewhere!
 	insert_size_stats_.insert_size_min = sizes[(int)(n * 0.005)];
 	insert_size_stats_.insert_size_max = sizes[(int)(n * 0.995)];
 }
@@ -293,7 +293,7 @@ void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Se
 				continue;
 			case BAM_CHARD_CLIP:
 				continue;
-			default: // TODO: handle exception (invalid cigar op)
+			default: //TODO: handle exception (invalid cigar op)
 				continue;
 		}
 		if (c_data.event == MATCH)
@@ -376,9 +376,8 @@ void BamTrackData::updateData()
 		}
 		catch (const Exception&)
 		{
-			// TODO: decide what to do here, give the user an error? Don't display mate?
+			//TODO: decide what to do here, give the user an error? Don't display mate?
 		}
-		qDebug() << wrapped_alignment.mate_chr.str() << Qt::endl;
 		wrapped_alignment.storeCigarData(al, ref_seq_, region.start());
 		alignments_ << wrapped_alignment;
 	}

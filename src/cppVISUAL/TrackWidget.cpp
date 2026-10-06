@@ -19,7 +19,9 @@
 #include <QVBoxLayout>
 
 TrackWidget::TrackWidget(QWidget* parent, QString file_path, QString name)
-	:QWidget(parent), file_path_(file_path), name_(name)
+	: QWidget(parent)
+	, file_path_(file_path)
+	, name_(name)
 {
 }
 
@@ -32,18 +34,15 @@ void TrackWidget::regionChanged()
 void TrackWidget::populateContextMenu(QMenu& menu, const QPoint&)
 {
 	QAction* reload = menu.addAction("Reload Track");
-	connect(reload, &QAction::triggered,
-			this, &TrackWidget::reloadTrack);
+	connect(reload, &QAction::triggered, this, &TrackWidget::reloadTrack);
 
 	menu.addSeparator();
 
 	QAction* remove = menu.addAction("Remove Track");
-	connect(remove, &QAction::triggered,
-			this, &TrackWidget::trackDeleted);
+	connect(remove, &QAction::triggered, this, &TrackWidget::trackDeleted);
 
 	QAction* rename = menu.addAction("Rename Track...");
-	connect(rename, &QAction::triggered,
-			this, &TrackWidget::handleTrackRename);
+	connect(rename, &QAction::triggered,this, &TrackWidget::handleTrackRename);
 }
 
 void TrackWidget::handleTrackRename()

@@ -16,8 +16,6 @@ struct CPPVISUALSHARED_EXPORT GlobalSettings
 {
 	//Width of the label area on the left of panels
 	int label_width  = 165;
-	//If only GENCODE primary are shown in GenePanel (also relevant for search)
-	bool show_only_primary = true;
 	//Minimum number of bases to show
 	int min_window_size = 40;
 	//How many bases genes/transcripts are padded with, e.g. after search

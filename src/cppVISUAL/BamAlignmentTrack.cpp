@@ -107,7 +107,7 @@ void BamAlignmentTrack::dataReady()
 	update();
 }
 
-// TODO: this can, and should be, done on a seperate thread
+//TODO: this can, and should be, done on a seperate thread
 void BamAlignmentTrack::calculateRows()
 {
 	if (view_as_pairs_) calculateRowsPairMode();

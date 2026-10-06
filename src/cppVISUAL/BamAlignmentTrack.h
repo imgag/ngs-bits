@@ -103,7 +103,6 @@ private:
 	bool isCurrentRegionValid();
 	// gives the start and end point of the alignments
 	// if current mode is show_clip_bases_, this gives start and end with that
-	// TODO: insertation can also be expanded in the future
 	int getAlignmentStart(const BamAlignmentWrapper&);
 	int getAlignmentEnd(const BamAlignmentWrapper&);
 	// returns color of alignment based on its properties and current coloring scheme

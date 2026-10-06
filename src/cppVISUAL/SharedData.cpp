@@ -31,6 +31,8 @@ void SharedData::setTranscripts(const TranscriptList& transcripts)
 
 void SharedData::setRegion(const Chromosome& chr, int start, int end)
 {
+	if (end < start) THROW(ArgumentException, "Invalid chromosome range - end before start: "+QString::number(start) + "-" + QString::number(end));
+
 	//extend region to minimal region size
 	int size = end-start+1;
 	if (size<instance()->settings_.min_window_size)
@@ -80,7 +82,7 @@ SharedData::SharedData(QObject* parent)
 	, transcripts_()
 	, transcripts_index_(transcripts_)
 	, settings_()
-	, region_()
+	, region_(Chromosome("chr13"), 20188899, 20189581) //just some random default to make sure it is not a invalid region
 	, char_size_(determineCharacterSize())
 {
 }

@@ -393,7 +393,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 	//Set environment variable containing SSL certificates - needed for HTTPS to work for BamReader/htslib
 	QString curl_ca_bundle = Settings::string("curl_ca_bundle", true);
-	if ((Helper::isWindows()) && (!curl_ca_bundle.isEmpty()))
+	if (Helper::isWindows() && !curl_ca_bundle.isEmpty())
 	{
 		if (!qputenv("CURL_CA_BUNDLE", curl_ca_bundle.toUtf8()))
 		{
