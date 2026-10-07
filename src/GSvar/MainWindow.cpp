@@ -3232,7 +3232,7 @@ void MainWindow::on_actionAbout_triggered()
 
 	//show dialog
 	AboutDialog dlg(this);
-	dlg.setIcon(QPixmap(":/Icons/Icon.png"));
+	dlg.setIcon(QPixmap(":/Icons/Icon_highres.png"));
 	dlg.setDescription("A free decision support system for germline and somatic variants.<br>Check the <a href='https://github.com/imgag/ngs-bits/blob/master/doc/GSvar/index.md'>GitHub page</a> for details.");
 	dlg.addLibVersionLine("htslib version: " + QString(hts_version()));
 	dlg.addLibVersionLine("Genome build: " + GSvarHelper::buildAsString());
