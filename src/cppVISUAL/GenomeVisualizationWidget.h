@@ -57,8 +57,8 @@ protected slots:
 	void updateCoordinateLabel(QString text);
 	//Updates indices (called when transcripts changed)
 	void updateIndices();
-	//Sets the region of the whole chromosome
-	void setChromosomeRegion(QString chromsome);
+    //Sets the region of the whole chromosome
+    void setChromosomeRegion(QString chromsome);
 
 signals:
 	//Emitted when the displayed region has changed.

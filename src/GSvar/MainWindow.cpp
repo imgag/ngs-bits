@@ -266,7 +266,7 @@ MainWindow::MainWindow(QWidget *parent)
 	//signals and slots
     connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(closeAndLogout()));
 
-        connect(ui_.filters, SIGNAL(filtersChanged()), this, SLOT(refreshVariantTable()));
+    connect(ui_.filters, SIGNAL(filtersChanged()), this, SLOT(refreshVariantTable()));
 	connect(ui_.vars, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
 	connect(ui_.vars, SIGNAL(cellDoubleClicked(int, int)), this, SLOT(variantCellDoubleClicked(int, int)));
 	connect(ui_.vars, SIGNAL(showMatchingCnvsAndSvs(BedLine)), this, SLOT(showMatchingCnvsAndSvs(BedLine)));
@@ -277,7 +277,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.vars->horizontalHeader(), SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(columnContextMenu(QPoint)));
 	connect(ui_.actionDesignSubpanel, SIGNAL(triggered()), this, SLOT(openSubpanelDesignDialog()));
 	connect(ui_.filters, SIGNAL(phenotypeImportNGSDRequested()), this, SLOT(importPhenotypesFromNGSD()));
-	connect(ui_.filters, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
+    connect(ui_.filters, SIGNAL(phenotypeSubPanelRequested()), this, SLOT(createSubPanelFromPhenotypeFilter()));
 
 	//variants tool bar
 	connect(ui_.vars_copy_btn, SIGNAL(clicked(bool)), ui_.vars, SLOT(copyToClipboard()));

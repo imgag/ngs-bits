@@ -72,6 +72,8 @@
     <property name="title">
      <string>Help</string>
     </property>
+    <addaction name="actionEnable_Remote_Application_Control"/>
+    <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuFile"/>
@@ -111,6 +113,14 @@
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionEnable_Remote_Application_Control">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable Remote Application Control</string>
    </property>
   </action>
  </widget>

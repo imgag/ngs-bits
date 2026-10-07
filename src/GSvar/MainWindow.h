@@ -315,7 +315,7 @@ public slots:
 	///Ping GSvar server
 	void on_actionPingGSvarServer_triggered();
 	///Ping NGSD server
-	void on_actionPingNgsdServer_triggered();
+    void on_actionPingNgsdServer_triggered();
 
 	///Calculate gaps based on current target region filter
 	void calculateGapsByTargetRegionFilter();
@@ -516,6 +516,7 @@ protected:
 	QString getFileSelectionItem(QString window_title, QString label_text, QStringList file_list, bool *ok);
     /// Removes a user's session on the server (in client-server mode)
     void performLogout();
+
 
 private:
 	//GUI

@@ -17,8 +17,10 @@ LIBS += -L$$PWD/../../bin -lcppVISUAL
 RESOURCES += GSviewer.qrc
 
 SOURCES += main.cpp \
+    CommandServer.cpp \
     MainWindow.cpp
 
-HEADERS += MainWindow.h
+HEADERS += MainWindow.h \
+    CommandServer.h
 
 FORMS += MainWindow.ui
