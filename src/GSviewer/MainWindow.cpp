@@ -5,6 +5,7 @@
 #include <QStyleFactory>
 #include "AboutDialog.h"
 #include "htslib/hts.h"
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -13,7 +14,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.setupUi(this);
 
 	//sginals and slots
-	connect(ui_.actionLoadFile, SIGNAL(triggered()), ui_.gvw, SLOT(loadFile()));
+	connect(ui_.actionLoadFile, SIGNAL(triggered()), ui_.gvw, SLOT(openFileDialog()));
 	connect(ui_.actionReloadTracks, SIGNAL(triggered()), ui_.gvw, SLOT(reloadTracks()));
 	connect(ui_.actionNewSession, SIGNAL(triggered()), ui_.gvw, SLOT(newSession()));
 	connect(ui_.actionStore_session, SIGNAL(triggered()), ui_.gvw, SLOT(saveSession()));
@@ -31,7 +32,7 @@ MainWindow::MainWindow(QWidget *parent)
 			settings.print_to_stdout = false;
 			GffData data = GffData::load(Settings::string("ensembl_gff"), settings);
 			SharedData::setTranscripts(data.transcripts);
-        }
+		}
 		qDebug() << "Parsing transcripts took: " << Helper::elapsedTime(timer);
     }
 	catch (Exception e)

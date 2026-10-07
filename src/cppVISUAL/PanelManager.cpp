@@ -1,9 +1,7 @@
 #include "PanelManager.h"
 #include "SharedData.h"
 #include "TrackGroup.h"
-
 #include <QMouseEvent>
-
 
 PanelManager::PanelManager(QWidget* parent)
 	: QSplitter(Qt::Vertical, parent)
@@ -16,19 +14,25 @@ PanelManager::PanelManager(QWidget* parent)
 
 void PanelManager::reloadTracks()
 {
-	QList<TrackGroup*> track_groups = findChildren<TrackGroup*>();
-	foreach (TrackGroup* track_group, track_groups)
+	foreach (TrackGroup* track_group, findChildren<TrackGroup*>())
 	{
 		if (track_group) track_group->reloadTracks();
 	}
 }
 
-void PanelManager::newSession()
+void PanelManager::newSession(bool add_empty_panel)
 {
-	QList<TrackGroup*> track_groups = findChildren<TrackGroup*>();
-	foreach (TrackGroup* track_group, track_groups)
+	removeAll();
+
+	//add empty panel
+	if (add_empty_panel)
 	{
-		if (track_group) track_group->deleteLater();
+		TrackGroup* new_panel = new TrackGroup();
+		insertWidget(0, new_panel);
+		connectSignals(new_panel);
+
+		//resize gene track
+		setSizes(QList<int>() << height()-250 << 250);
 	}
 }
 
@@ -78,19 +82,12 @@ void PanelManager::updateDragRegion(int mouse_x)
 	SharedData::setRegion(drag_start_region_.chr(), new_start, new_end);
 }
 
-
-void PanelManager::loadFile()
-{
-	TrackGroup* new_panel = TrackGroup::fromFile();
-	if (new_panel)
-	{
-		connectSignals(new_panel);
-		insertWidget(0, new_panel);
-	}
-}
-
 void PanelManager::loadFile(QString filename)
 {
+	//empty session => remove all track groups
+	if (isEmptySession()) removeAll();
+
+	//add new track group with file contents
 	TrackGroup* new_panel = TrackGroup::fromFile(filename);
 	if (new_panel)
 	{
@@ -107,7 +104,7 @@ void PanelManager::addPanelAbove()
 		int idx = indexOf(senderWidget);
 		if (idx >= 0)
 		{
-			TrackGroup* new_panel = new TrackGroup;
+			TrackGroup* new_panel = new TrackGroup();
 			insertWidget(idx, new_panel);
 			connectSignals(new_panel);
 		}
@@ -122,7 +119,7 @@ void PanelManager::addPanelBelow()
 		int idx = indexOf(senderWidget);
 		if (idx >= 0)
 		{
-			TrackGroup* new_panel = new TrackGroup;
+			TrackGroup* new_panel = new TrackGroup();
 			insertWidget(std::min(idx + 1, count() - 1), new_panel);
 			connectSignals(new_panel);
 		}
@@ -155,9 +152,27 @@ void PanelManager::loadFromXml(const QDomElement& dom_element)
 	QDomNodeList elements = dom_element.elementsByTagName("TrackGroup");
 	for (int i =0; i < elements.count(); ++i)
 	{
-		TrackGroup* panel = new TrackGroup;
+		TrackGroup* panel = new TrackGroup();
 		panel->loadFromXml(elements.at(i).toElement());
 		connectSignals(panel);
 		insertWidget(count() - 1, panel);
 	}
+}
+
+void PanelManager::removeAll()
+{
+	foreach (TrackGroup* track_group, findChildren<TrackGroup*>())
+	{
+		if (track_group) track_group->deleteLater();
+	}
+}
+
+bool PanelManager::isEmptySession() const
+{
+	foreach (TrackGroup* track_group, findChildren<TrackGroup*>())
+	{
+		if (track_group->trackCount()>0) return false;
+	}
+
+	return true;
 }

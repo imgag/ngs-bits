@@ -10,7 +10,9 @@
 
 
 TrackGroup::TrackGroup(QWidget* parent)
-	:QScrollArea(parent), layout_(new QVBoxLayout(this)), content_widget_(new QWidget(this))
+	: QScrollArea(parent)
+	, layout_(new QVBoxLayout(this))
+	, content_widget_(new QWidget(this))
 {
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	setContextMenuPolicy(Qt::CustomContextMenu);
@@ -102,8 +104,7 @@ QVector<TrackWidget*> TrackGroup::loadTrackWidgetsFromFile()
 
 void TrackGroup::reloadTracks()
 {
-	QList<TrackWidget*> track_widgets = findChildren<TrackWidget*>();
-	foreach (TrackWidget* track_widget, track_widgets)
+	foreach (TrackWidget* track_widget, findChildren<TrackWidget*>())
 	{
 		track_widget->reloadTrack();
 	}
@@ -144,13 +145,10 @@ void TrackGroup::contextMenu(QPoint pos)
 
 void TrackGroup::clearLayout()
 {
-	if (layout_)
+	while (QLayoutItem* item = layout_->takeAt(0))
 	{
-		while (QLayoutItem* item = layout_->takeAt(0))
-		{
-			if (QWidget* widget = item->widget()) widget->deleteLater();
-			delete item;
-		}
+		if (QWidget* widget = item->widget()) widget->deleteLater();
+		delete item;
 	}
 }
 
@@ -169,13 +167,14 @@ void TrackGroup::dragEnterEvent(QDragEnterEvent* event)
 	}
 }
 
-
 inline int TrackGroup::getDropIndex(int y)
 {
 	int drop_index =0;
-	for (int i = 0; i < layout_->count() - 1; ++i) {
+	for (int i = 0; i < layout_->count() - 1; ++i)
+	{
 		QWidget* w = layout_->itemAt(i)->widget();
-		if (w && y > w->geometry().center().y()) {
+		if (w && y > w->geometry().center().y())
+		{
 			drop_index = i + 1;
 		}
 	}
@@ -239,9 +238,7 @@ void TrackGroup::wheelEvent(QWheelEvent* event)
 void TrackGroup::writeToXml(QXmlStreamWriter& writer)
 {
 	writer.writeStartElement("TrackGroup");
-	QList<TrackWidget*> tracks = findChildren<TrackWidget*>();
-
-	foreach (TrackWidget* track, tracks)
+	foreach (TrackWidget* track, findChildren<TrackWidget*>())
 	{
 		track->writeToXml(writer);
 	}
@@ -287,4 +284,8 @@ TrackGroup* TrackGroup::fromXml(const QDomElement& dom_element)
 	return tr;
 }
 
+int TrackGroup::trackCount()
+{
+	return findChildren<TrackWidget*>().count();
+}
 

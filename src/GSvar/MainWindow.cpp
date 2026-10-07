@@ -376,7 +376,6 @@ MainWindow::MainWindow(QWidget *parent)
 		connect(active_url_update_timer, SIGNAL(timeout()), this, SLOT(updateActiveUrls()));
 		active_url_update_timer->start(30 * 60 * 1000); // every 30 minutes
 
-
 		//check if there are new notifications for the users
 		if (Settings::boolean("display_user_notifications", true))
 		{

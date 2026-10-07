@@ -100,7 +100,7 @@ SharedData::SharedData(QObject* parent)
 	, transcripts_()
 	, transcripts_index_(transcripts_)
 	, settings_()
-	, region_(Chromosome("chr13"), 20188899, 20189581) //just some random default to make sure it is not a invalid region
+	, region_(Chromosome("chr1"), 1, 1000) //just some random default to make sure it is not a invalid region
 	, char_size_(determineCharacterSize())
 {
 }

@@ -33,6 +33,8 @@ public:
 	static TrackGroup* fromFile(QString filename);
 	// reads <Track> elements in the dom and creates Tracks based on the properties, if no Track elements were created, returns null ptr
 	static TrackGroup* fromXml(const QDomElement&);
+	//returns the number of tracks
+	int trackCount();
 
 signals:
 	void addPanelAbove();
@@ -63,7 +65,7 @@ private:
 	inline int getDropIndex(int y);
 	// gives the TrackWidget which is at the specified pos, if none this returns nullptr
 	TrackWidget* getTrackUnderMouse(QPoint pos);
-	// opens a FileDialogue and creates TrackWidgets using FileLoader
+	// opens a file dialog and creates TrackWidgets using FileLoader
 	static QVector<TrackWidget*> loadTrackWidgetsFromFile(); //TODO Marc: remove?!
 
 private slots:

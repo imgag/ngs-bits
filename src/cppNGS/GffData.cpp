@@ -198,19 +198,20 @@ GffData GffData::load(QString filename, GffSettings settings)
 
 GffData GffData::loadEnsembl(QString filename, const GffSettings& settings, int& c_skipped_special_chr, QSet<QByteArray>& special_chrs, int& c_skipped_no_name_and_hgnc, int& c_skipped_low_evidence, int& c_skipped_not_hgnc)
 {
-    GffData output;
-    output.transcripts.reserve(225000); //224155 gencode basic transcripts in Ensembl 115...
+	GffData output;
+	output.transcripts.reserve(227000); //226628 gencode basic transcripts in Ensembl 115...
 
-    //init
+	//init
     QHash<QByteArray, TranscriptData> transcripts;
-    QHash<QByteArray, QByteArray> ensg2hgnc;
+	QHash<QByteArray, QByteArray> ensg2hgnc;
+	QHash<QByteArray, QByteArray> chr_cache;
 
     QList<QByteArrayView> parts;
     parts.resize(9);
 
     VersatileFile stream(filename);
     stream.open(QFile::ReadOnly | QIODevice::Text);
-    while(!stream.atEnd())
+	while(!stream.atEnd())
     {
         QByteArray line = stream.readLine(true);
         if (line.isEmpty()) continue;
@@ -221,16 +222,16 @@ GffData GffData::loadEnsembl(QString filename, const GffSettings& settings, int&
             //convert from TranscriptData to Transcript and append to list
             for(auto it = transcripts.begin(); it!=transcripts.end(); ++it)
             {
-                TranscriptData& t_data = it.value();
-                t_data.exons.merge();
+				TranscriptData& t_data = it.value();
+				t_data.exons.merge();
 
-                Transcript t;
-                t.setGene(t_data.gene_symbol);
-                t.setGeneId(t_data.gene_id);
-                t.setHgncId(t_data.hgnc_id);
-                t.setName(t_data.name);
+				Transcript t;
+				t.setGene(t_data.gene_symbol);
+				t.setGeneId(t_data.gene_id);
+				t.setHgncId(t_data.hgnc_id);
+				t.setName(t_data.name);
                 t.setVersion(t_data.version);
-                t.setNameCcds(t_data.name_ccds);
+				t.setNameCcds(t_data.name_ccds);
                 t.setSource(Transcript::ENSEMBL);
                 t.setStrand(t_data.strand);
                 t.setBiotype(t_data.biotype);
@@ -241,7 +242,7 @@ GffData GffData::loadEnsembl(QString filename, const GffSettings& settings, int&
                     int temp = coding_start;
                     coding_start = coding_end;
                     coding_end = temp;
-                }
+		}
                 t.setRegions(t_data.exons, coding_start, coding_end);
                 t.setGencodeBasicTranscript(t_data.is_gencode_basic);
                 t.setGencodePrimaryTranscript(t_data.is_gencode_primary);
@@ -249,7 +250,7 @@ GffData GffData::loadEnsembl(QString filename, const GffSettings& settings, int&
                 t.setManeSelectTranscript(t_data.is_mane_select);
                 t.setManePlusClinicalTranscript(t_data.is_mane_plus_clinical);
 
-                output.transcripts << t;
+				output.transcripts << t;
             }
 
             //clear cache
@@ -315,7 +316,9 @@ GffData GffData::loadEnsembl(QString filename, const GffSettings& settings, int&
 
             tmp.gene_symbol = output.ensg2symbol[tmp.gene_id];
             tmp.hgnc_id = ensg2hgnc[tmp.gene_id];
-            tmp.chr = parts[0];;
+			QByteArray chr_str = parts[0].toByteArray();
+			if (!chr_cache.contains(chr_str)) chr_cache[chr_str] = chr_str;
+			tmp.chr = chr_cache[chr_str];
             tmp.strand = Transcript::stringToStrand(parts[6].toByteArray());
 
             transcripts[tmp.name] = tmp;
@@ -336,8 +339,7 @@ GffData GffData::loadEnsembl(QString filename, const GffSettings& settings, int&
             TranscriptData& t_data = transcripts[parent_id];
 
             //check chromosome matches
-            Chromosome chr(parts[0]);
-            if (chr!=t_data.chr) THROW(FileParseException, "Chromosome mismatch between transcript and exon!");
+			if (Chromosome(parts[0])!=t_data.chr) THROW(FileParseException, "Chromosome mismatch between transcript and exon!");
 
             //update coding start/end
             int start = Helper::toInt(parts[3], "start position");
@@ -350,9 +352,10 @@ GffData GffData::loadEnsembl(QString filename, const GffSettings& settings, int&
             }
 
             //add coding exon
-			t_data.exons.append(BedLine(chr, start, end));
+			t_data.exons.append(BedLine(t_data.chr, start, end));
         }
     }
+
     return output;
 }
 

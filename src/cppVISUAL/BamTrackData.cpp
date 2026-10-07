@@ -68,16 +68,15 @@ void BamTrackData::updateRegion()
 
 		int padding = region.length() / 3;
 
-		int p_start = std::max(0, new_start - padding);
+		int p_start = std::max(1, new_start - padding);
 		int p_end = new_end + padding;
 
 		pruneAlignments(p_start, p_end); // remove out of bound alignments
 
 		// an alignment read can extend past (or before) the padded region
 		// an alignment read is roughly ~101bp (at most) so a overhang of 500 bp should be sufficient
-		int ref_fetch_start = std::max(0, p_start - REF_OVERHANG);
+		int ref_fetch_start = std::max(1, p_start - REF_OVERHANG);
 		int ref_fetch_end   = p_end + REF_OVERHANG;
-
 		ref_seq_ = SharedData::genome().seq(
 			region.chr(),
 			ref_fetch_start,
@@ -122,7 +121,7 @@ void BamTrackData::fullLoad(const BedLine& region)
 	alignments_.squeeze();
 	loaded_ids_.squeeze();
 
-	int ref_fetch_start = std::max(0, p_start - REF_OVERHANG);
+	int ref_fetch_start = std::max(1, p_start - REF_OVERHANG);
 	int ref_fetch_end   = p_end + REF_OVERHANG;
 
 	ref_seq_ = SharedData::genome().seq(

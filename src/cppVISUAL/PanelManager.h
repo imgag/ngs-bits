@@ -20,11 +20,15 @@ public:
 	// calls reloadTracks for all TrackGroups
 	void reloadTracks();
 	// deletes all TrackGroups
-	void newSession();
+	void newSession(bool add_empty_panel);
 	// writes current session data to xml
 	void writeToXml(QXmlStreamWriter&);
 	// loads data from Xml (Track Groups)
 	void loadFromXml(const QDomElement&);
+	//removes all track groups
+	void removeAll();
+	//returns if this is a empty session: only track groups, but no tracks
+	bool isEmptySession() const;
 
 	void mouseMoveEvent(QMouseEvent* event) override;
 	void mouseReleaseEvent(QMouseEvent* event) override;
@@ -35,8 +39,6 @@ public:
 	BedLine drag_start_region_;
 
 public slots:
-	// opens a file dialog and creates a TrackGroup if file is valid
-	void loadFile(); //TODO Marc: remove?!
 	//creates a TrackGroup from a file
 	void loadFile(QString filename);
 	// creates empty panel above the panel that emitted this signal

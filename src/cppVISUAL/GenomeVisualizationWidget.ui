@@ -207,7 +207,7 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>mouse oordinate:</string>
+        <string>genomic coordinate:</string>
        </property>
       </widget>
      </item>
