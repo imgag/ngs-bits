@@ -293,7 +293,7 @@ void RequestWorker::run()
 						return;
 					}
 
-					if (pos >= (file_size-1)) break;
+					if (pos > (file_size-1)) break;
                     streamed_file->seek(pos);
 
 					if ((pos+chunk_size)>(ranges[i].end+1))

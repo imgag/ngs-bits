@@ -11,7 +11,7 @@ However, there is some more work involved in getting a functioning DMG file.
 
 ## Integration with IGV
 
-For more details related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).
+For more details related to IGV, please see the [`IGV installation page`](GSvar/install_igv.md).
 
 
 # Building ngs-bits from sources MacOS
