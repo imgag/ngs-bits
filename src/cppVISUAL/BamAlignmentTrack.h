@@ -47,8 +47,7 @@ protected:
 	void populateContextMenu(QMenu&, const QPoint&) override;
 	void mousePressEvent(QMouseEvent*) override;
 	void mouseReleaseEvent(QMouseEvent*) override;
-
-
+	void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
 	QSharedPointer<BamTrackData> track_data_;

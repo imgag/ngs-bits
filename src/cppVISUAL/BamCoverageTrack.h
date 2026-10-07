@@ -61,6 +61,7 @@ protected:
 	void paintEvent(QPaintEvent*) override;
 	void mousePressEvent(QMouseEvent*) override;
 	void mouseReleaseEvent(QMouseEvent*) override;
+	void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
 	// track_data shared b/w coverage/alignment tracks

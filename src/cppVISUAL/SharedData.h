@@ -85,10 +85,14 @@ public:
 	//Returns the instance (creates it on first call). This method is public only to connect signal/slots. For all other purposes, use other methods.
 	static SharedData* instance();
 
+	//Updates genomic coordinate in status bar
+	static void mouseMoved(int x, int width);
+
 signals:
 	void transcriptsChanged();
 	void settingsChanged();
 	void regionChanged();
+	void updateGenomicCoordinate(QString);
 
 protected:
 	explicit SharedData(QObject* parent = nullptr);

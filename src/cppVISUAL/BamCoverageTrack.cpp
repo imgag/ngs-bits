@@ -12,6 +12,7 @@ static constexpr unsigned int MINIMUM_MAX_COVERAGE = 10;
 BamCoverageTrack::BamCoverageTrack(QWidget* parent, QString file_path, QString name)
 	: TrackWidget(parent, file_path, name)
 {
+	setMouseTracking(true);
 	max_coverage_ = MINIMUM_MAX_COVERAGE;
 	int max_region_length = SharedData::settings().bam_max_region_len;
 	coverage_.fill(BaseCoverage(), max_region_length);
@@ -265,7 +266,7 @@ QString BamCoverageTrack::getCoverageText(const BaseCoverage& cov, int coverage_
 	const BedLine& region = SharedData::region();
 	int coverage_pos = region.start() + coverage_idx;
 
-	QString info = QString("%1:%2\nTotal count: %3\n")
+	QString info = QString("Pos: %1:%2\nDepth: %3\n")
 					   .arg(region.chr().str())
 					   .arg(coverage_pos)
 					   .arg(cov.total());
@@ -348,4 +349,11 @@ void BamCoverageTrack::mouseReleaseEvent(QMouseEvent* event)
 	}
 
 	TrackWidget::mouseReleaseEvent(event);
+}
+
+void BamCoverageTrack::mouseMoveEvent(QMouseEvent *event)
+{
+	SharedData::mouseMoved(event->pos().x(), width());
+
+	event->ignore();
 }

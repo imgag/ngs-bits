@@ -151,19 +151,17 @@ Viewport TrackWidget::getViewport()
 void TrackWidget::showInfoPopup(QPointF global_pos, QString info)
 {
 	QDialog* popup = new QDialog(this, Qt::Popup);
-
 	popup->setAttribute(Qt::WA_DeleteOnClose);
 
-	QVBoxLayout* layout = new QVBoxLayout(popup);
-
-	QLabel* label = new QLabel(info);
+	QLabel* label = new QLabel(info.trimmed());
 	label->setTextInteractionFlags(Qt::TextSelectableByMouse);
 	label->setWordWrap(false);
 
+	QVBoxLayout* layout = new QVBoxLayout(popup);
+	layout->setContentsMargins(QMargins(4,4,4,4));
 	layout->addWidget(label);
 
 	popup->move(global_pos.x(), global_pos.y());
-
 	popup->show();
 }
 

@@ -4,7 +4,7 @@
 #include "GUIHelper.h"
 #include "SharedData.h"
 #include "XmlHelper.h"
-
+#include "Settings.h"
 #include <QToolTip>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -23,16 +23,20 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	connect(ui_->zoomout_btn, SIGNAL(clicked(bool)), this, SLOT(zoomOut()));
 	connect(SharedData::instance(), SIGNAL(transcriptsChanged()), this, SLOT(updateIndices()));
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
-	connect(ui_->gene_panel, SIGNAL(mouseCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
-	connect(ui_->chr_panel, SIGNAL(mouseCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
+	connect(SharedData::instance(), SIGNAL(updateGenomicCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
 }
 
 void GenomeVisualizationWidget::loadFile()
 {
-	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", "", "NGS files(*.bam, *.cram, *.bed, *.igv);;All files(*.*)");
-	foreach(QString file, files)
+	QString open_folder = Settings::path("load_store_file_folder", true);
+	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", open_folder, "NGS files(*.bam *.cram *.bed *.igv);;All files(*.*)");
+	if (!files.isEmpty())
 	{
-		ui_->panel_manager->loadFile(file);
+		foreach(QString file, files)
+		{
+			ui_->panel_manager->loadFile(file);
+		}
+		Settings::setPath("load_store_file_folder", QFileInfo(files[0]).absolutePath());
 	}
 }
 
@@ -294,21 +298,11 @@ void GenomeVisualizationWidget::loadSession()
 
 	SharedData::loadFromXml(general);
 
-	ui_->panel_manager->loadFromXml(root);G
+	ui_->panel_manager->loadFromXml(root);
 }
 
-
 //TODO Marc - GSviewer:
-//- all
-//	- coverage track click popup text layout off
-//  - BAM track click popup text layout off
-//	- BAM tracillumina > PE by default
-//- from GSvar:
-//	- chr selection does not
-//	- search for gene does not work
-//- GSviewer standalone
-//	- "Help > about" does nothing
-//	- gene track:
-//		- context menu to show cDNA and protein position
-//		- show AAs in transcripts if zoomed in enough
-//	- add default INI file: ensembl_gff
+//- load_store_session_folder
+//- gene search: brca1 does not work
+//- GSvar: chr selection does not
+//- GSvar: search for gene does not work

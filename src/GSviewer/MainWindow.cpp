@@ -2,8 +2,9 @@
 #include "Settings.h"
 #include "GffData.h"
 #include "SharedData.h"
-#include <QFileDialog>
 #include <QStyleFactory>
+#include "AboutDialog.h"
+#include "htslib/hts.h"
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -17,32 +18,35 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.actionNewSession, SIGNAL(triggered()), ui_.gvw, SLOT(newSession()));
 	connect(ui_.actionStore_session, SIGNAL(triggered()), ui_.gvw, SLOT(saveSession()));
 	connect(ui_.actionLoadSession, SIGNAL(triggered()), ui_.gvw, SLOT(loadSession()));
+	connect(ui_.actionAbout, SIGNAL(triggered()), this, SLOT(showAboutDialog()));
+	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
 
-	//set windows 10 style
-	QStyle* style = QStyleFactory::create("windowsvista");
-	QApplication::setStyle(style);
-
+	//load transcripts from GFF
 	try
 	{
-		//load transcripts from GFF
 		QElapsedTimer timer;
 		timer.start();
-        {
-			GffSettings gff_settings;
-            gff_settings.source = "ensembl";
-            gff_settings.include_all = false;
-            gff_settings.skip_not_hgnc = false;
-            gff_settings.print_to_stdout = true;
-			GffData data = GffData::load(Settings::string("ensembl_gff", false), gff_settings);
+		{
+			GffSettings settings;
+			settings.print_to_stdout = false;
+			GffData data = GffData::load(Settings::string("ensembl_gff"), settings);
 			SharedData::setTranscripts(data.transcripts);
         }
 		qDebug() << "Parsing transcripts took: " << Helper::elapsedTime(timer);
-
-		SharedData::setRegion("chr17", 43091889, 43093530);
     }
 	catch (Exception e)
 	{
-		qDebug() << e.message();
+		QTextStream(stderr) << "Error loading transcripts: "+e.message();
         exit(-1);
 	}
+}
+
+void MainWindow::showAboutDialog()
+{
+	AboutDialog dlg(this);
+	dlg.setIcon(QPixmap(":/Icons/Icon.png"));
+	dlg.setDescription("A free viewer for sequencing data.<br>Check the <a href='https://github.com/imgag/ngs-bits/blob/master/doc/GSviewer/index.md'>GitHub page</a> for details.");
+	dlg.addLibVersionLine("htslib version: " + QString(hts_version()));
+	dlg.addLibVersionLine("Genome build: GRCh38");
+	dlg.exec();
 }

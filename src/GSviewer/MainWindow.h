@@ -14,8 +14,12 @@ public:
 	///Constructor
 	MainWindow(QWidget* parent = 0);
 
+private slots:
+	void showAboutDialog();
+
 private:
 	Ui::MainWindow ui_;
+
 };
 
 #endif // MAINWINDOW_H

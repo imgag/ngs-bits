@@ -15,9 +15,6 @@ class CPPVISUALSHARED_EXPORT GenePanel
 public:
 	GenePanel(QWidget* parent);
 
-signals:
-	void mouseCoordinate(QString);
-
 private slots:
 	void contextMenu(QPoint pos);
 	//Updates the region displayed by this widget

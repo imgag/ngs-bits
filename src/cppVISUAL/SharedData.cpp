@@ -1,6 +1,6 @@
 #include "SharedData.h"
 #include "Settings.h"
-
+#include <QApplication>
 #include <QPainter>
 #include <QFileInfo>
 #include <QMessageBox>
@@ -76,6 +76,24 @@ SharedData* SharedData::instance()
 	return &s;
 }
 
+void SharedData::mouseMoved(int x, int width)
+{
+	int label_width = SharedData::settings().label_width;
+	const BedLine& region = SharedData::region();
+	double pixels_per_base_ =  (double)(width-label_width-4) / (double)region.length();
+
+	//show
+	if (x>label_width + 2 && x<width - 2)
+	{
+		int coordinate = region.start() + std::floor((double)(x-label_width - 2) / pixels_per_base_);
+		emit instance()->updateGenomicCoordinate(region.chr().strNormalized(true) + ":" + QString::number(coordinate));
+	}
+	else
+	{
+		emit instance()->updateGenomicCoordinate("");
+	}
+}
+
 SharedData::SharedData(QObject* parent)
 	: QObject(parent)
 	, genome_index_(Settings::string("reference_genome", false))
@@ -89,8 +107,7 @@ SharedData::SharedData(QObject* parent)
 
 QSize SharedData::determineCharacterSize()
 {
-	QPainter painter;
-	QFontMetrics fm(painter.font());
+	QFontMetrics fm(QApplication::font());
 
 	int w = 0;
 	int h = fm.height(); // font height already covers all characters
