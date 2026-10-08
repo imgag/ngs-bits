@@ -14,7 +14,6 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	, ui_(new Ui::GenomeVisualizationWidget)
 {
 	ui_->setupUi(this);
-
 	GUIHelper::styleSplitter(ui_->panel_manager);
 
 	//connect signals and slots
@@ -65,6 +64,7 @@ void GenomeVisualizationWidget::newSession(bool add_empty_panel)
 
 void GenomeVisualizationWidget::updateIndices()
 {
+	//qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	//init chromosome list (ordered correctly)
 	ui_->chr_selector->blockSignals(true);
 	ui_->chr_selector->clear();
@@ -307,7 +307,3 @@ void GenomeVisualizationWidget::loadSession()
 	//store path
 	Settings::setPath("load_store_session_folder", QFileInfo(file_path).absolutePath());
 }
-
-//TODO Marc - GSviewer:
-//- GSvar: chr selection does not work
-//- GSvar: search for gene does not work

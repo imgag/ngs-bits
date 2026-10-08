@@ -73,18 +73,11 @@ void TrackGroup::addTrackWidgets(QVector<TrackWidget*> widgets)
 
 void TrackGroup::loadTracksFromFile()
 {
-	QVector<TrackWidget*> widgets = loadTrackWidgetsFromFile();
+	QString file_path =  QFileDialog::getOpenFileName(QApplication::activeWindow(), "Open file(s)", "", "NGS files(*.bam *.cram *.bed *.igv);;All files(*.*)");
+	if (file_path.isEmpty()) return;
+
+	QVector<TrackWidget*> widgets = FileLoader::loadTracks(file_path, nullptr);
 	addTrackWidgets(widgets);
-}
-
-TrackGroup* TrackGroup::fromFile()
-{
-	QVector<TrackWidget*> widgets = loadTrackWidgetsFromFile();
-	if (widgets.isEmpty()) return nullptr;
-
-	TrackGroup* tr = new TrackGroup;
-	tr->addTrackWidgets(widgets);
-	return tr;
 }
 
 TrackGroup* TrackGroup::fromFile(QString filename)
@@ -92,14 +85,6 @@ TrackGroup* TrackGroup::fromFile(QString filename)
 	TrackGroup* tr = new TrackGroup;
 	tr->addTrackWidgets(FileLoader::loadTracks(filename, nullptr));
 	return tr;
-}
-
-QVector<TrackWidget*> TrackGroup::loadTrackWidgetsFromFile()
-{
-	QString file_path =  QFileDialog::getOpenFileName(QApplication::activeWindow(), "Open file(s)", "", "NGS files(*.bam *.cram *.bed *.igv);;All files(*.*)");
-	if (file_path.isEmpty()) return QVector<TrackWidget*>();
-
-	return FileLoader::loadTracks(file_path, nullptr);
 }
 
 void TrackGroup::reloadTracks()

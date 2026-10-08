@@ -293,12 +293,6 @@ void VariantTable::customContextMenu(QPoint pos)
 
 	if (action==a_visualize)
 	{
-		//load transcripts
-		if (SharedData::transcripts().isEmpty())
-		{
-			SharedData::setTranscripts(NGSD().transcripts());
-		}
-		
 		//set region
 		SharedData::setRegion(variant.chr(), variant.start(), variant.end());
 		
@@ -308,6 +302,13 @@ void VariantTable::customContextMenu(QPoint pos)
 		{
 			widget->loadFile(loc.filename);
 		}
+
+		//load transcripts
+		if (SharedData::transcripts().isEmpty())
+		{
+			SharedData::setTranscripts(NGSD().transcripts());
+		}
+
 
 		//show
 		auto dlg = GUIHelper::createDialog(widget, "GSvar visualization");

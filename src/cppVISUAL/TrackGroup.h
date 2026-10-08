@@ -27,8 +27,6 @@ public:
 	void writeToXml(QXmlStreamWriter&);
 	// reads <Track> elements in the dom and creates Tracks based on the properties
 	void loadFromXml(const QDomElement&);
-	// opens a file dialog and creates a TrackGroup with Tracks if file is valid
-	static TrackGroup* fromFile(); //TODO Marc remove?!
 	//Creates a track group from a file
 	static TrackGroup* fromFile(QString filename);
 	// reads <Track> elements in the dom and creates Tracks based on the properties, if no Track elements were created, returns null ptr

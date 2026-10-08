@@ -198,7 +198,9 @@ void BamCoverageTrack::drawCoverage(QPainter& painter)
 
 	int draw_height = height();
 
-	if (region.length() < 1500) painter.setPen(Qt::white);
+	//White borders need enough room to leave a visible bar interior.
+	const bool draw_base_borders = viewport.pixels_per_base >= 3.0f;
+	if (draw_base_borders) painter.setPen(Qt::white);
 	else painter.setPen(Qt::gray);
 
 
@@ -244,22 +246,22 @@ void BamCoverageTrack::drawCoverage(QPainter& painter)
 			int t_height = bar_h * ((float)cov.t() / total_count);
 
 			int y_start = draw_height - a_height;
-			if (region.length() >= 1500) painter.setPen(QColor(0, 150, 0));
+			if (!draw_base_borders) painter.setPen(QColor(0, 150, 0));
 			painter.setBrush(QColor(0, 150, 0)); //a
 			painter.drawRect(pX, y_start, dX, a_height);
 
 			y_start -= c_height;
-			if (region.length() >= 1500) painter.setPen(Qt::blue);
+			if (!draw_base_borders) painter.setPen(Qt::blue);
 			painter.setBrush(Qt::blue); //c
 			painter.drawRect(pX, y_start, dX, c_height);
 
 			y_start -= g_height;
-			if (region.length() >= 1500) painter.setPen(QColor(209, 113, 5));
+			if (!draw_base_borders) painter.setPen(QColor(209, 113, 5));
 			painter.setBrush(QColor(209, 113, 5)); //g
 			painter.drawRect(pX, y_start, dX, g_height);
 
 			y_start -= t_height;
-			if (region.length() >= 1500) painter.setPen(Qt::red);
+			if (!draw_base_borders) painter.setPen(Qt::red);
 			painter.setBrush(Qt::red); //t
 			painter.drawRect(pX, y_start, dX, t_height);
 			painter.setPen(pen);

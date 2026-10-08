@@ -45,7 +45,7 @@ public:
 	{
 		return instance()->transcripts_;
 	}
-	//Sets transcripts and creates/updates indices
+	//Sets transcripts and creates/updates indices. Do this after initializing GenomeVisualizationWidget!
 	static void setTranscripts(const TranscriptList& transcripts);
 
 	//Returns indices of transcripts in a region
