@@ -4,6 +4,7 @@
 #include "cppNGSD_global.h"
 #include <QString>
 #include <QList>
+#include <QSet>
 #include <QTextStream>
 
 //Database row with identifier and values
@@ -38,6 +39,8 @@ class CPPNGSDSHARED_EXPORT DBRow
 			values_.insert(i, value);
 		}
 		void removeValue(int i);
+		///Removes several values in one pass.
+		void removeValues(const QSet<int>& indices);
 
 		//Returns if any value of the row contains the text
 		bool contains(const QString& text, Qt::CaseSensitivity cs = Qt::CaseInsensitive) const;
@@ -93,6 +96,8 @@ class CPPNGSDSHARED_EXPORT DBTable
 		void setValue(int r, int c, const QString& value);
 		void addRow(const DBRow& row);
 		void removeRow(int r);
+		///Removes several rows in one pass.
+		void removeRows(const QSet<int>& indices);
 
 		void reserve(int alloc)
 		{
@@ -107,6 +112,8 @@ class CPPNGSDSHARED_EXPORT DBTable
 		void insertColumn(int i, const QStringList& values, const QString& header);
 		///Removes a column and returns the all values.
 		QStringList takeColumn(int c);
+		///Removes several columns in one pass.
+		void removeColumns(const QSet<int>& indices);
 		///Sets a the values and optionally the header of a column.
 		void setColumn(int c, const QStringList& values, const QString& header=QString());
 		///Creates and returns a list of values for a column.

@@ -35,13 +35,13 @@ private:
 		test_plot.setXRange(0,1.015);
 		test_plot.setYRange(0,1.015);
 
-		QList<std::pair<double,double>> points;
-		points.append(std::pair<double, double>(0.1, 0.2));
-		points.append(std::pair<double, double>(0.3, 0.3));
-		points.append(std::pair<double, double>(0.4, 0.2));
-		points.append(std::pair<double, double>(0.5, 0.4));
-		points.append(std::pair<double, double>(0.7, 0.45));
-		points.append(std::pair<double, double>(0.9, 0.8));
+		QList<QPointF> points;
+		points.append(QPointF(0.1, 0.2));
+		points.append(QPointF(0.3, 0.3));
+		points.append(QPointF(0.4, 0.2));
+		points.append(QPointF(0.5, 0.4));
+		points.append(QPointF(0.7, 0.45));
+		points.append(QPointF(0.9, 0.8));
 
 		QList<QString> colors({"blue","black","red","green","cyan","yellow"});
 		test_plot.setValues(points, colors);

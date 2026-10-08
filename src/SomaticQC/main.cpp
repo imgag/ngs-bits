@@ -6,7 +6,6 @@
 #include <QDir>
 #include "Settings.h"
 #include "Log.h"
-#include <vector>
 
 
 class ConcreteTool
@@ -36,10 +35,10 @@ public:
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addFlag("skip_plots", "Skip plots (intended to increase speed of automated tests).");
 		setExtendedDescription(QStringList() << "SomaticQC integrates the output of the other QC tools and adds several metrics specific for tumor-normal pairs." << "All tools produce qcML, a generic XML format for QC of -omics experiments, which we adapted for NGS.");
-		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg38");
 
 		//changelog
-		changeLog(2020,  11, 27, "Added CRAM support.");
+		changeLog(2026,  9,  3, "Removed hg19 support and 'build' parameter.");
+		changeLog(2020, 11, 27, "Added CRAM support.");
 		changeLog(2018,  7, 11, "Added build switch for hg38 support.");
 		changeLog(2017,  7, 28, "Added somatic allele frequency histogram and tumor estimate.");
 		changeLog(2017,  1, 16, "Increased speed for mutation profile, removed genome build switch.");
@@ -62,7 +61,6 @@ public:
 		if (ref=="") THROW(CommandLineParsingException, "Reference genome FASTA unset in both command-line and settings.ini file!");
 		QStringList links = getInfileList("links");
 		bool skip_plots = getFlag("skip_plots");
-		GenomeBuild build = stringToBuild(getEnum("build"));
 
 		// metadata
 		QList<QCValue> metadata;
@@ -94,7 +92,7 @@ public:
 		}
 
 		QCCollection metrics;
-		metrics = Statistics::somatic(build, tumor_bam, normal_bam, somatic_vcf, ref, target_bed_file, skip_plots);
+		metrics = Statistics::somatic(tumor_bam, normal_bam, somatic_vcf, ref, target_bed_file, skip_plots);
 
 		//mutation burden corrected for TSG and exome size
 		QCValue tmb = Statistics::mutationBurdenNormalized(somatic_vcf, target_exons, target_bed, tsg_bed, blacklist);

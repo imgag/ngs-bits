@@ -1,0 +1,932 @@
+#include "BamAlignmentTrack.h"
+#include "BamTrackDataManager.h"
+#include "SharedData.h"
+
+#include <QApplication>
+#include <QPainter>
+#include <QMenu>
+#include "ChromosomeColors.h"
+
+// #define DRAW_TRANSPARENT
+// #define ENABLE_ANTIALIASING
+
+// un comment this for FASTER processing (albeit at the cost of some quirky row assignments)
+// #define CACHE_ROW_ASSIGNMENTS
+
+
+//constants
+static constexpr int ROW_HEIGHT = 12;
+static constexpr int ROW_PADDING = 2;
+static constexpr int SPACING_BELOW = 4;
+static constexpr int MAX_QUALITY = 41;
+
+BamAlignmentTrack::BamAlignmentTrack(QWidget* parent, QString file_path, QString name)
+	: TrackWidget(parent, file_path, name)
+{
+	updateFontCache();
+}
+
+BamAlignmentTrack* BamAlignmentTrack::createTrack(QWidget* parent, QString file_path, QString name)
+{
+	QSharedPointer<BamTrackData> data = BamTrackDataManager::getOrCreate(file_path);
+	if (data)
+	{
+		auto track = new BamAlignmentTrack(parent, file_path, name);
+		track->setTrackData(data);
+		return track;
+	}
+
+	else return nullptr;
+}
+
+QMap<QString, QVariant> BamAlignmentTrack::getSettings()
+{
+	auto settings = TrackWidget::getSettings();
+	settings["view_as_pairs"] = view_as_pairs_;
+	settings["show_all_bases"] = show_all_bases_;
+	settings["show_soft_clip_bases"] = show_soft_clip_bases_;
+	settings["coloring_scheme"] = coloring_scheme_;
+	return settings;
+}
+
+void BamAlignmentTrack::loadKeyValueFromXml(QString key, QString value)
+{
+	if (key == "view_as_pairs") view_as_pairs_ = (value == "true");
+	else if (key == "show_all_bases") show_all_bases_ = (value == "true");
+	else if (key == "show_soft_clip_bases") show_soft_clip_bases_ = (value == "true");
+	else if (key == "coloring_scheme")
+	{
+		bool ok;
+		int coloring_scheme = value.toInt(&ok);
+		if (ok && coloring_scheme != -1) coloring_scheme_ = static_cast<ColoringScheme>(coloring_scheme);
+	}
+
+	calculateRows();
+	updateGeometry();
+	update();
+}
+
+void BamAlignmentTrack::setTrackData(QSharedPointer<BamTrackData> track_data)
+{
+	track_data_ = track_data;
+	connect(track_data_.get(), SIGNAL(onDataUpdate()), this, SLOT(dataReady()));
+	connect(track_data_.get(), SIGNAL(onFullLoad()), this, SLOT(fullLoad()));
+	dataReady();
+}
+
+void BamAlignmentTrack::fullLoad()
+{
+	row_idxes_.clear();
+	pair_row_idxes_.clear();
+	row_stored_with_pair_.clear();
+	normal_row_store_.clear();
+	pair_row_store_.clear();
+
+	row_idxes_.squeeze();
+	pair_row_idxes_.squeeze();
+	row_stored_with_pair_.squeeze();
+	normal_row_store_.squeeze();
+	pair_row_store_.squeeze();
+}
+
+bool BamAlignmentTrack::isCurrentRegionValid()
+{
+	const BedLine& region = SharedData::region();
+	int max_region_len = SharedData::settings().bam_max_region_len;
+	return (region.length() <= max_region_len);
+}
+
+void BamAlignmentTrack::dataReady()
+{
+	if (isCurrentRegionValid())
+	{
+		makePairs();
+		calculateRows();
+	}
+	updateGeometry();
+	update();
+}
+
+// TODO: this can, and should be, done on a seperate thread
+void BamAlignmentTrack::calculateRows()
+{
+	if (view_as_pairs_) calculateRowsPairMode();
+	else calculateRowsNormalMode();
+}
+
+int BamAlignmentTrack::getAlignmentStart(const BamAlignmentWrapper& al)
+{
+	if (show_soft_clip_bases_) return al.startWithSoftClip();
+	return al.start();
+}
+
+int BamAlignmentTrack::getAlignmentEnd(const BamAlignmentWrapper& al)
+{
+	if (show_soft_clip_bases_) return al.endWithSoftClip();
+	return al.end();
+}
+
+void BamAlignmentTrack::calculateRowsNormalMode()
+{
+	const QVector<BamAlignmentWrapper>& alns = track_data_->getAlignments();
+
+	row_packer_.clear(); // this keeps the row_packer small so insertions don't take a long time in the future
+
+	#ifdef CACHE_ROW_ASSIGNMENTS
+
+	QSet<int> restored;
+
+	for (int i =0; i < alns.size(); ++i)
+	{
+		const BamAlignmentWrapper& w = alns[i];
+		const auto& aln_id = w.id;
+		if (row_idxes_.contains(aln_id) && row_packer_.canRestore(row_idxes_[aln_id],
+																  getAlignmentStart(w),
+																  getAlignmentEnd(w)))
+		{
+			row_packer_.restore(row_idxes_[aln_id], getAlignmentStart(w) ,
+								getAlignmentEnd(w), i);
+			restored.insert(i);
+		}
+	}
+	#else
+	row_idxes_.clear();
+	#endif
+
+	for (int i =0; i < alns.size(); ++i)
+	{
+		#ifdef CACHE_ROW_ASSIGNMENTS
+		if (restored.contains(i)) continue;
+		#endif
+		int row = row_packer_.insert(getAlignmentStart(alns[i]), getAlignmentEnd(alns[i]), i);
+		row_idxes_[alns[i].id] = row;
+	}
+
+	// if (num_rows_ < row_packer_.rowCount()) num_rows_ = row_packer_.rowCount();
+	num_rows_ = std::max(ROW_HEIGHT, row_packer_.rowCount());
+}
+
+void BamAlignmentTrack::calculateRowsPairMode()
+{
+	/*
+	 * TODO: this has a bug, if there are no pairs
+	 * then the unpaired strands are always assigned a new row
+	 *
+	 */
+	const QVector<BamAlignmentWrapper>& alns = track_data_->getAlignments();
+
+	row_packer_.clear();
+	// restore the ones we already have (only the pairs)
+	#ifdef CACHE_ROW_ASSIGNMENTS
+
+	QSet<int> restored;
+
+	for (int i =0; i < read_pairs_.count(); ++i)
+	{
+		const auto& read_pair = read_pairs_[i];
+		const auto& al = alns[read_pair.first];
+		int row = pair_row_idxes_.value(al.name(), -1);
+		if (row != -1 && row_stored_with_pair_.value(al.name(), false) &&
+			row_packer_.canRestore(row, read_pair.start, read_pair.end))
+		{
+			row_packer_.restore(row, read_pair.start, read_pair.end, i);
+			restored.insert(i);
+		}
+	}
+	#endif
+
+	// Insert new rows for pairs if necessary
+	for (int i =0; i < read_pairs_.count(); ++i)
+	{
+		const ReadPair& read_pair = read_pairs_[i];
+		const auto& al1 = alns[read_pair.first];
+
+		#ifdef CACHE_ROW_ASSIGNMENTS
+		if (restored.contains(i)) continue;
+		#endif
+
+		int row = row_packer_.insert(read_pair.start, read_pair.end, i);
+
+		if (read_pair.first != -1) pair_row_idxes_[al1.name()] = row;
+		if (read_pair.second != -1)
+		{
+			pair_row_idxes_[al1.name()] = row;
+			row_stored_with_pair_[al1.name()] = true;
+		}
+	}
+	if (num_rows_ < row_packer_.rowCount()) num_rows_ = row_packer_.rowCount();
+}
+
+QSize BamAlignmentTrack::sizeHint() const
+{
+	return QSize(parentWidget() ? parentWidget()->width() : 200,
+				 num_rows_ * (ROW_HEIGHT * ROW_PADDING) + SPACING_BELOW);
+}
+
+void BamAlignmentTrack::reloadTrack()
+{
+	BamTrackDataManager::reload(file_path_);
+}
+
+void BamAlignmentTrack::paintEvent(QPaintEvent*)
+{
+	QPainter painter(this);
+
+	#ifdef ENABLE_ANTIALIASING
+	painter.setRenderHint(QPainter::Antialiasing);
+	#endif
+
+	painter.fillRect(rect(), Qt::white);
+	drawLabel(painter);
+	const BedLine& region = SharedData::region();
+	int max_region_len = SharedData::settings().bam_max_region_len;
+	if (region.length() > max_region_len) drawZoomInText(painter);
+	else
+	{
+		if (view_as_pairs_) drawPairMode(painter, region);
+		else drawNormalMode(painter);
+	}
+}
+
+void BamAlignmentTrack::drawAlignmentAndMismatches(QPainter& painter, const BamAlignmentWrapper& al, int row_y)
+{
+	if (row_y < 0)
+	{
+		qDebug() << __FILE__ << __LINE__ << ": Bug: draw received negative row_y" << Qt::endl;
+		return;
+	}
+
+	const BedLine& region = SharedData::region();
+
+	if (getAlignmentEnd(al) < region.start() ||
+		getAlignmentStart(al) > region.end()) return;
+
+	drawAlignment(painter, al, row_y);
+	if (!show_all_bases_) drawMismatches(painter, al, row_y);
+	drawAllBases(painter, al, row_y);
+}
+
+void BamAlignmentTrack::drawNormalMode(QPainter& painter)
+{
+	const QVector<BamAlignmentWrapper>& alns = track_data_->getAlignments();
+	for (int i =0; i < alns.size(); ++i)
+	{
+		const BamAlignmentWrapper& al_w = alns[i];
+		int row_y = row_idxes_.value(alns[i].id, -1) * (ROW_HEIGHT + ROW_PADDING);
+		drawAlignmentAndMismatches(painter, al_w, row_y);
+	}
+}
+
+void BamAlignmentTrack::drawPairMode(QPainter& painter, const BedLine& region)
+{
+	const QVector<BamAlignmentWrapper>& alns = track_data_->getAlignments();
+	const Viewport& viewport = getViewport();
+
+	foreach (const ReadPair& read_pair, read_pairs_)
+	{
+		if (read_pair.first != -1)
+		{
+			const BamAlignmentWrapper& al_w = alns[read_pair.first];
+			int row_y = pair_row_idxes_.value(al_w.name(), -1) * (ROW_HEIGHT + ROW_PADDING);
+			drawAlignmentAndMismatches(painter, al_w, row_y);
+		}
+
+		if (read_pair.second != -1)
+		{
+			const BamAlignmentWrapper& al_w = alns[read_pair.second];
+			int row_y = pair_row_idxes_.value(al_w.name(), -1) * (ROW_HEIGHT + ROW_PADDING);
+			drawAlignmentAndMismatches(painter, al_w, row_y);
+		}
+
+		//draw line
+		if(read_pair.first != -1 && read_pair.second != -1)
+		{
+			const BamAlignmentWrapper& al1 = alns[read_pair.first];
+			const BamAlignmentWrapper& al2 = alns[read_pair.second];
+
+			int st = std::clamp(getAlignmentEnd(al1) + 1, region.start(), region.end() + 1);
+			int en = std::clamp(getAlignmentStart(al2), region.start(), region.end() + 1);
+
+			float p0 = viewport.genomePosToScreen(st);
+			float p1 = viewport.genomePosToScreen(en);
+
+			painter.setPen(Qt::gray);
+			painter.setBrush(Qt::gray);
+			int row_y = pair_row_idxes_.value(al1.name(), -1) * (ROW_HEIGHT + ROW_PADDING);
+
+			painter.drawLine(p0, row_y + ROW_HEIGHT / 2.0f, p1, row_y + ROW_HEIGHT / 2.0f);
+		}
+	}
+}
+
+void BamAlignmentTrack::drawZoomInText(QPainter& painter)
+{
+	QFont font = painter.font();
+	font.setPointSize(8);
+	painter.setFont(font);
+	QPen pen = painter.pen(); // store pen
+	painter.setPen(Qt::black);
+	painter.drawText(rect(), Qt::AlignHCenter, "Zoom In To See Aligments");
+	painter.setPen(pen); // restore pen
+}
+
+QColor BamAlignmentTrack::strandColor(bool is_reversed)
+{
+	return is_reversed ? QColor(175, 175, 235, 200) : QColor(235, 175, 175, 200);
+}
+
+QColor BamAlignmentTrack::insertSizeColor(const BamAlignmentWrapper& al_w)
+{
+	Chromosome mate_chr = al_w.mate_chr;
+	const BedLine& region = SharedData::region();
+	if (mate_chr.isValid() && mate_chr == region.chr())
+	{
+		if (al_w.isMateMapped())
+		{
+			InsertSizeStats i_stats = track_data_->getInsertSizeStats();
+			int i_size = std::abs(al_w.insertSize());
+			if (i_size > i_stats.insert_size_max) return QColor(200, 0, 0);
+			if (i_size < i_stats.insert_size_min) return QColor(0, 0, 150);
+		}
+		return QColor(202, 202, 202, 150); //gray
+	}
+	else if (mate_chr.isValid())
+	{
+		return ChromosomeColors::getColor(mate_chr.str());
+	}
+	else
+	{
+		return QColor(0, 0, 0); // faulty
+	}
+}
+
+QColor BamAlignmentTrack::getAlignmentColor(const BamAlignmentWrapper& al_w)
+{
+	//selected always takes priority
+	if (!selected_name_.isEmpty() && al_w.name() == selected_name_) return QColor(255, 100, 0);
+
+	if (coloring_scheme_ == READ_STRAND) return strandColor(al_w.isReverseStrand());
+
+	else if (coloring_scheme_ == INSERT_SIZE) return insertSizeColor(al_w);
+
+	return QColor(202, 202, 202, 150); //gray
+}
+
+void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapper& al_w, int row_y)
+{
+	Viewport viewport = getViewport();
+	int last_x = -1.0f;
+
+	QColor color = getAlignmentColor(al_w);
+
+	// first pass for matches and deletions
+	foreach (const auto& data, al_w.getEvents())
+	{
+		int st = std::max(data.genome_pos, viewport.region.start());
+		int en = std::min(data.genome_pos + data.length - 1 , viewport.region.end() + 1);
+
+		if (en <= viewport.region.start()) continue;
+
+		int x_start = viewport.genomePosToScreen(st);
+		int width = viewport.genomeWidthToScreen(en - st + 1);
+
+		if (width < 0) continue;
+
+		if (data.event == BamAlignmentWrapper::MATCH || (show_soft_clip_bases_ && data.event == BamAlignmentWrapper::SOFT_CLIP))
+		{
+			QRectF match_rect(x_start, row_y, width, ROW_HEIGHT);
+			last_x = x_start + width;
+			#ifdef DRAW_TRANSPARENT
+			painter.setPen(color);
+			painter.setBrush(Qt::NoBrush);
+			#else
+			painter.setPen(Qt::NoPen);
+			painter.setBrush(color);
+			#endif
+			painter.drawRect(match_rect);
+		}
+
+		else if (data.event == BamAlignmentWrapper::DELETION)
+		{
+			painter.setPen(Qt::blue);
+			int mid = row_y + ROW_HEIGHT / 2;
+			painter.drawLine(x_start, mid, x_start + width, mid);
+			if (viewport.pixels_per_base >= cached_char_size_.width())
+			{
+				QRectF text_rect(x_start, row_y, width, ROW_HEIGHT);
+				painter.setPen(Qt::darkCyan);
+				painter.setFont(cached_font_);
+				painter.drawText(text_rect, Qt::AlignCenter, QString::number(data.length));
+			}
+		}
+	}
+
+	// second pass for insertions so that they are on top
+	foreach (const auto& data, al_w.getEvents())
+	{
+		if (data.event == BamAlignmentWrapper::INSERTION)
+		{
+			int st = std::max(data.genome_pos, viewport.region.start());
+			int en = std::min(data.genome_pos + data.length - 1 , viewport.region.end() + 1);
+
+			if (en <= viewport.region.start()) continue;
+
+			float x_start = viewport.genomePosToScreen(st);
+			float width = viewport.genomeWidthToScreen(en - st + 1);
+
+			if (width < 0) continue;
+
+			float marker_w = std::clamp(
+				(float)(viewport.pixels_per_base * 0.5f),
+				4.0f,   // minimum
+				12.0f   // maximum before expansion mode
+				);
+			QRectF rect(x_start - marker_w / 2.0f, row_y, marker_w, ROW_HEIGHT);
+			painter.setPen(Qt::NoPen);
+			painter.setBrush(QColor(140, 0, 200));
+			painter.drawRect(rect);
+
+			if (viewport.pixels_per_base >= cached_char_size_.width())
+			{
+				painter.setPen(Qt::white);
+				painter.setFont(cached_font_);
+
+				QRectF text_rect(
+					x_start - marker_w/2.0f,
+					row_y,
+					marker_w,
+					ROW_HEIGHT
+					);
+
+				painter.drawText(
+					text_rect,
+					Qt::AlignCenter,
+					QString::number(data.length)
+					);
+			}
+		}
+	}
+
+	//draw the arrows
+	int st = std::max(getAlignmentStart(al_w), viewport.region.start());
+	int en = std::min(getAlignmentEnd(al_w), viewport.region.end());
+	int x_start = viewport.genomePosToScreen(st);
+	int width = viewport.genomeWidthToScreen(en - st + 1);
+
+	painter.setPen(Qt::NoPen);
+	painter.setBrush(color);
+
+	int mid = row_y + ROW_HEIGHT / 2;
+	// int tri_w = std::max(1, ROW_HEIGHT / 2);
+
+	int tri_w = std::clamp(ROW_HEIGHT / 2, 1, std::max(1, width / 15));
+
+	if (!al_w.isReverseStrand() && last_x > 0)
+	{
+		QPolygon arrow;
+		arrow << QPoint(last_x + tri_w, mid)
+		<< QPoint(last_x, row_y)
+		<< QPoint(last_x, row_y + ROW_HEIGHT);
+		painter.drawPolygon(arrow);
+	}
+	else if (!viewport.isOutOfDrawRegion(x_start - tri_w))
+	{
+		QPolygon arrow;
+		arrow << QPoint(x_start - tri_w, mid)
+		<< QPoint(x_start, row_y)
+		<< QPoint(x_start, row_y + ROW_HEIGHT);
+		painter.drawPolygon(arrow);
+	}
+
+	// if (!selected_name_.isEmpty() && al_w.name() == selected_name_) drawHighlight(painter, al_w, row_y);
+}
+
+void BamAlignmentTrack::drawHighlight(QPainter& painter, const BamAlignmentWrapper& al_w, int row_y)
+{
+
+	const Viewport& viewport = getViewport();
+	int st = std::max(getAlignmentStart(al_w), viewport.region.start());
+	int en = std::min(getAlignmentEnd(al_w), viewport.region.end());
+	int x_start = viewport.genomePosToScreen(st);
+	int width = viewport.genomeWidthToScreen(en - st + 1);
+
+	QRect draw_rect(x_start - 1, row_y - 2, width + 2, ROW_HEIGHT);
+	painter.fillRect(draw_rect, QColor(255, 30, 0, 150));
+	painter.setPen(QPen(QColor(200, 130, 0), 1));
+	painter.setBrush(Qt::NoBrush);
+	painter.drawRect(draw_rect);
+}
+
+QColor BamAlignmentTrack::baseColor(QChar base)
+{
+	if (base=='A' || base=='a') return QColor(0, 150, 0);
+	if (base=='C' || base=='c') return QColor(0, 0, 255);
+	if (base=='G' || base=='g') return QColor(209, 113, 5);
+	if (base=='T' || base=='t') return QColor(255, 0, 0);
+	if (base=='N' || base=='n') return QColor(128, 128, 128);
+
+	return Qt::black;
+}
+
+QSize BamAlignmentTrack::characterSize(QFont font)
+{
+	QFontMetrics fm(font);
+
+	int w = -1;
+	w = std::max(w, fm.boundingRect("A").width());
+	w = std::max(w, fm.boundingRect("C").width());
+	w = std::max(w, fm.boundingRect("G").width());
+	w = std::max(w, fm.boundingRect("T").width());
+	w = std::max(w, fm.boundingRect("N").width());
+
+	int h = -1;
+	h = std::max(h, fm.boundingRect("C").height());
+	h = std::max(h, fm.boundingRect("A").height());
+	h = std::max(h, fm.boundingRect("G").height());
+	h = std::max(h, fm.boundingRect("T").height());
+	h = std::max(h, fm.boundingRect("N").height());
+
+	return QSize(w, h);
+}
+
+void BamAlignmentTrack::updateFontCache()
+{
+	QFont font;
+	font.setPixelSize(ROW_HEIGHT);
+	// font.setPointSize(ROW_HEIGHT);
+	font.setBold(true);
+
+	cached_font_ = font;
+	cached_char_size_ = characterSize(font);
+}
+
+void BamAlignmentTrack::drawBase(QPainter& painter, const Viewport& viewport, int genome_pos, char base, int qual, int row_y)
+{
+	int x_start = viewport.genomePosToScreen(genome_pos);
+	int end_x = viewport.genomePosToScreen(genome_pos + 1);
+
+	if (viewport.isOutOfDrawRegion(x_start) || viewport.isOutOfDrawRegion(end_x)) return;
+
+	int dX = std::max(1, end_x - x_start);
+
+	QColor color = baseColor(base);
+	color = QColor(color.red(), color.green(), color.blue(), ((float)qual/MAX_QUALITY)*255);
+
+	if (viewport.pixels_per_base >= cached_char_size_.width())
+	{
+		painter.setFont(cached_font_);
+		QRectF text_rect(x_start, row_y - 2, dX, ROW_HEIGHT + 2);
+		painter.setPen(color);
+		painter.drawText(text_rect, Qt::AlignHCenter, QString(base).toUpper());
+	}
+	else
+	{
+		painter.setPen(Qt::NoPen);
+		painter.setBrush(color);
+		QRectF rect(x_start, row_y, dX, ROW_HEIGHT);
+		painter.drawRect(rect);
+	}
+}
+
+void BamAlignmentTrack::drawMismatches(QPainter& painter, const BamAlignmentWrapper& al, int row_y)
+{
+	Viewport viewport = getViewport();
+
+	const auto& mismatches = al.getMismatches();
+	foreach (const auto& mismatch_data, mismatches)
+	{
+		drawBase(painter, viewport, mismatch_data.genomic_pos, mismatch_data.base, mismatch_data.quality, row_y);
+	}
+}
+
+void BamAlignmentTrack::drawAllBases(QPainter& painter, const BamAlignmentWrapper& al, int row_y)
+{
+	const Viewport& viewport = getViewport();
+	foreach (const auto& event_data, al.getEvents())
+	{
+		if ((show_all_bases_ && event_data.event == BamAlignmentWrapper::MATCH) ||
+			(show_soft_clip_bases_ && event_data.event == BamAlignmentWrapper::SOFT_CLIP))
+		{
+			for (int i =0; i < event_data.length; ++i)
+			{	if (i >= event_data.bases.length() || i >= event_data.qualities.length())
+				{
+					qDebug() << __FILE__ << __LINE__ << "Bug: data.length does not match bases or qualities length";
+					continue;
+				}
+				drawBase(painter, viewport, event_data.genome_pos + i, event_data.bases[i], event_data.qualities[i], row_y);
+			}
+		}
+	}
+}
+
+void BamAlignmentTrack::makePairs()
+{
+	read_pairs_.clear();
+
+	QHash<QString, int> pending;
+
+	const auto& alns = track_data_->getAlignments();
+
+	for (int i =0; i < alns.count(); ++i)
+	{
+		const BamAlignmentWrapper& al = alns[i];
+		QString name = al.name();
+		if (pending.contains(name))
+		{
+			int j = pending.take(name);
+
+			read_pairs_[j].second = i;
+			read_pairs_[j].start = std::min(read_pairs_[j].start, getAlignmentStart(al));
+			read_pairs_[j].end = std::max(read_pairs_[j].end, getAlignmentEnd(al));
+		}
+		else
+		{
+			ReadPair p;
+			p.first = i;
+			p.second = -1;
+			p.start = getAlignmentStart(al);
+			p.end = getAlignmentEnd(al);
+			pending[name] = read_pairs_.count();
+			read_pairs_.append(p);
+		}
+	}
+}
+
+void BamAlignmentTrack::addAlignmentOptionsToCtxtMenu(QMenu& menu, const QPoint& local_pos)
+{
+	int aln_idx = getAlnIndexFromLocalPos(local_pos);
+	// add go_to_mate action, select/deselect action
+	if (aln_idx != -1)
+	{
+		QAction* go_to_mate_action = menu.addAction("Go to mate");
+		const auto& alns = track_data_->getAlignments();
+
+		Chromosome mate_chr;
+		int mate_start;
+
+		if (view_as_pairs_)
+		{
+			// check which pair was clicked
+			const ReadPair& rp = read_pairs_[aln_idx];
+			aln_idx = rp.first;
+			mate_chr = alns[aln_idx].mate_chr;
+			mate_start = alns[aln_idx].mateStart();
+
+			// if the other part in the pair does not exist, only the first one was picked
+
+			if (rp.second > 0)
+			{
+				// check if rp.second was clicked
+				const BamAlignmentWrapper& aln = alns[rp.second];
+				const Viewport& viewport = getViewport();
+				int g_pos = viewport.screenXToGenomePos(local_pos.x());
+				if (g_pos >= aln.start() && g_pos <= aln.end())
+				{
+					//set mate_chr, mate_start to rp.first's corresponding properties
+					mate_chr = aln.mate_chr;
+					mate_start = aln.mateStart();
+				}
+			}
+		}
+		// normal mode
+		else
+		{
+			mate_chr = alns[aln_idx].mate_chr;
+			mate_start = alns[aln_idx].mateStart();
+		}
+
+		go_to_mate_action->setEnabled(mate_chr.isValid());
+
+		if (mate_chr.isValid())
+		{
+			/*
+				 * TODO: scroll to row_y of mate
+				 * a simple solution to try:
+				 * add mate_name_ as private var and set it here (need to store mate_start_ too actually)
+				 * when data is recieved, in calculateRows after calculation is done we can get row_y
+				 * of mate_name_ (with mate_start_ we get a unqiue match) and then either send a signal to TrackGroup
+				 * to change the scroll_area value or find a parent that is scroll area and change it manually
+				 * unset mate_name_, mate_start_
+				*/
+			connect(go_to_mate_action, &QAction::triggered, this, [mate_chr, mate_start](){
+				SharedData::setRegion(mate_chr, mate_start - 100, mate_start + 100);
+			});
+		}
+
+		QString name = alns[aln_idx].name();
+		bool deselect = (!selected_name_.isEmpty() && name == selected_name_);
+		QAction* select_action = menu.addAction(deselect ? "Deselect" : "Select");
+		connect(select_action, &QAction::triggered, this, [this, deselect, name](){
+			if (deselect) selected_name_ = "";
+			else selected_name_ = name;
+			update();
+		});
+	}
+}
+
+
+void BamAlignmentTrack::addColorOptionToCtxtMenu(QMenu& menu, const QPoint&)
+{
+	//TODO: this should be written in a more generalized way (using an action group for instance)
+	QMenu* sub_menu = menu.addMenu("Color by");
+	QAction* insert_size_action = sub_menu->addAction("Insert Size");
+	QAction* read_strand_action = sub_menu->addAction("Read Strand");
+
+	connect(insert_size_action, &QAction::triggered, this, [this](){
+		coloring_scheme_ = INSERT_SIZE;
+		update();
+	});
+
+	connect(read_strand_action, &QAction::triggered, this, [this](){
+		coloring_scheme_ = READ_STRAND;
+		update();
+	});
+}
+
+
+void BamAlignmentTrack::populateContextMenu(QMenu& menu, const QPoint& local_pos)
+{
+	if (isCurrentRegionValid())
+	{
+		QAction* pairs_action = menu.addAction("View As Pairs");
+		pairs_action->setCheckable(true);
+		pairs_action->setChecked(view_as_pairs_);
+
+		QAction* all_bases_action = menu.addAction("Show all bases");
+		all_bases_action->setCheckable(true);
+		all_bases_action->setChecked(show_all_bases_);
+
+		QAction* soft_clip_bases_action = menu.addAction("Show soft clip bases");
+		soft_clip_bases_action->setCheckable(true);
+		soft_clip_bases_action->setChecked(show_soft_clip_bases_);
+
+		connect(pairs_action, &QAction::triggered, this, [this](){
+			view_as_pairs_ = !view_as_pairs_;
+			calculateRows();
+			updateGeometry();
+			update();
+		});
+
+		connect(all_bases_action, &QAction::triggered, this, [this](){
+			show_all_bases_ = !show_all_bases_;
+			update();
+		});
+
+		connect(soft_clip_bases_action, &QAction::triggered, this, [this](){
+			show_soft_clip_bases_ = !show_soft_clip_bases_;
+			calculateRows();
+			updateGeometry();
+			update();
+		});
+
+		addAlignmentOptionsToCtxtMenu(menu, local_pos);
+
+		addColorOptionToCtxtMenu(menu, local_pos);
+
+	}
+	TrackWidget::populateContextMenu(menu, local_pos);
+}
+
+void BamAlignmentTrack::mousePressEvent(QMouseEvent* event)
+{
+	mouse_press_pos_ = event->pos();
+	TrackWidget::mousePressEvent(event);
+}
+
+int BamAlignmentTrack::getAlnIndexFromLocalPos(QPoint local_pos)
+{
+	const Viewport& viewport = getViewport();
+	int y = local_pos.y();
+	int row = y / (ROW_HEIGHT + ROW_PADDING);
+
+	int x = local_pos.x();
+	if (viewport.isOutOfDrawRegion(x)) return -1;
+
+	int genome_pos = viewport.screenXToGenomePos(x);
+	int aln_idx = row_packer_.find(row, genome_pos);
+	return aln_idx;
+}
+
+QString BamAlignmentTrack::getBamAlignmentText(const BamAlignmentWrapper& al_w, int genome_pos)
+{
+	// Using simple HTML tags for layout and styling
+	QString text = QString("<b>%1</b><br/>"
+						   "<b>Start:</b> %2 &nbsp; <b>End:</b> %3<br/>"
+						   "<b>Strand:</b> %4<br/>")
+					   .arg(al_w.name())
+					   .arg(al_w.start())
+					   .arg(al_w.end())
+					   .arg(al_w.isReverseStrand() ? "Reverse" : "Forward");
+
+	if (genome_pos < getAlignmentStart(al_w) || genome_pos > getAlignmentEnd(al_w))
+	{
+		return text;
+	}
+
+	//mate info
+	text += "<hr>";
+	text += QString("Map is mapped = %1<br/>").arg(al_w.isMateMapped() ? "yes" : "no");
+	text += QString("Mate start = %1:%2<br/>").arg(al_w.mate_chr.str(),
+												   QString::number(al_w.mateStart()));
+	text += QString("Insert size = %1<br/>").arg(al_w.insertSize());
+
+	// base info
+	const BedLine& region = SharedData::region();
+	text += "<hr>";
+	text += QString("<b>Location</b> = %1:  %2<br/>").arg(region.chr().str(), QString::number(genome_pos));
+
+	foreach (const auto& event_data, al_w.getEvents())
+	{
+		// in the region defined by the cigar event
+		if (genome_pos >= event_data.genome_pos && genome_pos < event_data.genome_pos + event_data.length)
+		{
+			if (event_data.event == BamAlignmentWrapper::MATCH)
+			{
+				char base = event_data.bases[genome_pos - event_data.genome_pos];
+				int qual = event_data.qualities[genome_pos - event_data.genome_pos];
+
+				text += QString("<b>Base:</b> <span style='color:green;'>%1</span> @ QV %2<br/>")
+							.arg(QString(base).toUpper(), QString::number(qual));
+			}
+			else if (event_data.event == BamAlignmentWrapper::SOFT_CLIP)
+			{
+				char base = event_data.bases[genome_pos - event_data.genome_pos];
+				int qual = event_data.qualities[genome_pos - event_data.genome_pos];
+
+				text += QString("<b>Soft Clip Base:</b> <span style='color:orange;'>%1</span> @ QV %2<br/>")
+							.arg(QString(base).toUpper(), QString::number(qual));
+			}
+			else if (event_data.event == BamAlignmentWrapper::INSERTION && genome_pos == event_data.genome_pos)
+			{
+				text += QString("<b>Insertion:</b> <span style='color:blue;'>%1</span><br/>")
+				.arg(event_data.bases.toUpper());
+			}
+			else if (event_data.event == BamAlignmentWrapper::DELETION)
+			{
+				text += QString("<b>Deletion:</b> <span style='color:red;'>%1 bp</span><br/>")
+				.arg(event_data.length);
+			}
+		}
+	}
+	return text;
+}
+
+void BamAlignmentTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
+{
+	const Viewport& viewport = getViewport();
+	int y = local_pos.y();
+	int row = y / (ROW_HEIGHT + ROW_PADDING);
+
+	int x = local_pos.x();
+	if (viewport.isOutOfDrawRegion(x)) return;
+
+	int genome_pos = viewport.screenXToGenomePos(x);
+	int aln_idx = row_packer_.find(row, genome_pos);
+
+	const auto& alns = track_data_->getAlignments();
+
+	if (aln_idx != -1 && !alns.empty())
+	{
+		if (view_as_pairs_)
+		{
+			const ReadPair& rp = read_pairs_[aln_idx];
+
+			QString info;
+
+			if (rp.first != -1)
+			{
+				info += QString("Read 1: %1").arg(getBamAlignmentText(alns[rp.first], genome_pos));
+			}
+
+			if (rp.second != -1)
+			{
+				info += QString("Read 2: %1").arg(getBamAlignmentText(alns[rp.second], genome_pos));
+			}
+
+			showInfoPopup(global_pos, info);
+		}
+		else if (!view_as_pairs_)
+		{
+			QString info = QString("Read: %1").arg(getBamAlignmentText(alns[aln_idx], genome_pos));
+			showInfoPopup(global_pos, info);
+		}
+	}
+}
+
+void BamAlignmentTrack::mouseReleaseEvent(QMouseEvent* event)
+{
+	if (event->button() != Qt::LeftButton)
+	{
+		TrackWidget::mouseReleaseEvent(event);
+		return;
+	}
+
+	bool dragging = (event->pos() - mouse_press_pos_).manhattanLength() >= QApplication::startDragDistance();
+
+	if (!dragging && isCurrentRegionValid())
+	{
+		handlePopupRequest(event->pos(), event->globalPosition());
+	}
+
+	TrackWidget::mouseReleaseEvent(event);
+}

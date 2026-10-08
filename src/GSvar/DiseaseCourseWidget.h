@@ -4,21 +4,7 @@
 #include <QWidget>
 #include <QTableWidgetItem>
 #include <TsvFile.h>
-#include "VcfFile.h"
 #include "NGSD.h"
-
-struct cfDnaColumn
-{
-	QString name;
-	QDate date;
-	VcfFile variants;
-	QMap<QByteArray, const VcfLine*> lookup_table;
-	TsvFile mrd;
-
-	bool operator<(const cfDnaColumn& other) const {
-		return date < other.date; // sort by date
-	}
-};
 
 namespace Ui {
 class DiseaseCourseWidget;

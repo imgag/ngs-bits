@@ -7,6 +7,7 @@
 #include <NGSD.h>
 #include <QCheckBox>
 #include <QFile>
+#include <QInputDialog>
 #include <QMenu>
 #include <QMessageBox>
 #include "LoginManager.h"
@@ -117,7 +118,7 @@ ExpressionGeneWidget::~ExpressionGeneWidget()
 	delete ui_;
 }
 
-void ExpressionGeneWidget::applyFilters(int max_rows)
+void ExpressionGeneWidget::applyFilters()
 {
 	// skip if filtering is runnning
 	if (filtering_in_progress_) return;
@@ -200,7 +201,7 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 					GeneSet sv_genes = GeneSet::createFromText(expression_data_[row_idx].at(gene_idx).toUtf8().trimmed(), ',');
 
 					bool match_found = false;
-                    for (const QByteArray& sv_gene : sv_genes)
+					for (const QByteArray& sv_gene : std::as_const(sv_genes))
 					{
                         if (reg.match(sv_gene).hasMatch())
 						{
@@ -422,7 +423,7 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 
 
 			//stop filtering if enough rows pass filter
-			if(n_kept_rows > max_rows) break;
+			if(n_kept_rows > max_rows_) break;
 		}
 
 		//debug:
@@ -431,15 +432,13 @@ void ExpressionGeneWidget::applyFilters(int max_rows)
 		//qDebug() << "Gene cache size: " << ngsd_expression.size();
 
 		//update table
-		updateTable(max_rows);
+		updateTable();
 
 		//update GUI
 		toggleCohortStats(true);
 
 		QApplication::restoreOverrideCursor();
-	filtering_in_progress_ = false;
-
-
+		filtering_in_progress_ = false;
 	}
 	catch (Exception& e)
 	{
@@ -517,6 +516,7 @@ void ExpressionGeneWidget::showExpressionTableContextMenu(QPoint pos)
 	if(tpm_mean=="") a_show_histogram->setEnabled(false);
 	double tpm = ui_->expression_data->item(row_idx, 4)->text().toDouble();
 	QByteArray ensg = ui_->expression_data->item(row_idx, 0)->text().toUtf8();
+	QAction* a_change_max_rows = menu.addAction("Change max rows");
 
 	// execute menu
 	QAction* action = menu.exec(ui_->expression_data->viewport()->mapToGlobal(pos));
@@ -525,6 +525,10 @@ void ExpressionGeneWidget::showExpressionTableContextMenu(QPoint pos)
 	if (action == a_show_histogram)
 	{
 		showHistogram(ensg, tpm);
+	}
+	else if (action == a_change_max_rows)
+	{
+		changeMaxRows();
 	}
 	else
 	{
@@ -692,6 +696,16 @@ void ExpressionGeneWidget::toggleCohortStats(bool enable)
 	ui_->show_cohort->setEnabled(enable);
 }
 
+void ExpressionGeneWidget::changeMaxRows()
+{
+	bool ok = false;
+	int rows_new = QInputDialog::getInt(this, "Change max rows", "rows:", max_rows_, 1000, std::numeric_limits<int>::max(), 1000, &ok);
+	if (!ok) return;
+
+	max_rows_ = rows_new;
+	applyFilters();
+}
+
 void ExpressionGeneWidget::updateCohort()
 {
 	if(cohort_type_ == RNA_COHORT_CUSTOM)
@@ -825,7 +839,7 @@ void ExpressionGeneWidget::updateQuery()
 }
 
 
-void ExpressionGeneWidget::updateTable(int max_rows)
+void ExpressionGeneWidget::updateTable()
 {
 	try
 	{
@@ -841,7 +855,7 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 
 
 		//set table size
-		ui_->expression_data->setRowCount(std::min(max_rows, filter_result_.countPassing()));
+		ui_->expression_data->setRowCount(std::min(max_rows_, filter_result_.countPassing()));
 
 		int gene_id_idx = expression_data_.columnIndex("gene_id");
 		int table_row_idx = 0;
@@ -949,7 +963,7 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 
 			table_row_idx++;
 
-			if (table_row_idx >= max_rows) break;
+			if (table_row_idx >= max_rows_) break;
 		}
 
 		//enable sorting
@@ -963,9 +977,9 @@ void ExpressionGeneWidget::updateTable(int max_rows)
 		GUIHelper::resizeTableCellHeightsToFirst(ui_->expression_data);
 
 		//Set number of filtered / total rows
-		if (filter_result_.countPassing() >= max_rows)
+		if (filter_result_.countPassing() >= max_rows_)
 		{
-			ui_->filtered_rows->setText(QByteArray::number(max_rows) + "+ / " + QByteArray::number(expression_data_.count()) + " (showing only first " + QByteArray::number(max_rows) + ")");
+			ui_->filtered_rows->setText(QByteArray::number(max_rows_) + "+ / " + QByteArray::number(expression_data_.count()) + " (showing only first " + QByteArray::number(max_rows_) + ")");
 		}
 		else
 		{

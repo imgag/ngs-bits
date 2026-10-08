@@ -13,6 +13,8 @@
 #include "BasicStatistics.h"
 #include "GSvarHelper.h"
 #include "NsxSettingsDialog.h"
+#include "QcRuleMatcher.h"
+#include <QDir>
 #include <numeric>
 #include <QSignalMapper>
 #include <QInputDialog>
@@ -21,6 +23,7 @@
 SequencingRunWidget::SequencingRunWidget(QWidget* parent, const QStringList& run_ids)
 	: TabBaseClass(parent)
 	, ui_(new Ui::SequencingRunWidget)
+	, init_timer_(this, true)
 	, run_ids_(run_ids)
 {
 	if (run_ids_.size() < 1) THROW(ArgumentException, "At least one run_id has to be provided!");
@@ -46,9 +49,14 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, const QStringList& run
 	connect(action, SIGNAL(triggered(bool)), this, SLOT(openSelectedSampleTabs()));
 
 	//set quality
-	action = new QAction("Set quality", this);
+	action = new QAction(QIcon(":/Icons/qc_check.png"), "Set quality manually", this);
 	ui_->samples->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQuality()));
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQualityManually()));
+
+	//automatically determine quality, based on the available QC values
+	action = new QAction(QIcon(":/Icons/qc_check.png"), "Set quality automatically", this);
+	ui_->samples->addAction(action);
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(setQualityAutomatically()));
 
 	//schedule re-sequencing
 	action = new QAction("Toggle resequencing for sample(s)", this);
@@ -57,13 +65,17 @@ SequencingRunWidget::SequencingRunWidget(QWidget* parent, const QStringList& run
 
 	if (is_batch_view_) initBatchView();
 
-	updateGUI();
 	ui_->gb_sequencing_run->setStyleSheet("QGroupBox {background-color: white;}");
 }
 
 SequencingRunWidget::~SequencingRunWidget()
 {
 	delete ui_;
+}
+
+void SequencingRunWidget::delayedInitialization()
+{
+	updateGUI();
 }
 
 void SequencingRunWidget::initBatchView()
@@ -180,7 +192,6 @@ void SequencingRunWidget::updateGUI()
 		SqlQuery query = db.getQuery();
 		if (is_batch_view_)
 		{
-
 			//update data
 			int r;
 			for (int c = 1; c <= run_ids_.size(); ++c)
@@ -213,11 +224,9 @@ void SequencingRunWidget::updateGUI()
 
 			}
 
-			//#### deactivate SampleSheet ####
 			ui_->novaseqx_samplesheet_btn->setEnabled(false);
-
 		}
-		else
+		else //single run
 		{
 			query.exec("SELECT r.*, d.name d_name, d.type d_type FROM sequencing_run r, device d WHERE r.device_id=d.id AND r.id='" + run_ids_.at(0) + "'");
 			query.next();
@@ -245,7 +254,6 @@ void SequencingRunWidget::updateGUI()
 			ui_->status->setText(status);
 			ui_->backup->setText(query.value("backup_done").toString()=="1" ? "yes" : "no");
 
-			//#### activate SampleSheet ####
 			ui_->novaseqx_samplesheet_btn->setEnabled((query.value("d_type").toString() == "NovaSeqXPlus") || (query.value("d_type").toString() == "NovaSeqX"));
 		}
 
@@ -254,7 +262,6 @@ void SequencingRunWidget::updateGUI()
 
 		//#### sample table ####
 		updateRunSampleTable();
-
 	}
 	catch (Exception& e)
 	{
@@ -281,10 +288,10 @@ void SequencingRunWidget::updateRunSampleTable()
 	if (is_batch_view_)
 	{
 		samples = db.createTable("processed_sample",  QString("SELECT ps.id, (SELECT name FROM sequencing_run WHERE id=ps.sequencing_run_id), ps.lane, ps.quality, ")
-														+ "CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.gender, s.sample_type, "
+														+ "CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.sample_type, "
 														+ "(SELECT CONCAT(name, ' (', type, ')') FROM project WHERE id=ps.project_id), s.disease_group, s.disease_status, "
 														+ "(SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid2_i5), "
-														+ "sp.name, sys.name_manufacturer, sys.type as sys_type, ps.processing_input, ps.molarity, (SELECT name FROM user WHERE id=ps.operator_id), "
+														+ "sp.name, sys.name_manufacturer, sys.type as sys_type, sys.name_short as sys_name_short, ps.processing_input, ps.molarity, (SELECT name FROM user WHERE id=ps.operator_id), "
 														+ "ps.processing_modus, ps.batch_number, ps.comment" + QString(ui_->show_sample_comment->isChecked() ? ", s.comment as sample_comment" : "")
 														+ ",ps.urgent ,ps.scheduled_for_resequencing FROM processed_sample ps, sample s, processing_system sys, species sp "
 														+ "WHERE sp.id=s.species_id AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.sequencing_run_id IN ('" + run_ids_.join("', '") + "') "
@@ -292,9 +299,9 @@ void SequencingRunWidget::updateRunSampleTable()
 	}
 	else
 	{
-		samples = db.createTable("processed_sample", QString("SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.gender, s.sample_type, (SELECT CONCAT(name, ' (', type, ')') ")
+		samples = db.createTable("processed_sample", QString("SELECT ps.id, ps.lane, ps.quality, CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')), s.name_external, s.tumor, s.ffpe, s.sample_type, (SELECT CONCAT(name, ' (', type, ')') ")
 													+ "FROM project WHERE id=ps.project_id), s.disease_group, s.disease_status, (SELECT CONCAT(name, ' (', sequence, ')') FROM mid WHERE id=ps.mid1_i7), (SELECT CONCAT(name, ' (', sequence, ')') "
-													+ "FROM mid WHERE id=ps.mid2_i5), sp.name, sys.name_manufacturer, sys.type as sys_type, ps.processing_input, ps.molarity, (SELECT name FROM user WHERE id=ps.operator_id), ps.processing_modus, ps.batch_number, ps.comment" + QString(ui_->show_sample_comment->isChecked() ? ", s.comment as sample_comment" : "") + ", ps.urgent, ps.scheduled_for_resequencing "
+													+ "FROM mid WHERE id=ps.mid2_i5), sp.name, sys.name_manufacturer, sys.type as sys_type, sys.name_short as sys_name_short, ps.processing_input, ps.molarity, (SELECT name FROM user WHERE id=ps.operator_id), ps.processing_modus, ps.batch_number, ps.comment" + QString(ui_->show_sample_comment->isChecked() ? ", s.comment as sample_comment" : "") + ", ps.urgent, ps.scheduled_for_resequencing "
 													+ "FROM processed_sample ps, sample s, processing_system sys, species sp WHERE sp.id=s.species_id AND ps.processing_system_id=sys.id AND ps.sample_id=s.id AND ps.sequencing_run_id IN ('" + run_ids_.join("', '") + "') "
 													+ "ORDER BY ps.lane ASC, "+ (ui_->sort_by_ps_id->isChecked() ? "ps.id" : "ps.processing_system_id ASC, s.name ASC, ps.process_id"));
 	}	//format columns
@@ -312,14 +319,14 @@ void SequencingRunWidget::updateRunSampleTable()
 	ui_->plot_btn->setMenu(new QMenu());
 	foreach(QString accession, qc_metric_accessions_)
 	{
-		QString name = db.getValue("SELECT name FROM qc_terms WHERE qcml_id=:0", true, accession).toString();
+		QString name = db.getQCTermNameByAccession(accession);
 		name.replace("percentage", "%");
 		ui_->plot_btn->menu()->addAction(name, this, SLOT(showPlot()))->setData(accession);
 	}
 
 	//remove columns not shown but needed for QC
-	QStringList genders = samples.takeColumn(samples.columnIndex("gender"));
 	QStringList sys_types = samples.takeColumn(samples.columnIndex("sys_type"));
+	QStringList sys_names_short = samples.takeColumn(samples.columnIndex("sys_name_short"));
 
 	//add QC data
 	QHash<QString, QString> metric2header;
@@ -347,7 +354,7 @@ void SequencingRunWidget::updateRunSampleTable()
 		//add columns
 		for(int i=0; i<qc_metric_accessions_.count(); ++i)
 		{
-			QString header = db.getValue("SELECT name FROM qc_terms WHERE qcml_id=:0", true, qc_metric_accessions_[i]).toString();
+			QString header = db.getQCTermNameByAccession(qc_metric_accessions_[i]);
 			header.replace("percentage", "%");
 			samples.addColumn(cols[i], header);
 			headers << header;
@@ -408,15 +415,27 @@ void SequencingRunWidget::updateRunSampleTable()
 	//colors
 	QColor orange = QColor(255,150,0,125);
 	QColor red = QColor(255,0,0,125);
+	int tumor_column = ui_->samples->columnIndex("is_tumor");
+	QcRuleMatcher qc_rule_matcher = GSvarHelper::qcRuleMatcher();
 	if (ui_->show_qc_cols->isChecked())
 	{
 		foreach(const QString& accession, qc_metric_accessions_)
 		{
 			int c = ui_->samples->columnIndex(metric2header[accession]);
+			int ps = ui_->samples->columnIndex("processing system");
 
 			for (int r=0; r<ui_->samples->rowCount(); ++r)
 			{
-				GSvarHelper::colorQcItem(ui_->samples->item(r,c), accession, sys_types[r], genders[r]);
+				QString ps_name_manufacturer = ui_->samples->item(r,ps)->text();
+
+				bool is_tumor = false;
+				if (tumor_column>-1) is_tumor = ui_->samples->item(r,tumor_column)->text()=="yes" ? true : false;
+
+				bool ok = false;
+				double qc_value = ui_->samples->item(r,c)->text().toDouble(&ok);
+				if (!ok) continue;
+				QString qc_class = qc_rule_matcher.evaluate(db.getQCTermNameByAccession(accession), qc_value, sys_names_short[r], sys_types[r], is_tumor);
+				GSvarHelper::colorQcItem(ui_->samples->item(r,c), qc_class);
 			}
 		}
 	}
@@ -431,7 +450,7 @@ void SequencingRunWidget::updateRunSampleTable()
 	ui_->sample_count->setText(QString::number(samples.rowCount()) + " samples (" + QString::number(imported_qc.count()) + " with QC, " + QString::number(imported_vars.count()) + " with variants)");
 }
 
-void SequencingRunWidget::setQuality()
+void SequencingRunWidget::setQualityManually()
 {
 	NGSD db;
 	QStringList qualities = db.getEnum("processed_sample", "quality");
@@ -458,6 +477,19 @@ void SequencingRunWidget::setQuality()
 	updateGUI();
 }
 
+void SequencingRunWidget::setQualityAutomatically()
+{
+	QStringList ids;
+	foreach (int row, ui_->samples->selectedRows())
+	{
+		ids << ui_->samples->getId(row);
+	}
+	QString summary = GSvarHelper::setQuality(ids);
+	QMessageBox::information(this, "Setting quality automatically", summary);
+
+	updateGUI();
+}
+
 void SequencingRunWidget::toggleScheduleForResequencing()
 {
 	NGSD db;
@@ -465,8 +497,6 @@ void SequencingRunWidget::toggleScheduleForResequencing()
 	//prepare query
 	SqlQuery query = db.getQuery();
 	query.prepare("UPDATE processed_sample SET scheduled_for_resequencing=:0 WHERE id=:1");
-
-
 
 	int col = ui_->samples->columnIndex("sample");
     QList<int> selected_rows = ui_->samples->selectedRows().values();
@@ -924,10 +954,20 @@ void SequencingRunWidget::updateReadQualityTable()
 				table->setItem(r++, c, GUIHelper::createTableItem(qc_query.value("n50").toInt()));
 				c++;
 			}
+			else if (qc_query.size() == 0) // if no qc is avaiable fill with empty values
+			{
+				qc_query.next();
+				int r = 0;
+				table->setItem(r++, c, GUIHelper::createTableItem(""));
+				table->setItem(r++, c, GUIHelper::createTableItem(""));
+				table->setItem(r++, c, GUIHelper::createTableItem(""));
+				table->setItem(r++, c, GUIHelper::createTableItem(""));
+				table->setItem(r++, c, GUIHelper::createTableItem(""));
+				table->setItem(r++, c, GUIHelper::createTableItem(""));
+				table->setItem(r++, c, GUIHelper::createTableItem(""));
+				c++;
+			}
 		}
-
-
-
 	}
 	else
 	{

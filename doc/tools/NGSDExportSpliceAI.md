@@ -1,7 +1,10 @@
 ### NGSDExportSpliceAI tool help
-	NGSDExportSpliceAI (2025_12-104-g15d04bf0)
+	NGSDExportSpliceAI (2025_12-290-g2cffd86c1)
 	
 	Exports gene transcripts from NGSD in format expected by SpliceAI (parameter -A).
+	
+	The export is based on the following transcripts: MANE select transcripts, MANE plus clinical transcripts and perferred transcrripts.
+	Then the best transcript of all protein-coding and OMIM genes are that are not covered by the initial export are added.
 	
 	Mandatory parameters:
 	  -out <file>       The output TXT file.
@@ -18,6 +21,6 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### NGSDExportSpliceAI changelog
-	NGSDExportSpliceAI 2025_12-104-g15d04bf0
+	NGSDExportSpliceAI 2025_12-290-g2cffd86c1
 	
 [back to ngs-bits](https://github.com/imgag/ngs-bits)

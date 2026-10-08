@@ -36,28 +36,40 @@ GenLabDB::GenLabDB()
 	}
 
 
-	if (!genlab_mssql) //MySQL server
+	const QString db_identifier = "GENLAB_" + Helper::randomString(20);
+	try
 	{
-		db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", "GENLAB_" + Helper::randomString(20))));
+		if (!genlab_mssql) //MySQL server
+		{
+			db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QMYSQL", db_identifier)));
 
-		db_->setHostName(host);		
-		db_->setPort(port);
-		db_->setDatabaseName(name);
-		db_->setUserName(user);
-		db_->setPassword(pass);
-	}
-	else //Microsoft SQL server
-	{
-		db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QODBC", "GENLAB_" + Helper::randomString(20))));
-		QString driver = "ODBC Driver 18 for SQL Server";
-		QString connection_string = "DRIVER={"+driver+"};SERVER="+host+";DATABASE="+name+";UID="+user+";PWD="+pass+";Encrypt=no";
-		//Log::info("ODBC driver for GenLab: " + driver);
-		db_->setDatabaseName(connection_string);
-	}
+			db_->setHostName(host);
+			db_->setPort(port);
+			db_->setDatabaseName(name);
+			db_->setUserName(user);
+			db_->setPassword(pass);
+		}
+		else //Microsoft SQL server
+		{
+			db_.reset(new QSqlDatabase(QSqlDatabase::addDatabase("QODBC", db_identifier)));
+			QString driver = "ODBC Driver 18 for SQL Server";
+			QString connection_string = "DRIVER={"+driver+"};SERVER="+host+";DATABASE="+name+";UID="+user+";PWD="+pass+";Encrypt=no";
+			//Log::info("ODBC driver for GenLab: " + driver);
+			db_->setDatabaseName(connection_string);
+		}
 
-	if (!db_->open())
+		if (!db_->open())
+		{
+			THROW(DatabaseException, "Could not connect to the GenLab database: " + db_->lastError().text());
+		}
+	}
+	catch (...)
 	{
-		THROW(DatabaseException, "Could not connect to the GenLab database: " + db_->lastError().text());
+		//The constructor will not invoke the destructor. Remove the named Qt connection here
+		//after releasing our handle so failed construction does not leak registry entries.
+		db_.clear();
+		QSqlDatabase::removeDatabase(db_identifier);
+		throw;
 	}
 }
 
@@ -356,6 +368,11 @@ QStringList GenLabDB::samplesWithSapID(QString sap_id, ProcessedSampleSearchPara
 		QString dna_nr = query.value(0).toString().trimmed();
 		if (!dna_nr.isEmpty())
 		{
+			//in case processed sample IDs were entered into genlab
+			if (dna_nr.contains("_"))
+			{
+				dna_nr = dna_nr.split("_")[0];
+			}
 			dna_nrs << dna_nr;
 		}
 	}
@@ -677,4 +694,3 @@ QStringList GenLabDB::names(QString ps_name)
 	}
 	return output;
 }
-

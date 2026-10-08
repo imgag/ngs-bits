@@ -4,7 +4,6 @@
 #include <QFile>
 #include <QSharedPointer>
 #include "ThreadCoordinator.h"
-#include <htslib/tbx.h>
 
 class ConcreteTool
         : public ToolBase
@@ -39,7 +38,6 @@ public:
 		addInt("block_size", "Number of lines processed in one chunk.", true, 10000);
 		addInt("prefetch", "Maximum number of chunks that may be pre-fetched into memory.", true, 64);
 		addFlag("debug", "Enables debug output (use only with one thread).");
-		addFlag("hts_version", "Prints used htlib version and exits.");
 
 		changeLog(2024, 5,  6, "Added option to annotate the existence of variants in the source file");
 		changeLog(2022, 7,  8, "Usability: changed parameter names and updated documentation.");
@@ -55,14 +53,6 @@ public:
     {
         //init
 		QTextStream out(stdout);
-
-		//version output
-		if (getFlag("hts_version"))
-		{
-			out << "htslib version: " << hts_version() << "\n";
-			quit();
-			return;
-		}
 
 		//parse parameters
 		Parameters params;
@@ -88,6 +78,7 @@ public:
 		if (params.in!="" && params.in==params.out) THROW(ArgumentException, "Input and output files must be different when streaming!");
 		if (existence_only && (!file_path.isEmpty() || !info_keys.isEmpty() || !id_column.isEmpty())) THROW(ArgumentException, "Parameter 'existence_only' cannot be used together with '-config_file', '-info_keys' or '-id_column'!");
 		if (existence_only && existence_key_name.isEmpty()) THROW(ArgumentException, "Parameter 'existence_key_name' cannot be empty!");
+		if (params.out=="" && params.debug) THROW(ArgumentException, "Cannot output Vcf and debug to STDOUT!");
 
 		//get meta data
 		MetaData meta;

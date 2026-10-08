@@ -169,7 +169,7 @@ void SequencingRunOverview::editRun()
 		QMessageBox::critical(this, "Edit run", "Please select exactly one run!");
 		return;
 	}
-    int row = rows.values().first();
+	int row = rows.values().at(0);
 
 	//determine name column
 	int col = ui_.table->columnIndex("name");
@@ -193,7 +193,7 @@ void SequencingRunOverview::moveSamples()
 		QMessageBox::critical(this, "Moving samples", "Please select exactly one run!");
 		return;
 	}
-    int row = rows.values().first();
+	int row = rows.values().at(0);
 
 	//check run status
 	int status_col = ui_.table->columnIndex("status");

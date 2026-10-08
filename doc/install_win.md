@@ -14,10 +14,9 @@ First, we need to install Qt and some basic dependencies:
 * The installer will also ask if you belong to an organization (as an individual developer, you may leave this field empty): ![Your organization](qt-installer-organization.png)
 * Select the `Custom installation`:
 ![Custom Qt installation](qt-installer-custom.png)
-* Choose Qt 6.8.3 (select all components, since we will need them, especially the source code), build tools (MinGW 13.1.0 , CMake, Ninja, OpenSSL), Qt Creator (all components):
-
-  ![Selection Qt components](qt-installer-components.png)
-* The installation may take a while, its total duration mainly depends on your internet connection speed, since the installer downloads everything from the server (about 7GB).
+* Qt Creator, Qt 6.8.3 (select all components, since we will need most), MinGW 13.1.0, CMake, Ninja:
+![Selection Qt components](qt-installer-components.png)
+* The installation may take a while, since the installer downloads everything from the server (about 7GB).
 
 ### Unpack htslib
 
@@ -90,7 +89,7 @@ Now you can open a `CMD` terminal and execute the following commands:
 	> cd ngs-bits/tools/
 	> C:\PHP\php.exe deploy.php 
 
-After running the script, the portable executables are located in `ngs-bits/tools/deploy/`.
+After running the script, the portable executables are located in `ngs-bits/tools/deploy_[version]/`.
 
 *Attention: The script assumes that you have installed all software accoring to the documentation above. If you have installed different versions or changed the installations paths, you may have to adapt the script!*
 

@@ -3,8 +3,8 @@
 
 #include <QWidget>
 #include <QTableWidgetItem>
-#include "NGSD.h"
 #include "TabBaseClass.h"
+#include "DelayedInitializationTimer.h"
 
 namespace Ui {
 class SequencingRunWidget;
@@ -23,13 +23,15 @@ signals:
 	void addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize);
 
 protected slots:
+	void delayedInitialization();
 	void initBatchView();
 	void updateGUI();
 	void openSelectedSampleTabs();
 	void openSampleTab(int row);
 	void updateReadQualityTable();
 	void updateRunSampleTable();
-	void setQuality();
+	void setQualityManually();
+	void setQualityAutomatically();
 	void toggleScheduleForResequencing();
 	void showPlot();
 	void edit();
@@ -41,6 +43,7 @@ protected slots:
 
 private:
 	Ui::SequencingRunWidget* ui_;
+	DelayedInitializationTimer init_timer_;
 	QStringList run_ids_;
 	bool is_batch_view_;
 	QStringList qc_metric_accessions_;

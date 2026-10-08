@@ -1,5 +1,5 @@
 ### VcfAnnotateFromBed tool help
-	VcfAnnotateFromBed (2024_08-110-g317f43b9)
+	VcfAnnotateFromBed (2025_12-290-g2cffd86c1)
 	
 	Annotates the INFO column of a VCF with data from a BED file.
 	
@@ -27,6 +27,8 @@
 	                    Default value: '64'
 	  -debug <int>      Enables debug output at the given interval in milliseconds (disabled by default, cannot be combined with writing to STDOUT).
 	                    Default value: '-1'
+	  -desc <string>    Custom INFO header description. If unset auto-generated string with file name and separator is used. (Use underscore instead of spaces.)
+	                    Default value: ''
 	
 	Special parameters:
 	  --help            Shows this help and exits.
@@ -36,8 +38,9 @@
 	  --settings [file] Settings override file (no other settings files are used).
 	
 ### VcfAnnotateFromBed changelog
-	VcfAnnotateFromBed 2024_08-110-g317f43b9
+	VcfAnnotateFromBed 2025_12-290-g2cffd86c1
 	
+	2026-05-13 Added 'desc' parameter to set custom INFO header.
 	2021-09-18 Prefetch only part of input file (to save memory).
 	2021-08-24 Added multithread support.
 	2021-06-15 Added 'sep' parameter.

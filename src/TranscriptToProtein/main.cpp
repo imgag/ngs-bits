@@ -24,10 +24,8 @@ public:
 		addInfile("in", "Input file. If unset, reads from STDIN. Expects one transcript ID (ENSEMBLE or REFSEQ) per line.", true);
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addFlag("test", "Uses the test database instead of on the production database.");
-		QStringList builds;
-		builds << "hg19" << "hg38";
-		addEnum("build", "Genome build", true, builds, "hg38");
 
+		changeLog(2026,  9, 3, "Removed gh19 support and 'build' parameter.");
 		changeLog(2026,  5, 4, "Initial version");
 	}
 
@@ -45,12 +43,6 @@ public:
 
 		QSharedPointer<QFile> instream = Helper::openFileForReading(in, true);
 		QSharedPointer<QFile> outstream = Helper::openFileForWriting(out, false);
-
-		if (getEnum("build") == "hg19")
-		{
-			QTextStream out(stderr);
-			out << "Warning: When using the hg19 build, it is neccessary to also use a NGSD instance containing hg19 data and a hg19 reference genome.\n";
-		}
 
 		QStringList tsv_headers = {"", ""}; //fallback in case there is no header
 		NGSD db(getFlag("test"));

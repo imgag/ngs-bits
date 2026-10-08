@@ -9,7 +9,7 @@
 #include "UrlManager.h"
 #include "SessionManager.h"
 #include "ToolBase.h"
-
+#include "EndpointManager.h"
 #include <csignal>
 #include <unistd.h>
 #include <sys/types.h>
@@ -204,6 +204,19 @@ int main(int argc, char **argv)
 					});
 
 	EndpointManager::appendEndpoint(Endpoint{
+						"prolong_url",
+						QMap<QString, ParamProps> {
+							{"ps_url_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "An id of a temporary URL pointing to a specific processed sample"}},
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::GET,
+						ContentType::TEXT_PLAIN,
+						AuthType::USER_TOKEN,
+						"Refreshes lifetimes for all URLs related to the given processed sample",
+						&ServerController::prolongUrl
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
 						"processed_sample_path",
 						QMap<QString, ParamProps> {
 						   {"ps_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processed sample id"}},
@@ -376,21 +389,6 @@ int main(int argc, char **argv)
 						AuthType::NONE,
 						"Information for the users of the desktop client (i.e. updates, maintenance, potential downtimes)",
 						&ServerController::getCurrentNotification
-					});
-
-	EndpointManager::appendEndpoint(Endpoint{
-						"qbic_report_data",
-						QMap<QString, ParamProps> {
-							{"filename", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "QBic data report file"}},
-							{"id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, true, "Location id of the QBic data report file"}},
-							{"content", ParamProps{ParamProps::ParamCategory::POST_OCTET_STREAM, false, "QBic report data to be saved in a file"}},
-							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
-						},
-						RequestMethod::POST,
-						ContentType::APPLICATION_JSON,
-						AuthType::USER_TOKEN,
-						"Save QBic data report files",
-						&ServerController::saveQbicFiles
 					});
 	EndpointManager::appendEndpoint(Endpoint{
 						"low_coverage_regions",
@@ -647,6 +645,7 @@ int main(int argc, char **argv)
 	{
 		ServerDB db = ServerDB();
 		db.initDbIfEmpty();
+		Log::info("Server database schema version in use: " + QString::number(db.getSchemaVersion()));
 		if (db.getSchemaVersion() < db.EXPECTED_SCHEMA_VERSION)
 		{
 			Log::info("Schema has changed. Reinitializing the server database...");

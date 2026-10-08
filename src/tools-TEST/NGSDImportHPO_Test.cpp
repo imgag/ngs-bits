@@ -47,7 +47,7 @@ private:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportHPO_init.sql"));
 
 		//test
-		EXECUTE("NGSDImportHPO", "-test -obo " + TESTDATA("data_in/NGSDImportHPO_terms.obo") + " -anno " + TESTDATA("data_in/NGSDImportHPO_anno.txt") + " -omim " + TESTDATA("data_in/NGSDImportHPO_omim.txt"));
+		EXECUTE("NGSDImportHPO", "-test -obo " + TESTDATA("data_in/NGSDImportHPO_terms.obo") + " -anno " + TESTDATA("data_in/NGSDImportHPO_anno.txt") + " -omim " + TESTDATA("data_in/NGSDImportHPO_omim.txt") + " -omim_genes " + TESTDATA("data_in/NGSDImportHPO_omim_genes.txt"));
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
@@ -55,34 +55,13 @@ private:
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
-		I_EQUAL(count, 149)
+		I_EQUAL(count, 141)
 		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Breast carcinoma"), false, false).contains("BRCA1"));
 		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Breast carcinoma"), false, false).contains("BRCA2"));
 		IS_TRUE(db.phenotypeToGenes(db.phenotypeIdByName("Autosomal dominant inheritance"), false, false).contains("PTEN"));
 
-		QStringList results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%(1)%'");
-		I_EQUAL(results.length(), 4);
-		foreach (const QString res, results)
-		{
-			S_EQUAL(res, "low")
-		}
-
-		results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%(2)%'");
-		I_EQUAL(results.length(), 4);
-		foreach (const QString res, results)
-		{
-			S_EQUAL(res, "low")
-		}
-
-		results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%(3)%'");
-		I_EQUAL(results.length(), 61);
-		foreach (const QString res, results)
-		{
-			S_EQUAL(res, "high")
-		}
-
-		results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%(4)%'");
-		I_EQUAL(results.length(), 4);
+		QStringList results = db.getValues("SELECT evidence FROM hpo_genes WHERE details LIKE '%3, high%'");
+		I_EQUAL(results.length(), 55);
 		foreach (const QString res, results)
 		{
 			S_EQUAL(res, "high")
@@ -282,7 +261,7 @@ private:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDImportHPO_init.sql"));
 
 		//test
-		EXECUTE("NGSDImportHPO", "-test -obo " + TESTDATA("data_in/NGSDImportHPO_terms.obo") + " -anno " + TESTDATA("data_in/NGSDImportHPO_anno.txt") + " -omim " + TESTDATA("data_in/NGSDImportHPO_omim.txt") + " -clinvar " + TESTDATA("data_in/NGSDImportHPO_clinvar.txt") + " -hgmd " + TESTDATA("data_in/NGSDImportHPO_hgmd.dump") + " -hpophen " + TESTDATA("data_in/NGSDImportHPO_phenotype.hpoa") + " -gencc " + TESTDATA("data_in/NGSDImportHPO_gencc.tsv") + " -g2p " + TESTDATA("data_in/NGSDImportHPO_decipher1.csv") + " -debug");
+		EXECUTE("NGSDImportHPO", "-test -obo " + TESTDATA("data_in/NGSDImportHPO_terms.obo") + " -anno " + TESTDATA("data_in/NGSDImportHPO_anno.txt") + " -omim " + TESTDATA("data_in/NGSDImportHPO_omim.txt") + " -omim_genes " + TESTDATA("data_in/NGSDImportHPO_omim_genes.txt") + " -clinvar " + TESTDATA("data_in/NGSDImportHPO_clinvar.txt") + " -hgmd " + TESTDATA("data_in/NGSDImportHPO_hgmd.dump") + " -hpophen " + TESTDATA("data_in/NGSDImportHPO_phenotype.hpoa") + " -gencc " + TESTDATA("data_in/NGSDImportHPO_gencc.tsv") + " -g2p " + TESTDATA("data_in/NGSDImportHPO_decipher1.csv") + " -debug");
 
 		//check
 		int count = db.getValue("SELECT count(*) FROM hpo_term").toInt();
@@ -290,7 +269,7 @@ private:
 		count = db.getValue("SELECT count(*) FROM hpo_parent").toInt();
 		I_EQUAL(count, 11)
 		count = db.getValue("SELECT count(*) FROM hpo_genes").toInt();
-		I_EQUAL(count, 180);
+		I_EQUAL(count, 175);
 	}
 };
 

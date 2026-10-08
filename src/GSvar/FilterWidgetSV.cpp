@@ -1,7 +1,5 @@
 #include "FilterWidgetSV.h"
-#include "Helper.h"
-#include "NGSD.h"
-#include "Log.h"
+#include <QSignalBlocker>
 #include "PhenotypeSelectionWidget.h"
 #include "GUIHelper.h"
 #include "GSvarHelper.h"
@@ -84,9 +82,10 @@ QString FilterWidgetSV::filterFileName() const
 
 void FilterWidgetSV::reset(bool clear_roi)
 {
-	blockSignals(true);
+	{//do not remove scope - needed by QSignalBlocker
+		const QSignalBlocker blocker(this);
 	resetSignalsUnblocked(clear_roi);
-	blockSignals(false);
+	}
 
 	if (clear_roi) emit targetRegionChanged();
 }
@@ -246,7 +245,7 @@ void FilterWidgetSV::phenotypesChanged()
 
 	//update GUI
 	QByteArrayList tmp;
-    for (const Phenotype& pheno : phenotypes_)
+	for (const Phenotype& pheno : std::as_const(phenotypes_))
 	{
 		tmp << pheno.name();
 	}
@@ -257,7 +256,7 @@ void FilterWidgetSV::phenotypesChanged()
 	if (!phenotypes_.isEmpty())
 	{
 		tooltip += "<br><br><nobr>Currently selected HPO terms:</nobr>";
-        for (const Phenotype& pheno : phenotypes_)
+		for (const Phenotype& pheno : std::as_const(phenotypes_))
 		{
 			tooltip += "<br><nobr>" + pheno.toString() + "</nobr>";
 		}
@@ -385,9 +384,10 @@ void FilterWidgetSV::updateFilterName()
 
 void FilterWidgetSV::customFilterLoaded()
 {
-	ui_.filters->blockSignals(true);
+	{//do not remove scope - needed by QSignalBlocker
+		const QSignalBlocker blocker(ui_.filters);
 	ui_.filters->setCurrentIndex(0);
-	ui_.filters->blockSignals(false);
+	}
 
 	ui_.lab_modified->setHidden(false);
 

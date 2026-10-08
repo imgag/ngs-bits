@@ -3,7 +3,6 @@
 
 #include <QMainWindow>
 #include "ui_MainWindow.h"
-#include "GenomeData.h"
 
 ///Main window class
 class MainWindow
@@ -15,10 +14,8 @@ public:
 	///Constructor
 	MainWindow(QWidget* parent = 0);
 
-
 private:
-    Ui::MainWindow ui_;
-    QSharedPointer<GenomeData> genome_data_;
+	Ui::MainWindow ui_;
 };
 
 #endif // MAINWINDOW_H

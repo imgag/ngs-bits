@@ -1,4 +1,5 @@
 #include "VcfFile.h"
+#include "VersatileOutStream.h"
 #include "Helper.h"
 #include "VersatileFile.h"
 #include <QRegularExpression>
@@ -10,15 +11,19 @@ VcfFile::VcfFile()
 {
 }
 
+void VcfFile::setChromosome(QByteArray chr)
+{
+	if (load_performed_) THROW(ProgrammingException, "Calling 'VcfFile::setChromosome' after 'VcfFile::load' is not allowed!");
+
+	load_chr_ = chr + '\t';
+}
+
 void VcfFile::setRegion(const BedFile& roi, bool invert)
 {
 	if (load_performed_) THROW(ProgrammingException, "Calling 'VcfFile::setRegion' after 'VcfFile::load' is not allowed!");
 
 	//create ROI index (if given)
-	if (!roi.isSorted())
-	{
-		THROW(ArgumentException, "VcfFile::setRegion: Target region has to be sorted, but unsorted region given!");
-	}
+	if (!roi.isSorted()) THROW(ArgumentException, "VcfFile::setRegion: Target region has to be sorted, but unsorted region given!");
 	load_reg_.reset(new ChromosomalIndex<BedFile>(roi));
 	load_reg_inv_ = invert;
 }
@@ -104,23 +109,23 @@ void VcfFile::parseHeaderFields(const QByteArray& line)
 
 void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteArray>& info_ids, QSet<QByteArray>& format_ids, QSet<QByteArray>& filter_ids)
 {
-	QList<QByteArray> line_parts = line.split('\t');
-	if (line_parts.count()< MIN_COLS)
-	{
-		THROW(FileParseException, "VCF data line needs at least 8 tab-separated columns! Found " + QString::number(line_parts.count()) + " column(s) in line number " + QString::number(line_number) + ": " + line);
-	}
+	//Skip variants that are not on the requested chromosome (if given)
+	if (!load_chr_.isEmpty() && !line.startsWith(load_chr_)) return;
+
+	//split line
+	QByteArrayList line_parts = line.split('\t');
+	if (line_parts.count()< MIN_COLS) THROW(FileParseException, "VCF data line needs at least 8 tab-separated columns! Found " + QString::number(line_parts.count()) + " column(s) in line number " + QString::number(line_number) + ": " + line);
 
 	VcfLine vcf_line;
+
+	//chr
 	vcf_line.setChromosome(strCache(line_parts[CHROM]));
-	if(!vcf_line.chr().isValid())
-	{
-		THROW(ArgumentException, "Invalid variant chromosome string in line " + QString::number(line_number) + ": " + vcf_line.chr().str() + ".");
-	}
+	if(!vcf_line.chr().isValid()) THROW(ArgumentException, "Invalid variant chromosome string in line " + QString::number(line_number) + ": " + vcf_line.chr().str() + ".");
+
+	//pos
 	vcf_line.setPos(Helper::toInt(line_parts[POS], "VCF position"));
-	if(vcf_line.start() < 0)
-	{
-		THROW(ArgumentException, "Invalid variant position range in line " + QString::number(line_number) + ": " + QString::number(vcf_line.start()) + ".");
-	}
+
+	//REF
 	vcf_line.setRef(strCache(line_parts[REF].toUpper()));
 
 	//Skip variants that are not in the target region (if given)
@@ -128,23 +133,19 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 	{
 		int end =  vcf_line.start() +  vcf_line.ref().length() - 1;
 		bool in_roi = load_reg_->matchingIndex(vcf_line.chr(), vcf_line.start(), end) != -1;
-		if ((!in_roi && !load_reg_inv_) || (in_roi && load_reg_inv_))
-		{
-			return;
-		}
+		if ((!in_roi && !load_reg_inv_) || (in_roi && load_reg_inv_)) return;
 	}
 
-	QByteArrayList id_list = line_parts[ID].split(';');
-	for (int i=0; i<id_list.count(); ++i)
-	{
-		id_list[i] = strCache(id_list[i]);
-	}
-	vcf_line.setId(strArrayCache(id_list));
+	//IDs
+	vcf_line.setId(strArrayCache(line_parts[ID].split(';')));
 
+	//ALTs
 	foreach(const QByteArray& alt, line_parts[ALT].split(','))
 	{
 		vcf_line.addAlt(strCache(alt.toUpper()));
 	}
+
+	//QUAL
 	if(line_parts[QUAL]==".")
 	{
 		vcf_line.setQual(-1);
@@ -244,10 +245,6 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 		}
 
 		//set format indices
-		for(int i = 0; i < format_list.count(); ++i)
-		{
-			format_list[i] = strCache(format_list[i]);
-		}
 		vcf_line.setFormatKeys(strArrayCache(format_list));
 
 		//SAMPLE
@@ -340,13 +337,11 @@ void VcfFile::load(const QString& filename, bool stdin_if_file_empty)
 	QSet<QByteArray> filter_ids_in_header;
 
 	//open file
-
 	VersatileFile file(filename, stdin_if_file_empty);
 	file.open(QFile::ReadOnly | QIODevice::Text);
 	while(!file.atEnd())
 	{
-		QByteArray line = file.readLine(true);
-		processVcfLine(line_number, line, info_ids_in_header, format_ids_in_header, filter_ids_in_header);
+		processVcfLine(line_number, file.readLine(true), info_ids_in_header, format_ids_in_header, filter_ids_in_header);
 	}
 }
 
@@ -435,45 +430,22 @@ void VcfFile::storeAsTsv(const QString& filename)
 
 void VcfFile::store(const QString& filename, bool stdout_if_file_empty, int compression_level) const
 {
-	if(compression_level == BGZF_NO_COMPRESSION)
+	VersatileOutStream output(filename, stdout_if_file_empty, compression_level, compression_level!=Z_NO_COMPRESSION);
+
+	QTextStream file_stream(&output);
+	file_stream.setEncoding(QStringConverter::Utf8);
+
+	vcf_header_.storeHeaderInformation(file_stream);
+	storeHeaderColumns(file_stream);
+	foreach (const VcfLine& line, vcf_lines_)
 	{
-		//open stream
-		QSharedPointer<QFile> file = Helper::openFileForWriting(filename, stdout_if_file_empty);
-		QTextStream file_stream(file.data());
-        file_stream.setEncoding(QStringConverter::Utf8);        
-
-		//write header information
-		vcf_header_.storeHeaderInformation(file_stream);
-
-		//write header columns
-		storeHeaderColumns(file_stream);
-
-		//write vcf lines
-		foreach (const VcfLine& line, vcf_lines_)
-		{
-			storeLineInformation(file_stream, line);
-		}
-	}
-	else
-	{
-		if(filename.isEmpty()) THROW(ArgumentException, "Cannot write VCF.GZ to stdout! Specify a file name of disable compression!");
-		if (compression_level<0 || compression_level>9) THROW(ArgumentException, "Invalid gzip compression level '" + QString::number(compression_level) +"' given for VCF file '" + filename + "'!");
-
-		//open file
-		QByteArray open_flags = "wb"+QByteArray::number(compression_level);
-		BGZF* instream = bgzf_open(filename.toUtf8().data(), open_flags.data());
-		if (instream==NULL) THROW(FileAccessException, "Could not open file '" + filename + "' for writing!");
-
-		//write text (this is not efficient as it writes to entire file to memory and then to the disk)
-		QByteArray text = toText();
-		int written_bytes = bgzf_write(instream, text.constData(), text.size());
-		if(written_bytes!=text.size()) THROW(FileAccessException, "Writing bgzipped VCF file '" + filename + "' failed: not all bytes were written.");
-
-		//close file
-		int closed = bgzf_close(instream);
-		if (closed!=0) THROW(FileAccessException, "Writing bgzipped VCF file '" + filename + "' failed: could not close file.");
+		storeLineInformation(file_stream, line);
 	}
 
+	file_stream.flush();
+	if (file_stream.status()!=QTextStream::Ok) THROW(FileAccessException, "Writing VCF file '" + filename + "' failed!");
+
+	output.close();
 }
 
 void VcfFile::leftNormalize(QString reference_genome)
@@ -517,24 +489,23 @@ void VcfFile::removeDuplicates(bool sort_by_quality)
 {
 	sort(sort_by_quality);
 
-	//remove duplicates (same chr, start, obs, ref) - avoid linear time remove() calls by copying the data to a new vector.
-	QList<VcfLine> output;
-	output.reserve(vcf_lines_.count());
+	//remove duplicates (same chr, start, alt, ref) by compacting unique variants in place
+	int output_index = 0;
 	for (int i=0; i<vcf_lines_.count()-1; ++i)
 	{
 		int j = i+1;
-        if (vcf_lines_[i].chr() != vcf_lines_[j].chr() || vcf_lines_[i].start() != vcf_lines_[j].start() || vcf_lines_[i].ref() !=vcf_lines_[j].ref() || !std::equal(vcf_lines_[i].alt().begin(),  vcf_lines_[i].alt().end(), vcf_lines_[j].alt().begin()))
+		if (vcf_lines_[i].chr()!=vcf_lines_[j].chr() || vcf_lines_[i].start()!=vcf_lines_[j].start() || vcf_lines_[i].ref()!=vcf_lines_[j].ref() || vcf_lines_[i].alt()!=vcf_lines_[j].alt())
 		{
-			output.append(vcf_lines_.at(i));
+			if (output_index!=i) vcf_lines_[output_index] = std::move(vcf_lines_[i]);
+			++output_index;
 		}
 	}
 	if (!vcf_lines_.isEmpty())
 	{
-		output.append(vcf_lines_.last());
+		if (output_index!=vcf_lines_.count()-1) vcf_lines_[output_index] = std::move(vcf_lines_.last());
+		++output_index;
 	}
-
-	//swap the old and new vector
-	vcf_lines_.swap(output);
+	vcf_lines_.resize(output_index);
 }
 
 void VcfFile::storeLineInformation(QTextStream& stream, const VcfLine& line) const
@@ -650,8 +621,7 @@ void VcfFile::fromText(const QByteArray &text)
 	QSet<QByteArray> format_ids_in_header;
 	QSet<QByteArray> filter_ids_in_header;
 
-	QByteArrayList lines = text.split('\n');
-	foreach (const QByteArray& line, lines)
+	for (const QByteArray& line: text.split('\n'))
 	{
 		processVcfLine(line_number, line, info_ids_in_header, format_ids_in_header, filter_ids_in_header);
 	}
@@ -783,9 +753,7 @@ VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& refer
 		vcf_line.setFormatKeys(format_keys);
 		vcf_line.setSamplNames(sample_names);
 
-		QByteArrayList id_list;
-		id_list.push_back(".");
-		vcf_line.setId(id_list);
+		vcf_line.setId(QByteArrayList{"."});
 		if(qual_index >= 0)
 		{
 			vcf_line.setQual(v.annotations().at(qual_index).toDouble());
@@ -1534,9 +1502,10 @@ void VcfFile::checkValues(const DefinitionLine& def, const QByteArrayList& value
 	}
 }
 
-const QByteArray& VcfFile::strCache(const QByteArray& str)
+QByteArray VcfFile::strCache(const QByteArray& str, bool clear_cache)
 {
 	static QSet<QByteArray> cache;
+	if (clear_cache) cache.clear();
 
 	QSet<QByteArray>::iterator it = cache.find(str);
 	if (it==cache.end())
@@ -1547,15 +1516,18 @@ const QByteArray& VcfFile::strCache(const QByteArray& str)
 	return *it;
 }
 
-const QByteArrayList VcfFile::strArrayCache(const QByteArrayList& str)
+QByteArrayList VcfFile::strArrayCache(const QByteArrayList& str, bool clear_cache)
 {
 	static QSet<QByteArrayList> cache;
+
+	if (clear_cache) cache.clear();
 
 	QSet<QByteArrayList>::iterator it = cache.find(str);
 	if (it==cache.end())
 	{
 		it = cache.insert(str);
     }
+
     return *it;
 }
 
@@ -1594,13 +1566,15 @@ QString VcfFile::decodeInfoValue(QString encoded_info_value)
 	return encoded_info_value;
 }
 
-void VcfFile::removeUnusedContigHeaders()
+void VcfFile::removeUnusedContigHeaders(QSet<QByteArray> used_chrs)
 {
 	//determine used chromosomes
-	QSet<QByteArray> chromosomes;
-	foreach(const VcfLine& line, vcf_lines_)
+	if (used_chrs.isEmpty())
 	{
-		chromosomes << line.chr().str();
+		foreach(const VcfLine& line, vcf_lines_)
+		{
+			used_chrs << line.chr().str();
+		}
 	}
 
 	//remove unused contig headers
@@ -1612,11 +1586,17 @@ void VcfFile::removeUnusedContigHeaders()
 		QByteArray tmp = line.value.mid(line.value.indexOf('=')+1);
 		QByteArray chr = tmp.left(tmp.indexOf(','));
 
-		if (!chromosomes.contains(chr))
+		if (!used_chrs.contains(chr))
 		{
 			vcf_header_.removeCommentLine(i);
 		}
 	}
+}
+
+void VcfFile::clearCache()
+{
+	strCache("", true);
+	strArrayCache(QByteArrayList(), true);
 }
 
 

@@ -4,7 +4,7 @@ QT       += sql
 QTPLUGIN += QSQLMYSQL
 
 #include cppXML library
-INCLUDEPATH += $$PWD/cppXML
+INCLUDEPATH += $$PWD/../cppXML
 LIBS += -L$$PWD/../../bin -lcppXML
 
 #include cppNGS library

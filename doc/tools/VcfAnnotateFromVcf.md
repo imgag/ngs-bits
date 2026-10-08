@@ -1,5 +1,5 @@
 ### VcfAnnotateFromVcf tool help
-	VcfAnnotateFromVcf (2025_09-112-ga53ff6f3d)
+	VcfAnnotateFromVcf (2026_06-12-gcb52277d4)
 	
 	Annotates a VCF file with data from one or more source VCF files.
 	
@@ -34,8 +34,6 @@
 	                               Default value: '64'
 	  -debug                       Enables debug output (use only with one thread).
 	                               Default value: 'false'
-	  -hts_version                 Prints used htlib version and exits.
-	                               Default value: 'false'
 	
 	Special parameters:
 	  --help                       Shows this help and exits.
@@ -45,7 +43,7 @@
 	  --settings [file]            Settings override file (no other settings files are used).
 	
 ### VcfAnnotateFromVcf changelog
-	VcfAnnotateFromVcf 2025_09-112-ga53ff6f3d
+	VcfAnnotateFromVcf 2026_06-12-gcb52277d4
 	
 	2024-05-06 Added option to annotate the existence of variants in the source file
 	2022-07-08 Usability: changed parameter names and updated documentation.

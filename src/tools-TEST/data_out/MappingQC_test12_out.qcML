@@ -7,7 +7,7 @@
 <qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
   <runQuality ID="rq0001">
     <metaDataParameter ID="md0004" name="source file" value="MappingQC_in6.bam" cvRef="QC" accession="QC:1000005"/>
-    <qualityParameter ID="qp0001" name="trimmed base percentage" description="Percentage of bases that were trimmed during to adapter or quality trimming." value="62.85" cvRef="QC" accession="QC:2000019"/>
+    <qualityParameter ID="qp0001" name="trimmed base percentage" description="Percentage of bases that were trimmed during to adapter or quality trimming." value="n/a (single end)" cvRef="QC" accession="QC:2000019"/>
     <qualityParameter ID="qp0002" name="clipped base percentage" description="Percentage of the bases that are soft-clipped or hand-clipped during mapping." value="5.62" cvRef="QC" accession="QC:2000052"/>
     <qualityParameter ID="qp0003" name="mapped read percentage" description="Percentage of reads that could be mapped to the reference genome." value="100.00" cvRef="QC" accession="QC:2000020"/>
     <qualityParameter ID="qp0004" name="on-target read percentage" description="Percentage of reads that could be mapped to the target region." value="100.00" cvRef="QC" accession="QC:2000021"/>

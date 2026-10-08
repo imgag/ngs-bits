@@ -14,7 +14,7 @@ public:
 	ScheduledCacheCleaner(QObject* parent = nullptr);
 
 private:
-	QTimer* timer_;
+	QTimer timer_;
 	NGSD db_;
 	void scheduleNextRun();
 };

@@ -31,7 +31,7 @@ public:
 		setDescription("Lists processed samples from the NGSD.");
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		addString("sample", "Sample name filter (substring match).", true, "");
-		addFlag("no_bad_samples", "If set, processed samples with 'bad' quality are excluded.");
+		addString("ps_quality", "Comma-separated list of processed sampel qualities to include.", true, "n/a,good,medium,bad");
 		addFlag("no_tumor", "If set, tumor samples are excluded.");
 		addFlag("no_normal", "If set, germline samples are excluded.");
 		addFlag("no_ffpe", "If set, FFPE samples are excluded.");
@@ -52,6 +52,7 @@ public:
 		addFlag("no_archived_projects", "If set, samples in archived projects are excluded.");
 		addString("system", "Processing system name filter (short name).", true, "");
 		addString("system_type", "Type of processing system filter", true, "");
+		addString("system_platform", "Sequencing platform.", true, "");
 		addString("run", "Sequencing run name filter.", true, "");
 		addFlag("run_finished", "Only show samples where the analysis of the run is finished.");
 		addString("run_device", "Sequencing run device name filter.", true, "");
@@ -70,9 +71,13 @@ public:
 		addFlag("add_call_details", "Adds variant caller and version and variant calling date columns for small variants, CNVs and SVs.");
 		addFlag("add_lab_columns", "Adds columns input, molarity, operator, processing method and batch number.");
 		addFlag("add_study_column", "Add a column with studies of the sample.");
+		addFlag("add_patient_id", "Add a column with the patient identifer.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addEnum("preset", "Presets for different common searches. Note: presets are applied after argument parsing and thus override command line argument.", true, QStringList() << "none" << "germline", "none");
 
+		changeLog(2026,  9, 21, "Removed 'no_bad_samples' flag and added 'ps_quality' parameter.");
+		changeLog(2026,  9, 21, "Added 'add_patient_id' flag.");
+		changeLog(2026,  9,  7, "Added 'platform' parameter.");
 		changeLog(2025, 12, 12, "Added 'ps_override' parameter.");
 		changeLog(2025,  5, 19, "Added 'preset' and 'no_resequencing' parameters.");
 		changeLog(2024,  8, 21, "Added 'add_study_column' flag.");
@@ -116,7 +121,7 @@ public:
 			params.s_phenotypes << db.phenotype(db.phenotypeIdByAccession(hpo_id.toUtf8()));
 		}
 		params.s_study = getString("study");
-		params.include_bad_quality_samples = !getFlag("no_bad_samples");
+		params.ps_quality = getString("ps_quality").split(",");
 		params.include_tumor_samples = !getFlag("no_tumor");
 		params.include_germline_samples = !getFlag("no_normal");
 		params.include_ffpe_samples = !getFlag("no_ffpe");
@@ -128,6 +133,7 @@ public:
 		params.include_archived_projects = !getFlag("no_archived_projects");
 		params.sys_name = getString("system");
 		params.sys_type = getString("system_type");
+		params.sys_platform = getString("system_platform");
 		params.r_name = getString("run");
 		params.include_bad_quality_runs = !getFlag("no_bad_runs");
 		params.run_finished = getFlag("run_finished");
@@ -161,6 +167,7 @@ public:
 		params.add_call_details = getFlag("add_call_details");
 		params.add_lab_columns = getFlag("add_lab_columns");
 		params.add_study_column = getFlag("add_study_column");
+		params.add_patient_id = getFlag("add_patient_id");
 
 		//apply presets
 		if (getEnum("preset")=="germline")
@@ -168,7 +175,7 @@ public:
 			params.include_ffpe_samples = false;
 			params.include_tumor_samples = false;
 			params.include_merged_samples = false;
-			params.include_bad_quality_samples = false;
+			params.ps_quality = {"n/a", "good", "medium"};
 			params.include_scheduled_for_resequencing_samples = false;
 
 			params.include_archived_projects = false;
@@ -320,6 +327,15 @@ public:
 			if (! values.contains(params.s_disease_status))
 			{
 				THROW(DatabaseException, "Invalid sample disease status '"+params.s_disease_status+"'.\nValid statuses are: " + values.join(", "));
+			}
+		}
+
+		if (params.sys_platform !="")
+		{
+			QStringList values = db.getEnum("processing_system", "platform");
+			if (! values.contains(params.sys_platform))
+			{
+				THROW(DatabaseException, "Invalid sequencing platform '"+params.sys_platform+"'.\nValid statuses are: " + values.join(", "));
 			}
 		}
 

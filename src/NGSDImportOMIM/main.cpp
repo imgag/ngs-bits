@@ -23,6 +23,8 @@ public:
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
+
+		changeLog(2026,  8, 26, "Non-disease phentypes, e.g. blood type, are no longer imported.");
 	}
 
 	virtual void main()
@@ -56,7 +58,7 @@ public:
 		qi_pheno.prepare("INSERT INTO omim_phenotype (omim_gene_id, phenotype) VALUES (:0, :1);");
 
 		//import genes
-        out << "Importing OMIM genes..." << Qt::endl;
+		out << "Importing OMIM genes..." << Qt::endl;
 		QString version = "";
 		QMap<QByteArray, QByteArray> mim2gene_id;
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("gene"));
@@ -77,9 +79,9 @@ public:
 			QByteArrayList parts = line.split('\t'); //mim, type, NCBI ID, HGNC symbol, Ensembl ID
 			if (parts.count()<4) continue;
 
-			//check type "gene"
+			//check type
 			QByteArray type = parts[1].trimmed();
-			if (!type.contains("gene")) continue;
+			if (!type.contains("gene")) continue; //there are entries with type 'gene/phenotype'
 
 			//check gene
 			QByteArray gene = parts[3].trimmed();
@@ -93,8 +95,11 @@ public:
 				gene_approved = gene;
 			}
 
+			//check MIM
+			QByteArray mim = parts[0].trimmed();
+			if (mim.isEmpty()) continue;
+
 			//insert
-			QByteArray mim = parts[0];
 			qi_gene.bindValue(0, gene_approved);
 			qi_gene.bindValue(1, mim);
 			qi_gene.exec();
@@ -124,6 +129,7 @@ public:
 			//check phenotype
 			QByteArray phenotype = parts[0].trimmed();
 			if (phenotype.isEmpty()) continue;
+			if (phenotype[0]=='[' || phenotype.startsWith("?[")) continue; //no non-disease phentypes e.g. blood type
 
 			//check gene MIM
 			QByteArray gene_mim = parts[2].trimmed();

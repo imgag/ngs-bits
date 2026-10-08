@@ -1,4 +1,5 @@
 #include "ExpressionOverviewWidget.h"
+#include <QSignalBlocker>
 #include "FilterWidget.h"
 #include "ui_ExpressionOverviewWidget.h"
 #include "LoginManager.h"
@@ -64,7 +65,7 @@ void ExpressionOverviewWidget::initPhenotype()
 
 void ExpressionOverviewWidget::initTargetRegions()
 {
-	ui_->cb_target_region->blockSignals(true);
+	const QSignalBlocker blocker(ui_->cb_target_region);
 
 
 	ui_->cb_target_region->clear();
@@ -104,8 +105,6 @@ void ExpressionOverviewWidget::initTargetRegions()
 		QFileInfo info(roi_file);
 		ui_->cb_target_region->addItem(info.fileName(), roi_file);
 	}
-
-	ui_->cb_target_region->blockSignals(false);
 
 }
 

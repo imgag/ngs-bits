@@ -19,6 +19,7 @@ public:
 		addOutfile("out", "Output BAM/CRAM file.", false);
 
 		addInt("minMQ", "Minimum mapping quality.", true, 30);
+		addInt("maxMQ", "Maximium mapping quality.", true, 256);
 		addInt("maxMM", "Maximum number of mismatches in aligned read, -1 to disable.", true, 4);
 		addInt("maxGap", "Maximum number of gaps (indels) in aligned read, -1 to disable.", true, 1);
 		addInt("minDup", "Minimum number of duplicates.", true, 0);
@@ -28,6 +29,7 @@ public:
 
 		changeLog(2020,  11, 27, "Added CRAM support.");
 		changeLog(2024,   2, 15, "Added option to remove large fragments.");
+		changeLog(2026,   7, 30, "Added option to filter by max. mapping quality.");
 	}
 
 	bool alignment_pass(BamAlignment& al) const
@@ -57,6 +59,7 @@ public:
 				al.isPaired() &&
 				!al.isMateUnmapped() &&
 				al.mappingQuality() >= minMQ &&
+				al.mappingQuality() <= maxMQ &&
 				filter_gap &&
 				filter_mismatches &&
 				n_duplicates >= minDup &&
@@ -73,6 +76,7 @@ public:
 		int count_fail = 0;
 
 		minMQ = getInt("minMQ");
+		maxMQ = getInt("maxMQ");
 		maxMM = getInt("maxMM");
 		maxGap = getInt("maxGap");
 		minDup = getInt("minDup");
@@ -131,6 +135,7 @@ public:
 
 private:
 	int minMQ;
+	int maxMQ;
 	int maxMM;
 	int maxGap;
 	int minDup;

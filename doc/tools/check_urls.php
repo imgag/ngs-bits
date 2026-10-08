@@ -22,14 +22,16 @@ function url_exists($url)
     return true;
 }
 
-$tools = glob(dirname(__FILE__)."/*.md");
-foreach($tools as $tool)
+//check URLs in MD files
+$files = glob(dirname(__FILE__)."/*.md");
+$files[] = dirname(__FILE__)."/../../README.md";
+foreach($files as $file)
 {
 	//print tool name
-	$help = file($tool);
+	$md_text = file($file);
 			
 	//check for broken links
-	foreach($help as $line)
+	foreach($md_text as $line)
 	{
 		preg_match_all('#\b(https|http|ftp)://[^,\s()<>]+(?:\([\w\d]+\)|([^,[:punct:]\s]|/))#', $line, $matches);
 		if (count($matches[0])>0)
@@ -37,12 +39,41 @@ foreach($tools as $tool)
 			$url = $matches[0][0];
 			if ($url=="https://github.com/imgag/ngs-bits") continue;
 			
-			print basename($tool, ".md")." - {$url}\n";
+			print basename($file, ".md")." - {$url}\n";
 
 			if(!url_exists($url))
 			{
 				print "\tMISSING!\n";
 			}
+		}
+	}
+}
+
+//check relative markdown links
+$files = [];
+$files[] = dirname(__FILE__)."/../../README.md";
+foreach($files as $file)
+{
+	$file = realpath($file);
+	$base_dir = dirname($file);
+	preg_match_all('/\[[^\]]*]\(([^)]+)\)/', file_get_contents($file), $matches);
+
+	foreach ($matches[1] as $link)
+	{
+		//remove optional title
+		$link = preg_split('/\s+"/', $link)[0];
+
+		//skip URLs
+		if (preg_match('/^(https?:|mailto:|#)/i', $link)) continue;
+
+		//remove anchor part
+		$link = explode('#', $link, 2)[0];
+		if ($link=='') continue;
+		
+		$target = $base_dir."/".$link;
+		if (!file_exists($target))
+		{
+			echo "BROKEN: {$link} in {$file}\n";
 		}
 	}
 }

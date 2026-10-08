@@ -40,7 +40,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesVcf(const VcfFile&
 	return output;
 }
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesGSvar(VariantList variants, QString filename, bool include_gonosomes)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesGSvar(const VariantList& variants, const QString& filename, bool include_gonosomes)
 {
 	//determine genotype column
 	int geno_col = -1;
@@ -61,7 +61,7 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesGSvar(VariantList 
 	VariantGenotypes output;
 	for (int i=0; i<variants.count(); ++i)
 	{
-		Variant& variant = variants[i];
+		const Variant& variant = variants[i];
 
 		//skip variants not on autosomes
 		if(!variant.chr().isAutosome() && !include_gonosomes) continue;
@@ -168,11 +168,11 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromGSvar(QString 
 	return output;
 }
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(GenomeBuild build, const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile& roi, const QString& ref_file, bool include_not_properly_paired)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const BedFile& roi, const QString& ref_file, bool include_not_properly_paired)
 {
 	//get known SNP list
 	VcfFile snps;
-	snps = NGSHelper::getKnownVariants(build, true, roi, 0.2, 0.8);
+	snps = NGSHelper::getKnownVariants(true, roi, 0.2, 0.8);
 
 	//open BAM
 	BamReader reader(filename, ref_file);
@@ -183,11 +183,11 @@ SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(GenomeBuil
 	return output;
 }
 
-SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(GenomeBuild build, const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const QString& ref_file, bool include_not_properly_paired)
+SampleSimilarity::VariantGenotypes SampleSimilarity::genotypesFromBam(const QString& filename, int min_cov, int max_snps, bool include_gonosomes, const QString& ref_file, bool include_not_properly_paired)
 {
 	//get known SNP list
 	VcfFile snps;
-	snps = NGSHelper::getKnownVariants(build, true, 0.2, 0.8);
+	snps = NGSHelper::getKnownVariants(true, 0.2, 0.8);
 
 	//open BAM
 	BamReader reader(filename, ref_file);

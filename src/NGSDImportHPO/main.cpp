@@ -23,18 +23,18 @@ public:
 
 		//optional
 		addInfile("omim", "OMIM 'morbidmap.txt' file for additional disease-gene information, from https://omim.org/downloads/", true);
+		addInfile("omim_genes", "OMIM 'mim2gene.txt' file for additional disease-gene information, from https://omim.org/downloads/", true);
 		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2026/clinvar_20260329.vcf.gz", true);
 		addInfile("hgmd", "HGMD phenbase file (Manually download 'hgmd_phenbase-2026.1.dump.gz').", true);
-
-		// optional (for evidence information):
 		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2026-02-16/phenotype.hpoa", true);
 		addInfile("gencc", "gencc 'gencc-submissions.tsv' file for additional disease-gene evidence information. (Manually download from https://search.thegencc.org/download).", true);
 		addInfile("g2p", "DDG2P file for additional gene-disease-phenotype evidence information. Download from http://ftp.ebi.ac.uk/pub/databases/gene2phenotype/G2P_data_downloads/2026_03_28/allG2P_2026-03-28.csv.gz", true);
-
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
-		addFlag("debug", "Enables debug output");
+		addFlag("debug", "Enables debug output.");
+		addString("debug_gene", "Enables debug output for a given gene.", true);
 
+		changeLog(2026,  8, 26, "Fixed bug in OMIM parsing: false gene-disease associations were added.");
 		changeLog(2026,  4, 17, "Updated to GenCC TSV (new format).");
 		changeLog(2025,  9, 23, "Renamed '-decipher' to '-g2p' and adapted parser to new G2P format.");
 		changeLog(2021, 12, 22, "Added support for GenCC and DECIPHER.");
@@ -46,7 +46,8 @@ public:
 	}
 
 	/// simple sruct to keep a set of source databases
-	struct SourceDetails {
+	struct SourceDetails
+	{
 		QList<PhenotypeSource> sources;
 		QStringList original_evidence;
 		QList<PhenotypeEvidenceLevel> translated_evidence;
@@ -687,41 +688,6 @@ public:
 		}
 	}
 
-	/// turns a given OMIM Evidence value into one from the Evidences enum
-	static PhenotypeEvidenceLevel translateOmimEvidence(const QByteArray& omim_evi)
-	{
-			//# Phenotype Mapping key - Appears in parentheses after a disorder :
-			//# -----------------------------------------------------------------
-			//#
-			//# 1 - The disorder is placed on the map based on its association with
-			//# a gene, but the underlying defect is not known.
-			//# 2 - The disorder has been placed on the map by linkage or other
-			//# statistical method; no mutation has been found.
-			//# 3 - The molecular basis for the disorder is known; a mutation has been
-			//# found in the gene.
-			//# 4 - A contiguous gene deletion or duplication syndrome, multiple genes
-			//# are deleted or duplicated causing the phenotype.
-		if (omim_evi == "(1)")
-		{
-			return PhenotypeEvidenceLevel::LOW;
-		}
-		else if (omim_evi == "(2)")
-		{
-			return PhenotypeEvidenceLevel::LOW;
-		}
-		else if (omim_evi == "(3)")
-		{
-			return PhenotypeEvidenceLevel::HIGH;
-		}
-		else if (omim_evi == "(4)")
-		{
-			return PhenotypeEvidenceLevel::HIGH;
-		}
-		else
-		{
-			THROW(ArgumentException, "Given Evidence is not a Omim evidence value: " + QString(omim_evi));
-		}
-	}
 	/// turns a given G2P Evidence value into one from the Evidences enum
 	static PhenotypeEvidenceLevel translateD2GEvidence(const QByteArray& g2p_evi)
 	{
@@ -794,12 +760,63 @@ public:
 		}
 	}
 
+	static void debugGene(NGSD& db, QTextStream& out, int line, QByteArray gene, const QHash<int, AnnotatedList>& term2genes, const QHash<int, AnnotatedList>& term2diseases, const QHash<QByteArray, AnnotatedList>& disease2genes)
+	{
+		if (gene.isEmpty()) return;
+		out << "Debug gene " << gene << " - line " << line << Qt::endl;
+
+		//direct term>gene relations
+		for (auto it=term2genes.begin(); it!=term2genes.end(); ++it)
+		{
+			foreach(const AnnotatedItem& item, it.value().items())
+			{
+				if (item.item==gene)
+				{
+					const Phenotype& pheno = db.phenotype(it.key());
+					out << " - term>gene: " << pheno.accession() << "/" << pheno.name() << ">" << gene << " " << item.exactSources.toString() << Qt::endl;
+				}
+			}
+		}
+
+		//gene>disease relations
+		for (auto it=disease2genes.begin(); it!=disease2genes.end(); ++it)
+		{
+			foreach(const AnnotatedItem& item, it.value().items())
+			{
+				if (item.item==gene)
+				{
+					QByteArray disease = it.key();
+					out << " - gene>disease: " << gene << ">" << disease << " " << item.exactSources.toString() << Qt::endl;
+
+					for(auto it2=term2diseases.begin(); it2!=term2diseases.end(); ++it2)
+					{
+						foreach(const AnnotatedItem& item2, it2.value().items())
+						{
+							if (item2.item==disease)
+							{
+
+								const Phenotype& pheno = db.phenotype(it2.key());
+								out << "   - disease>term: " << disease << ">" << pheno.accession() << "/" << pheno.name() << Qt::endl;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
 	virtual void main()
 	{
 		//init
 		NGSD db(getFlag("test"));
 		QTextStream out(stdout);
 		bool debug = getFlag("debug");
+		QByteArray debug_gene = getString("debug_gene").toUtf8();
+
+		//check parameters
+		QString omim_file = getInfile("omim");
+		QString omim_gene_file = getInfile("omim_genes");
+		if ((omim_file!="" && omim_gene_file=="") || (omim_file=="" && omim_gene_file!="")) THROW(CommandLineParsingException, "Both 'omim' and 'omim_genes' parameters are needed to import OMIM gene-disease relations!");
 
 		//check tables exist
 		db.tableExists("hpo_term");
@@ -845,10 +862,15 @@ public:
 		// parse Evidence files if provided
 		// parse DDG2P file
 		parseG2P(db, id2ngsd, disease2genes, term2diseases, term2genes);
+		debugGene(db, out, __LINE__, debug_gene, term2genes, term2diseases, disease2genes);
+
 		// parse gencc-submissions.csv file
 		parseGenCC(db, disease2genes);
+		debugGene(db, out, __LINE__, debug_gene, term2genes, term2diseases, disease2genes);
+
 		// parse phenotype.hpoa file
 		parseHpoPhen(id2ngsd, term2diseases);
+		debugGene(db, out, __LINE__, debug_gene, term2genes, term2diseases, disease2genes);
 
 		//parse term-disease and disease-gene relations from HPO
 		{
@@ -863,7 +885,7 @@ public:
 			while(!fp->atEnd())
 			{
 				lineCount++;
-				exactSource = QString("Anno line ") + QString::number(lineCount);
+				exactSource = QString("HPO line ") + QString::number(lineCount);
 
 				QByteArrayList parts = fp->readLine().split('\t');
 				if (parts.count()<5) continue;
@@ -927,62 +949,117 @@ public:
                 out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!" << Qt::endl;
 			}
 		}
+		debugGene(db, out, __LINE__, debug_gene, term2genes, term2diseases, disease2genes);
 
 		//parse disease-gene relations from OMIM
-		QString omim_file = getInfile("omim");
 		if (omim_file!="")
 		{
+			if (debug) out << "Parsing OMIM gene file..." << Qt::endl;
+			QMap<QByteArray, QByteArray> mim2gene;
+			VersatileFile file(omim_gene_file, false);
+			file.open(QFile::ReadOnly|QIODevice::Text);
+			while(!file.atEnd())
+			{
+				QByteArray line = file.readLine(true);
+				if (line.isEmpty() || line[0]=='#') continue;
+
+				QByteArrayList parts = line.split('\t'); //mim, type, NCBI ID, HGNC symbol, Ensembl ID
+				if (parts.count()<4) continue;
+
+				//check type
+				QByteArray type = parts[1].trimmed();
+				if (!type.contains("gene")) continue; //there are entries with type 'gene/phenotype'
+
+				//check gene
+				QByteArray gene = parts[3].trimmed();
+				if (gene.isEmpty()) continue;
+
+				//check MIM
+				QByteArray mim = parts[0].trimmed();
+				if (mim.isEmpty()) continue;
+
+				//convert gene to approved symbol
+				QByteArray gene_approved = db.geneToApproved(gene);
+				if (gene_approved.isEmpty()) continue;
+
+				mim2gene[mim] = gene_approved;
+			}
+
 			int lineCount = 0;
 			int count = 0;
-            if (debug) out << "Parsing OMIM file..." << Qt::endl;
+			int skipped_not_mapping3 = 0;
+			int skipped_not_phenotype = 0;
+			int skipped_gene_mim_invalid = 0;
+			int skipped_disease_mim_invalid = 0;
+			if (debug) out << "Parsing OMIM disease file..." << Qt::endl;
 			//parse disease-gene relations
-			QSharedPointer<QFile> fp = Helper::openFileForReading(omim_file);
             QRegularExpression mim_exp("([0-9]{6})");
             QRegularExpression evi_exp("(\\([1-4]{1}\\))");
-			while(!fp->atEnd())
+			VersatileFile file2(omim_file, false);
+			file2.open(QFile::ReadOnly|QIODevice::Text);
+			while(!file2.atEnd())
 			{
 				lineCount++;
-				QByteArrayList parts = fp->readLine().trimmed().split('\t');
+				QByteArrayList parts = file2.readLine(true).split('\t');
 				if (parts.count()<4) continue;
 
 				QByteArray pheno = parts[0].trimmed();
-				QByteArrayList genes = parts[1].split(',');
-				QByteArray mim_number = parts[2].trimmed(); // mim number for gene
-				QByteArray omim_evi = "";
 
+				//only phenotype mapping key 3
+				if (!pheno.contains("(3)"))
+				{
+					++skipped_not_mapping3;
+					continue;
+				}
+
+				//no non-disease phentypes e.g. blood type
+				if (pheno[0]=='[' || pheno.startsWith("?["))
+				{
+					++skipped_not_phenotype;
+					continue;
+				}
+
+				//check gene mim is valid
+				QByteArray gene_mim = parts[2].trimmed();
+				QByteArray gene = mim2gene.value(gene_mim, "");
+				if (gene.isEmpty())
+				{
+					++skipped_gene_mim_invalid;
+					continue;
+				}
+
+				//get disease MIM
                 QRegularExpressionMatch mim_exp_match = mim_exp.match(pheno);
-                if (mim_exp_match.hasMatch())
+				if (!mim_exp_match.hasMatch())
 				{
-                    mim_number = mim_exp_match.captured(1).toUtf8(); // mim number for phenotype
+					++skipped_disease_mim_invalid;
+					continue;
 				}
-                QRegularExpressionMatch evi_exp_match = evi_exp.match(pheno);
-                if (evi_exp_match.hasMatch())
+				QByteArray disease_mim = mim_exp_match.captured(1).toUtf8(); // mim number for phenotype
+
+				//make sure the gene symbol is approved by HGNC
+				int approved_id = db.geneId(gene);
+				if (approved_id==-1)
 				{
-                    omim_evi = evi_exp_match.captured(1).toUtf8(); // evidence for relation
+					if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!\n";
+					continue;
 				}
+				QByteArray gene_approved = db.geneSymbol(approved_id);
 
-				foreach(QByteArray gene, genes)
-				{
-					//make sure the gene symbol is approved by HGNC
-					gene = gene.trimmed();
-					int approved_id = db.geneId(gene);
-					if (approved_id==-1)
-					{
-						if (debug) out << "Skipped gene '" << gene << "' because it is not an approved HGNC symbol!\n";
-						continue;
-					}
+				if (debug) out << "DISEASE-GENE (OMIM): OMIM:" << disease_mim << " - " << gene_approved << "\n";
 
-					if (debug) out << "DISEASE-GENE (OMIM): OMIM:" << mim_number << " - " << db.geneSymbol(approved_id) << "\n";
-
-					ExactSources e_src = ExactSources();
-					e_src.disease2gene = QString("OMIM line ") + QString::number(lineCount);
-					disease2genes["OMIM:"+mim_number].add(db.geneSymbol(approved_id), "OMIM", omim_evi, translateOmimEvidence(omim_evi), e_src);
-					count++;
-				}
+				ExactSources e_src = ExactSources();
+				e_src.disease2gene = QString("OMIM line ") + QString::number(lineCount);
+				disease2genes["OMIM:"+disease_mim].add(db.geneSymbol(approved_id), "OMIM", "3", PhenotypeEvidenceLevel::HIGH, e_src);
+				count++;
 			}
-			fp->close();
 			out << "Imported " << count << " disease-gene relations from OMIM.\n";
+			if (skipped_not_mapping3>0) out << "  - skipped " << skipped_not_mapping3 << " diseases because not mapping key (3).\n";
+			if (skipped_not_phenotype>0) out << "  - skipped " << skipped_not_phenotype << " diseases because not phenotype.\n";
+			if (skipped_gene_mim_invalid>0) out << "  - skipped " << skipped_gene_mim_invalid << " diseases because gene MIM not valid.\n";
+			if (skipped_disease_mim_invalid>0) out << "  - skipped " << skipped_disease_mim_invalid << " diseases because disease MIM could not be determined.\n";
 		}
+		debugGene(db, out, __LINE__, debug_gene, term2genes, term2diseases, disease2genes);
 
 		//parse disease-gene relations from ClinVar
 		QString clinvar_file = getInfile("clinvar");
@@ -1084,6 +1161,7 @@ public:
 
 			out << "Imported " << added_d2g << " disease-gene relations, " << added_t2g << " term-gene relations from ClinVar.\n";
 		}
+		debugGene(db, out, __LINE__, debug_gene, term2genes, term2diseases, disease2genes);
 
 		// parse hpo-gene relations from HGMD (phenbase dbdump file):
 		QString hgmd_file = getInfile("hgmd");
@@ -1242,7 +1320,7 @@ public:
 							QByteArray gene_approved = db.geneSymbol(approved_id);
 
 							// add gene to hpo list:
-                            if (debug) out << "HPO-GENE (HGMD): " << hpo << " - " << gene_approved << " (cui=" << cui << " phenid=" << phen_id << ")" << Qt::endl;
+							if (debug || debug_gene==gene_approved) out << "HPO-GENE (HGMD): " << hpo << " - " << gene_approved << " (cui=" << cui << " phenid=" << phen_id << ")" << Qt::endl;
 							int term_db_id = id2ngsd.value(hpo, -1);
 							if (term_db_id != -1)
 							{
@@ -1264,6 +1342,7 @@ public:
 
 			out << "Imported " << added_t2g << " term-gene relations from HGMD.\n";
 		}
+		debugGene(db, out, __LINE__, debug_gene, term2genes, term2diseases, disease2genes);
 
 		// import gathered data:
         out << "Gathering all term2gene relations" << Qt::endl;
@@ -1299,6 +1378,7 @@ public:
 				}
 			}
 		}
+		debugGene(db, out, __LINE__, debug_gene, term2genes, term2diseases, disease2genes);
 
         out << "Starting import into NGSD" << Qt::endl;
 		// build insert statements with 10000 tuples each (big insertions are way faster than single element insert statements)

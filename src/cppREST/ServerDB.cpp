@@ -6,6 +6,7 @@
 #include <QUuid>
 #include <QSqlError> //Comment to prevent removal by fix_includes.php
 #include <QSqlRecord> //Comment to prevent removal by fix_includes.php
+#include <QSqlField>
 
 ServerDB::ServerDB()
 {
@@ -44,7 +45,7 @@ ServerDB::~ServerDB()
 
 void ServerDB::initDbIfEmpty()
 {
-    Log::info("Creating new tables, if they do not exist");
+	Log::info("Creating new tables, if they do not exist");
 	QString version_info_table = "CREATE TABLE IF NOT EXISTS schema_version ("
 								 "id TINYINT NOT NULL,"
 								 "version INT NOT NULL,"
@@ -52,20 +53,20 @@ void ServerDB::initDbIfEmpty()
 								 "CHECK (id = 1)"
 								 ");";
 
-    QString client_info_table = "CREATE TABLE IF NOT EXISTS client_info ("
+	QString client_info_table = "CREATE TABLE IF NOT EXISTS client_info ("
                                 "`id` INT(10) unsigned NOT NULL PRIMARY KEY AUTO_INCREMENT,"
                                 "`version` VARCHAR(50),"
                                 "`message` TEXT,"
                                 "`date` BIGINT"
                                 ");";
 
-    QString user_notification = "CREATE TABLE IF NOT EXISTS user_notification ("
+	QString user_notification = "CREATE TABLE IF NOT EXISTS user_notification ("
                                 "`id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,"
                                 "`string_id` VARCHAR(40),"
                                 "`message` TEXT"
                                 ");";
 
-    QString sessions_table = "CREATE TABLE IF NOT EXISTS sessions ("
+	QString sessions_table = "CREATE TABLE IF NOT EXISTS sessions ("
                              "`id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,"
                              "`string_id` VARCHAR(40) NOT NULL,"
                              "`user_id` INTEGER NOT NULL,"
@@ -76,19 +77,20 @@ void ServerDB::initDbIfEmpty()
                              "`is_for_db_only` INTEGER(1)"
                              ");";
 
-    QString urls_table = "CREATE TABLE IF NOT EXISTS urls ("
-                         "`id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,"
-                         "`string_id` VARCHAR(40) NOT NULL,"
-                         "`filename` TEXT NOT NULL,"
-                         "`path` TEXT NOT NULL,"
-                         "`filename_with_path` TEXT NOT NULL,"
-                         "`file_id` TEXT NOT NULL,"
-                         "`size` BIGINT NOT NULL,"
-                         "`file_exists` INTEGER(1),"
-                         "`created` BIGINT NOT NULL"
-                         ");";
+	QString urls_table = "CREATE TABLE IF NOT EXISTS urls ("
+			"`id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,"
+			"`string_id` VARCHAR(40) NOT NULL,"
+			"`filename` TEXT NOT NULL,"
+			"`path` TEXT NOT NULL,"
+			"`filename_with_path` TEXT NOT NULL,"
+			"`file_id` TEXT NOT NULL,"
+			"`size` BIGINT NOT NULL,"
+			"`file_exists` INTEGER(1),"
+			"`created` BIGINT NOT NULL,"			
+			"`user_id` INTEGER NOT NULL"
+			");";
 
-    QString file_locations_table = "CREATE TABLE IF NOT EXISTS file_locations ("
+	QString file_locations_table = "CREATE TABLE IF NOT EXISTS file_locations ("
                              "`id` INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,"
                              "`filename_with_path` TEXT NOT NULL,"
                              "`type` VARCHAR(40) NOT NULL,"
@@ -100,18 +102,18 @@ void ServerDB::initDbIfEmpty()
                              ");";
 
 	QList<QString> filedb_tables = QList<QString>() << version_info_table << client_info_table << user_notification << sessions_table << urls_table << file_locations_table;
-    for(int i = 0; i < filedb_tables.size(); i++)
-    {
-        QSqlQuery query(*(db_.data()));
-        query.exec(filedb_tables[i]);
-        bool success = query.lastError().text().trimmed().isEmpty();
+	for(int i = 0; i < filedb_tables.size(); i++)
+	{
+		QSqlQuery query(*(db_.data()));
+		query.exec(filedb_tables[i]);
+		bool success = query.lastError().text().trimmed().isEmpty();
 
-        if(!success)
-        {
-            Log::error("Failed to create a table: " + query.lastError().text());
+		if(!success)
+		{
+			Log::error("Failed to create a table: " + query.lastError().text());
 			return;
-        }
-    }
+		}
+	}
 }
 
 void ServerDB::reinitializeDb()
@@ -155,25 +157,25 @@ int ServerDB::getSchemaVersion()
 
 	if (query.next())
 	{
-		return query.record().indexOf("version");
+		return query.record().value("version").toInt();
 	}
 	return -1;
 }
 
 bool ServerDB::addSession(const QString string_id, const int user_id, const QString user_login, const QString user_name, const QString random_secret, const QDateTime login_time, const bool is_for_db_only)
 {
-    qint64 login_time_as_num = login_time.toSecsSinceEpoch();
-    QSqlQuery query(*(db_.data()));
+	qint64 login_time_as_num = login_time.toSecsSinceEpoch();
+	QSqlQuery query(*(db_.data()));
 	query.exec("INSERT INTO sessions (string_id, user_id, user_login, user_name, random_secret, login_time, is_for_db_only)"
 													   " VALUES (\""+string_id+"\", " + QString::number(user_id) + ", \"" + user_login + "\", \"" + user_name + "\", \"" + random_secret + "\", " + QString::number(login_time_as_num) + ", " + QString::number(is_for_db_only) + ")");
-    bool success = query.lastError().text().trimmed().isEmpty();
+	bool success = query.lastError().text().trimmed().isEmpty();
 
-    if(!success)
-    {
-        Log::error("Failed to add a new session: " + query.lastError().text() + ", " + query.lastQuery());
-    }
+	if(!success)
+	{
+		Log::error("Failed to add a new session: " + query.lastError().text() + ", " + query.lastQuery());
+	}
 
-    return success;
+	return success;
 }
 
 bool ServerDB::addSession(const Session new_session)
@@ -334,11 +336,11 @@ int ServerDB::getSessionsCount()
     return 0;
 }
 
-bool ServerDB::addUrl(const QString string_id, const QString filename, const QString path, const QString filename_with_path, const QString file_id, const qint64 size, const bool file_exists, const QDateTime created)
+bool ServerDB::addUrl(const QString string_id, const QString filename, const QString path, const QString filename_with_path, const QString file_id, const qint64 size, const bool file_exists, const QDateTime created, int user_id)
 {
     qint64 created_as_num = created.toSecsSinceEpoch();
-    QString query_text = "INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, size, file_exists, created)"
-                         " VALUES (\"" + string_id + "\", \"" + filename + "\", \"" + path + "\", \"" + filename_with_path + "\", \"" + file_id + "\", " +  QString::number(size) + ", " + QString::number(static_cast<int>(file_exists)) + ", " + QString::number(created_as_num) + ")";
+	QString query_text = "INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, size, file_exists, created, user_id)"
+						 " VALUES (\"" + string_id + "\", \"" + filename + "\", \"" + path + "\", \"" + filename_with_path + "\", \"" + file_id + "\", " +  QString::number(size) + ", " + QString::number(static_cast<int>(file_exists)) + ", " + QString::number(created_as_num) + ", " + QString::number(user_id) + ")";
     QSqlQuery query(*(db_.data()));
     query.exec(query_text);
     bool success = query.lastError().text().trimmed().isEmpty();
@@ -352,7 +354,7 @@ bool ServerDB::addUrl(const QString string_id, const QString filename, const QSt
 
 bool ServerDB::addUrl(const UrlEntity new_url)
 {
-    return addUrl(new_url.string_id, new_url.filename, new_url.path, new_url.filename_with_path, new_url.file_id, new_url.size, new_url.file_exists, new_url.created);
+	return addUrl(new_url.string_id, new_url.filename, new_url.path, new_url.filename_with_path, new_url.file_id, new_url.size, new_url.file_exists, new_url.created, new_url.user_id);
 }
 
 bool ServerDB::addUrls(const QList<UrlEntity> all_urls)
@@ -370,13 +372,13 @@ bool ServerDB::addUrls(const QList<UrlEntity> all_urls)
     int processed_items = 0;
     for (int i=0; i<batch_count; i++)
     {
-        QString query_text = "INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, size, file_exists, created) VALUES";
+	QString query_text = "INSERT INTO urls (string_id, filename, path, filename_with_path, file_id, size, file_exists, created, user_id) VALUES";
         for (int b=i*batch_size; b<((i+1)*batch_size); b++)
         {
             if (b>(all_urls.count()-1)) break;
 
             qint64 created_as_num = all_urls[b].created.toSecsSinceEpoch();
-            query_text+="\n(\"" + all_urls[b].string_id + "\", \"" + all_urls[b].filename + "\", \"" + all_urls[b].path + "\", \"" + all_urls[b].filename_with_path + "\", \"" + all_urls[b].file_id + "\", " + QString::number(all_urls[b].size) + ", " + QString::number(static_cast<int>(all_urls[b].file_exists)) + ", " + QString::number(created_as_num) + "),";
+			query_text+="\n(\"" + all_urls[b].string_id + "\", \"" + all_urls[b].filename + "\", \"" + all_urls[b].path + "\", \"" + all_urls[b].filename_with_path + "\", \"" + all_urls[b].file_id + "\", " + QString::number(all_urls[b].size) + ", " + QString::number(static_cast<int>(all_urls[b].file_exists)) + ", " + QString::number(created_as_num) + ", " + QString::number(all_urls[b].user_id) + "),";
 
             processed_items++;
         }
@@ -459,18 +461,20 @@ UrlEntity ServerDB::getUrl(const QString& string_id)
         int index_file_id = query.record().indexOf("file_id");
         int index_size = query.record().indexOf("size");
         int index_file_exists = query.record().indexOf("file_exists");
-        int index_created = query.record().indexOf("created");
+        int index_created = query.record().indexOf("created");		
+	int index_user_id = query.record().indexOf("user_id");
 
         return UrlEntity(
-            query.value(index_string_id).toString(),
-            query.value(index_filename).toString(),
-            query.value(index_path).toString(),
-            query.value(index_filename_with_path).toString(),
-            query.value(index_file_id).toString(),
-            query.value(index_size).toLongLong(),
-            query.value(index_file_exists).toBool(),
-            QDateTime::fromSecsSinceEpoch(query.value(index_created).toLongLong())
-            );
+	query.value(index_string_id).toString(),
+	query.value(index_filename).toString(),
+	query.value(index_path).toString(),
+	query.value(index_filename_with_path).toString(),
+	query.value(index_file_id).toString(),
+	query.value(index_size).toLongLong(),
+	query.value(index_file_exists).toBool(),
+	QDateTime::fromSecsSinceEpoch(query.value(index_created).toLongLong()),
+	query.value(index_user_id).toInt()
+	);
     }
 
     return UrlEntity();
@@ -491,7 +495,8 @@ QList<UrlEntity> ServerDB::getAllUrls()
         int index_file_id = query.record().indexOf("file_id");
         int index_size = query.record().indexOf("size");
         int index_file_exists = query.record().indexOf("file_exists");
-        int index_created = query.record().indexOf("created");
+        int index_created = query.record().indexOf("created");				
+	int index_user_id = query.record().indexOf("user_id");
 
         results.append(
             UrlEntity(
@@ -502,7 +507,8 @@ QList<UrlEntity> ServerDB::getAllUrls()
                 query.value(index_file_id).toString(),
                 query.value(index_size).toLongLong(),
                 query.value(index_file_exists).toBool(),
-                QDateTime::fromSecsSinceEpoch(query.value(index_created).toLongLong())
+		QDateTime::fromSecsSinceEpoch(query.value(index_created).toLongLong()),
+		query.value(index_user_id).toLongLong()
                 )
             );
     }

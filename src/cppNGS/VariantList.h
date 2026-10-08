@@ -361,6 +361,8 @@ public:
 
 	///Prepends an annotation column and returns the index of the new column.
 	int prependAnnotation(QString name, QString description, QByteArray default_value="");
+	///Prepends several annotation columns in one pass.
+	void prependAnnotations(const QList<VariantAnnotationDescription>& descriptions, const QByteArrayList& default_values);
 
 	///Removes an annotation column by index.
 	void removeAnnotation(int index);

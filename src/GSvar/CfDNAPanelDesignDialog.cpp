@@ -1,4 +1,5 @@
 #include "CfDNAPanelDesignDialog.h"
+#include <QSignalBlocker>
 #include "ui_CfDNAPanelDesignDialog.h"
 #include "GUIHelper.h"
 #include "LoginManager.h"
@@ -1015,7 +1016,7 @@ void CfDNAPanelDesignDialog::addVariant()
 
 		//disable sorting
 		ui_->vars->setSortingEnabled(false);
-		ui_->vars->blockSignals(true);
+		const QSignalBlocker vars_blocker(ui_->vars);
 
 		//extend table
 		int col_idx = 0;
@@ -1056,7 +1057,6 @@ void CfDNAPanelDesignDialog::addVariant()
 
 		//re-enable sorting
 		ui_->vars->setSortingEnabled(true);
-		ui_->vars->blockSignals(false);
 	}
 	catch(Exception& e)
 	{
@@ -1146,4 +1146,3 @@ void CfDNAPanelDesignDialog::showHotspotRegions(int state)
 	ui_->hotspot_regions->setVisible(state == Qt::Checked);
 	ui_->l_count_hotspot_regions->setVisible(state == Qt::Checked);
 }
-

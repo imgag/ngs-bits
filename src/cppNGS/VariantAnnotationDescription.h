@@ -3,7 +3,6 @@
 
 #include "cppNGS_global.h"
 #include <QString>
-#include <QSharedPointer>
 
 ///stores properties of a annotation.
 
@@ -86,17 +85,17 @@ public:
 
 	const VariantAnnotationDescription& description() const
 	{
-		return *description_;
+		return description_;
 	}
 
-	void setDescription(VariantAnnotationDescription& description)
+	void setDescription(const VariantAnnotationDescription& description)
 	{
-		description_ = QSharedPointer<VariantAnnotationDescription>(&description);
+		description_ = description;
 	}
 
 protected:
 	QString name_;
-	QSharedPointer<VariantAnnotationDescription> description_;
+	VariantAnnotationDescription description_;
 
 };
 

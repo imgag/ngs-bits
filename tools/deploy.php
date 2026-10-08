@@ -53,7 +53,7 @@ foreach(glob("{$bin_folder}\\cpp*.dll") as $file)
 }
 
 //copy Qt DLLs
-$files = ["Qt6Charts.dll", "Qt6Core.dll", "Qt6Gui.dll", "Qt6Network.dll", "Qt6OpenGL.dll", "Qt6OpenGLWidgets.dll", "Qt6PrintSupport.dll", "Qt6Sql.dll", "Qt6Svg.dll", "Qt6Widgets.dll", "Qt6Xml.dll", "libgcc_s_seh-1.dll", "libstdc++-6.dll", "libwinpthread-1.dll"];
+$files = ["Qt6Charts.dll", "Qt6Core.dll", "Qt6Gui.dll", "Qt6Network.dll", "Qt6OpenGL.dll", "Qt6OpenGLWidgets.dll", "Qt6PrintSupport.dll", "Qt6Sql.dll", "Qt6Svg.dll", "Qt6Widgets.dll", "Qt6Xml.dll", "Qt6HttpServer.dll", "Qt6WebSockets.dll", "libgcc_s_seh-1.dll", "libstdc++-6.dll", "libwinpthread-1.dll"];
 foreach($files as $file)
 {
 	copy("C:\\Qt\\6.8.3\\mingw_64\\bin\\".$file, $dest."\\".$file);
@@ -88,7 +88,7 @@ if (file_exists($dest."\\sqldrivers\\libmariadb.dll"))
 $hts_lib_folder = $bin_folder."\\..\\htslib\\lib\\";
 if (file_exists($hts_lib_folder))
 {
-	$files = ["hts-3.dll", "libbz2-1.dll", "libcrypto-3-x64.dll", "libcurl-4.dll", "liblzma-5.dll", "zlib1.dll", "libbrotlidec.dll", "libsystre-0.dll", "libnghttp2-14.dll", "libnghttp3-9.dll", "libidn2-0.dll", "libpsl-5.dll", "libtre-5.dll", "libssh2-1.dll", "libzstd.dll", "libssl-3-x64.dll", "libiconv-2.dll", "libintl-8.dll", "libunistring-5.dll", "libbrotlicommon.dll"]; 
+	$files = ["hts-3.dll", "libbz2-1.dll", "libcrypto-3-x64.dll", "libcurl-4.dll", "liblzma-5.dll", "zlib1.dll", "libbrotlidec.dll", "libsystre-0.dll", "libnghttp2-14.dll", "libidn2-0.dll", "libpsl-5.dll", "libtre-5.dll", "libssh2-1.dll", "libzstd.dll", "libssl-3-x64.dll", "libiconv-2.dll", "libintl-8.dll", "libunistring-5.dll", "libbrotlicommon.dll"]; 
 	foreach($files as $file)
 	{
 		copy("{$hts_lib_folder}\\".$file, $dest."\\".$file);

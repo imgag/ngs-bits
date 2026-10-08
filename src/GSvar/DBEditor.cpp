@@ -16,6 +16,8 @@
 #include <QToolButton>
 #include <QApplication>
 #include <QCryptographicHash>
+#include "ClientHelper.h"
+#include "LoginManager.h"
 
 DBEditor::DBEditor(QWidget* parent, QString table, int id)
 	: QWidget(parent)
@@ -780,6 +782,23 @@ void DBEditor::store()
 				query.addBindValue(value=="NULL" ? QVariant() : value);
 			}
 			query.exec();
+		}
+
+		//special handling for "user" table
+		if (table_=="user")
+		{
+			int i = fields.indexOf("user_role");
+			QString role = values[i];
+			if (role=="user_restricted")
+			{
+				db_.getQuery().exec("INSERT IGNORE INTO user_action_permissions (user_id) VALUES ("+QString::number(id_)+")");
+			}
+			else
+			{
+				db_.getQuery().exec("DELETE FROM user_action_permissions WHERE user_id='"+QString::number(id_)+"'");
+			}
+
+			ClientHelper::clearServerUserCache(LoginManager::userToken());
 		}
 	}
 	catch (Exception& e)

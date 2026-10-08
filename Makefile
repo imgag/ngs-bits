@@ -126,7 +126,7 @@ build_server_release_noclean:
 clean:
 	find src -name "*.user" | xargs rm -rf
 	rm -rf $(PROJECT_BUILD_DIR)build-* $(PROJECT_BUILD_DIR)bin/out
-	find $(PROJECT_BUILD_DIR)bin -type f -or -type l | grep -v ".ini" | grep -v "GSvar_" | grep -v "libhts" | xargs -l1 rm -rf
+	find bin -type f -or -type l | grep -v ".ini" | grep -v "GSvar_" | grep -v "libhts" | xargs -l1 rm -rf
 
 test_lib:
 	cd ./bin && ./cppCORE-TEST && ./cppXML-TEST && ./cppNGS-TEST && ./cppNGSD-TEST && ./cppREST-TEST
@@ -251,8 +251,8 @@ check_tool_ngsd_dependencies:
 dummy:
 
 download_test_files:
-	wget -O ./src/cppNGS-TEST/data_in/hg19ToHg38.over.chain.gz https://hgdownload.cse.ucsc.edu/goldenpath/hg19/liftOver/hg19ToHg38.over.chain.gz
-	wget -O ./src/cppNGS-TEST/data_in/hg38ToHg19.over.chain.gz https://hgdownload.cse.ucsc.edu/goldenpath/hg38/liftOver/hg38ToHg19.over.chain.gz
+	wget -O ./src/cppNGS-TEST/data_in/hg19ToHg38.over.chain.gz https://download.imgag.de/public/genomes/hg19ToHg38.over.chain.gz
+	wget -O ./src/cppNGS-TEST/data_in/hg38ToHg19.over.chain.gz https://download.imgag.de/public/genomes/hg38ToHg19.over.chain.gz
 
 #################################### 3rd party  ##################################
 

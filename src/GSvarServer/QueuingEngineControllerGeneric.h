@@ -24,7 +24,6 @@ protected:
 	QByteArrayList getResults(QJsonDocument &reply_doc) const;
 
 private:
-	QNetworkProxy proxy_;
 	QString qe_api_base_url_;
 	QString secure_token_;
 };

@@ -255,6 +255,11 @@ public:
     {
         lines_.removeAt(index);
     }
+	///Restricts the list to the given number of structural variants.
+	void resize(int size)
+	{
+		lines_.resize(size);
+	}
 
 	///returns index of annotation, -1 if not found
 	int annotationIndexByName(const QByteArray& name, bool error_on_mismatch = true) const;

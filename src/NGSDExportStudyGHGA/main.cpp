@@ -6,6 +6,8 @@
 #include <QJsonArray>
 #include <QDir>
 
+//TODO add export of sample relations
+//TODO track in NGSD: Add a study "GHGA_UPLOAD_xxx" in NGSD and add the samples, but not the study IDs becaus of data protection???
 class ConcreteTool
 		: public ToolBase
 {

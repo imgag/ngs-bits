@@ -1,0 +1,80 @@
+##fileformat=BEDPE
+##fileDate=20260920
+##reference=file:///tmp/local_ngs_data_GRCh38//GRCh38.fa
+##source="sawfish 2.2.1"
+##sawfish_cmdline="/opt/sawfish-v2.2.1-x86_64-unknown-linux-gnu/bin/sawfish joint-call --threads 8 --ref /tmp/local_ngs_data_GRCh38//GRCh38.fa --sample /tmp/1405724.1.default_srv028/megSAP_user_bioinf/_sawfish_discoverzB6yRb --output-dir /tmp/1405724.1.default_srv028/megSAP_user_bioinf/_sawfish_joint_callbBlI77"
+##contig=<ID=chr1,length=248956422>
+##contig=<ID=chr2,length=242193529>
+##contig=<ID=chr3,length=198295559>
+##contig=<ID=chr4,length=190214555>
+##contig=<ID=chr5,length=181538259>
+##contig=<ID=chr6,length=170805979>
+##contig=<ID=chr7,length=159345973>
+##contig=<ID=chr8,length=145138636>
+##contig=<ID=chr9,length=138394717>
+##contig=<ID=chr10,length=133797422>
+##contig=<ID=chr11,length=135086622>
+##contig=<ID=chr12,length=133275309>
+##contig=<ID=chr13,length=114364328>
+##contig=<ID=chr14,length=107043718>
+##contig=<ID=chr15,length=101991189>
+##contig=<ID=chr16,length=90338345>
+##contig=<ID=chr17,length=83257441>
+##contig=<ID=chr18,length=80373285>
+##contig=<ID=chr19,length=58617616>
+##contig=<ID=chr20,length=64444167>
+##contig=<ID=chr21,length=46709983>
+##contig=<ID=chr22,length=50818468>
+##contig=<ID=chrX,length=156040895>
+##contig=<ID=chrY,length=57227415>
+##contig=<ID=chrMT,length=16569>
+##contig=<ID=chrEBV,length=171823>
+##ALT=<ID=DEL,Description="Deletion">
+##ALT=<ID=INS,Description="Insertion">
+##ALT=<ID=DUP,Description="Duplication">
+##ALT=<ID=DUP:TANDEM,Description="Tandem Duplication">
+##ALT=<ID=INV,Description="Inversion">
+##ALT=<ID=CNV,Description="Copy number variable region">
+##FILTER=<ID=PASS,Description="All filters passed">
+##FILTER=<ID=.,Description="Unknown filtration status">
+##FILTER=<ID=InvBreakpoint,Description="Breakpoint represented as part of an inversion record (same EVENT ID)">
+##FILTER=<ID=MinQUAL,Description="QUAL score is less than 10">
+##FILTER=<ID=MaxScoringDepth,Description="SV candidate exceeds max scoring depth in at least one sample">
+##FILTER=<ID=ConflictingBreakpointGT,Description="Genotypes of breakpoints in a multi-breakpoint event conflict in the majority of cases">
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position of the variant described in this record">
+##INFO=<ID=EVENT,Number=A,Type=String,Description="ID of associated event">
+##INFO=<ID=EVENTTYPE,Number=A,Type=String,Description="Type of associated event">
+##INFO=<ID=HOMLEN,Number=A,Type=Integer,Description="Length of base pair identical micro-homology at breakpoints">
+##INFO=<ID=HOMSEQ,Number=A,Type=String,Description="Sequence of base pair identical micro-homology at breakpoints">
+##INFO=<ID=IMPRECISE,Number=0,Type=Flag,Description="Imprecise structural variation">
+##INFO=<ID=INSLEN,Number=.,Type=Integer,Description="Insertion length">
+##INFO=<ID=INSSEQ,Number=.,Type=String,Description="Insertion sequence (for symbolic alt alleles)">
+##INFO=<ID=MATEID,Number=A,Type=String,Description="ID of mate breakends">
+##INFO=<ID=SVCLAIM,Number=A,Type=String,Description="Claim made by the structural variant call. Valid values are D, J, DJ for abundance, adjacency and both respectively">
+##INFO=<ID=SVLEN,Number=A,Type=Integer,Description="Length of structural variant">
+##INFO=<ID=SVTYPE,Number=1,Type=String,Description="Type of structural variant">
+##INFO=<ID=POS,Number=1,Type=Integer,Description="Position of the variant described in the original VCF file.">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Genotype Quality">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Phred-scaled genotype likelihoods rounded to the closest integer">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Read depth for each allele">
+##FORMAT=<ID=CN,Number=1,Type=Float,Description="Copy number">
+##FORMAT=<ID=CNQ,Number=1,Type=Float,Description="Copy number genotype quality">
+##FORMAT=<ID=PS,Number=1,Type=Integer,Description="Phase set identifier">
+##longphaseVersion=2.0.1
+##commandline="phase -s /mnt/storage3/projects/external/JARDIN_Solvathon/Sample_EX260182_01/EX260182_01_var.vcf.gz -b /mnt/storage3/projects/external/JARDIN_Solvathon/Sample_EX260182_01/EX260182_01.cram -r /tmp/local_ngs_data_GRCh38//GRCh38.fa -t 8 -o /tmp/1405724.1.default_srv028/megSAP_user_bioinf/longphase3BsAHA --pb --indels --sv-file /mnt/storage3/projects/external/JARDIN_Solvathon/Sample_EX260182_01/EX260182_01_var_structural_variants.vcf.gz --mod-file /mnt/storage3/projects/external/JARDIN_Solvathon/Sample_EX260182_01/EX260182_01_var_modcall.vcf "
+#CHROM_A	START_A	END_A	CHROM_B	START_B	END_B	ID	QUAL	STRAND_A	STRAND_B	TYPE	FILTER	NAME_A	REF_A	ALT_A	NAME_B	REF_B	ALT_B	INFO_A	INFO_B	FORMAT	EX260182_01	GENES	GENES_BREAKPOINTS	GENE_INFO	NGSD_HOM	NGSD_HET	NGSD_AF	NGSD_group	NGSD_SV_BREAKPOINT_DENSITY	NGSD_PATHOGENIC_SVS	OMIM	CNV_OVERLAP	GENOTYPE	SVLEN	SUPPORT	COVERAGE	AF
+chr1	10000	10000	chr1	265000	265000	sawfish:CNV:0:0:10000	104	.	.	DEL	PASS	sawfish:CNV:0:0:10000	N	<DEL>	.	.	.	IMPRECISE;SVTYPE=DEL;POS=10000;END=265000;SVLEN=255000;SVCLAIM=D	.	GT:CN:CNQ:PS	0|1:1:104:10000	CICP27,DDX11L1,DDX11L16,DDX11L17,DDX11L2,FAM138A,MIR1302-2,MIR1302-2HG,MIR6859-1,MIR6859-2,OR4F5,OR4G11P,OR4G4P,RNU6-1100P,WASH7P,WASH9P	DDX11L1,DDX11L16,WASH7P	CICP27 (oe_lof=n/a region=complete),DDX11L1 (oe_lof=n/a region=complete),DDX11L16 (oe_lof=n/a region=complete),DDX11L17 (oe_lof=n/a region=complete),DDX11L2 (oe_lof=n/a region=complete),FAM138A (oe_lof=n/a region=complete),MIR1302-2 (oe_lof=n/a region=complete),MIR1302-2HG (oe_lof=n/a region=complete),MIR6859-1 (oe_lof=n/a region=complete),MIR6859-2 (oe_lof=n/a region=complete),OR4F5 (oe_lof=0.17 region=complete),OR4G11P (oe_lof=n/a region=complete),OR4G4P (oe_lof=n/a region=complete),RNU6-1100P (oe_lof=n/a region=complete),WASH7P (oe_lof=n/a region=complete),WASH9P (oe_lof=n/a region=complete)	0	0		0 / 0	470 / 0			0	0|1 (10000)	255000			
+chr1	10663	10663	chr1	10927	10927	sawfish:0:2:1:0	49	.	.	DEL	PASS	sawfish:0:2:1:0	GCCGCGCCGGCGCAGGCGCAGAGAGGCGCGCCGCGCCGGCGCAGGCGCAGAGAGGCGCGCCGCGCCGGCGCAGGCGCAGAGAGGCGCGCCGCGCCGGCGCAGGCGCAGAGAGGCGCGCCGCGCCGGCGCAGGCGCAGACACATGCTAGCGCGTCGGGGTGGAGGCGTGGCGCAGGCGCAGAGAGGCGCGCCGCGCCGGCGCAGGCGCAGAGACACATGCTACCGCGTCCAGGGGTGGAGGCGTGGCGCAGGCGCAGAGAGGCGCA	G	.	.	.	SVTYPE=DEL;POS=10663;END=10927;SVLEN=264;HOMLEN=23;HOMSEQ=CCGCGCCGGCGCAGGCGCAGAGA;SVCLAIM=J	.	GT:GQ:PL:AD:PS	0|1:82:82,0,182:4,2:10000	DDX11L1,DDX11L16,WASH7P	DDX11L1,DDX11L16,WASH7P	DDX11L1 (oe_lof=n/a region=intronic/intergenic),DDX11L16 (oe_lof=n/a region=intronic/intergenic),WASH7P (oe_lof=n/a region=intronic/intergenic)	0	0		0 / 0	56 / 111			0	0|1 (10000)	264			
+chr1	10862	10862	chr1	10862	10862	sawfish:0:2:0:0	149	.	.	INS	PASS	sawfish:0:2:0:0	G	GCAGGCGCAGAGAGGCGCGCCGCGCCGGCGCAGGCGCAGAGAGGCGCGCCGCGCCGGCGCAGGCGCAGAGAGGCGCGCCGCGCCGGCGCAGGCGCAGAGACACATGCTAGCGCGTCCAGGGGAGGAGGCGTGGCA	.	.	.	SVTYPE=INS;POS=10862;END=10862;SVLEN=134;HOMLEN=12;HOMSEQ=CAGGCGCAGAGA;INSLEN=134	.	GT:GQ:PL:AD:PS	0|1:82:182,0,82:2,4:10000	DDX11L1,DDX11L16,WASH7P	DDX11L1,DDX11L16,WASH7P	DDX11L1 (oe_lof=n/a region=intronic/intergenic),DDX11L16 (oe_lof=n/a region=intronic/intergenic),WASH7P (oe_lof=n/a region=intronic/intergenic)	2	3		0 / 0	980				0|1 (10000)	134			
+chr1	54712	54712	chr1	54712	54712	sawfish:0:6:0:0	214	.	.	INS	PASS	sawfish:0:6:0:0	T	TTTTTTTTTCTTTCTTTCTTTCTTTCTTTCTTTCTTTCTTTCTTTCTTTC	.	.	.	SVTYPE=INS;POS=54712;END=54712;SVLEN=49;HOMLEN=3;HOMSEQ=TTT;INSLEN=49	.	GT:GQ:PL:AD:PS	1/1:15:250,15,0:0,5:.	OR4G4P	OR4G4P	OR4G4P (oe_lof=n/a region=intronic/intergenic)	0	0		0 / 0	820				1/1	49			
+chr1	66274	66274	chr1	66274	66274	sawfish:0:7:0:0	264	.	.	INS	PASS	sawfish:0:7:0:0	A	ATTATATATATTATATATATAATATATATAATATATATAATATAATATATTTTATATATATATAATATAATATATATATATTTTATATATATATTATATATATAATATATATATTATATATATAATATATATATAATATAATATAATATAATATATTATATTATATAATATATGATATAAATATAATATATATTTTATTATATAATATAATATATATAATATAATATATATTATATAAATATAATATATATAATAT	.	.	.	SVTYPE=INS;POS=66274;END=66274;SVLEN=255;INSLEN=255	.	GT:GQ:PL:AD:PS	1/1:18:300,18,0:0,6:.	OR4F5,OR4G11P	OR4F5,OR4G11P	OR4F5 (oe_lof=0.17 region=intronic/intergenic),OR4G11P (oe_lof=n/a region=intronic/intergenic)	0	0		0 / 0	196				1/1	255			
+chr1	67897	67897	chr1	68336	68336	sawfish:0:8:0:0	214	.	.	DEL	PASS	sawfish:0:8:0:0	GAGTTAAAGCCATCACAATGTTCCCAATTACTTAAAGACATTGGAATAACATTTTTTTTATTTTCCACATCTTGCCAAAAAATATTTTGTTATCAGTACCTTAATAATGGCTATTATATATTGACCATTACTATTTGCTAGAAAATTTATATACCTGGTCGTATCCAATCCTCACAGAACTTCTATAAAGTTGTGCTATTATCACCTATATTTTCCAGATGTGGCCGTAAGACTGAAATCACTTAGGTGACTTGTCTAAGGTCATTCAGATACATAGTAGATAACCCAGGATTTGAACACAGGCCTCCTAGCACACAAGCTCATATCTTAACTACTTTAATACGTTGCTCGATGGGATCTTACAGGTCTTCATTCACCCCTTTCCTGCTCACACAACCACAACCTGCAGCTATTACCTATTGTTAGGCTTAAAATAATTA	G	.	.	.	SVTYPE=DEL;POS=67897;END=68336;SVLEN=439;SVCLAIM=J	.	GT:GQ:PL:AD:PS	1/1:15:250,15,0:0,5:.	OR4F5,OR4G11P	OR4F5,OR4G11P	OR4F5 (oe_lof=0.17 region=intronic/intergenic),OR4G11P (oe_lof=n/a region=intronic/intergenic)	0	0		0 / 0	136 / 17			0	1/1	439			
+chr1	136934	136934	chr1	136934	136934	sawfish:0:12:0:0	514	.	.	INS	PASS	sawfish:0:12:0:0	G	GCAAGGGGCTCGGGCTGACCTCTCTCAGCGTGGGAGGGGCCGGTGTGAGGCAAGGGGCTCGGGCTGACCTCTGTCCGCGTGGGAGGGGCCGGTGTGAGGCAAGGGGCTCGGGCTGACCTCTCTCAGTGTGGGAGGGGCCGGTGTGAGGCAAGGGGCTCACGCTGACCTCTGTCCGCGTGGGAGGGGCCGGTGTGAGACAAGGGGCTCGGGCTGACCTCTCTCAGCGTGGGAGGGGCCGGTGTGAGGCAAGGGGCTCGGGCTGACCTCTCTCAGCGTGGGAGGGGCCAGTGTGAGGCAAGGGCTCACACTGACCTCTCTCAGCATGGGAGGGGCCGGTGTGAGA	.	.	.	SVTYPE=INS;POS=136934;END=136934;SVLEN=342;HOMLEN=59;HOMSEQ=CAAGGGGCTCGGGCTGACCTCTCTCAGCGTGGGAGGGGCCGGTGTGAGGCAAGGGGCTC;INSLEN=342	.	GT:GQ:PL:AD:PS	1/1:33:550,33,0:0,11:.	CICP27	CICP27	CICP27 (oe_lof=n/a region=intronic/intergenic)	8	8		0 / 0	2524				1/1	342			
+chr1	180104	180104	chr15	101981183	101981183	sawfish:0:17:0:0:0	340	.	.	BND	PASS	sawfish:0:17:0:0:0	C	C]chr15:101981189]	sawfish:0:17:0:0:1	A	A]chr1:180110]	SVTYPE=BND;HOMLEN=6;HOMSEQ=TAACCC;MATEID=sawfish:0:17:0:0:1	SVTYPE=BND;HOMLEN=6;HOMSEQ=GGGTTA;MATEID=sawfish:0:17:0:0:0	GT:GQ:PL:AD:PS	0/1:23:373,0,23:1,8:.	DDX11L16,DDX11L17,DDX11L2,DDX11L9,WASH3P,WASH9P	DDX11L16,DDX11L17,DDX11L2,DDX11L9,WASH3P,WASH9P	DDX11L16 (oe_lof=n/a region=intronic/intergenic),DDX11L17 (oe_lof=n/a region=intronic/intergenic),DDX11L2 (oe_lof=n/a region=intronic/intergenic),DDX11L9 (oe_lof=n/a region=intronic/intergenic),WASH3P (oe_lof=n/a region=intronic/intergenic),WASH9P (oe_lof=n/a region=intronic/intergenic)	0	0		0 / 0	74 / 51				0/1				
+chr1	180216	180216	chr1	180683	180683	sawfish:0:15:0:0	766	.	.	DEL	PASS	sawfish:0:15:0:0	CCTAATCCTTACCCTTACCCTTACCCTGACCCTAACCCTAATCCTTACCCTTATCCTACCCCTAACCCTTAACCCCTAACCGCTAGCCCTAACCCTTAACCCTAACCATAACCCTAAAACGCTAACCCTCATCCTCACCCTCACACCTCACCCTCACCCAAACCATAATCCCTAACCCCTAACTCTTAACCCCTAACCCTAACCCTTGACCCTAACCCTTGACCCTAACCCCTGACCCTGACCCTTAACCCTAACCCCTAACCCTTAACCCTTAAACCTTAACCCTCATCCTCACCCTCACCCTCACCCCTAACCCTAACCCCTAACCCCTAACCCAAACCCTAACCCTAAACCCTAACCCTAAACCCAACCCAAACCCTAACCTGAACCCTAACCCGAACCATAAACCTGAACCCTAAATCCGAACCTGAACCCGAACCCTAACCATAACCCAAACCCGAACCCAAA	C	.	.	.	SVTYPE=DEL;POS=180216;END=180683;SVLEN=467;HOMLEN=1;HOMSEQ=C;SVCLAIM=J	.	GT:GQ:PL:AD:PS	1/1:4:800,4,0:1,17:.	DDX11L17,DDX11L2,WASH9P	DDX11L17,DDX11L2,WASH9P	DDX11L17 (oe_lof=n/a region=intronic/intergenic),DDX11L2 (oe_lof=n/a region=intronic/intergenic),WASH9P (oe_lof=n/a region=intronic/intergenic)	0	0		0 / 0	53 / 274			0	1/1	467			
+chr1	181210	181210	chr1	181449	181449	sawfish:0:20:0:0	707	.	.	DEL	PASS	sawfish:0:20:0:0	GCGCAGGCGCAGAGAGGCGCGCCTCGCCGGCGCAGGCGCAGAGAGGCGCGCCGGGCCGGCGCAGGCGCAGAGAGGCGCGCCGCGCCGGCGCAGGCGCAGAGAGGCGCGCCGCGCCGGCGCAGGCGCAGAGACACATGCTAGCGCGTCCAGGGGAGGAGGCGTGGCACAGGCGCAGAGACACATGCTAGCGCGCCCAGGGGAGGAGGCGTGGCGCAGGCGCAGAGAGGCGCGCCGTGCTGC	G	.	.	.	SVTYPE=DEL;POS=181210;END=181449;SVLEN=239;HOMLEN=14;HOMSEQ=CGCAGGCGCAGAGA;SVCLAIM=J	.	GT:GQ:PL:AD:PS	0/1:140:740,0,140:4,16:.	DDX11L17,DDX11L2,WASH9P	DDX11L17,DDX11L2,WASH9P	DDX11L17 (oe_lof=n/a region=intronic/intergenic),DDX11L2 (oe_lof=n/a region=intronic/intergenic),WASH9P (oe_lof=n/a region=intronic/intergenic)	2	11		0 / 0	1182 / 977			0	0/1	239			
+chr1	181262	181262	chr1	181262	181262	sawfish:0:20:1:0	107	.	.	INS	PASS	sawfish:0:20:1:0	G	GCGCCGGCGCAGGCGCAGAGAGGCGCGCCGCGCCGGCGCAGGCGCAGAGAGGCGCGCCGCGCCGGCGCAGGCGCAGAGAGGCGCGCCGCGCCGGCGCAGGCGCAGAGAGGCGCGCCGGGCCGGCGCAGGCGCAGAGAGGCGCGCCGCGCCGGCGCAGGCGCAGAGAGGCGCGCC	.	.	.	SVTYPE=INS;POS=181262;END=181262;SVLEN=173;INSLEN=173	.	GT:GQ:PL:AD:PS	1|0:140:140,0,740:16,4:171494	DDX11L17,DDX11L2,WASH9P	DDX11L17,DDX11L2,WASH9P	DDX11L17 (oe_lof=n/a region=intronic/intergenic),DDX11L2 (oe_lof=n/a region=intronic/intergenic),WASH9P (oe_lof=n/a region=intronic/intergenic)	0	2		0 / 0	1066				1|0 (171494)	173			
+chr1	265000	265000	chr1	292000	292000	sawfish:CNV:0:0:265000	30	.	.	DUP	PASS	sawfish:CNV:0:0:265000	A	<DUP>	.	.	.	IMPRECISE;SVTYPE=DUP;POS=265000;END=292000;SVLEN=27000;SVCLAIM=D	.	GT:CN:CNQ:PS	./1:4:5:.				0	0		0 / 0	0 / 0			0	./1	27000			
+chr1	266894	266894	chr1	266953	266953	sawfish:0:24:0:0	0	.	.	DEL	MinQUAL	sawfish:0:24:0:0	TGTCCCTCTGTCTCTGCCAACCAGTTAACCTGCTGCTTCCTGGAGGGAGACAGTCCCTCA	T	.	.	.	SVTYPE=DEL;POS=266894;END=266953;SVLEN=59;HOMLEN=45;HOMSEQ=GTCCCTCTGTCTCTGCCAACCAGTTAACCTGCTGCTTCCTGGAGG;SVCLAIM=J	.	GT:GQ:PL:AD:PS	0/0:26:0,26,999:40,2:.				0	0		0 / 0	37 / 37			0	0/0	59			
+chr1	267834	267834	chr1	585989	585989	sawfish:0:25:0:0:0	7	.	.	BND	MinQUAL	sawfish:0:25:0:0:0	G	G[chr1:585989[	sawfish:0:25:0:0:1	G	]chr1:267834]G	SVTYPE=BND;HOMLEN=12;HOMSEQ=GATCCTTGAAGC;MATEID=sawfish:0:25:0:0:1	SVTYPE=BND;HOMLEN=12;HOMSEQ=GATCCTTGAAGC;MATEID=sawfish:0:25:0:0:0	GT:GQ:PL:AD:PS	0/1:39:39,0,999:34,3:.				0	0		0 / 0	0 / 0				0/1				

@@ -27,9 +27,9 @@ public:
 		addInt("min_snps", "Minimum number of informative SNPs for population determination. If less SNPs are found, 'NOT_ENOUGH_SNPS' is returned.", true, 1000);
 		addFloat("score_cutoff", "Absolute score cutoff above which a sample is assigned to a population.", true, 0.32);
 		addFloat("mad_dist", "Maximum number of median average diviations that are allowed from median population score.", true, 4.2);
-		addEnum("build", "Genome build used to generate the input.", true, QStringList() << "hg19" << "hg38", "hg38");
 
 		//changelog
+		changeLog(2026,  9,  3, "Removed hg19 support and 'build' parameter.");
 		changeLog(2021,  5, 17, "Population assignment is based on abolute score and on median/mad now. Should be much more accurate now especially for admixed samples.");
         changeLog(2020,  8, 07, "VCF files only as input format for variant list.");
 		changeLog(2018, 12, 10, "Fixed bug in handling of 'pop_dist' parameter.");
@@ -46,13 +46,12 @@ public:
 		int min_snps = getInt("min_snps");
 		double mad_dist = getFloat("mad_dist");
 		double score_cutoff = getFloat("score_cutoff");
-		GenomeBuild build = stringToBuild(getEnum("build"));
 
 		//process
         out << "#sample\tsnps\tAFR\tEUR\tSAS\tEAS\tpopulation" << Qt::endl;
 		foreach(QString filename, in)
 		{
-			AncestryEstimates ancestry = Statistics::ancestry(build, filename, min_snps, score_cutoff, mad_dist);
+			AncestryEstimates ancestry = Statistics::ancestry(filename, min_snps, score_cutoff, mad_dist);
 			out << QFileInfo(filename).fileName()
 				<< "\t" << ancestry.snps
 				<< "\t" << QString::number(ancestry.afr, 'f', 4)

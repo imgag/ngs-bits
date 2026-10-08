@@ -4,6 +4,7 @@
 #include <QString>
 #include "cppNGSD_global.h"
 #include "HttpRequestHandler.h"
+#include "NGSD.h"
 
 ///NGSD login manager (singleton)
 class CPPNGSDSHARED_EXPORT LoginManager
@@ -54,6 +55,8 @@ public:
 	static void checkRoleIn(QStringList roles);
 	//Checks if the logged-in user has none of the given roles. If has has, an exception is thrown.
 	static void checkRoleNotIn(QStringList roles);
+	//Returns if the logged-in user can perform the given action.
+	static bool userCanPerformAction(ActionPermission action);
 
 private:
 	LoginManager();

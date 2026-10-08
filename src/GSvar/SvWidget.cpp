@@ -948,14 +948,22 @@ void SvWidget::svHeaderContextMenu(QPoint pos)
 	}
 	else if (action==a_delete)
 	{
-		if(!is_somatic_)
+		try
 		{
-			report_config_->remove(VariantType::SVS, row);
+			if(!is_somatic_)
+			{
+				report_config_->remove(VariantType::SVS, row);
+			}
+			else
+			{
+				som_report_config_->remove(VariantType::SVS, row);
+				emit updateSomaticReportConfiguration();
+			}
 		}
-		else
+		catch(AccessDeniedException& e)
 		{
-			som_report_config_->remove(VariantType::SVS, row);
-			emit updateSomaticReportConfiguration();
+			QMessageBox::information(this, "Access denied", e.message());
+			return;
 		}
 		updateReportConfigHeaderIcon(row);
 	}

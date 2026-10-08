@@ -33,11 +33,9 @@ public:
 		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
 		addString("input_info_field", "The input transcript ID and HGVS.c change are added to the VCF output using this INFO field name.", true, "HGVSc");
 		addFlag("test", "Uses the test database instead of on the production database.");
-		QStringList builds;
-		builds << "hg19" << "hg38";
-		addEnum("build", "Genome build", true, builds, "hg38");
 		addInt("max_seq", "If set, skips variants with ref/alt sequence longer than this cutoff.", true, -1);
 
+		changeLog(2026,  9,  3, "Removed hg19 support and 'build' parameter.");
 		changeLog(2022,  7, 25, "Added parameter 'max_seq'.");
 		changeLog(2022,  5, 12, "Initial version");
 	}
@@ -176,13 +174,7 @@ public:
 		QSharedPointer<QFile> instream = Helper::openFileForReading(in, true);
 		QSharedPointer<QFile> outstream = Helper::openFileForWriting(out, false);
 
-		if (getEnum("build") == "hg19")
-		{
-			QTextStream out(stderr);
-			out << "Warning: When using the hg19 build, it is neccessary to also use a NGSD instance containing hg19 data and a hg19 reference genome.\n";
-		}
-
-		const QMap<QByteArray, QByteArrayList>& transcript_matches = NGSHelper::transcriptMatches(stringToBuild(getEnum("build")));
+		const QMap<QByteArray, QByteArrayList>& transcript_matches = NGSHelper::transcriptMatches();
 
 		QStringList tsv_headers = {"", ""}; //fallback in case there is no header
 		NGSD db(getFlag("test"));

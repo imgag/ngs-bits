@@ -1,6 +1,5 @@
 #include "GeneInfoDBs.h"
 #include "Exceptions.h"
-#include "HttpHandler.h"
 #include "Settings.h"
 #include "GUIHelper.h"
 #include <QMessageBox>
@@ -8,6 +7,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include "HttpRequestHandler.h"
 
 void GeneInfoDBs::openUrl(QString db_name, QString gene_symbol)
 {
@@ -18,13 +18,12 @@ void GeneInfoDBs::openUrl(QString db_name, QString gene_symbol)
 			QString url = db.url;
 			if (url.contains("[gene_id_ncbi]"))
 			{
-				static HttpHandler http_handler(false); //static to allow caching of credentials
 				try
 				{
 					HttpHeaders add_headers;
 					add_headers.insert("Accept", "application/json");
 
-					QByteArray reply = http_handler.get("https://rest.genenames.org/fetch/symbol/"+gene_symbol, add_headers);
+					QByteArray reply = HttpRequestHandler().get("https://rest.genenames.org/fetch/symbol/"+gene_symbol, add_headers).body;
 					QJsonDocument json = QJsonDocument::fromJson(reply);
 					QJsonArray docs = json.object().value("response").toObject().value("docs").toArray();
 					if (docs.count()!=1)
@@ -42,13 +41,12 @@ void GeneInfoDBs::openUrl(QString db_name, QString gene_symbol)
 			}
 			if (url.contains("[gene_id_ensembl]"))
 			{
-				static HttpHandler http_handler(false); //static to allow caching of credentials
 				try
 				{
 					HttpHeaders add_headers;
 					add_headers.insert("Accept", "application/json");
 
-					QByteArray reply = http_handler.get("https://rest.genenames.org/fetch/symbol/"+gene_symbol, add_headers);
+					QByteArray reply = HttpRequestHandler().get("https://rest.genenames.org/fetch/symbol/"+gene_symbol, add_headers).body;
 					QJsonDocument json = QJsonDocument::fromJson(reply);
 					QJsonArray docs = json.object().value("response").toObject().value("docs").toArray();
 					if (docs.count()!=1)

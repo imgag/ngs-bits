@@ -14,6 +14,10 @@ private:
 		test_file_germl_.load( TESTDATA("data_in/SV_Manta_germline.bedpe") );
 		IS_FALSE(test_file_germl_.isSomatic());
 		I_EQUAL(test_file_germl_.count(), 87);
+		S_EQUAL(test_file_germl_.build(), "GRCh37");
+		S_EQUAL(test_file_germl_.caller(), "Manta");
+		S_EQUAL(test_file_germl_.callerVersion(), "1.6.0");
+
 		//check line 4 as exmaple
 		S_EQUAL( test_file_germl_[14].chr1().strNormalized(true), "chr1");
 		S_EQUAL( test_file_germl_[14].chr2().strNormalized(true), "chr1");
@@ -88,4 +92,14 @@ private:
 		I_EQUAL( test_file_germl_.estimatedSvSize(12), -1);
 	}
 
+	TEST_METHOD(sawfish)
+	{
+		BedpeFile svs;
+		svs.load(TESTDATA("data_in/SV_sawfish_germline.bedpe") );
+		IS_FALSE(svs.isSomatic());
+		I_EQUAL(svs.count(), 14);
+		S_EQUAL(svs.build(), "GRCh38");
+		S_EQUAL(svs.caller(), "Sawfish");
+		S_EQUAL(svs.callerVersion(), "2.2.1");
+	}
 };

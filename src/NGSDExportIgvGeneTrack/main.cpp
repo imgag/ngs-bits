@@ -32,9 +32,8 @@ public:
 		if (export_mane) outfile_mane = Helper::openFileForWriting(getOutfile("out_mane"), true);
 
         NGSD db(getFlag("test"));
-
         const TranscriptList transcripts = db.transcripts();
-		const auto matches = NGSHelper::transcriptMatches(GenomeBuild::HG38);
+		const auto matches = NGSHelper::transcriptMatches();
 
 
         foreach(const Transcript& trans, transcripts)

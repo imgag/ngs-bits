@@ -133,7 +133,8 @@ void VariantValidationWidget::edit()
 		return;
 	}
 
-    edit(rows.values().first());
+	int row = Helper::setToList(rows).at(0);
+	edit(row);
 }
 
 void VariantValidationWidget::edit(int row)

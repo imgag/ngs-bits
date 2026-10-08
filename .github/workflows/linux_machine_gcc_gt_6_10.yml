@@ -1,0 +1,53 @@
+name: Qt 6.10.2 on Ubuntu 26.04 - Linux
+
+on: [push, pull_request]
+
+jobs:
+  gcc-build-and-test:
+    runs-on: ubuntu-26.04
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+            MYSQL_ALLOW_EMPTY_PASSWORD: yes
+            MYSQL_USER: test_user
+            MYSQL_PASSWORD: password
+            MYSQL_ROOT_PASSWORD: password
+            MYSQL_DATABASE: test_db
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v6
+      with:
+        submodules: recursive
+    - name: Update OS repositories
+      run: sudo apt-get update
+    - name: Setup test environment
+      run: sudo apt-get -y install wget make g++ git qt6-base-dev qmake6 libqt6sql6 libqt6sql6-mysql libqt6charts6-dev libbz2-dev libqt6svg6-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev ca-certificates libtool pkg-config libxml2-16 libxml2-dev libssl-dev libdeflate-dev qt6-httpserver-dev qt6-websockets-dev unzip
+    - name: Create symlink for qmake6
+      run: sudo ln -fs /usr/bin/qmake6 /usr/bin/qmake
+    - name: Update submodules
+      run: git submodule update --recursive --init
+    - name: Create settings for running tests
+      run: .github/workflows/settings.sh
+      shell: bash
+    - name: Build dependencies
+      run: make build_3rdparty build_libs_release build_tools_release build_gui_release build_server_release
+    - name: Create a folder for SSL
+      run: mkdir -p $HOME/ssl
+      shell: bash
+    - name: Generate SSL certificate-key pair
+      run: openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=DE/ST=BW/L=Tuebingen/O=test-certificate/CN=localhost" -keyout $HOME/ssl/test-key.key -out $HOME/ssl/test-cert.crt
+    - name: Add new certificates to the list of trusted certificates
+      run: sudo cp $HOME/ssl/test-cert.crt /usr/local/share/ca-certificates
+    - name: Update the list of certificates
+      run: sudo update-ca-certificates
+    - name: Download test files
+      run: make download_test_files
+    - name: Start GSvar server and run tests
+      run: |
+        bin/GSvarServer &
+        make -k test_lib test_server test_tools

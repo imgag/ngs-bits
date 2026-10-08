@@ -1,5 +1,4 @@
 #include "MVHub.h"
-#include "HttpHandler.h"
 #include "Exceptions.h"
 #include "Settings.h"
 #include "XmlHelper.h"
@@ -13,8 +12,10 @@
 #include <QDesktopServices>
 #include <QInputDialog>
 #include "ExportHistoryDialog.h"
+#include "AboutDialog.h"
 #include <QClipboard>
 #include <QStandardPaths>
+#include "HttpRequestHandler.h"
 
 MVHub::MVHub(QWidget *parent)
 	: QMainWindow(parent)
@@ -152,7 +153,6 @@ void MVHub::tableContextMenu(QPoint pos)
 		ProcessedSampleSearchParameters params;
 		params.run_finished = true;
 		params.p_type = "diagnostic";
-		params.include_bad_quality_samples = true;
 		params.include_tumor_samples = true;
 		QStringList ps_list = genlab.samplesWithSapID(sap_id, params);
 		if (ps_list.isEmpty())
@@ -380,7 +380,7 @@ void MVHub::emailExportFailed(int row)
 		QStringList lines = query.value("submission_output").toString().split("\n");
 		foreach(QString line, lines)
 		{
-			if (!line.contains("error", Qt::CaseInsensitive)) continue;
+			if (!line.contains("error", Qt::CaseInsensitive) && !line.contains("fatal", Qt::CaseInsensitive)) continue;
 			body << ("GRZ: " + line);
 		}
 	}
@@ -392,7 +392,7 @@ void MVHub::emailExportFailed(int row)
 		QStringList lines = query.value("submission_output").toString().split("\n");
 		foreach(QString line, lines)
 		{
-			if (!line.contains("error", Qt::CaseInsensitive)) continue;
+			if (!line.contains("error", Qt::CaseInsensitive) && !line.contains("fatal", Qt::CaseInsensitive)) continue;
 			body << ("KDK: " + line);
 		}
 	}
@@ -799,7 +799,7 @@ void MVHub::exportConsentData()
 	{
 		QStringList parts = line.split('\t');
 		QString sap_id = parts[0];
-		Helper::storeTextFile(folder + "/broad_consent_" + sap_id + ".json", QStringList() << getConsent(sap_id, true));
+		Helper::storeTextFile(folder + "/broad_consent_" + sap_id + ".json", QStringList() << getConsent(sap_id, false));
 	}
 }
 
@@ -926,9 +926,10 @@ void MVHub::on_actionReloadExportStatus_triggered()
 
 void MVHub::on_actionAbout_triggered()
 {
-	QString about_text = QApplication::applicationName() + " " + QCoreApplication::applicationVersion();
-
-	QMessageBox::about(this, "About " + QApplication::applicationName(), about_text);
+	AboutDialog dlg(this);
+	dlg.setIcon(QPixmap(":/Icons/Icon.png"));
+	dlg.setDescription("A KDK/GRZ uploading tool for Modellvorhaben Genomsequenzierung.<br>See the <a href='https://www.bfarm.de/DE/Das-BfArM/Aufgaben/Modellvorhaben-Genomsequenzierung/_node.html'>BfArM project page</a> for information about the Modellvorhaben.");
+	dlg.exec();
 }
 
 void MVHub::determineProcessedSamples(int debug_level)
@@ -1046,25 +1047,23 @@ MVHub::PSData MVHub::getMatchingPS(NGSD& db, GenLabDB& genlab, QString sap_id, N
 	params.r_after = QDate(2024, 7, 1);
 	if ((network==SE || network==FBREK) && seq_type=="WGS")
 	{
-		params.include_bad_quality_samples = false;
+		params.ps_quality = {"good", "medium"};
 		params.include_tumor_samples = false;
 		params.sys_type = "WGS";
 	}
 	else if ((network==SE || network==FBREK) && seq_type=="lrGS")
 	{
-		params.include_bad_quality_samples = false;
+		params.ps_quality = {"good", "medium"};
 		params.include_tumor_samples = false;
 		params.sys_type = "lrGS";
 	}
 	else if (network==OE && seq_type=="WES")
 	{
-		params.include_bad_quality_samples = true;
 		params.include_tumor_samples = true;
 		params.sys_type = "WES";
 	}
 	else if (network==OE && seq_type=="WGS")
 	{
-		params.include_bad_quality_samples = true;
 		params.include_tumor_samples = true;
 		params.sys_type = "WGS";
 	}
@@ -1207,8 +1206,8 @@ int MVHub::updateHpoTerms(int debug_level)
 								"	</item>"
 								"</records>";
 			QByteArray data = "token="+Settings::string("redcap_se_token").toLatin1()+"&content=record&format=xml&type=flat&data="+xml;
-			HttpHandler handler(true);
-			QByteArray reply = handler.post("https://redcap.extern.medizin.uni-tuebingen.de/api/", data, headers);
+			HttpRequestHandler handler;
+			QByteArray reply = handler.post("https://redcap.extern.medizin.uni-tuebingen.de/api/", data, headers).body;
 			if (!reply.contains("<count>1</count>"))
 			{
 				addOutputLine(se_id + "/" + ps + ": ERROR creating HPO term in SE RedCap! Reply:\n" +reply);
@@ -1312,8 +1311,8 @@ int MVHub::updateVariants(int debug_level)
 								"	</item>"
 								"</records>";
 			QByteArray data = "token="+Settings::string("redcap_se_token").toLatin1()+"&content=record&format=xml&type=flat&data="+xml;
-			HttpHandler handler(true);
-			QByteArray reply = handler.post("https://redcap.extern.medizin.uni-tuebingen.de/api/", data, headers);
+			HttpRequestHandler handler;
+			QByteArray reply = handler.post("https://redcap.extern.medizin.uni-tuebingen.de/api/", data, headers).body;
 			if (!reply.contains("<count>1</count>"))
 			{
 				addOutputLine(se_id + "/" + ps + ": ERROR creating variant in SE RedCap! Reply:\n" +reply);
@@ -1455,7 +1454,7 @@ void MVHub::checkForMetaDataErrors()
 		}
 
 		//checks for status 'Abgeschlossen'
-		if (status=="Abgeschlossen")
+		if (status=="Abgeschlossen" && (network==SE || network==FBREK))
 		{
 			if (getString(r, c_report_date)=="")
 			{
@@ -1587,13 +1586,13 @@ QByteArray MVHub::parseJsonDataPseudo(QByteArray reply, QByteArray context)
 		QString url = Settings::string("pseudo_decrypt_webservice");
 
 		QFile file(Settings::string("pseudo_key_"+context));
-		file.open(QIODevice::ReadOnly);
+		if (!file.open(QIODevice::ReadOnly)) THROW(FileAccessException, "Could not open file " + file.fileName());
 		QByteArray data = file.readAll();
 		file.close();
 
 		//addOutputLine("base64-encoded key: " +data.toBase64());
-		HttpHandler handler(true);
-		QByteArray reply = handler.post(url, "input="+str_base64+"&key="+data.toBase64());
+		HttpRequestHandler handler;
+		QByteArray reply = handler.post(url, "input="+str_base64+"&key="+data.toBase64()).body;
 
 		return reply;
 	}
@@ -1667,8 +1666,8 @@ QByteArray MVHub::getConsent(QString sap_id, bool debug)
 			QString url = test_server ? "https://tc-t.med.uni-tuebingen.de/auth/realms/consent-test/protocol/openid-connect/token" : "https://tc-p.med.uni-tuebingen.de/auth/realms/consent/protocol/openid-connect/token";
 			if (debug) addOutputLine("URL: "+url);
 			if (debug) addOutputLine("data: " + data);
-			HttpHandler handler(true);
-			QByteArray reply = handler.post(url, data, headers);
+			HttpRequestHandler handler;
+			QByteArray reply = handler.post(url, data, headers).body;
 			QByteArrayList parts = reply.split('"');
 			if (parts.count()<4) THROW(Exception, "Reply could not be split by '\"' into 4 parts:\n" + reply);
 
@@ -1683,8 +1682,8 @@ QByteArray MVHub::getConsent(QString sap_id, bool debug)
 		headers2.insert("Authorization", "Bearer "+token);
 		QString url = test_server ? "https://tc-t.med.uni-tuebingen.de:8443/fhir/Consent" : "https://tc-p.med.uni-tuebingen.de:8443/fhir/Consent";
 		url += "?patient.identifier="+sap_id;
-		HttpHandler handler(true);
-		QByteArray reply = handler.get(url, headers2);
+		HttpRequestHandler handler;
+		QByteArray reply = handler.get(url, headers2).body;
 		if (debug)
 		{
 			addOutputLine("URL: " + url);
@@ -1844,8 +1843,8 @@ QByteArray MVHub::getTAN(QByteArray str, QByteArray context, bool skip_pseudo1, 
 		QByteArray data = "grant_type=client_credentials&client_id="+Settings::string("pseudo_client_id"+QString(test_server ? "_test" : "")).toLatin1()+"&client_secret="+Settings::string("pseudo_client_secret"+QString(test_server ? "_test" : "")).toLatin1();
 		if (debug) addOutputLine("data: " + data);
 
-		HttpHandler handler(true);
-		QByteArray reply = handler.post(url, data, headers);
+		HttpRequestHandler handler;
+		QByteArray reply = handler.post(url, data, headers).body;
 		QByteArrayList parts = reply.split('"');
 		if (parts.count()<4) THROW(Exception, "Reply could not be split by '\"' into 4 parts:\n" + reply);
 
@@ -1870,10 +1869,10 @@ QByteArray MVHub::getTAN(QByteArray str, QByteArray context, bool skip_pseudo1, 
 		headers.insert("Content-Type", "application/json");
 		headers.insert("Authorization", "Bearer "+token);
 
-		HttpHandler handler(true);
+		HttpRequestHandler handler;
 		QByteArray data =  jsonDataPseudo(str);
 		if (debug) addOutputLine("data: " + data);
-		QByteArray reply = handler.post(url, data, headers);
+		QByteArray reply = handler.post(url, data, headers).body;
 		if (debug) addOutputLine("reply: " + reply);
 		pseudo1 = parseJsonDataPseudo(reply, "first_level");
 	}
@@ -1889,10 +1888,10 @@ QByteArray MVHub::getTAN(QByteArray str, QByteArray context, bool skip_pseudo1, 
 		headers.insert("Content-Type", "application/json");
 		headers.insert("Authorization", "Bearer "+token);
 
-		HttpHandler handler(true);
+		HttpRequestHandler handler;
 		QByteArray data =  jsonDataPseudo(pseudo1);
 		if (debug) addOutputLine("data: " + data);
-		QByteArray reply = handler.post(url, data, headers);
+		QByteArray reply = handler.post(url, data, headers).body;
 		pseudo2 = parseJsonDataPseudo(reply, "second_level");
 	}
 	if (debug) addOutputLine("Pseudonym 2: " + pseudo2);
@@ -1915,8 +1914,8 @@ void MVHub::loadDataFromCM(int debug_level)
 		HttpHeaders headers;
 		headers.insert("Content-Type", "application/x-www-form-urlencoded");
 		QByteArray data = "token="+Settings::string("redcap_casemanagement_token").toLatin1()+"&content=record&rawOrLabel=label";
-		HttpHandler handler(true);
-		QByteArrayList reply = handler.post("https://redcap.extern.medizin.uni-tuebingen.de/api/", data, headers).split('\n');
+		HttpRequestHandler handler;
+		QByteArrayList reply = handler.post("https://redcap.extern.medizin.uni-tuebingen.de/api/", data, headers).body.split('\n');
 
 		//get IDs of entries currently in RedCap
 		QSet<QString> cm_ids_redcap;
@@ -2085,8 +2084,8 @@ void MVHub::loadDataFromSE()
 		HttpHeaders headers;
 		headers.insert("Content-Type", "application/x-www-form-urlencoded");
 		QByteArray data = "token="+Settings::string("redcap_se_token").toLatin1()+"&content=record&rawOrLabel=label";
-		HttpHandler handler(true);
-        QByteArray reply = handler.post("https://redcap.extern.medizin.uni-tuebingen.de/api/", data, headers);
+		HttpRequestHandler handler;
+		QByteArray reply = handler.post("https://redcap.extern.medizin.uni-tuebingen.de/api/", data, headers).body;
 
 		//parse items
         QDomDocument doc = XmlHelper::parse(reply);

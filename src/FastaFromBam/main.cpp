@@ -2,9 +2,7 @@
 #include "BamReader.h"
 #include "Helper.h"
 #include "Settings.h"
-
 #include <HttpRequestHandler.h>
-#include <ProxyDataService.h>
 
 class ConcreteTool
 		: public ToolBase
@@ -33,7 +31,7 @@ public:
 	{
 		//init
 		QTextStream out_stream(stdout);
-		HttpRequestHandler request_handler(ProxyDataService::getProxy());
+		HttpRequestHandler request_handler;
 		QSharedPointer<QFile> out = Helper::openFileForWriting(getOutfile("out"), false);
 
 		//open refererence genome file (we don't need it, but the BamReader needs it for CRAM files)
