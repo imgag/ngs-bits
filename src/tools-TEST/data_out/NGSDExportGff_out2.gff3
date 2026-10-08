@@ -1,4 +1,5 @@
 ##gff-version 3
+###
 chr17	NGSD	gene	43044295	43125370	.	+	.	ID=gene:ENSG00000012048;Name=BRCA1;hgnc_id=1100;gene_id=ENSG00000012048;type=protein-coding gene;description=BRCA1 DNA repair associated
 chr17	NGSD	RNA	43044295	43125370	.	+	.	ID=transcript:ENST00000352993;Name=BRCA1;Parent=gene:ENSG00000012048;transcript_id=ENST00000352993;biotype=protein_coding;is_gencode_basic=1;is_gencode_primary=1;is_ensembl_canonical=1;is_mane_select=0;is_mane_plus_clinical=0
 chr17	NGSD	three_prime_UTR	43124097	43124115	.	+	.	Parent=transcript:ENST00000352993
@@ -96,3 +97,4 @@ chr17	NGSD	CDS	43106456	43106533	.	+	2	Parent=transcript:ENST00000354071
 chr17	NGSD	CDS	43115726	43115779	.	+	2	Parent=transcript:ENST00000354071
 chr17	NGSD	CDS	43124017	43124096	.	+	2	Parent=transcript:ENST00000354071
 chr17	NGSD	five_prime_UTR	43091098	43091330	.	+	.	Parent=transcript:ENST00000354071
+###
