@@ -12,9 +12,17 @@ static constexpr unsigned int MINIMUM_MAX_COVERAGE = 10;
 BamCoverageTrack::BamCoverageTrack(QWidget* parent, QString file_path, QString name)
 	: TrackWidget(parent, file_path, name)
 {
+	//qDebug() << __PRETTY_FUNCTION__ << __LINE__;
+	setMouseTracking(true);
 	max_coverage_ = MINIMUM_MAX_COVERAGE;
 	int max_region_length = SharedData::settings().bam_max_region_len;
 	coverage_.fill(BaseCoverage(), max_region_length);
+	//qDebug() << __PRETTY_FUNCTION__ << __LINE__;
+}
+
+BamCoverageTrack::~BamCoverageTrack()
+{
+	//qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 }
 
 BamCoverageTrack* BamCoverageTrack::createTrack(QWidget* parent, QString file_path, QString name)
@@ -190,7 +198,9 @@ void BamCoverageTrack::drawCoverage(QPainter& painter)
 
 	int draw_height = height();
 
-	if (region.length() < 1500) painter.setPen(Qt::white);
+	//White borders need enough room to leave a visible bar interior.
+	const bool draw_base_borders = viewport.pixels_per_base >= 3.0f;
+	if (draw_base_borders) painter.setPen(Qt::white);
 	else painter.setPen(Qt::gray);
 
 
@@ -236,22 +246,22 @@ void BamCoverageTrack::drawCoverage(QPainter& painter)
 			int t_height = bar_h * ((float)cov.t() / total_count);
 
 			int y_start = draw_height - a_height;
-			if (region.length() >= 1500) painter.setPen(QColor(0, 150, 0));
+			if (!draw_base_borders) painter.setPen(QColor(0, 150, 0));
 			painter.setBrush(QColor(0, 150, 0)); //a
 			painter.drawRect(pX, y_start, dX, a_height);
 
 			y_start -= c_height;
-			if (region.length() >= 1500) painter.setPen(Qt::blue);
+			if (!draw_base_borders) painter.setPen(Qt::blue);
 			painter.setBrush(Qt::blue); //c
 			painter.drawRect(pX, y_start, dX, c_height);
 
 			y_start -= g_height;
-			if (region.length() >= 1500) painter.setPen(QColor(209, 113, 5));
+			if (!draw_base_borders) painter.setPen(QColor(209, 113, 5));
 			painter.setBrush(QColor(209, 113, 5)); //g
 			painter.drawRect(pX, y_start, dX, g_height);
 
 			y_start -= t_height;
-			if (region.length() >= 1500) painter.setPen(Qt::red);
+			if (!draw_base_borders) painter.setPen(Qt::red);
 			painter.setBrush(Qt::red); //t
 			painter.drawRect(pX, y_start, dX, t_height);
 			painter.setPen(pen);
@@ -265,7 +275,7 @@ QString BamCoverageTrack::getCoverageText(const BaseCoverage& cov, int coverage_
 	const BedLine& region = SharedData::region();
 	int coverage_pos = region.start() + coverage_idx;
 
-	QString info = QString("%1:%2\nTotal count: %3\n")
+	QString info = QString("Pos: %1:%2\nDepth: %3\n")
 					   .arg(region.chr().str())
 					   .arg(coverage_pos)
 					   .arg(cov.total());
@@ -348,4 +358,11 @@ void BamCoverageTrack::mouseReleaseEvent(QMouseEvent* event)
 	}
 
 	TrackWidget::mouseReleaseEvent(event);
+}
+
+void BamCoverageTrack::mouseMoveEvent(QMouseEvent *event)
+{
+	SharedData::mouseMoved(event->pos().x(), width());
+
+	event->ignore();
 }

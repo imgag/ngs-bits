@@ -18,7 +18,6 @@ public:
 	void setBedFile(QSharedPointer<BedFile> bed_file);
 
 	QSize sizeHint() const override;
-	QSize minimumSizeHint() const override {return sizeHint();}
 
 	static QString staticType() {return "IGV";}
 	QString getType() override {return staticType();}

@@ -33,6 +33,7 @@ class CPPVISUALSHARED_EXPORT TrackWidget
 
 public:
 	explicit TrackWidget(QWidget* parent, QString file_path, QString name);
+	QSize minimumSizeHint() const override;
 
 	// const QUuid& id() {return id_;}
 	// writes properties in XML
@@ -84,9 +85,5 @@ protected:
 	QString file_path_;
 	QString name_;
 };
-
-using TrackWidgetList = QVector<TrackWidget*>;
-
-
 
 #endif // TRACKWIDGET_H

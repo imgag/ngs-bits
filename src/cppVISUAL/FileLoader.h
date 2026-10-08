@@ -5,7 +5,6 @@
 #include "TrackWidget.h"
 #include "BedFile.h"
 #include "BamReader.h"
-
 #include <QSharedPointer>
 #include <QFileInfo>
 
@@ -13,13 +12,7 @@ class CPPVISUALSHARED_EXPORT FileLoader
 {
 public:
 	// factory function that loads depending on the extension of the file
-	static TrackWidgetList loadTracks(QString file_path, QWidget* parent = nullptr);
-	// loads Bed File Tracks - emits just one TrackWidget
-	static TrackWidgetList loadBedFileTracks(QString file_path, QWidget* parent = nullptr);
-	// loads Bam File Tracks - emits two tracks
-	static TrackWidgetList loadBamFileTracks(QString file_path, QWidget* parent = nullptr);
-	// loads Igv File Tracks - emits one track
-	static TrackWidgetList loadIgvFileTracks(QString file_path, QWidget* parent = nullptr);
+	static QVector<TrackWidget*> loadTracks(QString file_path, QWidget* parent = nullptr);
 	// loads bed file
 	static QSharedPointer<BedFile> loadBedFile(QString file_path);
 	// loads bam File

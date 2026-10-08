@@ -8,7 +8,7 @@
 #include <QSharedPointer>
 #include <QVariant>
 
-// TODO: make all TrackSettings generic
+//TODO: make all TrackSettings generic
 // struct TrackSettings //generic track settings
 // {
 // 	// virtual QMap<QString, QVariant> getSettings() = 0;

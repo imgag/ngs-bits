@@ -23,7 +23,15 @@ static constexpr int MAX_QUALITY = 41;
 BamAlignmentTrack::BamAlignmentTrack(QWidget* parent, QString file_path, QString name)
 	: TrackWidget(parent, file_path, name)
 {
+	//qDebug() << __PRETTY_FUNCTION__ << __LINE__;
+	setMouseTracking(true);
 	updateFontCache();
+	//qDebug() << __PRETTY_FUNCTION__ << __LINE__;
+}
+
+BamAlignmentTrack::~BamAlignmentTrack()
+{
+	//qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 }
 
 BamAlignmentTrack* BamAlignmentTrack::createTrack(QWidget* parent, QString file_path, QString name)
@@ -107,7 +115,7 @@ void BamAlignmentTrack::dataReady()
 	update();
 }
 
-// TODO: this can, and should be, done on a seperate thread
+//TODO: this can, and should be, done on a seperate thread
 void BamAlignmentTrack::calculateRows()
 {
 	if (view_as_pairs_) calculateRowsPairMode();
@@ -168,11 +176,7 @@ void BamAlignmentTrack::calculateRowsNormalMode()
 
 void BamAlignmentTrack::calculateRowsPairMode()
 {
-	/*
-	 * TODO: this has a bug, if there are no pairs
-	 * then the unpaired strands are always assigned a new row
-	 *
-	 */
+	//TODO: this has a bug, if there are no pairs, then the unpaired strands are always assigned a new row
 	const QVector<BamAlignmentWrapper>& alns = track_data_->getAlignments();
 
 	row_packer_.clear();
@@ -553,7 +557,6 @@ void BamAlignmentTrack::updateFontCache()
 {
 	QFont font;
 	font.setPixelSize(ROW_HEIGHT);
-	// font.setPointSize(ROW_HEIGHT);
 	font.setBold(true);
 
 	cached_font_ = font;
@@ -688,8 +691,7 @@ void BamAlignmentTrack::addAlignmentOptionsToCtxtMenu(QMenu& menu, const QPoint&
 				}
 			}
 		}
-		// normal mode
-		else
+		else //non-pair mode
 		{
 			mate_chr = alns[aln_idx].mate_chr;
 			mate_start = alns[aln_idx].mateStart();
@@ -699,15 +701,13 @@ void BamAlignmentTrack::addAlignmentOptionsToCtxtMenu(QMenu& menu, const QPoint&
 
 		if (mate_chr.isValid())
 		{
-			/*
-				 * TODO: scroll to row_y of mate
-				 * a simple solution to try:
-				 * add mate_name_ as private var and set it here (need to store mate_start_ too actually)
-				 * when data is recieved, in calculateRows after calculation is done we can get row_y
-				 * of mate_name_ (with mate_start_ we get a unqiue match) and then either send a signal to TrackGroup
-				 * to change the scroll_area value or find a parent that is scroll area and change it manually
-				 * unset mate_name_, mate_start_
-				*/
+			//TODO: scroll to row_y of mate
+			//a simple solution to try:
+			//add mate_name_ as private var and set it here (need to store mate_start_ too actually)
+			//when data is recieved, in calculateRows after calculation is done we can get row_y
+			//of mate_name_ (with mate_start_ we get a unqiue match) and then either send a signal to TrackGroup
+			//to change the scroll_area value or find a parent that is scroll area and change it manually
+			//unset mate_name_, mate_start_
 			connect(go_to_mate_action, &QAction::triggered, this, [mate_chr, mate_start](){
 				SharedData::setRegion(mate_chr, mate_start - 100, mate_start + 100);
 			});
@@ -929,4 +929,11 @@ void BamAlignmentTrack::mouseReleaseEvent(QMouseEvent* event)
 	}
 
 	TrackWidget::mouseReleaseEvent(event);
+}
+
+void BamAlignmentTrack::mouseMoveEvent(QMouseEvent *event)
+{
+	SharedData::mouseMoved(event->pos().x(), width());
+
+	event->ignore();
 }

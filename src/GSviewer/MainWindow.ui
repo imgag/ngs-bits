@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1000</width>
-    <height>800</height>
+    <width>916</width>
+    <height>690</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -50,7 +50,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1000</width>
+     <width>916</width>
      <height>22</height>
     </rect>
    </property>
@@ -77,7 +77,6 @@
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
   <action name="actionLoadFile">
    <property name="text">
     <string>Load file</string>

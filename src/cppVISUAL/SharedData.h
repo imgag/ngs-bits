@@ -16,8 +16,6 @@ struct CPPVISUALSHARED_EXPORT GlobalSettings
 {
 	//Width of the label area on the left of panels
 	int label_width  = 165;
-	//If only GENCODE primary are shown in GenePanel (also relevant for search)
-	bool show_only_primary = true;
 	//Minimum number of bases to show
 	int min_window_size = 40;
 	//How many bases genes/transcripts are padded with, e.g. after search
@@ -47,7 +45,7 @@ public:
 	{
 		return instance()->transcripts_;
 	}
-	//Sets transcripts and creates/updates indices
+	//Sets transcripts and creates/updates indices. Do this after initializing GenomeVisualizationWidget!
 	static void setTranscripts(const TranscriptList& transcripts);
 
 	//Returns indices of transcripts in a region
@@ -87,10 +85,14 @@ public:
 	//Returns the instance (creates it on first call). This method is public only to connect signal/slots. For all other purposes, use other methods.
 	static SharedData* instance();
 
+	//Updates genomic coordinate in status bar
+	static void mouseMoved(int x, int width);
+
 signals:
 	void transcriptsChanged();
 	void settingsChanged();
 	void regionChanged();
+	void updateGenomicCoordinate(QString);
 
 protected:
 	explicit SharedData(QObject* parent = nullptr);

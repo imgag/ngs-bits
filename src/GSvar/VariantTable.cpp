@@ -293,14 +293,25 @@ void VariantTable::customContextMenu(QPoint pos)
 
 	if (action==a_visualize)
 	{
+		//set region
+		SharedData::setRegion(variant.chr(), variant.start(), variant.end());
+		
+		//load BAMs
 		GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this);
+		foreach(const FileLocation& loc, GlobalServiceProvider::fileLocationProvider().getBamFiles(false))
+		{
+			widget->loadFile(loc.filename);
+		}
+
+		//load transcripts
 		if (SharedData::transcripts().isEmpty())
 		{
-			qDebug() << "SET";
 			SharedData::setTranscripts(NGSD().transcripts());
 		}
-		SharedData::setRegion(variant.chr(), variant.start(), variant.end());
-		auto dlg = GUIHelper::createDialog(widget, "GSviewer");
+
+
+		//show
+		auto dlg = GUIHelper::createDialog(widget, "GSvar visualization");
 		dlg->exec();
 	}
 	else if (parent_menu && parent_menu->title()=="Open link")
