@@ -123,9 +123,9 @@ TranscriptData parseTranscriptLine(QByteArrayView to_split)
         {
             output.biotype = Transcript::stringToBiotype(value.toByteArray());
         }
-        else if (key=="tag")
+		else if (key=="tag") //Ensembl tag entries
         {
-			QList<QByteArrayView> tags = Helper::fastSplit(value, ',');
+		QList<QByteArrayView> tags = Helper::fastSplit(value, ',');
             foreach(const QByteArrayView& tag, tags)
             {
                 if (tag=="basic" || tag=="gencode_basic") //The tag was changed from "basic" in Ensembl 112 to "gencode_basic" in Ensembl 113
@@ -150,6 +150,27 @@ TranscriptData parseTranscriptLine(QByteArrayView to_split)
                 }
             }
         }
+	//NGSDExportGff uses these entries instead if 'tag'
+	else if (key=="is_gencode_basic" && value=="1")
+	{
+		output.is_gencode_basic = true;
+	}
+	else if (key=="is_gencode_primary" && value=="1")
+	{
+		output.is_gencode_primary = true;
+	}
+	else if (key=="is_ensembl_canonical" && value=="1")
+	{
+		output.is_ensembl_canonical = true;
+	}
+	else if (key=="is_mane_select" && value=="1")
+	{
+		output.is_mane_select = true;
+	}
+	else if (key=="is_mane_plus_clinical" && value=="1")
+	{
+		output.is_mane_plus_clinical = true;
+	}
     }
 
     return output;
@@ -189,7 +210,7 @@ GffData GffData::load(QString filename, GffSettings settings)
         if (c_skipped_low_evidence>0)
         {
 
-            out << "Notice: " << QByteArray::number(c_skipped_special_chr) << " transcipts not " << (settings.source=="ensembl" ? "flagged as 'GENCODE basic'" : "from data source RefSeq/BestRefSeq") << " skipped." << Qt::endl;
+			out << "Notice: " << QByteArray::number(c_skipped_low_evidence) << " transcipts not " << (settings.source=="ensembl" ? "flagged as 'GENCODE basic'" : "from data source RefSeq/BestRefSeq") << " skipped." << Qt::endl;
         }
     }
 

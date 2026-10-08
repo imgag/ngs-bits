@@ -1,6 +1,7 @@
 #include "LoginDialog.h"
 #include "GlobalServiceProvider.h"
 #include "LoginManager.h"
+#include "Settings.h"
 
 LoginDialog::LoginDialog(QWidget *parent)
 	: QDialog(parent)
@@ -10,7 +11,12 @@ LoginDialog::LoginDialog(QWidget *parent)
 	connect(ui_.ok_btn, SIGNAL(clicked(bool)), this, SLOT(checkPassword()));
 
 	//init
-	if (ui_.user_name->text().isEmpty()) ui_.user_name->setText(Helper::userName());
+	QString login_name = Settings::string("login_user", true);
+	if (login_name.isEmpty()) login_name = Helper::userName();
+	ui_.user_name->setText(login_name);
+
+	QString login_password = Settings::string("login_password", true);
+	ui_.password->setText(login_password);
 	ui_.password->setFocus();
 }
 

@@ -309,6 +309,5 @@ void GenomeVisualizationWidget::loadSession()
 }
 
 //TODO Marc - GSviewer:
-//- GFF with only gencode primary transcripts
-//- GSvar: chr selection does not
+//- GSvar: chr selection does not work
 //- GSvar: search for gene does not work
