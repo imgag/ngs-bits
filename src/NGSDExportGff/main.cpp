@@ -19,6 +19,7 @@ public:
         setDescription("Writes all transcripts and exons of all genes to a gff3 file.");
 		addOutfile("out", "The output GFF file.", false);
 		addFlag("no_genes", "No not add gene lines to group transcripts. Also exports transcripts without gene. Used mainly for use with IGV.");
+		addFlag("gencode_primary", "Export GENCODE primary transcrips only.");
         addFlag("test", "Uses the test database instead of on the production database.");
 	}
 
@@ -40,6 +41,7 @@ public:
 		//init
 		NGSD db(getFlag("test"));
 		bool no_genes = getFlag("no_genes");
+		bool gencode_primary = getFlag("gencode_primary");
 
 		//open output file
         QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
@@ -72,6 +74,7 @@ public:
 			}
 
 			if (!no_genes && gene_id=="") continue;
+			if (gencode_primary && !trans.isGencodePrimaryTranscript()) continue;
 
 			const QHash<QString, QByteArray>& gene = genes[gene_id];
 
