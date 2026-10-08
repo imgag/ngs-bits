@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "ui_MainWindow.h"
+#include "DelayedInitializationTimer.h"
 
 ///Main window class
 class MainWindow
@@ -15,10 +16,12 @@ public:
 	MainWindow(QWidget* parent = 0);
 
 private slots:
+	void delayedInitialization();
 	void showAboutDialog();
 
 private:
 	Ui::MainWindow ui_;
+	DelayedInitializationTimer init_timer_;
 
 };
 

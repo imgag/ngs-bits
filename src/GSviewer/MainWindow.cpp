@@ -10,6 +10,7 @@
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
+	, init_timer_(this, true)
 {
 	ui_.setupUi(this);
 
@@ -21,7 +22,10 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.actionLoadSession, SIGNAL(triggered()), ui_.gvw, SLOT(loadSession()));
 	connect(ui_.actionAbout, SIGNAL(triggered()), this, SLOT(showAboutDialog()));
 	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
+}
 
+void MainWindow::delayedInitialization()
+{
 	//load transcripts from GFF
 	try
 	{

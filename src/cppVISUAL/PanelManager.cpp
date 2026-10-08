@@ -84,11 +84,17 @@ void PanelManager::updateDragRegion(int mouse_x)
 
 void PanelManager::loadFile(QString filename)
 {
+	//qDebug() << __PRETTY_FUNCTION__ << __LINE__ << filename;
 	//empty session => remove all track groups
-	if (isEmptySession()) removeAll();
+	if (isEmptySession())
+	{
+		removeAll();
+		//qDebug() << __PRETTY_FUNCTION__ << __LINE__;
+	}
 
 	//add new track group with file contents
 	TrackGroup* new_panel = TrackGroup::fromFile(filename);
+	//qDebug() << __PRETTY_FUNCTION__ << __LINE__ << new_panel;
 	if (new_panel)
 	{
 		connectSignals(new_panel);

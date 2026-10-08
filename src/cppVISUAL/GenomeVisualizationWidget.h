@@ -4,7 +4,6 @@
 #include "cppVISUAL_global.h"
 #include "BedFile.h"
 #include <QWidget>
-#include "DelayedInitializationTimer.h"
 
 namespace Ui {
 class GenomeVisualizationWidget;
@@ -39,8 +38,6 @@ protected:
 	void wheelEvent(QWheelEvent* event) override;
 
 protected slots:
-	//Delayed initialization
-	void delayedInitialization();
 	//Perform search based on input field (chromosome, region, gene, transcript, ...)
 	void search();
 	//Zoom in
@@ -66,7 +63,6 @@ signals:
 
 private:
 	Ui::GenomeVisualizationWidget* ui_;
-	DelayedInitializationTimer timer_;
 
 	QStringList valid_chrs_; //chromosome list (normalized)
 	QHash<QByteArray, QSet<int>> gene_to_trans_indices_;

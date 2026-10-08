@@ -26,11 +26,11 @@ class CPPVISUALSHARED_EXPORT BamAlignmentTrack
 {
 	Q_OBJECT
 public:
-	explicit BamAlignmentTrack(QWidget* parent, QString file_path, QString name);
+	BamAlignmentTrack(QWidget* parent, QString file_path, QString name);
+	~BamAlignmentTrack();
 	void setTrackData(QSharedPointer<BamTrackData> track_data);
 
 	QSize sizeHint() const override;
-	QSize minimumSizeHint() const override {return sizeHint();}
 
 	static QString staticType() {return "BAM/CRAM";}
 	QString getType() override {return staticType();}

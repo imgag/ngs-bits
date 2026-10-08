@@ -25,6 +25,12 @@ TrackWidget::TrackWidget(QWidget* parent, QString file_path, QString name)
 {
 }
 
+QSize TrackWidget::minimumSizeHint() const
+{
+	//Allow horizontal shrinking while keeping the label area and track height.
+	return QSize(SharedData::settings().label_width + 5, sizeHint().height());
+}
+
 void TrackWidget::regionChanged()
 {
 	updateGeometry();

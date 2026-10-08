@@ -12,10 +12,17 @@ static constexpr unsigned int MINIMUM_MAX_COVERAGE = 10;
 BamCoverageTrack::BamCoverageTrack(QWidget* parent, QString file_path, QString name)
 	: TrackWidget(parent, file_path, name)
 {
+	//qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	setMouseTracking(true);
 	max_coverage_ = MINIMUM_MAX_COVERAGE;
 	int max_region_length = SharedData::settings().bam_max_region_len;
 	coverage_.fill(BaseCoverage(), max_region_length);
+	//qDebug() << __PRETTY_FUNCTION__ << __LINE__;
+}
+
+BamCoverageTrack::~BamCoverageTrack()
+{
+	//qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 }
 
 BamCoverageTrack* BamCoverageTrack::createTrack(QWidget* parent, QString file_path, QString name)

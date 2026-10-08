@@ -29,7 +29,6 @@ public:
 	void setBedFile(QSharedPointer<BedFile> bedfile);
 
 	QSize sizeHint() const override;
-	QSize minimumSizeHint() const override {return sizeHint();};
 
 	// reloads the file, if failed deletes the track
 	void reloadTrack() override;

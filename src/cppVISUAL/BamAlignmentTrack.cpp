@@ -23,8 +23,15 @@ static constexpr int MAX_QUALITY = 41;
 BamAlignmentTrack::BamAlignmentTrack(QWidget* parent, QString file_path, QString name)
 	: TrackWidget(parent, file_path, name)
 {
+	//qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	setMouseTracking(true);
 	updateFontCache();
+	//qDebug() << __PRETTY_FUNCTION__ << __LINE__;
+}
+
+BamAlignmentTrack::~BamAlignmentTrack()
+{
+	//qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 }
 
 BamAlignmentTrack* BamAlignmentTrack::createTrack(QWidget* parent, QString file_path, QString name)

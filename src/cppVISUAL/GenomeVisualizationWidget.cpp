@@ -12,7 +12,6 @@
 GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	: QWidget(parent)
 	, ui_(new Ui::GenomeVisualizationWidget)
-	, timer_(this, true)
 {
 	ui_->setupUi(this);
 
@@ -26,6 +25,12 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	connect(SharedData::instance(), SIGNAL(transcriptsChanged()), this, SLOT(updateIndices()));
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
 	connect(SharedData::instance(), SIGNAL(updateGenomicCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
+
+	//clean session
+	newSession(false);
+
+	//show the current coordinates before the first region change
+	updateRegion();
 }
 
 void GenomeVisualizationWidget::openFileDialog()
@@ -209,11 +214,6 @@ void GenomeVisualizationWidget::wheelEvent(QWheelEvent* event)
 	{
 		QWidget::wheelEvent(event);
 	}
-}
-
-void GenomeVisualizationWidget::delayedInitialization()
-{
-	newSession(true);
 }
 
 void GenomeVisualizationWidget::updateRegion()

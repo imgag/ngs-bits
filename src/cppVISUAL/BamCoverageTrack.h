@@ -45,7 +45,8 @@ class CPPVISUALSHARED_EXPORT BamCoverageTrack
 {
 	Q_OBJECT
 public:
-	explicit BamCoverageTrack(QWidget* parent, QString file_path, QString name);
+	BamCoverageTrack(QWidget* parent, QString file_path, QString name);
+	~BamCoverageTrack();
 	void setTrackData(QSharedPointer<BamTrackData> track_data);
 	virtual void reloadTrack() override;
 
@@ -53,7 +54,6 @@ public:
 	QString getType() override {return staticType();}
 
 	QSize sizeHint() const override;
-	QSize minimumSizeHint() const override {return sizeHint();}
 
 	static BamCoverageTrack* createTrack(QWidget* parent, QString file_path, QString name);
 
