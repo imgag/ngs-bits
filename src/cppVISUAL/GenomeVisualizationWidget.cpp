@@ -56,7 +56,6 @@ void GenomeVisualizationWidget::reloadTracks()
 	ui_->panel_manager->reloadTracks();
 }
 
-
 void GenomeVisualizationWidget::newSession(bool add_empty_panel)
 {
 	ui_->panel_manager->newSession(add_empty_panel);
