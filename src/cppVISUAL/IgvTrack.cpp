@@ -21,11 +21,11 @@ namespace
 
 QSharedPointer<ParameterList> IgvTrack::parametersFromFile(QSharedPointer<BedFile> bed_file)
 {
-	Parameter config("IgvTrack");
-	config.append(ParameterDescription("graph_mode", "Type of graph", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, GRAPH_MODES.join('\t')}}));
-	config.append(ParameterDescription("track_height", "Track height in pixels", ParameterType::INT, {{ConstraintType::MIN, 1}}));
-	config.append(ParameterDescription("view_min", "Lower plot limit", ParameterType::FLOAT, {}));
-	config.append(ParameterDescription("view_max", "Upper plot limit", ParameterType::FLOAT, {}));
+	QList<Parameter> config;
+	config.append(Parameter("graph_mode", "Type of graph", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, GRAPH_MODES.join('\t')}}));
+	config.append(Parameter("track_height", "Track height in pixels", ParameterType::INT, {{ConstraintType::MIN, 1}}));
+	config.append(Parameter("view_min", "Lower plot limit", ParameterType::FLOAT, {}));
+	config.append(Parameter("view_max", "Upper plot limit", ParameterType::FLOAT, {}));
 	QHash<QByteArray, QVariant> defaults{{"graph_mode", POINTS}, {"track_height", 100}, {"view_min", 0.0}, {"view_max", 1.0}};
 	if (bed_file)
 	{
@@ -68,7 +68,7 @@ QSharedPointer<ParameterList> IgvTrack::parametersFromFile(QSharedPointer<BedFil
 			break;
 		}
 	}
-	auto parameters = QSharedPointer<ParameterList>::create(config, defaults);
+	auto parameters = QSharedPointer<ParameterList>::create(type(), config, defaults);
 	if (parameters->getFloat("view_min") >= parameters->getFloat("view_max"))
 	{
 		THROW(ArgumentException, "View min >= view max in IGV track.");
@@ -90,7 +90,7 @@ void IgvTrack::setParameters(QSharedPointer<ParameterList> parameters)
 }
 
 IgvTrack::IgvTrack(QWidget* parent, QString file_path, QString name)
-	: TrackWidget(parent, file_path, name, "IgvTrack")
+	: TrackWidget(parent, file_path, name, type())
 {
 	setParameters(parametersFromFile(nullptr));
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(regionChanged()));

@@ -5,13 +5,13 @@
 TEST_CLASS(ParameterList_Test)
 {
 private:
-	static Parameter config()
+	static QList<Parameter> config()
 	{
-		Parameter output("test_track");
-		output.append(ParameterDescription("height", "Height in pixels", ParameterType::INT, {{ConstraintType::MIN, 1}, {ConstraintType::MAX, 100}}));
-		output.append(ParameterDescription("scale", "Plot scale", ParameterType::FLOAT, {{ConstraintType::MIN, -0.5}, {ConstraintType::MAX, 0.5}}));
-		output.append(ParameterDescription("visible", {}, ParameterType::BOOL, {}));
-		output.append(ParameterDescription("mode", {}, ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("POINTS\tHEATMAP")}}));
+		QList<Parameter> output;
+		output.append(Parameter("height", "Height in pixels", ParameterType::INT, {{ConstraintType::MIN, 1}, {ConstraintType::MAX, 100}}));
+		output.append(Parameter("scale", "Plot scale", ParameterType::FLOAT, {{ConstraintType::MIN, -0.5}, {ConstraintType::MAX, 0.5}}));
+		output.append(Parameter("visible", {}, ParameterType::BOOL, {}));
+		output.append(Parameter("mode", {}, ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("POINTS\tHEATMAP")}}));
 		return output;
 	}
 
@@ -22,74 +22,103 @@ private:
 
 	TEST_METHOD(metadata)
 	{
-		Parameter metadata = config();
-		S_EQUAL(metadata.trackName(), "test_track");
-		const ParameterDescription height = metadata.parameter("height");
+		QList<Parameter> metadata = config();
+		ParameterList parameters("test_list", metadata, defaults());
+		S_EQUAL(parameters.name(), "test_list");
+		const Parameter height = parameters.parameter("height");
 		S_EQUAL(height.name(), "height");
 		S_EQUAL(height.description(), "Height in pixels");
 		IS_TRUE(height.type() == ParameterType::INT);
 		I_EQUAL(height.constraints().value(ConstraintType::MIN).toInt(), 1);
-		I_EQUAL(metadata.parameters().size(), 4);
-		S_EQUAL(metadata.parameters()[0].name(), "height");
-		S_EQUAL(metadata.parameters()[3].name(), "mode");
-		IS_THROWN(ArgumentException, metadata.parameter("unknown"));
-		IS_THROWN(ArgumentException, metadata.append(height));
-		metadata.clear();
-		I_EQUAL(metadata.parameters().size(), 0);
-		IS_THROWN(ArgumentException, metadata.parameter("height"));
+		I_EQUAL(height.value().toInt(), 10);
+		I_EQUAL(parameters.parameters().size(), 4);
+		S_EQUAL(parameters.parameters()[0].name(), "height");
+		S_EQUAL(parameters.parameters()[3].name(), "mode");
+		IS_THROWN(ArgumentException, parameters.parameter("unknown"));
 		metadata.append(height);
-		I_EQUAL(metadata.parameters().size(), 1);
+		IS_THROWN(ArgumentException, ParameterList("test_list", metadata, defaults()));
+		metadata.clear();
+		I_EQUAL(parameters.parameters().size(), 4);
+		parameters.setInt("height", 20);
+		I_EQUAL(parameters.parameter("height").value().toInt(), 20);
+		I_EQUAL(height.value().toInt(), 10);
+	}
+
+	TEST_METHOD(indexedStorage)
+	{
+		QList<Parameter> definitions;
+		QHash<QByteArray, QVariant> initial;
+		for (int i = 0; i < 128; ++i)
+		{
+			QByteArray name = "parameter_" + QByteArray::number(i);
+			definitions.append(Parameter(name, {}, ParameterType::INT, {}));
+			initial.insert(name, i);
+		}
+		ParameterList first("indexed", definitions, initial);
+		ParameterList second("indexed", definitions, initial);
+		const QList<Parameter> snapshot = first.parameters();
+		for (int i = 127; i >= 0; --i)
+		{
+			QByteArray name = "parameter_" + QByteArray::number(i);
+			I_EQUAL(first.getInt(name), i);
+			first.setInt(name, i + 1000);
+			I_EQUAL(first.parameter(name).value().toInt(), i + 1000);
+			S_EQUAL(first.parameters()[i].name(), name);
+			I_EQUAL(second.getInt(name), i);
+			I_EQUAL(snapshot[i].value().toInt(), i);
+			IS_FALSE(definitions[i].value().isValid());
+		}
 	}
 
 	TEST_METHOD(enumStrings)
 	{
-		S_EQUAL(ParameterDescription::toString(ParameterType::INT), "INT");
-		S_EQUAL(ParameterDescription::toString(ParameterType::FLOAT), "FLOAT");
-		S_EQUAL(ParameterDescription::toString(ParameterType::BOOL), "BOOL");
-		S_EQUAL(ParameterDescription::toString(ParameterType::STRING), "STRING");
-		S_EQUAL(ParameterDescription::toString(ParameterType::STRINGLIST), "STRINGLIST");
-		S_EQUAL(ParameterDescription::toString(ConstraintType::MIN), "MIN");
-		S_EQUAL(ParameterDescription::toString(ConstraintType::MAX), "MAX");
-		S_EQUAL(ParameterDescription::toString(ConstraintType::ALLOWED_VALUES), "ALLOWED_VALUES");
-		S_EQUAL(ParameterDescription::toString(ConstraintType::NON_EMPTY), "NON_EMPTY");
-		IS_THROWN(ProgrammingException, ParameterDescription::toString(static_cast<ParameterType>(-1)));
-		IS_THROWN(ProgrammingException, ParameterDescription::toString(static_cast<ConstraintType>(-1)));
+		S_EQUAL(Parameter::toString(ParameterType::INT), "INT");
+		S_EQUAL(Parameter::toString(ParameterType::FLOAT), "FLOAT");
+		S_EQUAL(Parameter::toString(ParameterType::BOOL), "BOOL");
+		S_EQUAL(Parameter::toString(ParameterType::STRING), "STRING");
+		S_EQUAL(Parameter::toString(ParameterType::STRINGLIST), "STRINGLIST");
+		S_EQUAL(Parameter::toString(ConstraintType::MIN), "MIN");
+		S_EQUAL(Parameter::toString(ConstraintType::MAX), "MAX");
+		S_EQUAL(Parameter::toString(ConstraintType::ALLOWED_VALUES), "ALLOWED_VALUES");
+		S_EQUAL(Parameter::toString(ConstraintType::NON_EMPTY), "NON_EMPTY");
+		IS_THROWN(ProgrammingException, Parameter::toString(static_cast<ParameterType>(-1)));
+		IS_THROWN(ProgrammingException, Parameter::toString(static_cast<ConstraintType>(-1)));
 	}
 
 	TEST_METHOD(invalidConstraints)
 	{
 		for (ParameterType type : {ParameterType::INT, ParameterType::FLOAT})
 		{
-			IS_THROWN(ArgumentException, ParameterDescription("number", {}, type, {{ConstraintType::MIN, 10}, {ConstraintType::MAX, 5}}));
+			IS_THROWN(ArgumentException, Parameter("number", {}, type, {{ConstraintType::MIN, 10}, {ConstraintType::MAX, 5}}));
 			for (ConstraintType key : {ConstraintType::MIN, ConstraintType::MAX})
 			{
-				IS_THROWN(ArgumentException, ParameterDescription("number", {}, type, {{key, QByteArray("invalid")}}));
-				IS_THROWN(ArgumentException, ParameterDescription("number", {}, type, {{key, QByteArray(400, '9')}}));
-				IS_THROWN(ArgumentException, ParameterDescription("number", {}, type, {{key, -std::numeric_limits<double>::infinity()}}));
+				IS_THROWN(ArgumentException, Parameter("number", {}, type, {{key, QByteArray("invalid")}}));
+				IS_THROWN(ArgumentException, Parameter("number", {}, type, {{key, QByteArray(400, '9')}}));
+				IS_THROWN(ArgumentException, Parameter("number", {}, type, {{key, -std::numeric_limits<double>::infinity()}}));
 			}
-			IS_THROWN(ArgumentException, ParameterDescription("number", {}, type, {{ConstraintType::ALLOWED_VALUES, QByteArray("1\t2")}}));
+			IS_THROWN(ArgumentException, Parameter("number", {}, type, {{ConstraintType::ALLOWED_VALUES, QByteArray("1\t2")}}));
 		}
-		IS_THROWN(ArgumentException, ParameterDescription("flag", {}, ParameterType::BOOL, {{ConstraintType::MIN, 0}}));
-		IS_THROWN(ArgumentException, ParameterDescription("text", {}, ParameterType::STRING, {{ConstraintType::MAX, 1}}));
+		IS_THROWN(ArgumentException, Parameter("flag", {}, ParameterType::BOOL, {{ConstraintType::MIN, 0}}));
+		IS_THROWN(ArgumentException, Parameter("text", {}, ParameterType::STRING, {{ConstraintType::MAX, 1}}));
 	}
 
 	TEST_METHOD(defaultNames)
 	{
-		Parameter metadata = config();
+		QList<Parameter> metadata = config();
 		for (const QByteArray& name : defaults().keys())
 		{
 			auto missing = defaults();
 			missing.remove(name);
-			IS_THROWN(ArgumentException, ParameterList(metadata, missing));
+			IS_THROWN(ArgumentException, ParameterList("test_list", metadata, missing));
 		}
 		auto extra = defaults();
 		extra.insert("unknown", 1);
-		IS_THROWN(ArgumentException, ParameterList(metadata, extra));
+		IS_THROWN(ArgumentException, ParameterList("test_list", metadata, extra));
 		extra.remove("height");
-		IS_THROWN(ArgumentException, ParameterList(metadata, extra));
-		Parameter empty("empty");
-		ParameterList empty_parameters(empty, {});
-		IS_THROWN(ArgumentException, ParameterList(empty, extra));
+		IS_THROWN(ArgumentException, ParameterList("test_list", metadata, extra));
+		QList<Parameter> empty;
+		ParameterList empty_parameters("test_list", empty, {});
+		IS_THROWN(ArgumentException, ParameterList("test_list", empty, extra));
 	}
 
 	TEST_METHOD(defaultNormalization)
@@ -98,7 +127,7 @@ private:
 		initial["height"] = QByteArray("25");
 		initial["scale"] = QString("0.25");
 		initial["mode"] = QString("HEATMAP");
-		ParameterList parameters(config(), initial);
+		ParameterList parameters("test_list", config(), initial);
 		I_EQUAL(parameters.getInt("height"), 25);
 		F_EQUAL(parameters.getFloat("scale"), 0.25);
 		IS_TRUE(parameters.getBool("visible"));
@@ -118,7 +147,7 @@ private:
 		{
 			auto initial = defaults();
 			initial[name] = QVariant();
-			IS_THROWN(ArgumentException, ParameterList(config(), initial));
+			IS_THROWN(ArgumentException, ParameterList("test_list", config(), initial));
 		}
 		const QList<QPair<QByteArray, QVariant>> invalid_values{
 			{"height", 0}, {"height", 101}, {"height", 2.7}, {"height", 1e20}, {"height", QByteArray("abc")},
@@ -130,13 +159,13 @@ private:
 		{
 			auto initial = defaults();
 			initial[invalid.first] = invalid.second;
-			IS_THROWN(ArgumentException, ParameterList(config(), initial));
+			IS_THROWN(ArgumentException, ParameterList("test_list", config(), initial));
 		}
 	}
 
 	TEST_METHOD(settersAndSignals)
 	{
-		ParameterList parameters(config(), defaults());
+		ParameterList parameters("test_list", config(), defaults());
 		int changes = 0;
 		int observed_height = 0;
 		QObject::connect(&parameters, &ParameterList::parameterChanged, [&]()
@@ -172,7 +201,7 @@ private:
 
 	TEST_METHOD(unknownNamesAndTypes)
 	{
-		ParameterList parameters(config(), defaults());
+		ParameterList parameters("test_list", config(), defaults());
 		IS_THROWN(ArgumentException, parameters.getInt("unknown"));
 		IS_THROWN(ArgumentException, parameters.getFloat("unknown"));
 		IS_THROWN(ArgumentException, parameters.getBool("unknown"));
@@ -193,10 +222,10 @@ private:
 
 	TEST_METHOD(stringList)
 	{
-		Parameter metadata("lists");
-		metadata.append(ParameterDescription("modes", "Selected modes", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("POINTS\tHEATMAP")}}));
+		QList<Parameter> metadata;
+		metadata.append(Parameter("modes", "Selected modes", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("POINTS\tHEATMAP")}}));
 		const QByteArrayList initial{"POINTS", "HEATMAP"};
-		ParameterList parameters(metadata, {{"modes", QVariant::fromValue(initial)}});
+		ParameterList parameters("test_list", metadata, {{"modes", QVariant::fromValue(initial)}});
 		X_EQUAL(parameters.getStringList("modes"), initial);
 		int changes = 0;
 		QObject::connect(&parameters, &ParameterList::parameterChanged, [&changes]() { ++changes; });
@@ -225,27 +254,27 @@ private:
 
 	TEST_METHOD(stringListDefaults)
 	{
-		Parameter metadata("lists");
-		metadata.append(ParameterDescription("modes", {}, ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("POINTS\tHEATMAP")}}));
+		QList<Parameter> metadata;
+		metadata.append(Parameter("modes", {}, ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("POINTS\tHEATMAP")}}));
 		const QList<QVariant> invalid_values{
 			QVariant(), QByteArray("POINTS"), QString("POINTS"), 1,
 			QStringList({"POINTS"}), QVariant::fromValue(QByteArrayList({"POINTS", "INVALID"}))
 		};
 		for (const QVariant& value : invalid_values)
 		{
-			IS_THROWN(ArgumentException, ParameterList(metadata, {{"modes", value}}));
+			IS_THROWN(ArgumentException, ParameterList("test_list", metadata, {{"modes", value}}));
 		}
-		ParameterList empty(metadata, {{"modes", QVariant::fromValue(QByteArrayList())}});
+		ParameterList empty("test_list", metadata, {{"modes", QVariant::fromValue(QByteArrayList())}});
 		IS_TRUE(empty.getStringList("modes").isEmpty());
-		IS_THROWN(ArgumentException, ParameterDescription("modes", {}, ParameterType::STRINGLIST, {{ConstraintType::MIN, 1}}));
+		IS_THROWN(ArgumentException, Parameter("modes", {}, ParameterType::STRINGLIST, {{ConstraintType::MIN, 1}}));
 	}
 
 	TEST_METHOD(unconstrainedStringList)
 	{
-		Parameter metadata("lists");
-		metadata.append(ParameterDescription("entries", {}, ParameterType::STRINGLIST, {}));
+		QList<Parameter> metadata;
+		metadata.append(Parameter("entries", {}, ParameterType::STRINGLIST, {}));
 		const QByteArrayList entries{"", "one\ttwo", "one", "one"};
-		ParameterList parameters(metadata, {{"entries", QVariant::fromValue(entries)}});
+		ParameterList parameters("test_list", metadata, {{"entries", QVariant::fromValue(entries)}});
 		X_EQUAL(parameters.getStringList("entries"), entries);
 		parameters.setStringList("entries", {"new"});
 		X_EQUAL(parameters.getStringList("entries"), QByteArrayList({"new"}));
@@ -253,13 +282,13 @@ private:
 
 	TEST_METHOD(nonEmptyString)
 	{
-		Parameter metadata("non_empty");
-		metadata.append(ParameterDescription("text", {}, ParameterType::STRING, {{ConstraintType::NON_EMPTY, QVariant()}}));
+		QList<Parameter> metadata;
+		metadata.append(Parameter("text", {}, ParameterType::STRING, {{ConstraintType::NON_EMPTY, QVariant()}}));
 		for (const QVariant& value : QList<QVariant>{QByteArray(), QByteArray(""), QString(), QString("")})
 		{
-			IS_THROWN(ArgumentException, ParameterList(metadata, {{"text", value}}));
+			IS_THROWN(ArgumentException, ParameterList("test_list", metadata, {{"text", value}}));
 		}
-		ParameterList parameters(metadata, {{"text", QString("initial")}});
+		ParameterList parameters("test_list", metadata, {{"text", QString("initial")}});
 		int changes = 0;
 		QObject::connect(&parameters, &ParameterList::parameterChanged, [&changes]() { ++changes; });
 		IS_THROWN(ArgumentException, parameters.setString("text", ""));
@@ -270,17 +299,17 @@ private:
 		I_EQUAL(changes, 1);
 		for (ParameterType type : {ParameterType::INT, ParameterType::FLOAT, ParameterType::BOOL})
 		{
-			IS_THROWN(ArgumentException, ParameterDescription("number", {}, type, {{ConstraintType::NON_EMPTY, QVariant()}}));
+			IS_THROWN(ArgumentException, Parameter("number", {}, type, {{ConstraintType::NON_EMPTY, QVariant()}}));
 		}
 	}
 
 	TEST_METHOD(nonEmptyStringList)
 	{
-		Parameter metadata("non_empty");
-		metadata.append(ParameterDescription("entries", {}, ParameterType::STRINGLIST, {{ConstraintType::NON_EMPTY, QVariant()}}));
+		QList<Parameter> metadata;
+		metadata.append(Parameter("entries", {}, ParameterType::STRINGLIST, {{ConstraintType::NON_EMPTY, QVariant()}}));
 		const QByteArrayList initial{"one", "two"};
-		IS_THROWN(ArgumentException, ParameterList(metadata, {{"entries", QVariant::fromValue(QByteArrayList({"one", ""}))}}));
-		ParameterList parameters(metadata, {{"entries", QVariant::fromValue(initial)}});
+		IS_THROWN(ArgumentException, ParameterList("test_list", metadata, {{"entries", QVariant::fromValue(QByteArrayList({"one", ""}))}}));
+		ParameterList parameters("test_list", metadata, {{"entries", QVariant::fromValue(initial)}});
 		int changes = 0;
 		QObject::connect(&parameters, &ParameterList::parameterChanged, [&changes]() { ++changes; });
 		IS_THROWN(ArgumentException, parameters.setStringList("entries", QByteArrayList({"", "two"})));
@@ -293,17 +322,17 @@ private:
 		parameters.setStringList("entries", {});
 		IS_TRUE(parameters.getStringList("entries").isEmpty());
 		I_EQUAL(changes, 2);
-		ParameterList empty(metadata, {{"entries", QVariant::fromValue(QByteArrayList())}});
+		ParameterList empty("test_list", metadata, {{"entries", QVariant::fromValue(QByteArrayList())}});
 		IS_TRUE(empty.getStringList("entries").isEmpty());
 	}
 
 	TEST_METHOD(nonEmptyAndAllowedValues)
 	{
-		Parameter metadata("non_empty");
+		QList<Parameter> metadata;
 		const QHash<ConstraintType, QVariant> constraints{{ConstraintType::NON_EMPTY, QVariant()}, {ConstraintType::ALLOWED_VALUES, QByteArray("\tA\tB")}};
-		metadata.append(ParameterDescription("text", {}, ParameterType::STRING, constraints));
-		metadata.append(ParameterDescription("entries", {}, ParameterType::STRINGLIST, constraints));
-		ParameterList parameters(metadata, {{"text", QByteArray("A")}, {"entries", QVariant::fromValue(QByteArrayList({"A", "B"}))}});
+		metadata.append(Parameter("text", {}, ParameterType::STRING, constraints));
+		metadata.append(Parameter("entries", {}, ParameterType::STRINGLIST, constraints));
+		ParameterList parameters("test_list", metadata, {{"text", QByteArray("A")}, {"entries", QVariant::fromValue(QByteArrayList({"A", "B"}))}});
 		IS_THROWN(ArgumentException, parameters.setString("text", ""));
 		IS_THROWN(ArgumentException, parameters.setString("text", "C"));
 		IS_THROWN(ArgumentException, parameters.setStringList("entries", QByteArrayList({"A", ""})));
@@ -316,11 +345,11 @@ private:
 
 	TEST_METHOD(unconstrainedValues)
 	{
-		Parameter metadata("unconstrained");
-		metadata.append(ParameterDescription("integer", {}, ParameterType::INT, {}));
-		metadata.append(ParameterDescription("float", {}, ParameterType::FLOAT, {}));
-		metadata.append(ParameterDescription("text", {}, ParameterType::STRING, {}));
-		ParameterList parameters(metadata, {{"integer", std::numeric_limits<int>::min()}, {"float", 0.0}, {"text", QByteArray("")}});
+		QList<Parameter> metadata;
+		metadata.append(Parameter("integer", {}, ParameterType::INT, {}));
+		metadata.append(Parameter("float", {}, ParameterType::FLOAT, {}));
+		metadata.append(Parameter("text", {}, ParameterType::STRING, {}));
+		ParameterList parameters("test_list", metadata, {{"integer", std::numeric_limits<int>::min()}, {"float", 0.0}, {"text", QByteArray("")}});
 		I_EQUAL(parameters.getInt("integer"), std::numeric_limits<int>::min());
 		parameters.setInt("integer", std::numeric_limits<int>::max());
 		I_EQUAL(parameters.getInt("integer"), std::numeric_limits<int>::max());
