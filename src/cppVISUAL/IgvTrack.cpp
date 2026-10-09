@@ -24,8 +24,8 @@ QSharedPointer<ParameterList> IgvTrack::parametersFromFile(QSharedPointer<BedFil
 	QList<Parameter> config;
 	config.append(Parameter("graph_mode", "Type of graph", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, GRAPH_MODES.join('\t')}}));
 	config.append(Parameter("track_height", "Track height in pixels", ParameterType::INT, {{ConstraintType::MIN, 1}}));
-	config.append(Parameter("view_min", "Lower plot limit", ParameterType::FLOAT, {}));
-	config.append(Parameter("view_max", "Upper plot limit", ParameterType::FLOAT, {}));
+	config.append(Parameter("view_min", "Lower plot limit", ParameterType::DOUBLE, {}));
+	config.append(Parameter("view_max", "Upper plot limit", ParameterType::DOUBLE, {}));
 	QHash<QByteArray, QVariant> defaults{{"graph_mode", POINTS}, {"track_height", 100}, {"view_min", 0.0}, {"view_max", 1.0}};
 	if (bed_file)
 	{
@@ -69,7 +69,7 @@ QSharedPointer<ParameterList> IgvTrack::parametersFromFile(QSharedPointer<BedFil
 		}
 	}
 	auto parameters = QSharedPointer<ParameterList>::create(type(), config, defaults);
-	if (parameters->getFloat("view_min") >= parameters->getFloat("view_max"))
+	if (parameters->getDouble("view_min") >= parameters->getDouble("view_max"))
 	{
 		THROW(ArgumentException, "View min >= view max in IGV track.");
 	}
@@ -156,8 +156,8 @@ void IgvTrack::paintEvent(QPaintEvent*)
 
 void IgvTrack::drawScaleText(QPainter& painter)
 {
-	const double view_min = settings_->getFloat("view_min");
-	const double view_max = settings_->getFloat("view_max");
+	const double view_min = settings_->getDouble("view_min");
+	const double view_max = settings_->getDouble("view_max");
 	Viewport viewport = getViewport();
 	painter.setPen(Qt::black);
 	QRect rec(viewport.x0, 0, width(), height());
@@ -166,7 +166,7 @@ void IgvTrack::drawScaleText(QPainter& painter)
 
 IgvTrack::PlotScale IgvTrack::plotScale() const
 {
-	return {settings_->getFloat("view_min"), settings_->getFloat("view_max"), settings_->getInt("track_height")};
+	return {settings_->getDouble("view_min"), settings_->getDouble("view_max"), settings_->getInt("track_height")};
 }
 
 void IgvTrack::drawPlot(QPainter& painter)
@@ -495,8 +495,8 @@ QMap<QString, QVariant> IgvTrack::getSettings()
 	auto widget_settings = TrackWidget::getSettings();
 	widget_settings.insert("graph_mode", settings_->getString("graph_mode"));
 	widget_settings.insert("track_height", settings_->getInt("track_height"));
-	widget_settings.insert("view_min", settings_->getFloat("view_min"));
-	widget_settings.insert("view_max", settings_->getFloat("view_max"));
+	widget_settings.insert("view_min", settings_->getDouble("view_min"));
+	widget_settings.insert("view_max", settings_->getDouble("view_max"));
 	return widget_settings;
 }
 
@@ -519,7 +519,7 @@ void IgvTrack::loadKeyValueFromXml(QString key, QString value)
 	else if (key == "view_min" || key == "view_max")
 	{
 		float limit = value.toFloat(&ok);
-		if (ok && std::isfinite(limit) && limit >= 0 && (key == "view_min" || limit <= 1)) settings_->setFloat(key.toUtf8(), limit);
+		if (ok && std::isfinite(limit) && limit >= 0 && (key == "view_min" || limit <= 1)) settings_->setDouble(key.toUtf8(), limit);
 	}
 }
 

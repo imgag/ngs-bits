@@ -3,8 +3,83 @@
 TEST_CLASS(FilterCascade_Test)
 {
 private:
+	TEST_METHOD(Parameter_nonEmpty)
+	{
+		struct TestGenes : FilterGenes { using FilterBase::getStringList; };
+		TestGenes genes;
+		IS_TRUE(genes.getStringList("genes").isEmpty());
+		IS_THROWN(ArgumentException, genes.setStringList("genes", {"TP53", ""}));
+		IS_THROWN(ArgumentException, genes.setStringList("genes", {""}));
+		genes.setStringList("genes", {"TP53", " "});
+		X_EQUAL(genes.getStringList("genes"), QStringList({"TP53", " "}));
+		genes.setStringList("genes", {});
+		IS_TRUE(genes.getStringList("genes").isEmpty());
+
+		struct TestColumn : FilterColumnMatchRegexp { using FilterBase::getString; };
+		TestColumn column;
+		S_EQUAL(column.getString("column"), "column");
+		S_EQUAL(column.getString("pattern"), "string");
+		IS_THROWN(ArgumentException, column.setString("column", ""));
+		column.setString("column", " ");
+		S_EQUAL(column.getString("column"), " ");
+		column.setString("column", " gene ");
+		S_EQUAL(column.getString("column"), " gene ");
+	}
 
 	/********************************************* Filter factory *********************************************/
+	TEST_METHOD(genericParameters)
+	{
+		auto genes = FilterFactory::create("Genes", {"genes=TP53"});
+		IS_TRUE(genes->parameters().first().type() == ParameterType::STRINGLIST);
+		X_EQUAL(genes->parameters().first().value().value<QByteArrayList>(), QByteArrayList({"TP53"}));
+		genes->overrideConstraint("genes", "valid", "TP53");
+		IS_THROWN(ArgumentException, genes->setStringList("genes", {"BRCA1"}));
+		IS_THROWN(ArgumentException, genes->overrideConstraint("genes", "valid", "BRCA1"));
+		X_EQUAL(genes->parameters().first().value().value<QByteArrayList>(), QByteArrayList({"TP53"}));
+		S_EQUAL(genes->parameters().first().constraints().value(ConstraintType::ALLOWED_VALUES).toByteArray(), "TP53");
+		IS_THROWN(ArgumentException, genes->overrideConstraint("genes", "unknown", ""));
+		for (const QString& spelling : QStringList({"not_empty", "non-empty"}))
+		{
+			genes->overrideConstraint("genes", spelling, "");
+			IS_THROWN(ArgumentException, genes->setStringList("genes", {""}));
+		}
+		genes->setStringList("genes", {});
+
+		auto text = FilterFactory::create("Text search");
+		S_EQUAL(text->parameters().first().value().toByteArray(), "string");
+		for (const QString& spelling : QStringList({"not_empty", "non-empty"}))
+		{
+			text->overrideConstraint("term", spelling, "");
+			IS_THROWN(ArgumentException, text->setString("term", ""));
+		}
+		IS_THROWN(ArgumentException, FilterFactory::create("Allele frequency", {"max_af=-1"}));
+		IS_THROWN(ArgumentException, FilterFactory::create("Column match", {"column="}));
+	}
+
+	TEST_METHOD(parameterSerialization)
+	{
+		FilterCascade filters;
+		filters.add(FilterFactory::create("Genes", {"genes=TP53,BRCA1"}));
+		filters.add(FilterFactory::create("SNVs only", {"invert=yes"}));
+		filters.add(FilterFactory::create("Allele frequency", {"max_af=0.123456789"}));
+		filters.add(FilterFactory::create("Column match", {QString::fromUtf8("pattern=\xC3\xA4"), "column=gene"}));
+		filters[1]->toggleEnabled();
+		QByteArrayList serialized = filters.toText();
+		S_EQUAL(serialized[0], "Genes\tgenes=TP53,BRCA1");
+		S_EQUAL(serialized[1], "SNVs only\tinvert=yes\tdisabled");
+		S_EQUAL(serialized[2], QByteArray("Allele frequency\tmax_af=") + QVariant(0.123456789).toByteArray());
+		IS_TRUE(serialized[3].contains("pattern=\xC3\xA4"));
+		FilterCascade restored = FilterCascade::fromText(serialized);
+		IS_TRUE(filters == restored);
+		IS_FALSE(restored[1]->enabled());
+		restored[1]->toggleEnabled();
+		IS_TRUE(filters == restored); //Enabled state is excluded from comparison.
+		restored[0]->overrideConstraint("genes", "valid", "TP53,BRCA1");
+		IS_TRUE(filters == restored); //Constraints are excluded from comparison.
+		restored[0]->setStringList("genes", {"BRCA1", "TP53"});
+		IS_FALSE(filters == restored);
+	}
+
 	TEST_METHOD(FilterResult_removeFlagged_BedpeFile)
 	{
 		BedpeFile svs;

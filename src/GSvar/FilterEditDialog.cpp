@@ -24,27 +24,28 @@ FilterEditDialog::FilterEditDialog(QSharedPointer<FilterBase> filter, QWidget* p
 void FilterEditDialog::setupForm()
 {
 	bool first_parameter = true;
-	foreach(const FilterParameter& p, filter_->parameters())
+	foreach(const Parameter& p, filter_->parameters())
 	{
+		const QString parameter_name = QString::fromUtf8(p.name());
 		QList<QWidget*> widgets;
-		switch (p.type)
+		switch (p.type())
 		{
-			case FilterParameterType::INT:
+			case ParameterType::INT:
 			{
 				QSpinBox* widget = new QSpinBox(this);
-				bool min_set = p.constraints.contains("min");
+				bool min_set = p.constraints().contains(ConstraintType::MIN);
 				if (min_set)
 				{
-					widget->setMinimum(Helper::toInt(p.constraints["min"], p.name + " min"));
+					widget->setMinimum(Helper::toInt(p.constraints().value(ConstraintType::MIN).toString(), parameter_name + " min"));
 				}
 				else
 				{
 					widget->setMinimum(-std::numeric_limits<int>::max());
 				}
-				bool max_set = p.constraints.contains("max");
+				bool max_set = p.constraints().contains(ConstraintType::MAX);
 				if (max_set)
 				{
-					widget->setMaximum(Helper::toInt(p.constraints["max"], p.name + " max"));
+					widget->setMaximum(Helper::toInt(p.constraints().value(ConstraintType::MAX).toString(), parameter_name + " max"));
 				}
 				else
 				{
@@ -54,27 +55,27 @@ void FilterEditDialog::setupForm()
 				{
 					widget->setSingleStep((widget->maximum() - widget->minimum())/100);
 				}
-				widget->setValue(p.value.toInt());
+				widget->setValue(p.value().toInt());
 				widget->setMaximumWidth(100);
 				widgets << widget;
 				break;
 			}
-			case FilterParameterType::DOUBLE:
+			case ParameterType::DOUBLE:
 			{
 				auto widget = new QDoubleSpinBox(this);
-				bool min_set = p.constraints.contains("min");
+				bool min_set = p.constraints().contains(ConstraintType::MIN);
 				if (min_set)
 				{
-					widget->setMinimum(Helper::toDouble(p.constraints["min"], p.name + " min"));
+					widget->setMinimum(Helper::toDouble(p.constraints().value(ConstraintType::MIN).toString(), parameter_name + " min"));
 				}
 				else
 				{
 					widget->setMinimum(-std::numeric_limits<double>::max());
 				}
-				bool max_set = p.constraints.contains("max");
+				bool max_set = p.constraints().contains(ConstraintType::MAX);
 				if (max_set)
 				{
-					widget->setMaximum(Helper::toDouble(p.constraints["max"], p.name + " max"));
+					widget->setMaximum(Helper::toDouble(p.constraints().value(ConstraintType::MAX).toString(), parameter_name + " max"));
 				}
 				else
 				{
@@ -84,35 +85,35 @@ void FilterEditDialog::setupForm()
 				{
 					widget->setSingleStep((widget->maximum() - widget->minimum())/100.0);
 				}
-				widget->setValue(p.value.toDouble());
+				widget->setValue(p.value().toDouble());
 				widget->setMaximumWidth(100);
 				widgets << widget;
 				break;
 			}
-			case FilterParameterType::BOOL:
+			case ParameterType::BOOL:
 			{
 				QButtonGroup* group = new QButtonGroup(this);
 
 				QRadioButton* button = new QRadioButton("yes", this);
 				group->addButton(button);
-				button->setChecked(p.value.toBool());
+				button->setChecked(p.value().toBool());
 				widgets << button;
 
 				button = new QRadioButton("no", this);
 				group->addButton(button);
-				button->setChecked(!p.value.toBool());
+				button->setChecked(!p.value().toBool());
 				widgets << button;
 
 				break;
 			}
-			case FilterParameterType::STRING:
+			case ParameterType::STRING:
 			{
-				QString value = p.value.toString();
-				if(p.constraints.contains("valid"))
+				QString value = p.value().toString();
+				if(p.constraints().contains(ConstraintType::ALLOWED_VALUES))
 				{
 					QButtonGroup* group = new QButtonGroup(this);
 
-					QStringList valid = p.constraints["valid"].split(',');
+					QStringList valid = p.constraints().value(ConstraintType::ALLOWED_VALUES).toString().split('\t');
 					foreach(QString text, valid)
 					{
 						QRadioButton* button = new QRadioButton(text, this);
@@ -129,13 +130,14 @@ void FilterEditDialog::setupForm()
 				}
 				break;
 			}
-			case FilterParameterType::STRINGLIST:
+			case ParameterType::STRINGLIST:
 			{
-				QStringList values = p.value.toStringList();
+				QStringList values;
+				for (const QByteArray& entry : p.value().value<QByteArrayList>()) values.append(QString::fromUtf8(entry));
 
-				if(p.constraints.contains("valid"))
+				if(p.constraints().contains(ConstraintType::ALLOWED_VALUES))
 				{
-					QStringList valid = p.constraints["valid"].split(',');
+					QStringList valid = p.constraints().value(ConstraintType::ALLOWED_VALUES).toString().split('\t');
 					foreach(QString text, valid)
 					{
 						QCheckBox* box = new QCheckBox(text, this);
@@ -153,7 +155,7 @@ void FilterEditDialog::setupForm()
 				break;
 			}
 			default:
-				THROW(ProgrammingException, "Unknown filter type '" + FilterParameter::typeAsString(p.type) + "' in FilterEditDialog!");
+				THROW(ProgrammingException, "Unknown filter type '" + Parameter::toString(p.type()) + "' in FilterEditDialog!");
 		}
 
 		//add label and edit widget(s)
@@ -164,12 +166,12 @@ void FilterEditDialog::setupForm()
 			if (i==0)
 			{
 				label = new QLabel();
-				label->setText(p.name + ":");
-				label->setToolTip(p.description);
+				label->setText(parameter_name + ":");
+				label->setToolTip(p.description());
 			}
 
 			//add widget
-			widgets[i]->setObjectName(p.name);
+			widgets[i]->setObjectName(parameter_name);
 			ui_.form_layout->addRow(label, widgets[i]);
 
 			//set focus to first widget
@@ -186,59 +188,60 @@ void FilterEditDialog::done(int r)
 {
 	if(r == QDialog::Accepted)
 	{
-		foreach (const FilterParameter& p, filter_->parameters())
+		foreach (const Parameter& p, filter_->parameters())
 		{
+			const QString parameter_name = QString::fromUtf8(p.name());
 			try
 			{
-				switch (p.type)
+				switch (p.type())
 				{
-					case FilterParameterType::INT:
+					case ParameterType::INT:
 					{
-						filter_->setInteger(p.name, getWidget<QSpinBox*>(p.name)->value());
+						filter_->setInteger(parameter_name, getWidget<QSpinBox*>(parameter_name)->value());
 						break;
 					}
-					case FilterParameterType::DOUBLE:
+					case ParameterType::DOUBLE:
 					{
-						filter_->setDouble(p.name, getWidget<QDoubleSpinBox*>(p.name)->value());
+						filter_->setDouble(parameter_name, getWidget<QDoubleSpinBox*>(parameter_name)->value());
 						break;
 					}
-					case FilterParameterType::BOOL:
+					case ParameterType::BOOL:
 					{
-						QList<QRadioButton*> buttons = getWidgets<QRadioButton*>(p.name);
+						QList<QRadioButton*> buttons = getWidgets<QRadioButton*>(parameter_name);
 						foreach(QRadioButton* button, buttons)
 						{
 							if (button->text()=="yes")
 							{
-								filter_->setBool(p.name, button->isChecked());
+								filter_->setBool(parameter_name, button->isChecked());
 							}
 						}
 						break;
 					}
-					case FilterParameterType::STRING:
+					case ParameterType::STRING:
 					{
-						if(p.constraints.contains("valid"))
+						if(p.constraints().contains(ConstraintType::ALLOWED_VALUES))
 						{
-							QList<QRadioButton*> buttons = getWidgets<QRadioButton*>(p.name);
+							QList<QRadioButton*> buttons = getWidgets<QRadioButton*>(parameter_name);
 							foreach(QRadioButton* button, buttons)
 							{
 								if (button->isChecked())
 								{
-									filter_->setString(p.name, button->text());
+									filter_->setString(parameter_name, button->text());
 								}
 							}
 						}
 						else
 						{
-							filter_->setString(p.name, getWidget<QLineEdit*>(p.name)->text());
+							filter_->setString(parameter_name, getWidget<QLineEdit*>(parameter_name)->text());
 						}
 						break;
 					}
-					case FilterParameterType::STRINGLIST:
+					case ParameterType::STRINGLIST:
 					{
-						if(p.constraints.contains("valid"))
+						if(p.constraints().contains(ConstraintType::ALLOWED_VALUES))
 						{
 							QStringList selected;
-							QList<QCheckBox*> boxes = getWidgets<QCheckBox*>(p.name);
+							QList<QCheckBox*> boxes = getWidgets<QCheckBox*>(parameter_name);
 							foreach(QCheckBox* box, boxes)
 							{
 								if (box->isChecked())
@@ -246,23 +249,23 @@ void FilterEditDialog::done(int r)
 									selected << box->text();
 								}
 							}
-							filter_->setStringList(p.name, selected);
+							filter_->setStringList(parameter_name, selected);
 						}
 						else
 						{
-							QStringList entries = getWidget<QPlainTextEdit*>(p.name)->toPlainText().split('\n');
+							QStringList entries = getWidget<QPlainTextEdit*>(parameter_name)->toPlainText().split('\n');
 							entries.removeAll("");
-							filter_->setStringList(p.name, entries);
+							filter_->setStringList(parameter_name, entries);
 						}
 						break;
 					}
 					default:
-						THROW(ProgrammingException, "Unknown filter type '" + FilterParameter::typeAsString(p.type) + "' in FilterEditDialog!");
+						THROW(ProgrammingException, "Unknown filter type '" + Parameter::toString(p.type()) + "' in FilterEditDialog!");
 				}
 			}
 			catch (const Exception& e)
 			{
-				QMessageBox::warning(this, "Error while setting parameter " + p.name, e.message());
+				QMessageBox::warning(this, "Error while setting parameter " + parameter_name, e.message());
 				return;
 			}
 		}
@@ -270,4 +273,3 @@ void FilterEditDialog::done(int r)
 
 	QDialog::done(r);
 }
-

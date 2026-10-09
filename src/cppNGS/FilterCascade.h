@@ -9,42 +9,7 @@
 #include <QRegularExpression>
 #include "NGSHelper.h"
 
-//Parameter type
-enum class FilterParameterType
-{
-	INT,
-	DOUBLE,
-	BOOL,
-	STRING,
-	STRINGLIST
-};
-
-//Parameter
-struct CPPNGSSHARED_EXPORT FilterParameter
-{
-	//Convenience constructor
-	FilterParameter(QString n, FilterParameterType t, QVariant v, QString d);
-
-	//Returns the string representation of the value.
-	QString valueAsString() const;
-	//Returns the string representation of a parameter type.
-	static QString typeAsString(FilterParameterType type);
-
-	//Equality operator (compares name/type/value only)
-	bool operator==(const FilterParameter& rhs) const;
-	//Inequality operator
-	bool operator!=(const FilterParameter& rhs) const
-	{
-		return !operator==(rhs);
-	}
-
-	QString name;
-	FilterParameterType type;
-	QVariant value;
-	QString description;
-
-	QMap<QString, QString> constraints;
-};
+#include "ParameterList.h"
 
 //Result of a filter cascade or a single filter. Passing variant are flagged 'true', non-passing variant 'false'.
 class CPPNGSSHARED_EXPORT FilterResult
@@ -141,24 +106,24 @@ class CPPNGSSHARED_EXPORT FilterBase
 		//Sets a parameter (generic via a string)
 		void setGeneric(const QString& name, const QString& value);
 		//Sets a integer parameter
-		void setInteger(const QString& name, int value);
+		void setInteger(const QString& name, int value) { params_->setInt(name.toUtf8(), value); }
 		//Sets a boolean parameter
-		void setBool(const QString& name, bool value);
+		void setBool(const QString& name, bool value) { params_->setBool(name.toUtf8(), value); }
 		//Sets a double parameter
-		void setDouble(const QString& name, double value);
+		void setDouble(const QString& name, double value) { params_->setDouble(name.toUtf8(), value); }
 		//Sets a byte array parameter
-		void setString(const QString& name, const QString& value);
+		void setString(const QString& name, const QString& value) { params_->setString(name.toUtf8(), value.toUtf8()); }
 		//Sets a byte array parameter
 		void setStringList(const QString& name, const QStringList& value);
 
 		//Returns all parameters
-		const QList<FilterParameter>& parameters() const
+		const QList<Parameter>& parameters() const
 		{
-			return params_;
+			return params_->parameters();
 		}
 
 		//Returns if the filter has a parameter with the given name and type.
-		bool hasParameter(const QString& name, FilterParameterType type) const;
+		bool hasParameter(const QString& name, ParameterType type) const;
 
 		//Overrides a constriant of a parameter
 		void overrideConstraint(const QString& parameter_name, const QString& constraint_name, const QString& constraint_value);
@@ -180,32 +145,25 @@ class CPPNGSSHARED_EXPORT FilterBase
 		QString name_;
 		VariantType type_;
 		QStringList description_;
-		QList<FilterParameter> params_;
 		bool enabled_;
 
-		//Returns a reference to the parameter, or throws an exception if it does not exist.
-		FilterParameter& parameter(const QString& name);
-		//Returns a const reference to the parameter, or throws an exception if it does not exist.
-		const FilterParameter& parameter(const QString& name) const;
+		//Initializes metadata and validated defaults.
+		void initParameters(const QList<Parameter>& parameters, const QHash<QByteArray, QVariant>& defaults);
 
-		//Checks that the data of the given parameter has the right type
-		void checkParameterType(const QString& name, FilterParameterType type) const;
-		//Returns a parameter as a double
-		double getDouble(const QString& name, bool check_constraints = true) const;
-		//Returns a parameter as an integer
-		int getInt(const QString& name, bool check_constraints = true) const;
-		//Returns a parameter as a boolean
-		double getBool(const QString& name) const;
-		//Returns a parameter as a string
-		QString getString(const QString& name, bool check_constraints = true) const;
-		//Returns a parameter as a string list
-		QStringList getStringList(const QString& name, bool check_constraints = true) const;
+		double getDouble(const QString& name) const { return params_->getDouble(name.toUtf8()); }
+		int getInt(const QString& name) const { return params_->getInt(name.toUtf8()); }
+		bool getBool(const QString& name) const { return params_->getBool(name.toUtf8()); }
+		QString getString(const QString& name) const { return QString::fromUtf8(params_->getString(name.toUtf8())); }
+		QStringList getStringList(const QString& name) const;
 
 		//Returns the column index, or throws an exception if the column does not exist
 		int annotationColumn(const VariantList& variant_list, const QString& column, bool throw_if_missing=true) const;
 
 		//Checks if the filter is registered
 		void checkIsRegistered() const;
+
+	private:
+		QSharedPointer<ParameterList> params_;
 };
 
 //Filter cascade that contains polymorphic filters and can apply them
@@ -274,9 +232,11 @@ class CPPNGSSHARED_EXPORT FilterCascade
 		//Stores a filter cascade to file.
 		void store(QString filename);
 		//Creates a filter cascade from a tab-separated text (one filter with parameters per line).
-		static FilterCascade fromText(const QStringList& lines);
+		static FilterCascade fromText(const QByteArrayList& lines);
 		//Creates the filter cascade representation as a tab-seperated text (one filter with parameters per line).
-		QStringList toText();
+		QByteArrayList toText() const;
+		//Serializes a parameter using the filter file format (yes/no and comma-separated lists).
+		static QByteArray parameterValueAsString(const Parameter& parameter);
 
 		//Equality operator (compares name/type/parameters only)
 		bool operator==(const FilterCascade& rhs) const;

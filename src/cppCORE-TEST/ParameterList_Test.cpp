@@ -9,7 +9,7 @@ private:
 	{
 		QList<Parameter> output;
 		output.append(Parameter("height", "Height in pixels", ParameterType::INT, {{ConstraintType::MIN, 1}, {ConstraintType::MAX, 100}}));
-		output.append(Parameter("scale", "Plot scale", ParameterType::FLOAT, {{ConstraintType::MIN, -0.5}, {ConstraintType::MAX, 0.5}}));
+		output.append(Parameter("scale", "Plot scale", ParameterType::DOUBLE, {{ConstraintType::MIN, -0.5}, {ConstraintType::MAX, 0.5}}));
 		output.append(Parameter("visible", {}, ParameterType::BOOL, {}));
 		output.append(Parameter("mode", {}, ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("POINTS\tHEATMAP")}}));
 		return output;
@@ -73,7 +73,7 @@ private:
 	TEST_METHOD(enumStrings)
 	{
 		S_EQUAL(Parameter::toString(ParameterType::INT), "INT");
-		S_EQUAL(Parameter::toString(ParameterType::FLOAT), "FLOAT");
+		S_EQUAL(Parameter::toString(ParameterType::DOUBLE), "DOUBLE");
 		S_EQUAL(Parameter::toString(ParameterType::BOOL), "BOOL");
 		S_EQUAL(Parameter::toString(ParameterType::STRING), "STRING");
 		S_EQUAL(Parameter::toString(ParameterType::STRINGLIST), "STRINGLIST");
@@ -87,7 +87,7 @@ private:
 
 	TEST_METHOD(invalidConstraints)
 	{
-		for (ParameterType type : {ParameterType::INT, ParameterType::FLOAT})
+		for (ParameterType type : {ParameterType::INT, ParameterType::DOUBLE})
 		{
 			IS_THROWN(ArgumentException, Parameter("number", {}, type, {{ConstraintType::MIN, 10}, {ConstraintType::MAX, 5}}));
 			for (ConstraintType key : {ConstraintType::MIN, ConstraintType::MAX})
@@ -129,13 +129,13 @@ private:
 		initial["mode"] = QString("HEATMAP");
 		ParameterList parameters("test_list", config(), initial);
 		I_EQUAL(parameters.getInt("height"), 25);
-		F_EQUAL(parameters.getFloat("scale"), 0.25);
+		F_EQUAL(parameters.getDouble("scale"), 0.25);
 		IS_TRUE(parameters.getBool("visible"));
 		S_EQUAL(parameters.getString("mode"), "HEATMAP");
 		int changes = 0;
 		QObject::connect(&parameters, &ParameterList::parameterChanged, [&changes]() { ++changes; });
 		parameters.setInt("height", 25);
-		parameters.setFloat("scale", 0.25);
+		parameters.setDouble("scale", 0.25);
 		parameters.setBool("visible", true);
 		parameters.setString("mode", "HEATMAP");
 		I_EQUAL(changes, 0);
@@ -176,25 +176,25 @@ private:
 		parameters.setInt("height", 1);
 		I_EQUAL(observed_height, 1);
 		parameters.setInt("height", 100);
-		parameters.setFloat("scale", -0.5);
-		parameters.setFloat("scale", 0.5);
+		parameters.setDouble("scale", -0.5);
+		parameters.setDouble("scale", 0.5);
 		parameters.setBool("visible", false);
 		parameters.setString("mode", "HEATMAP");
 		I_EQUAL(changes, 6);
 		parameters.setInt("height", 100);
-		parameters.setFloat("scale", 0.5);
+		parameters.setDouble("scale", 0.5);
 		parameters.setBool("visible", false);
 		parameters.setString("mode", "HEATMAP");
 		I_EQUAL(changes, 6);
 		IS_THROWN(ArgumentException, parameters.setInt("height", 0));
 		IS_THROWN(ArgumentException, parameters.setInt("height", 101));
-		IS_THROWN(ArgumentException, parameters.setFloat("scale", 0.6));
-		IS_THROWN(ArgumentException, parameters.setFloat("scale", std::numeric_limits<double>::infinity()));
-		IS_THROWN(ArgumentException, parameters.setFloat("scale", std::numeric_limits<double>::quiet_NaN()));
+		IS_THROWN(ArgumentException, parameters.setDouble("scale", 0.6));
+		IS_THROWN(ArgumentException, parameters.setDouble("scale", std::numeric_limits<double>::infinity()));
+		IS_THROWN(ArgumentException, parameters.setDouble("scale", std::numeric_limits<double>::quiet_NaN()));
 		IS_THROWN(ArgumentException, parameters.setString("mode", "heatmap"));
 		I_EQUAL(changes, 6);
 		I_EQUAL(parameters.getInt("height"), 100);
-		F_EQUAL(parameters.getFloat("scale"), 0.5);
+		F_EQUAL(parameters.getDouble("scale"), 0.5);
 		IS_FALSE(parameters.getBool("visible"));
 		S_EQUAL(parameters.getString("mode"), "HEATMAP");
 	}
@@ -203,18 +203,18 @@ private:
 	{
 		ParameterList parameters("test_list", config(), defaults());
 		IS_THROWN(ArgumentException, parameters.getInt("unknown"));
-		IS_THROWN(ArgumentException, parameters.getFloat("unknown"));
+		IS_THROWN(ArgumentException, parameters.getDouble("unknown"));
 		IS_THROWN(ArgumentException, parameters.getBool("unknown"));
 		IS_THROWN(ArgumentException, parameters.getString("unknown"));
 		IS_THROWN(ArgumentException, parameters.setInt("unknown", 1));
-		IS_THROWN(ArgumentException, parameters.setFloat("unknown", 1.0));
+		IS_THROWN(ArgumentException, parameters.setDouble("unknown", 1.0));
 		IS_THROWN(ArgumentException, parameters.setBool("unknown", true));
 		IS_THROWN(ArgumentException, parameters.setString("unknown", "text"));
-		IS_THROWN(ArgumentException, parameters.getFloat("height"));
+		IS_THROWN(ArgumentException, parameters.getDouble("height"));
 		IS_THROWN(ArgumentException, parameters.getInt("scale"));
 		IS_THROWN(ArgumentException, parameters.getString("visible"));
 		IS_THROWN(ArgumentException, parameters.getBool("mode"));
-		IS_THROWN(ArgumentException, parameters.setFloat("height", 1.0));
+		IS_THROWN(ArgumentException, parameters.setDouble("height", 1.0));
 		IS_THROWN(ArgumentException, parameters.setInt("scale", 1));
 		IS_THROWN(ArgumentException, parameters.setString("visible", "true"));
 		IS_THROWN(ArgumentException, parameters.setBool("mode", true));
@@ -297,7 +297,7 @@ private:
 		parameters.setString("text", " ");
 		S_EQUAL(parameters.getString("text"), " ");
 		I_EQUAL(changes, 1);
-		for (ParameterType type : {ParameterType::INT, ParameterType::FLOAT, ParameterType::BOOL})
+		for (ParameterType type : {ParameterType::INT, ParameterType::DOUBLE, ParameterType::BOOL})
 		{
 			IS_THROWN(ArgumentException, Parameter("number", {}, type, {{ConstraintType::NON_EMPTY, QVariant()}}));
 		}
@@ -343,18 +343,72 @@ private:
 		X_EQUAL(parameters.getStringList("entries"), QByteArrayList({"B"}));
 	}
 
+	TEST_METHOD(singleAllowedValue)
+	{
+		for (ParameterType type : {ParameterType::STRING, ParameterType::STRINGLIST})
+		{
+			const QList<Parameter> metadata{Parameter("value", {}, type, {{ConstraintType::ALLOWED_VALUES, QByteArray("ONLY")}})};
+			const QVariant initial = type == ParameterType::STRING ? QVariant(QByteArray("ONLY")) : QVariant::fromValue(QByteArrayList({"ONLY"}));
+			ParameterList parameters("test_list", metadata, {{"value", initial}});
+			if (type == ParameterType::STRING)
+			{
+				S_EQUAL(parameters.getString("value"), "ONLY");
+				IS_THROWN(ArgumentException, parameters.setString("value", "OTHER"));
+			}
+			else
+			{
+				X_EQUAL(parameters.getStringList("value"), QByteArrayList({"ONLY"}));
+				IS_THROWN(ArgumentException, parameters.setStringList("value", {"OTHER"}));
+			}
+		}
+		IS_THROWN(ArgumentException, Parameter("value", {}, ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, 1}}));
+	}
+
+	TEST_METHOD(dynamicConstraints)
+	{
+		ParameterList parameters("test_list", config(), defaults());
+		int value_changes = 0;
+		int constraint_changes = 0;
+		QObject::connect(&parameters, &ParameterList::parameterChanged, [&]() { ++value_changes; });
+		QObject::connect(&parameters, &ParameterList::constraintsChanged, [&]() { ++constraint_changes; });
+		parameters.overrideConstraint("height", ConstraintType::MAX, 20);
+		I_EQUAL(constraint_changes, 1);
+		parameters.overrideConstraint("height", ConstraintType::MAX, 20);
+		I_EQUAL(constraint_changes, 1);
+		IS_THROWN(ArgumentException, parameters.setInt("height", 21));
+		IS_THROWN(ArgumentException, parameters.overrideConstraint("height", ConstraintType::MAX, 5));
+		IS_THROWN(ArgumentException, parameters.overrideConstraint("height", ConstraintType::MIN, 30));
+		IS_THROWN(ArgumentException, parameters.overrideConstraint("height", ConstraintType::MAX, "invalid"));
+		IS_THROWN(ArgumentException, parameters.overrideConstraint("height", ConstraintType::NON_EMPTY, QVariant()));
+		IS_THROWN(ArgumentException, parameters.overrideConstraint("unknown", ConstraintType::MAX, 1));
+		I_EQUAL(parameters.parameter("height").constraints().value(ConstraintType::MAX).toInt(), 20);
+		I_EQUAL(parameters.getInt("height"), 10);
+		parameters.overrideConstraint("mode", ConstraintType::ALLOWED_VALUES, QByteArray("POINTS"));
+		IS_THROWN(ArgumentException, parameters.setString("mode", "HEATMAP"));
+		IS_THROWN(ArgumentException, parameters.overrideConstraint("mode", ConstraintType::ALLOWED_VALUES, QByteArray("HEATMAP")));
+		parameters.overrideConstraint("mode", ConstraintType::ALLOWED_VALUES, QByteArray("POINTS\tNEW"));
+		parameters.setString("mode", "NEW");
+		I_EQUAL(constraint_changes, 3);
+		I_EQUAL(value_changes, 1);
+
+		ParameterList list("test_list", {Parameter("entries", {}, ParameterType::STRINGLIST, {})}, {{"entries", QVariant::fromValue(QByteArrayList({"A"}))}});
+		list.overrideConstraint("entries", ConstraintType::ALLOWED_VALUES, QByteArray("A"));
+		IS_THROWN(ArgumentException, list.overrideConstraint("entries", ConstraintType::ALLOWED_VALUES, QByteArray("B")));
+		X_EQUAL(list.getStringList("entries"), QByteArrayList({"A"}));
+	}
+
 	TEST_METHOD(unconstrainedValues)
 	{
 		QList<Parameter> metadata;
 		metadata.append(Parameter("integer", {}, ParameterType::INT, {}));
-		metadata.append(Parameter("float", {}, ParameterType::FLOAT, {}));
+		metadata.append(Parameter("float", {}, ParameterType::DOUBLE, {}));
 		metadata.append(Parameter("text", {}, ParameterType::STRING, {}));
 		ParameterList parameters("test_list", metadata, {{"integer", std::numeric_limits<int>::min()}, {"float", 0.0}, {"text", QByteArray("")}});
 		I_EQUAL(parameters.getInt("integer"), std::numeric_limits<int>::min());
 		parameters.setInt("integer", std::numeric_limits<int>::max());
 		I_EQUAL(parameters.getInt("integer"), std::numeric_limits<int>::max());
-		parameters.setFloat("float", std::numeric_limits<double>::max());
-		IS_TRUE(parameters.getFloat("float") == std::numeric_limits<double>::max());
+		parameters.setDouble("float", std::numeric_limits<double>::max());
+		IS_TRUE(parameters.getDouble("float") == std::numeric_limits<double>::max());
 		S_EQUAL(parameters.getString("text"), "");
 		parameters.setString("text", QByteArray("one\ttwo"));
 		S_EQUAL(parameters.getString("text"), "one\ttwo");

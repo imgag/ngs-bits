@@ -7,72 +7,14 @@
 #include "GeneSet.h"
 #include "cmath"
 
-/*************************************************** FilterParameter ***************************************************/
-
-FilterParameter::FilterParameter(QString n, FilterParameterType t, QVariant v, QString d)
-	: name(n)
-	, type(t)
-	, value(v)
-	, description(d)
+namespace
 {
-}
-
-QString FilterParameter::valueAsString() const
-{
-	if (type==FilterParameterType::INT || type==FilterParameterType::DOUBLE || type==FilterParameterType::STRING)
+	QByteArrayList byteArrayList(const QStringList& strings)
 	{
-		return value.toString();
+		QByteArrayList output;
+		for (const QString& string : strings) output.append(string.toUtf8());
+		return output;
 	}
-	else if (type==FilterParameterType::BOOL)
-	{
-		return value.toBool() ? "yes" : "no";
-	}
-	else if (type==FilterParameterType::STRINGLIST)
-	{
-		return value.toStringList().join(",");
-	}
-	else
-	{
-		THROW(ProgrammingException, "Missing type in FilterParameter::typeAsString!");
-	}
-}
-
-QString FilterParameter::typeAsString(FilterParameterType type)
-{
-	if (type==FilterParameterType::INT)
-	{
-		return "INT";
-	}
-	else if (type==FilterParameterType::DOUBLE)
-	{
-		return "DOUBLE";
-	}
-	else if (type==FilterParameterType::BOOL)
-	{
-		return "BOOL";
-	}
-	else if (type==FilterParameterType::STRING)
-	{
-		return "STRING";
-	}
-	else if (type==FilterParameterType::STRINGLIST)
-	{
-		return "STRINGLIST";
-	}
-	else
-	{
-		THROW(ProgrammingException, "Missing type in FilterParameter::typeAsString!");
-	}
-}
-
-bool FilterParameter::operator==(const FilterParameter& rhs) const
-{
-	if (name!=rhs.name) return false;
-	if (type!=rhs.type) return false;
-    if (value.metaType()!=rhs.value.metaType()) return false;
-	if (valueAsString()!=rhs.valueAsString()) return false;
-
-	return true;
 }
 
 
@@ -239,8 +181,8 @@ FilterBase::FilterBase()
 	: name_()
 	, type_(VariantType::SNVS_INDELS)
 	, description_()
-	, params_()
 	, enabled_(true)
+	, params_(QSharedPointer<ParameterList>::create(QByteArray(), QList<Parameter>(), QHash<QByteArray, QVariant>()))
 {
 }
 
@@ -251,122 +193,88 @@ FilterBase::~FilterBase()
 QStringList FilterBase::description(bool add_parameter_description) const
 {
 	QStringList output = description_;
-	if (add_parameter_description && params_.count()>0)
+	if (add_parameter_description && !parameters().isEmpty())
 	{
 		output << "Parameters:";
-
-        for (const FilterParameter& p : params_)
+		for (const Parameter& p : parameters())
 		{
-			QString text = p.name + " - " + p.description;
-			QString default_value = p.type==FilterParameterType::STRINGLIST ? p.value.toStringList().join(",").trimmed() : p.value.toString().trimmed();
-			if (default_value!="")
-			{
-				text += " [default=" + default_value + "]";
-			}
-			if (p.type==FilterParameterType::INT || p.type==FilterParameterType::DOUBLE)
-			{
-				if (p.constraints.contains("min"))
-				{
-					text += " [min=" + p.constraints["min"] + "]";
-				}
-				if (p.constraints.contains("max"))
-				{
-					text += " [max=" + p.constraints["max"] + "]";
-				}
-			}
-			else if (p.type==FilterParameterType::STRING || p.type==FilterParameterType::STRINGLIST)
-			{
-				if (p.constraints.contains("valid"))
-				{
-					text += " [valid=" + p.constraints["valid"] + "]";
-				}
-				if (p.constraints.contains("not_empty"))
-				{
-					text += " [non-empty]";
-				}
-			}
+			QString text = QString::fromUtf8(p.name()) + " - " + p.description();
+			QString default_value = p.type() == ParameterType::BOOL ? p.value().toString() : QString::fromUtf8(FilterCascade::parameterValueAsString(p)).trimmed();
+			if (!default_value.isEmpty()) text += " [default=" + default_value + "]";
+			const auto& constraints = p.constraints();
+			if (constraints.contains(ConstraintType::MIN)) text += " [min=" + constraints.value(ConstraintType::MIN).toString() + "]";
+			if (constraints.contains(ConstraintType::MAX)) text += " [max=" + constraints.value(ConstraintType::MAX).toString() + "]";
+			if (constraints.contains(ConstraintType::ALLOWED_VALUES)) text += " [valid=" + QString::fromUtf8(constraints.value(ConstraintType::ALLOWED_VALUES).toByteArray()).replace('\t', ',') + "]";
+			if (constraints.contains(ConstraintType::NON_EMPTY)) text += " [non-empty]";
 			output << "  " + text;
 		}
 	}
 	return output;
 }
 
+void FilterBase::initParameters(const QList<Parameter>& parameters, const QHash<QByteArray, QVariant>& defaults)
+{
+	params_ = QSharedPointer<ParameterList>::create(name_.toUtf8(), parameters, defaults);
+}
+
 void FilterBase::setGeneric(const QString& name, const QString& value)
 {
-	FilterParameterType type = parameter(name).type;
-	if (type==FilterParameterType::DOUBLE)
+	switch (params_->parameter(name.toUtf8()).type())
 	{
-		bool ok = false;
-		double value_conv = value.toDouble(&ok);
-		if (!ok) THROW(ArgumentException, "Could not convert '" + value + "' to double (parameter '" + name + "' of filter '" + this->name() + "')!");
-
-		setDouble(name, value_conv);
+		case ParameterType::DOUBLE:
+			setDouble(name, Helper::toDouble(value, name));
+			break;
+		case ParameterType::INT:
+			setInteger(name, Helper::toInt(value, name));
+			break;
+		case ParameterType::BOOL:
+			if (value.toLower() == "yes" || value.toLower() == "true") setBool(name, true);
+			else if (value.toLower() == "no" || value.toLower() == "false") setBool(name, false);
+			else THROW(ArgumentException, "Could not convert '" + value + "' to boolean (parameter '" + name + "' of filter '" + this->name() + "')!");
+			break;
+		case ParameterType::STRING:
+			setString(name, value);
+			break;
+		case ParameterType::STRINGLIST:
+			setStringList(name, value.split(',', Qt::SkipEmptyParts));
+			break;
+		default:
+			THROW(ProgrammingException, "Unhandled filter parameter type!");
 	}
-	else if (type==FilterParameterType::INT)
-	{
-		bool ok = false;
-		int value_conv = value.toInt(&ok);
-		if (!ok) THROW(ArgumentException, "Could not convert '" + value + "' to integer (parameter '" + name + "' of filter '" + this->name() + "')!");
-
-		setInteger(name, value_conv);
-	}
-	else if (type==FilterParameterType::BOOL)
-	{
-		bool value_conv;
-		if (value.toLower()=="yes" || value.toLower()=="true") value_conv = true;
-		else if (value.toLower()=="no" || value.toLower()=="false") value_conv = false;
-		else THROW(ArgumentException, "Could not convert '" + value + "' to boolean (parameter '" + name + "' of filter '" + this->name() + "')!");
-
-		setBool(name, value_conv);
-	}
-	else if (type==FilterParameterType::STRING)
-	{
-		setString(name, value);
-	}
-	else if (type==FilterParameterType::STRINGLIST)
-	{
-        setStringList(name, value.split(',', Qt::SkipEmptyParts));
-	}
-	else
-	{
-		THROW(ProgrammingException, "Filter parameter type '" + FilterParameter::typeAsString(type) + "' not supported in setGenericParameter (parameter '" + name + "' of filter '" + this->name() + "')!");
-	}
-}
-
-void FilterBase::setDouble(const QString& name, double value)
-{
-	checkParameterType(name, FilterParameterType::DOUBLE);
-
-	parameter(name).value = value;
-}
-
-void FilterBase::setString(const QString& name, const QString& value)
-{
-	checkParameterType(name, FilterParameterType::STRING);
-
-	parameter(name).value = value;
 }
 
 void FilterBase::setStringList(const QString& name, const QStringList& value)
 {
-	checkParameterType(name, FilterParameterType::STRINGLIST);
-
-	parameter(name).value = value;
+	params_->setStringList(name.toUtf8(), byteArrayList(value));
 }
 
-bool FilterBase::hasParameter(const QString& name, FilterParameterType type) const
+QStringList FilterBase::getStringList(const QString& name) const
 {
-	for (int i=0; i<params_.count(); ++i)
-	{
-		if (params_[i].name==name && params_[i].type==type) return true;
-	}
+	QStringList output;
+	for (const QByteArray& entry : params_->getStringList(name.toUtf8())) output.append(QString::fromUtf8(entry));
+	return output;
+}
 
+bool FilterBase::hasParameter(const QString& name, ParameterType type) const
+{
+	for (const Parameter& parameter : parameters())
+	{
+		if (parameter.name() == name.toUtf8() && parameter.type() == type) return true;
+	}
 	return false;
 }
 
 void FilterBase::overrideConstraint(const QString& parameter_name, const QString& constraint_name, const QString& constraint_value)
 {
-	parameter(parameter_name).constraints[constraint_name] = constraint_value;
+	ConstraintType type;
+	if (constraint_name == "min") type = ConstraintType::MIN;
+	else if (constraint_name == "max") type = ConstraintType::MAX;
+	else if (constraint_name == "valid") type = ConstraintType::ALLOWED_VALUES;
+	else if (constraint_name == "not_empty" || constraint_name == "non-empty") type = ConstraintType::NON_EMPTY;
+	else THROW(ArgumentException, "Unknown filter constraint '" + constraint_name + "'!");
+	const QVariant value = type == ConstraintType::ALLOWED_VALUES ? QVariant(constraint_value.toUtf8().replace(',', '\t')) : QVariant(constraint_value);
+	//TODO Marc: Constraint updates that invalidate existing selections throw an exception. Decide how the UI should handle them.
+	params_->overrideConstraint(parameter_name.toUtf8(), type, value);
 }
 
 void FilterBase::apply(const VariantList& /*variant_list*/, FilterResult& /*result*/) const
@@ -388,173 +296,6 @@ void FilterBase::apply(const CnvList& /*variant_list*/, FilterResult& /*result*/
 void FilterBase::apply(const BedpeFile& /*sv_list*/, FilterResult& /*result*/) const
 {
 	THROW(NotImplementedException, "Method apply on BedpeFile not implemented for filter '" + name() + "'!");
-}
-
-void FilterBase::setInteger(const QString& name, int value)
-{
-	checkParameterType(name, FilterParameterType::INT);
-
-	parameter(name).value = value;
-}
-
-void FilterBase::setBool(const QString& name, bool value)
-{
-	checkParameterType(name, FilterParameterType::BOOL);
-
-	parameter(name).value = value;
-}
-
-FilterParameter& FilterBase::parameter(const QString& name)
-{
-	for (int i=0; i<params_.count(); ++i)
-	{
-		if (params_[i].name==name) return params_[i];
-	}
-
-	THROW(ArgumentException, "Filter '" + this->name() + "' has no parameter '" + name + "'");
-}
-
-const FilterParameter& FilterBase::parameter(const QString& name) const
-{
-	for (int i=0; i<params_.count(); ++i)
-	{
-		if (params_[i].name==name) return params_[i];
-	}
-
-	THROW(ArgumentException, "Filter '" + this->name() + "' has no parameter '" + name + "'");
-}
-
-void FilterBase::checkParameterType(const QString& name, FilterParameterType type) const
-{
-	const FilterParameter& p = parameter(name);
-	if (p.type!=type)
-	{
-		THROW(ProgrammingException, "Parameter '" + name + "' of filter '" + this->name() + "' used as '" + FilterParameter::typeAsString(type) + "', but has type '" + FilterParameter::typeAsString(p.type) + "!");
-	}
-}
-
-double FilterBase::getDouble(const QString& name, bool check_constraints) const
-{
-	checkParameterType(name, FilterParameterType::DOUBLE);
-
-	const FilterParameter& p = parameter(name);
-
-	//value
-	bool ok;
-	double value = p.value.toDouble(&ok);
-	if (!ok) THROW(ArgumentException, "Could not convert '" + p.value.toString() + "' to double (parameter '" + name + "' of filter '" + this->name() + "')!");
-
-	if (check_constraints)
-	{
-		if (p.constraints.contains("min") && value < p.constraints["min"].toDouble())
-		{
-			THROW(ArgumentException, "Double value '" + QString::number(value) + "' smaller than minimum '" + p.constraints["min"] + "' (parameter '" + name + "' of filter '" + this->name() + "')!");
-		}
-		if (p.constraints.contains("max") && value > p.constraints["max"].toDouble())
-		{
-			THROW(ArgumentException, "Double value '" + QString::number(value) + "' bigger than maximum '" + p.constraints["max"] + "' (parameter '" + name + "' of filter '" + this->name() + "')!");
-		}
-	}
-
-	return value;
-}
-
-int FilterBase::getInt(const QString& name, bool check_constraints) const
-{
-	checkParameterType(name, FilterParameterType::INT);
-
-	const FilterParameter& p = parameter(name);
-
-	//value
-	bool ok;
-	int value = p.value.toInt(&ok);
-	if (!ok) THROW(ArgumentException, "Could not convert '" + p.value.toString() + "' to integer (parameter '" + name + "' of filter '" + this->name() + "')!");
-
-	if (check_constraints)
-	{
-		if (p.constraints.contains("min") && value < p.constraints["min"].toInt())
-		{
-			THROW(ArgumentException, "Integer value '" + QString::number(value) + "' smaller than minimum '" + p.constraints["min"] + "' (parameter '" + name + "' of filter '" + this->name() + "')!");
-		}
-		if (p.constraints.contains("max") && value > p.constraints["max"].toInt())
-		{
-			THROW(ArgumentException, "Integer value '" + QString::number(value) + "' bigger than maximum '" + p.constraints["max"] + "' (parameter '" + name + "' of filter '" + this->name() + "')!");
-		}
-	}
-
-	return value;
-}
-
-double FilterBase::getBool(const QString& name) const
-{
-	checkParameterType(name, FilterParameterType::BOOL);
-
-	const FilterParameter& p = parameter(name);
-
-	return p.value.toBool();
-}
-
-QString FilterBase::getString(const QString& name, bool check_constraints) const
-{
-	checkParameterType(name, FilterParameterType::STRING);
-
-	const FilterParameter& p = parameter(name);
-
-	QString value = p.value.toString().trimmed();
-
-	if (check_constraints)
-	{
-		if (p.constraints.contains("valid"))
-		{
-			QStringList valid = p.constraints["valid"].split(',');
-			if (!valid.contains(value))
-			{
-				THROW(ArgumentException, "String value '" + value + "' not valid. Valid are: '" + valid.join("', '") + "' (parameter '" + name + "' of filter '" + this->name() + "')!");
-			}
-		}
-		if (p.constraints.contains("not_empty"))
-		{
-			if (value.isEmpty())
-			{
-				THROW(ArgumentException, "String value '" + value + "' must not be empty! (parameter '" + name + "' of filter '" + this->name() + "')!");
-			}
-		}
-	}
-
-	return value;
-}
-
-QStringList FilterBase::getStringList(const QString& name, bool check_constraints) const
-{
-	checkParameterType(name, FilterParameterType::STRINGLIST);
-
-	const FilterParameter& p = parameter(name);
-
-	QStringList list = p.value.toStringList();
-
-	if (check_constraints)
-	{
-		if (p.constraints.contains("valid"))
-		{
-			QStringList valid = p.constraints["valid"].split(',');
-			for (const QString& value : std::as_const(list))
-			{
-				if (!valid.contains(value))
-				{
-					THROW(ArgumentException, "String list value '" + value + "' not valid. Valid are: '" + valid.join("', '") + "' (parameter '" + name + "' of filter '" + this->name() + "')!");
-				}
-			}
-		}
-		if (p.constraints.contains("not_empty"))
-		{
-			if (list.join("").isEmpty())
-			{
-				THROW(ArgumentException, "String list must not be empty! (parameter '" + name + "' of filter '" + this->name() + "')!");
-			}
-		}
-	}
-
-	return list;
 }
 
 int FilterBase::annotationColumn(const VariantList& variant_list, const QString& column, bool throw_if_missing) const
@@ -744,47 +485,61 @@ void FilterCascade::load(QString filename)
 	clear();
 
 	//load filters from file
-	QStringList lines = Helper::loadTextFile(filename, true, QChar::Null, true);
-	operator=(fromText(lines));
+	QSharedPointer<QFile> file = Helper::openFileForReading(filename);
+	operator=(fromText(file->readAll().split('\n')));
 }
 
 void FilterCascade::store(QString filename)
 {
 	QSharedPointer<QFile> file = Helper::openFileForWriting(filename);
-	file->write(toText().join("\n").toUtf8());
+	file->write(toText().join('\n'));
 	file->close();
 }
 
-QStringList FilterCascade::toText()
+QByteArray FilterCascade::parameterValueAsString(const Parameter& parameter)
 {
-	QStringList lines;
+	switch (parameter.type())
+	{
+		case ParameterType::BOOL: return parameter.value().toBool() ? "yes" : "no";
+		case ParameterType::STRINGLIST: return parameter.value().value<QByteArrayList>().join(',');
+		case ParameterType::STRING: return parameter.value().toByteArray();
+		case ParameterType::INT:
+		case ParameterType::DOUBLE: return parameter.value().toByteArray();
+	}
+	THROW(ProgrammingException, "Unhandled filter parameter type!");
+}
+
+QByteArrayList FilterCascade::toText() const
+{
+	QByteArrayList lines;
 	for (const QSharedPointer<FilterBase>& filter : std::as_const(filters_))
 	{
-		QStringList params;
-        for (const FilterParameter& param : filter->parameters())
+		QByteArrayList params;
+		for (const Parameter& param : filter->parameters())
 		{
-			params << param.name + "=" + param.valueAsString();
+			params << param.name() + "=" + parameterValueAsString(param);
 		}
 		if (!filter->enabled()) params << "disabled";
 
-		lines << filter->name() + "\t" + params.join("\t");
+		lines << filter->name().toUtf8() + '\t' + params.join('\t');
 	}
 
 	return lines;
 }
 
-FilterCascade FilterCascade::fromText(const QStringList& lines)
+FilterCascade FilterCascade::fromText(const QByteArrayList& lines)
 {
 	FilterCascade output;
 
-    for (QString line : lines)
+	for (QByteArray line : lines)
 	{
 		line = line.trimmed();
 		if (line.isEmpty()) continue;
 
-		QStringList parts = line.split("\t");
-		QString name = parts[0];
-		output.add(FilterFactory::create(name, parts.mid(1)));
+		QByteArrayList parts = line.split('\t');
+		QStringList parameters;
+		for (int i = 1; i < parts.size(); ++i) parameters.append(QString::fromUtf8(parts[i]));
+		output.add(FilterFactory::create(QString::fromUtf8(parts[0]), parameters));
 	}
 
 	return output;
@@ -806,7 +561,9 @@ bool FilterCascade::operator==(const FilterCascade& rhs) const
 		if (f1->parameters().count()!=f2->parameters().count()) return false;
 		for (int j=0; j<f1->parameters().count(); ++j)
 		{
-			if (f1->parameters()[j]!=f2->parameters()[j]) return false;
+			const Parameter& p1 = f1->parameters()[j];
+			const Parameter& p2 = f2->parameters()[j];
+			if (p1.name() != p2.name() || p1.type() != p2.type() || p1.value().metaType() != p2.value().metaType() || parameterValueAsString(p1) != parameterValueAsString(p2)) return false;
 		}
 	}
 
@@ -835,7 +592,7 @@ FilterCascade FilterCascadeFile::load(QString filename, QString filter)
 	QStringList filter_file = Helper::loadTextFile(filename, true, QChar::Null, true);
 
 	//extract text of filter
-	QStringList filter_text;
+	QByteArrayList filter_text;
 	bool in_filter = false;
 	for (const QString& line : std::as_const(filter_file))
 	{
@@ -845,7 +602,7 @@ FilterCascade FilterCascadeFile::load(QString filename, QString filter)
 		}
 		else if (in_filter)
 		{
-			filter_text << line;
+			filter_text << line.toUtf8();
 		}
 	}
 
@@ -1001,16 +758,18 @@ FilterAlleleFrequency::FilterAlleleFrequency()
 {
 	name_ = "Allele frequency";
 	description_ = QStringList() << "Filter based on overall allele frequency given by gnomAD and if available 1000g.";
-	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency in %");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "100.0";
+	initParameters({
+		Parameter("max_af", "Maximum allele frequency in %", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "100.0"}})
+	}, {
+		{"max_af", 1.0}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterAlleleFrequency::toText() const
 {
-	return name() + " &le; " + QString::number(getDouble("max_af", false), 'f', 2) + '%';
+	return name() + " &le; " + QString::number(getDouble("max_af"), 'f', 2) + '%';
 }
 
 void FilterAlleleFrequency::apply(const VariantList& variants, FilterResult& result) const
@@ -1049,15 +808,18 @@ FilterGenes::FilterGenes()
 {
 	name_ = "Genes";
 	description_ = QStringList() << "Filter that preserves a gene set.";
-	params_ << FilterParameter("genes", FilterParameterType::STRINGLIST, QStringList(), "Gene set");
-	params_.last().constraints["not_empty"] = "";
+	initParameters({
+		Parameter("genes", "Gene set", ParameterType::STRINGLIST, {{ConstraintType::NON_EMPTY, QVariant()}})
+	}, {
+		{"genes", QVariant::fromValue(QByteArrayList())}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterGenes::toText() const
 {
-	return name() + " " + getStringList("genes", false).join(",");
+	return name() + " " + getStringList("genes").join(",");
 }
 
 void FilterGenes::apply(const VariantList& variants, FilterResult& result) const
@@ -1208,7 +970,11 @@ FilterVariantIsSNV::FilterVariantIsSNV()
 {
 	name_ = "SNVs only";
 	description_ = QStringList() << "Filter that preserves SNVs and removes all other variant types.";
-	params_ << FilterParameter("invert", FilterParameterType::BOOL, false, "If set, removes all SNVs and keeps all other variants.");
+	initParameters({
+		Parameter("invert", "If set, removes all SNVs and keeps all other variants.", ParameterType::BOOL, {})
+	}, {
+		{"invert", false}
+	});
 
 	checkIsRegistered();
 }
@@ -1254,16 +1020,18 @@ FilterSubpopulationAlleleFrequency::FilterSubpopulationAlleleFrequency()
 {
 	name_ = "Allele frequency (sub-populations)";
 	description_ = QStringList() << "Filter based on sub-population allele frequency given by gnomAD.";
-	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency in %");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "100.0";
+	initParameters({
+		Parameter("max_af", "Maximum allele frequency in %", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "100.0"}})
+	}, {
+		{"max_af", 1.0}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterSubpopulationAlleleFrequency::toText() const
 {
-	return name() + " &le; " + QString::number(getDouble("max_af", false), 'f', 2) + '%';
+	return name() + " &le; " + QString::number(getDouble("max_af"), 'f', 2) + '%';
 }
 
 void FilterSubpopulationAlleleFrequency::apply(const VariantList& variants, FilterResult& result) const
@@ -1296,16 +1064,18 @@ FilterVariantImpact::FilterVariantImpact()
 	name_ = "Impact";
 	description_ = QStringList() << "Filter based on the variant impact given by VEP." << "For more details see: https://www.ensembl.org/info/genome/variation/prediction/predicted_data.html";
 
-	params_ << FilterParameter("impact", FilterParameterType::STRINGLIST, QStringList() << "HIGH" << "MODERATE" << "LOW", "Valid impacts");
-	params_.last().constraints["valid"] = "HIGH,MODERATE,LOW,MODIFIER";
-	params_.last().constraints["not_empty"] = "";
+	initParameters({
+		Parameter("impact", "Valid impacts", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("HIGH\tMODERATE\tLOW\tMODIFIER")}, {ConstraintType::NON_EMPTY, QVariant()}})
+	}, {
+		{"impact", QVariant::fromValue(QByteArrayList({"HIGH", "MODERATE", "LOW"}))}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterVariantImpact::toText() const
 {
-	return name() + " " + getStringList("impact", false).join(",");
+	return name() + " " + getStringList("impact").join(",");
 }
 
 void FilterVariantImpact::apply(const VariantList& variants, FilterResult& result) const
@@ -1341,17 +1111,22 @@ FilterVariantCountNGSD::FilterVariantCountNGSD()
 {
 	name_ = "Count NGSD";
 	description_ = QStringList() << "Filter based on the hom/het occurances of a variant in the NGSD.";
-	params_ << FilterParameter("max_count", FilterParameterType::INT, 20, "Maximum NGSD count");
-	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("ignore_genotype", FilterParameterType::BOOL, false, "If set, all variants in NGSD are counted independent of the genotype. Otherwise, for homozygous variants only homozygous NGSD variants are counted and for heterozygous variants homozygous and heterozygous NGSD variants are counted.");
-	params_ << FilterParameter("mosaic_as_het", FilterParameterType::BOOL, false, "If set, mosaic variants are counted as heterozygous. Otherwise, they are not counted.");
+	initParameters({
+		Parameter("max_count", "Maximum NGSD count", ParameterType::INT, {{ConstraintType::MIN, "0"}}),
+		Parameter("ignore_genotype", "If set, all variants in NGSD are counted independent of the genotype. Otherwise, for homozygous variants only homozygous NGSD variants are counted and for heterozygous variants homozygous and heterozygous NGSD variants are counted.", ParameterType::BOOL, {}),
+		Parameter("mosaic_as_het", "If set, mosaic variants are counted as heterozygous. Otherwise, they are not counted.", ParameterType::BOOL, {})
+	}, {
+		{"max_count", 20},
+		{"ignore_genotype", false},
+		{"mosaic_as_het", false}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterVariantCountNGSD::toText() const
 {
-	return name() + " &le; " + QString::number(getInt("max_count", false)) + (getBool("ignore_genotype") ? " (ignore genotype)" : "") + + (getBool("mosaic_as_het") ? " (mosaic as het)" : "");
+	return name() + " &le; " + QString::number(getInt("max_count")) + (getBool("ignore_genotype") ? " (ignore genotype)" : "") + + (getBool("mosaic_as_het") ? " (mosaic as het)" : "");
 }
 
 void FilterVariantCountNGSD::apply(const VariantList& variants, FilterResult& result) const
@@ -1417,17 +1192,20 @@ FilterFilterColumn::FilterFilterColumn()
 	name_ = "Filter columns";
 	description_ = QStringList() << "Filter based on the entries of the 'filter' column.";
 
-	params_ << FilterParameter("entries", FilterParameterType::STRINGLIST, QStringList(), "Filter column entries");
-	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("action", FilterParameterType::STRING, "REMOVE", "Action to perform");
-	params_.last().constraints["valid"] = "KEEP,REMOVE,FILTER";
+	initParameters({
+		Parameter("entries", "Filter column entries", ParameterType::STRINGLIST, {{ConstraintType::NON_EMPTY, QVariant()}}),
+		Parameter("action", "Action to perform", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("KEEP\tREMOVE\tFILTER")}})
+	}, {
+		{"entries", QVariant::fromValue(QByteArrayList())},
+		{"action", QByteArray("REMOVE")}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterFilterColumn::toText() const
 {
-	return name() + " " + getString("action", false) + ": " + getStringList("entries", false).join(",");
+	return name() + " " + getString("action") + ": " + getStringList("entries").join(",");
 }
 
 void FilterFilterColumn::apply(const VariantList& variants, FilterResult& result) const
@@ -1486,18 +1264,20 @@ FilterClassificationNGSD::FilterClassificationNGSD()
 	name_ = "Classification NGSD";
 	description_ = QStringList() << "Filter for variant classification from NGSD.";
 
-	params_ << FilterParameter("classes", FilterParameterType::STRINGLIST, QStringList() << "4" << "5", "NGSD classes");
-	params_.last().constraints["valid"] = "1,2,3,4,5,M,R";
-	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("action", FilterParameterType::STRING, "KEEP", "Action to perform");
-	params_.last().constraints["valid"] = "KEEP,FILTER,REMOVE";
+	initParameters({
+		Parameter("classes", "NGSD classes", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("1\t2\t3\t4\t5\tM\tR")}, {ConstraintType::NON_EMPTY, QVariant()}}),
+		Parameter("action", "Action to perform", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("KEEP\tFILTER\tREMOVE")}})
+	}, {
+		{"classes", QVariant::fromValue(QByteArrayList({"4", "5"}))},
+		{"action", QByteArray("KEEP")}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterClassificationNGSD::toText() const
 {
-	return name() + " " + getString("action", false) + ": " + getStringList("classes", false).join(",");
+	return name() + " " + getString("action") + ": " + getStringList("classes").join(",");
 }
 
 void FilterClassificationNGSD::apply(const VariantList& variants, FilterResult& result) const
@@ -1551,16 +1331,18 @@ FilterGeneInheritance::FilterGeneInheritance()
 	name_ = "Gene inheritance";
 	description_ = QStringList() << "Filter based on gene inheritance.";
 
-	params_ << FilterParameter("modes", FilterParameterType::STRINGLIST, QStringList(), "Inheritance mode(s)");
-	params_.last().constraints["valid"] = "AR,AD,XLR,XLD,MT,n/a";
-	params_.last().constraints["not_empty"] = "";
+	initParameters({
+		Parameter("modes", "Inheritance mode(s)", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("AR\tAD\tXLR\tXLD\tMT\tn/a")}, {ConstraintType::NON_EMPTY, QVariant()}})
+	}, {
+		{"modes", QVariant::fromValue(QByteArrayList())}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterGeneInheritance::toText() const
 {
-	return name() + " " + getStringList("modes", false).join(",");
+	return name() + " " + getStringList("modes").join(",");
 }
 
 void FilterGeneInheritance::apply(const VariantList& variants, FilterResult& result) const
@@ -1608,16 +1390,18 @@ FilterGeneConstraint::FilterGeneConstraint()
 	name_ = "Gene constraint";
 	description_ = QStringList() << "Filter based on gene constraint (gnomAD o/e score for LOF variants)." << "Note that gene constraint is most helpful for early-onset severe diseases." << "For details on gnomAD o/e, see https://macarthurlab.org/2018/10/17/gnomad-v2-1/";
 
-	params_ << FilterParameter("max_oe_lof", FilterParameterType::DOUBLE, 0.35, "Maximum gnomAD o/e score for LoF variants. Set below 0 to disable.");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "4.0";
+	initParameters({
+		Parameter("max_oe_lof", "Maximum gnomAD o/e score for LoF variants (0 to 4).", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "4.0"}})
+	}, {
+		{"max_oe_lof", 0.35}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterGeneConstraint::toText() const
 {
-	return name() + " o/e&le;" + QString::number(getDouble("max_oe_lof", false), 'f', 2);
+	return name() + " o/e&le;" + QString::number(getDouble("max_oe_lof"), 'f', 2);
 }
 
 void FilterGeneConstraint::apply(const VariantList& variants, FilterResult& result) const
@@ -1665,17 +1449,20 @@ FilterGenotypeControl::FilterGenotypeControl()
 	name_ = "Genotype control";
 	description_ = QStringList() << "Filter for genotype of the 'control' sample(s).";
 
-	params_ << FilterParameter("genotypes", FilterParameterType::STRINGLIST, QStringList(), "Genotype(s)");
-	params_.last().constraints["valid"] = "wt,het,hom,n/a";
-	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("same_genotype", FilterParameterType::BOOL, false, "Also check that all 'control' samples have the same genotype.");
+	initParameters({
+		Parameter("genotypes", "Genotype(s)", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("wt\thet\thom\tn/a")}, {ConstraintType::NON_EMPTY, QVariant()}}),
+		Parameter("same_genotype", "Also check that all 'control' samples have the same genotype.", ParameterType::BOOL, {})
+	}, {
+		{"genotypes", QVariant::fromValue(QByteArrayList())},
+		{"same_genotype", false}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterGenotypeControl::toText() const
 {
-	return name() + " " + getStringList("genotypes", false).join(",");
+	return name() + " " + getStringList("genotypes").join(",");
 }
 
 void FilterGenotypeControl::apply(const VariantList& variants, FilterResult& result) const
@@ -1740,17 +1527,20 @@ FilterGenotypeAffected::FilterGenotypeAffected()
 								 << "comp-het (phased) only works on phased data (long-read) on completely phased genes and keeps all het variants where are at least one het variant on each allele per gene."
 								 << "comp-het (unphased) only works on phased data (long-read) on genes with at least one unphased variant or multiple phasing blocks and keeps all het variants where are at least two het variant per gene (inverse of com-het (phased))."
 								 << "You can only select one of the three above at a time.";
-	params_ << FilterParameter("genotypes", FilterParameterType::STRINGLIST, QStringList(), "Genotype(s)");
-	params_.last().constraints["valid"] = "wt,het,hom,n/a,comp-het,comp-het (phased),comp-het (unphased)";
-	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("same_genotype", FilterParameterType::BOOL, false, "Also check that all 'control' samples have the same genotype.");
+	initParameters({
+		Parameter("genotypes", "Genotype(s)", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("wt\thet\thom\tn/a\tcomp-het\tcomp-het (phased)\tcomp-het (unphased)")}, {ConstraintType::NON_EMPTY, QVariant()}}),
+		Parameter("same_genotype", "Also check that all 'control' samples have the same genotype.", ParameterType::BOOL, {})
+	}, {
+		{"genotypes", QVariant::fromValue(QByteArrayList())},
+		{"same_genotype", false}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterGenotypeAffected::toText() const
 {
-	return name() + " " + getStringList("genotypes", false).join(",");
+	return name() + " " + getStringList("genotypes").join(",");
 }
 
 void FilterGenotypeAffected::apply(const VariantList& variants, FilterResult& result) const
@@ -1948,19 +1738,22 @@ FilterColumnMatchRegexp::FilterColumnMatchRegexp()
 	name_ = "Column match";
 	description_ = QStringList() << "Filter that matches the content of a column against a perl-compatible regular expression." << "For details about regular expressions, see http://perldoc.perl.org/perlretut.html";
 
-	params_ << FilterParameter("pattern", FilterParameterType::STRING, "", "Pattern to match to column");
-	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("column", FilterParameterType::STRING, "", "Column to filter");
-	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("action", FilterParameterType::STRING, "KEEP", "Action to perform");
-	params_.last().constraints["valid"] = "KEEP,FILTER,REMOVE";
+	initParameters({
+		Parameter("pattern", "Pattern to match to column", ParameterType::STRING, {{ConstraintType::NON_EMPTY, QVariant()}}),
+		Parameter("column", "Column to filter", ParameterType::STRING, {{ConstraintType::NON_EMPTY, QVariant()}}),
+		Parameter("action", "Action to perform", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("KEEP\tFILTER\tREMOVE")}})
+	}, {
+		{"pattern", QByteArray("string")},
+		{"column", QByteArray("column")},
+		{"action", QByteArray("KEEP")}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterColumnMatchRegexp::toText() const
 {
-	return name() + " " + getString("action", false) + ": " + getString("column", false) + " '" + getString("pattern", false) + "'";
+	return name() + " " + getString("action") + ": " + getString("column") + " '" + getString("pattern") + "'";
 }
 
 void FilterColumnMatchRegexp::apply(const VariantList& variants, FilterResult& result) const
@@ -2012,19 +1805,22 @@ FilterAnnotationPathogenic::FilterAnnotationPathogenic()
 	name_ = "Annotated pathogenic";
 	description_ = QStringList() << "Filter that matches variants annotated to be pathogenic by ClinVar or HGMD.";
 
-	params_ << FilterParameter("sources", FilterParameterType::STRINGLIST, QStringList() << "ClinVar" << "HGMD", "Sources of pathogenicity to use");
-	params_.last().constraints["valid"] = "ClinVar,HGMD";
-	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("also_likely_pathogenic", FilterParameterType::BOOL, false, "Also consider likely pathogenic variants");
-	params_ << FilterParameter("action", FilterParameterType::STRING, "KEEP", "Action to perform");
-	params_.last().constraints["valid"] = "KEEP,FILTER";
+	initParameters({
+		Parameter("sources", "Sources of pathogenicity to use", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("ClinVar\tHGMD")}, {ConstraintType::NON_EMPTY, QVariant()}}),
+		Parameter("also_likely_pathogenic", "Also consider likely pathogenic variants", ParameterType::BOOL, {}),
+		Parameter("action", "Action to perform", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("KEEP\tFILTER")}})
+	}, {
+		{"sources", QVariant::fromValue(QByteArrayList({"ClinVar", "HGMD"}))},
+		{"also_likely_pathogenic", false},
+		{"action", QByteArray("KEEP")}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterAnnotationPathogenic::toText() const
 {
-	return name() + " " + getString("action", false) + ": " + getStringList("sources", false).join(",") + " " + (getBool("also_likely_pathogenic") ? " (also likely pathogenic)" : "");
+	return name() + " " + getString("action") + ": " + getStringList("sources").join(",") + " " + (getBool("also_likely_pathogenic") ? " (also likely pathogenic)" : "");
 }
 
 void FilterAnnotationPathogenic::apply(const VariantList& variants, FilterResult& result) const
@@ -2097,28 +1893,31 @@ FilterPredictionPathogenic::FilterPredictionPathogenic()
 {
 	name_ = "Predicted pathogenic";
 	description_ = QStringList() << "Filter for variants predicted to be pathogenic." << "Pathogenicity predictions used by this filter are: phyloP, CADD, REVEL and AlphaMissense.";
-	params_ << FilterParameter("min", FilterParameterType::INT, 1, "Minimum number of pathogenic predictions");
-	params_.last().constraints["min"] = "1";
-	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
-	params_.last().constraints["valid"] = "KEEP,FILTER";
-	params_ << FilterParameter("skip_high_impact", FilterParameterType::BOOL, false, "Do not apply this filter to variants with impact 'HIGH'.");
+	initParameters({
+		Parameter("min", "Minimum number of pathogenic predictions", ParameterType::INT, {{ConstraintType::MIN, "1"}}),
+		Parameter("action", "Action to perform", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("KEEP\tFILTER")}}),
+		Parameter("skip_high_impact", "Do not apply this filter to variants with impact 'HIGH'.", ParameterType::BOOL, {}),
+		Parameter("cutoff_phylop", "Minimum phyloP score for a pathogenic prediction. The phyloP score is not used if set to -10.0.", ParameterType::DOUBLE, {}),
+		Parameter("cutoff_cadd", "Minimum CADD score for a pathogenic prediction. The CADD score is not used if set to 0.0.", ParameterType::DOUBLE, {{ConstraintType::MIN, "0"}}),
+		Parameter("cutoff_revel", "Minimum REVEL score for a pathogenic prediction. The REVEL score is not used if set to 0.0.", ParameterType::DOUBLE, {{ConstraintType::MIN, "0"}, {ConstraintType::MAX, "1"}}),
+		Parameter("cutoff_alphamissense", "Minimum AlphaMissense score for a pathogenic prediction. The AlphaMissense score is not used if set to 0.0.", ParameterType::DOUBLE, {{ConstraintType::MIN, "0"}, {ConstraintType::MAX, "1"}})
+	}, {
+		{"min", 1},
+		{"action", QByteArray("FILTER")},
+		{"skip_high_impact", false},
+		{"cutoff_phylop", 1.6},
+		{"cutoff_cadd", 22.7},
+		{"cutoff_revel", 0.9},
+		{"cutoff_alphamissense", 0.564}
+	});
 	//cutoffs
-	params_ << FilterParameter("cutoff_phylop", FilterParameterType::DOUBLE, 1.6, "Minimum phyloP score for a pathogenic prediction. The phyloP score is not used if set to -10.0.");
-	params_ << FilterParameter("cutoff_cadd", FilterParameterType::DOUBLE, 22.7, "Minimum CADD score for a pathogenic prediction. The CADD score is not used if set to 0.0.");
-	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("cutoff_revel", FilterParameterType::DOUBLE, 0.9, "Minimum REVEL score for a pathogenic prediction. The REVEL score is not used if set to 0.0.");
-	params_.last().constraints["min"] = "0";
-	params_.last().constraints["max"] = "1";
-	params_ << FilterParameter("cutoff_alphamissense", FilterParameterType::DOUBLE, 0.564, "Minimum AlphaMissense score for a pathogenic prediction. The AlphaMissense score is not used if set to 0.0.");
-	params_.last().constraints["min"] = "0";
-	params_.last().constraints["max"] = "1";
 
 	checkIsRegistered();
 }
 
 QString FilterPredictionPathogenic::toText() const
 {
-	return name() + " " + getString("action", false) + " min&ge; " + QString::number(getInt("min", false)) + (skip_high_impact ? " skip_high_impact" : "");
+	return name() + " " + getString("action") + " min&ge; " + QString::number(getInt("min")) + (skip_high_impact ? " skip_high_impact" : "");
 }
 
 void FilterPredictionPathogenic::apply(const VariantList& variants, FilterResult& result) const
@@ -2215,17 +2014,20 @@ FilterAnnotationText::FilterAnnotationText()
 {
 	name_ = "Text search";
 	description_ = QStringList() << "Filter for text match in variant annotations." << "The text comparison ignores the case.";
-	params_ << FilterParameter("term", FilterParameterType::STRING, QString(), "Search term");
-	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
-	params_.last().constraints["valid"] = "FILTER,KEEP,REMOVE";
+	initParameters({
+		Parameter("term", "Search term", ParameterType::STRING, {{ConstraintType::NON_EMPTY, QVariant()}}),
+		Parameter("action", "Action to perform", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("FILTER\tKEEP\tREMOVE")}})
+	}, {
+		{"term", QByteArray("string")},
+		{"action", QByteArray("FILTER")}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterAnnotationText::toText() const
 {
-	return name() + " " + getString("action", false) + " " + getString("term", false);
+	return name() + " " + getString("action") + " " + getString("term");
 }
 
 void FilterAnnotationText::apply(const VariantList& variants, FilterResult& result) const
@@ -2281,17 +2083,20 @@ FilterVariantType::FilterVariantType()
 {
 	name_ = "Variant type";
 	description_ = QStringList() << "Filter for variant types as defined by sequence ontology." << "For details see http://www.sequenceontology.org/browser/obob.cgi";
-	params_ << FilterParameter("HIGH", FilterParameterType::STRINGLIST, QStringList() << "frameshift_variant" << "splice_acceptor_variant" << "splice_donor_variant" << "start_lost" << "start_retained_variant" << "stop_gained" << "stop_lost", "High impact variant types");
-	params_.last().constraints["valid"] = "frameshift_variant,splice_acceptor_variant,splice_donor_variant,start_lost,start_retained_variant,stop_gained,stop_lost";
+	initParameters({
+		Parameter("HIGH", "High impact variant types", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("frameshift_variant\tsplice_acceptor_variant\tsplice_donor_variant\tstart_lost\tstart_retained_variant\tstop_gained\tstop_lost")}}),
+		Parameter("MODERATE", "Moderate impact variant types", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("inframe_deletion\tinframe_insertion\tmissense_variant")}}),
+		Parameter("LOW", "Low impact variant types", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("splice_region_variant\tstop_retained_variant\tsynonymous_variant")}}),
+		Parameter("MODIFIER", "Lowest impact variant types", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("3_prime_UTR_variant\t5_prime_UTR_variant\tNMD_transcript_variant\tdownstream_gene_variant\tintergenic_variant\tintron_variant\tmature_miRNA_variant\tnon_coding_transcript_exon_variant\tnon_coding_transcript_variant\tupstream_gene_variant")}})
+	}, {
+		{"HIGH", QVariant::fromValue(QByteArrayList({"frameshift_variant", "splice_acceptor_variant", "splice_donor_variant", "start_lost", "start_retained_variant", "stop_gained", "stop_lost"}))},
+		{"MODERATE", QVariant::fromValue(QByteArrayList({"inframe_deletion", "inframe_insertion", "missense_variant"}))},
+		{"LOW", QVariant::fromValue(QByteArrayList({"splice_region_variant"}))},
+		{"MODIFIER", QVariant::fromValue(QByteArrayList())}
+	});
 
-	params_ << FilterParameter("MODERATE", FilterParameterType::STRINGLIST, QStringList() << "inframe_deletion" << "inframe_insertion" << "missense_variant", "Moderate impact variant types");
-	params_.last().constraints["valid"] = "inframe_deletion,inframe_insertion,missense_variant";
 
-	params_ << FilterParameter("LOW", FilterParameterType::STRINGLIST, QStringList() << "splice_region_variant", "Low impact variant types");
-	params_.last().constraints["valid"] = "splice_region_variant,stop_retained_variant,synonymous_variant";
 
-	params_ << FilterParameter("MODIFIER", FilterParameterType::STRINGLIST, QStringList(), "Lowest impact variant types");
-	params_.last().constraints["valid"] = "3_prime_UTR_variant,5_prime_UTR_variant,NMD_transcript_variant,downstream_gene_variant,intergenic_variant,intron_variant,mature_miRNA_variant,non_coding_transcript_exon_variant,non_coding_transcript_variant,upstream_gene_variant";
 
 	checkIsRegistered();
 }
@@ -2299,10 +2104,10 @@ FilterVariantType::FilterVariantType()
 QString FilterVariantType::toText() const
 {
 	QStringList selected;
-	selected << getStringList("HIGH", false);
-	selected << getStringList("MODERATE", false);
-	selected << getStringList("LOW", false);
-	selected << getStringList("MODIFIER", false);
+	selected << getStringList("HIGH");
+	selected << getStringList("MODERATE");
+	selected << getStringList("LOW");
+	selected << getStringList("MODIFIER");
 
 	return name() + " " + selected.join(",");
 }
@@ -2353,21 +2158,23 @@ FilterVariantQC::FilterVariantQC()
 {
 	name_ = "Variant quality";
 	description_ = QStringList() << "Filter variant quality column.";
-	params_ << FilterParameter("apply_to", FilterParameterType::STRING, "all", "Apply the filters to the given variant type only.");
-	params_.last().constraints["valid"] = "all,SNV,INDEL";
-	params_ << FilterParameter("qual", FilterParameterType::INT, 20, "Minimum variant quality score (QUAL). Set to 0 to disable filter.");
-	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("depth", FilterParameterType::INT, 0, "Minimum depth (DP). Set to 0 to disable filter.");
-	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("min_gq", FilterParameterType::INT, 0, "Minimum genotype quality (GQ). Set to 0 to disable filter.");
-	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("min_af", FilterParameterType::DOUBLE, 0.0, "Minimum allele frequency (AF) of the variant in the sample. Set to 0 to disable filter.");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "1.0";
-	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency (AF) of the variant in the sample. Set to 1 to disable filter.");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "1.0";
-	params_ << FilterParameter("remove_special_calls", FilterParameterType::BOOL, false, "Remove special calls (CT), e.g. mosaic calls or low-mappability calls.");
+	initParameters({
+		Parameter("apply_to", "Apply the filters to the given variant type only.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("all\tSNV\tINDEL")}}),
+		Parameter("qual", "Minimum variant quality score (QUAL). Set to 0 to disable filter.", ParameterType::INT, {{ConstraintType::MIN, "0"}}),
+		Parameter("depth", "Minimum depth (DP). Set to 0 to disable filter.", ParameterType::INT, {{ConstraintType::MIN, "0"}}),
+		Parameter("min_gq", "Minimum genotype quality (GQ). Set to 0 to disable filter.", ParameterType::INT, {{ConstraintType::MIN, "0"}}),
+		Parameter("min_af", "Minimum allele frequency (AF) of the variant in the sample. Set to 0 to disable filter.", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "1.0"}}),
+		Parameter("max_af", "Maximum allele frequency (AF) of the variant in the sample. Set to 1 to disable filter.", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "1.0"}}),
+		Parameter("remove_special_calls", "Remove special calls (CT), e.g. mosaic calls or low-mappability calls.", ParameterType::BOOL, {})
+	}, {
+		{"apply_to", QByteArray("all")},
+		{"qual", 20},
+		{"depth", 0},
+		{"min_gq", 0},
+		{"min_af", 0.0},
+		{"max_af", 1.0},
+		{"remove_special_calls", false}
+	});
 
 	checkIsRegistered();
 }
@@ -2375,18 +2182,18 @@ FilterVariantQC::FilterVariantQC()
 QString FilterVariantQC::toText() const
 {
 	QString output = name();
-	QString apply_to = getString("apply_to", false);
+	QString apply_to = getString("apply_to");
 	if (apply_to!="all") output = apply_to + " quality";
 
-	int qual = getInt("qual", false);
+	int qual = getInt("qual");
 	if (qual>0) output += " qual&ge;" + QString::number(qual);
-	int depth = getInt("depth", false);
+	int depth = getInt("depth");
 	if (depth>0) output += " depth&ge;" + QString::number(depth);
-	int min_gq = getInt("min_gq", false);
+	int min_gq = getInt("min_gq");
 	if (min_gq>0) output += " min_gq&ge;" + QString::number(min_gq);
-	double min_af = getDouble("min_af", false);
+	double min_af = getDouble("min_af");
 	if (min_af>0) output += " min_af&ge;" + QString::number(min_af);
-	double max_af = getDouble("max_af", false);
+	double max_af = getDouble("max_af");
 	if (max_af<1) output += " max_af&le;" + QString::number(max_af);
 	bool remove_special_calls = getBool("remove_special_calls");
 	if (remove_special_calls) output += " remove_special_calls";
@@ -2478,19 +2285,21 @@ FilterTrio::FilterTrio()
 {
 	name_ = "Trio";
 	description_ = QStringList() << "Filter trio variants";
-	params_ << FilterParameter("types", FilterParameterType::STRINGLIST, QStringList() << "de-novo" << "recessive" << "comp-het" << "LOH" << "x-linked", "Variant types");
-	params_.last().constraints["valid"] = "de-novo,recessive,comp-het,LOH,x-linked,imprinting";
-	params_.last().constraints["non-empty"] = "";
+	initParameters({
+		Parameter("types", "Variant types", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("de-novo\trecessive\tcomp-het\tLOH\tx-linked\timprinting")}, {ConstraintType::NON_EMPTY, QVariant()}}),
+		Parameter("gender_child", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("male\tfemale\tn/a")}})
+	}, {
+		{"types", QVariant::fromValue(QByteArrayList({"de-novo", "recessive", "comp-het", "LOH", "x-linked"}))},
+		{"gender_child", QByteArray("n/a")}
+	});
 
-	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
-	params_.last().constraints["valid"] = "male,female,n/a";
 
 	checkIsRegistered();
 }
 
 QString FilterTrio::toText() const
 {
-	return name() + " " + getStringList("types", false).join(',');
+	return name() + " " + getStringList("types").join(',');
 }
 
 void FilterTrio::apply(const VariantList& variants, FilterResult& result) const
@@ -2706,8 +2515,11 @@ FilterOMIM::FilterOMIM()
 {
 	name_ = "OMIM genes";
 	description_ = QStringList() << "Filter for OMIM genes i.e. the 'OMIM' column is not empty.";
-	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
-	params_.last().constraints["valid"] = "REMOVE,FILTER";
+	initParameters({
+		Parameter("action", "Action to perform", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("REMOVE\tFILTER")}})
+	}, {
+		{"action", QByteArray("FILTER")}
+	});
 	checkIsRegistered();
 }
 
@@ -2753,14 +2565,18 @@ FilterConservedness::FilterConservedness()
 {
 	name_ = "Conservedness";
 	description_ = QStringList() << "Filter for variants that affect conserved bases";
-	params_ << FilterParameter("min_score", FilterParameterType::DOUBLE, 1.6, "Minimum phlyoP score.");
+	initParameters({
+		Parameter("min_score", "Minimum phlyoP score.", ParameterType::DOUBLE, {})
+	}, {
+		{"min_score", 1.6}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterConservedness::toText() const
 {
-	return name() + " phyloP&ge;" + QString::number(getDouble("min_score", false));
+	return name() + " phyloP&ge;" + QString::number(getDouble("min_score"));
 }
 
 void FilterConservedness::apply(const VariantList& variants, FilterResult& result) const
@@ -2787,15 +2603,18 @@ FilterRegulatory::FilterRegulatory()
 {
 	name_ = "Regulatory";
 	description_ = QStringList() << "Filter for regulatory variants, i.e. the 'regulatory' column is not empty.";
-	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
-	params_.last().constraints["valid"] = "REMOVE,FILTER";
+	initParameters({
+		Parameter("action", "Action to perform", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("REMOVE\tFILTER")}})
+	}, {
+		{"action", QByteArray("FILTER")}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterRegulatory::toText() const
 {
-	return name() + " " + getString("action", false);
+	return name() + " " + getString("action");
 }
 
 void FilterRegulatory::apply(const VariantList& variants, FilterResult& result) const
@@ -2838,17 +2657,20 @@ FilterCnvSize::FilterCnvSize()
 	name_ = "CNV size";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for CNV size (kilobases).";
-	params_ << FilterParameter("size", FilterParameterType::DOUBLE, 0.0, "Minimum CNV size in kilobases");
-	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
-	params_.last().constraints["valid"] = "FILTER,KEEP";
+	initParameters({
+		Parameter("size", "Minimum CNV size in kilobases", ParameterType::DOUBLE, {{ConstraintType::MIN, "0"}}),
+		Parameter("action", "Action to perform", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("FILTER\tKEEP")}})
+	}, {
+		{"size", 0.0},
+		{"action", QByteArray("FILTER")}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterCnvSize::toText() const
 {
-	return name() + " " + getString("action") + " size&ge;" + QString::number(getDouble("size", false), 'f', 2) + " kB";
+	return name() + " " + getString("action") + " size&ge;" + QString::number(getDouble("size"), 'f', 2) + " kB";
 }
 
 void FilterCnvSize::apply(const CnvList& cnvs, FilterResult& result) const
@@ -2891,8 +2713,11 @@ FilterCnvRegions::FilterCnvRegions()
 	name_ = "CNV regions";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for number of regions/exons.";
-	params_ << FilterParameter("regions", FilterParameterType::INT, 3, "Minimum number of regions");
-	params_.last().constraints["min"] = "1";
+	initParameters({
+		Parameter("regions", "Minimum number of regions", ParameterType::INT, {{ConstraintType::MIN, "1"}})
+	}, {
+		{"regions", 3}
+	});
 
 	checkIsRegistered();
 }
@@ -2926,9 +2751,11 @@ FilterCnvCopyNumber::FilterCnvCopyNumber()
 	name_ = "CNV copy-number";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for CNV copy number.";
-	params_ << FilterParameter("cn", FilterParameterType::STRINGLIST, QStringList(), "Copy number");
-	params_.last().constraints["valid"] = "0,1,2,3,4,5+";
-	params_.last().constraints["not_empty"] = "";
+	initParameters({
+		Parameter("cn", "Copy number", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("0\t1\t2\t3\t4\t5+")}, {ConstraintType::NON_EMPTY, QVariant()}})
+	}, {
+		{"cn", QVariant::fromValue(QByteArrayList())}
+	});
 
 	checkIsRegistered();
 }
@@ -2966,9 +2793,11 @@ FilterCnvAlleleFrequency::FilterCnvAlleleFrequency()
 	name_ = "CNV allele frequency";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for CNV allele frequency in the analyzed cohort.";
-	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 0.05, "Maximum allele frequency");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "1.0";
+	initParameters({
+		Parameter("max_af", "Maximum allele frequency", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "1.0"}})
+	}, {
+		{"max_af", 0.05}
+	});
 
 	checkIsRegistered();
 }
@@ -3003,9 +2832,13 @@ FilterCnvMaxLoglikelihood::FilterCnvMaxLoglikelihood()
 	name_ = "CNV maximum log-likelihood";
 	type_ = VariantType::CNVS;
 	description_ << QStringList() << "Filter for maximum log-likelihood" << "Can be used to display artefact CNVs only" << "Works only for tumor-normal pairs" ;
-	params_ << FilterParameter("max_ll", FilterParameterType::DOUBLE, 200.0, "Maixmum log-likelihood");
-	params_.last().constraints["min"] = "0.0";
-	params_ << FilterParameter("scale_by_regions", FilterParameterType::BOOL, false, "Scale log-likelihood by number of regions.");
+	initParameters({
+		Parameter("max_ll", "Maixmum log-likelihood", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}}),
+		Parameter("scale_by_regions", "Scale log-likelihood by number of regions.", ParameterType::BOOL, {})
+	}, {
+		{"max_ll", 200.0},
+		{"scale_by_regions", false}
+	});
 	checkIsRegistered();
 }
 
@@ -3052,9 +2885,13 @@ FilterCnvLoglikelihood::FilterCnvLoglikelihood()
 	name_ = "CNV log-likelihood";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for CNV log-likelihood." << "The log-likelihood is the logarithm of the ratio between likelihoods of the no CN change model vs the CN equal to the reported state model (bigger is better). If scale by region is checked the total log-likelihood value is normalized by the number of regions." << "Note: when applied to multi-sample CNV lists, each log-likelihood entry must exceed the cutuff!" << "Note: this filter works for CNV lists generated by ClinCNV only!" << "Note: log-likelihood scaling can only be applied to CNV lists with regions count";
-	params_ << FilterParameter("min_ll", FilterParameterType::DOUBLE, 20.0, "Minimum log-likelihood");
-	params_.last().constraints["min"] = "0.0";
-	params_ << FilterParameter("scale_by_regions", FilterParameterType::BOOL, false, "Scale log-likelihood by number of regions.");
+	initParameters({
+		Parameter("min_ll", "Minimum log-likelihood", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}}),
+		Parameter("scale_by_regions", "Scale log-likelihood by number of regions.", ParameterType::BOOL, {})
+	}, {
+		{"min_ll", 20.0},
+		{"scale_by_regions", false}
+	});
 
 	checkIsRegistered();
 }
@@ -3138,9 +2975,11 @@ FilterCnvQvalue::FilterCnvQvalue()
 	name_ = "CNV q-value";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for CNV q-value." << "The q-value is the p-value corrected for the number of CNVs detected (smaller is better)" << "Note: when applied to multi-sample CNV lists, each q-value must be below the cutuff!" << "Note: this filter works for CNV lists generated by ClinCNV only!";
-	params_ << FilterParameter("max_q", FilterParameterType::DOUBLE, 1.0, "Maximum q-value");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "1.0";
+	initParameters({
+		Parameter("max_q", "Maximum q-value", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "1.0"}})
+	}, {
+		{"max_q", 1.0}
+	});
 
 	checkIsRegistered();
 }
@@ -3198,8 +3037,11 @@ FilterCnvCompHet::FilterCnvCompHet()
 	name_ = "CNV compound-heterozygous";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for compound-heterozygous CNVs." << "Mode 'CNV-CNV' detects genes with two or more CNV hits." << "Mode 'CNV-SNV/INDEL' detects genes with at least one CNV and at least one heterozygous small variant hit (after other filters are applied).";
-	params_ << FilterParameter("mode", FilterParameterType::STRING, "n/a", "Compound-heterozygotes detection mode.");
-	params_.last().constraints["valid"] = "n/a,CNV-CNV,CNV-SNV/INDEL";
+	initParameters({
+		Parameter("mode", "Compound-heterozygotes detection mode.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("n/a\tCNV-CNV\tCNV-SNV/INDEL")}})
+	}, {
+		{"mode", QByteArray("n/a")}
+	});
 
 	checkIsRegistered();
 }
@@ -3269,8 +3111,11 @@ FilterCnvOMIM::FilterCnvOMIM()
 	name_ = "CNV OMIM genes";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for OMIM genes i.e. the 'OMIM' column is not empty.";
-	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
-	params_.last().constraints["valid"] = "REMOVE,FILTER";
+	initParameters({
+		Parameter("action", "Action to perform", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("REMOVE\tFILTER")}})
+	}, {
+		{"action", QByteArray("FILTER")}
+	});
 
 	checkIsRegistered();
 }
@@ -3317,10 +3162,13 @@ FilterCnvCnpOverlap::FilterCnvCnpOverlap()
 	name_ = "CNV polymorphism region";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for overlap with CNP regions.";
-	params_ << FilterParameter("column", FilterParameterType::STRING, "overlap af_genomes_imgag", "CNP column name");
-	params_ << FilterParameter("max_ol", FilterParameterType::DOUBLE, 0.95, "Maximum overlap");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "1.0";
+	initParameters({
+		Parameter("column", "CNP column name", ParameterType::STRING, {}),
+		Parameter("max_ol", "Maximum overlap", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "1.0"}})
+	}, {
+		{"column", QByteArray("overlap af_genomes_imgag")},
+		{"max_ol", 0.95}
+	});
 
 	checkIsRegistered();
 }
@@ -3354,16 +3202,18 @@ FilterCnvGeneConstraint::FilterCnvGeneConstraint()
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter based on gene constraint (gnomAD o/e score for LOF variants)." << "Note that gene constraint is most helpful for early-onset severe diseases." << "For details on gnomAD o/e, see https://macarthurlab.org/2018/10/17/gnomad-v2-1/";
 
-	params_ << FilterParameter("max_oe_lof", FilterParameterType::DOUBLE, 0.35, "Maximum gnomAD o/e score for LoF variants");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "1.0";
+	initParameters({
+		Parameter("max_oe_lof", "Maximum gnomAD o/e score for LoF variants", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "1.0"}})
+	}, {
+		{"max_oe_lof", 0.35}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterCnvGeneConstraint::toText() const
 {
-	return name() + " o/e&le;" + QString::number(getDouble("max_oe_lof", false), 'f', 2);
+	return name() + " o/e&le;" + QString::number(getDouble("max_oe_lof"), 'f', 2);
 }
 
 void FilterCnvGeneConstraint::apply(const CnvList& cnvs, FilterResult& result) const
@@ -3410,8 +3260,13 @@ FilterCnvTumorCopyNumberChange::FilterCnvTumorCopyNumberChange()
 	name_ = "CNV tumor CN change";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter based on CNV tumor copy number.";
-	params_ << FilterParameter("min_tumor_cn", FilterParameterType::INT, 0, "Minimum tumor copy number of the CNV");
-	params_ << FilterParameter("max_tumor_cn", FilterParameterType::INT, 10, "Maximum tumor copy number of the CNV.");
+	initParameters({
+		Parameter("min_tumor_cn", "Minimum tumor copy number of the CNV", ParameterType::INT, {}),
+		Parameter("max_tumor_cn", "Maximum tumor copy number of the CNV.", ParameterType::INT, {})
+	}, {
+		{"min_tumor_cn", 0},
+		{"max_tumor_cn", 10}
+	});
 
 	checkIsRegistered();
 }
@@ -3444,8 +3299,13 @@ FilterCnvClonality::FilterCnvClonality()
 	name_ = "CNV clonality";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter based on CNV clonality.";
-	params_ << FilterParameter("min_clonality", FilterParameterType::DOUBLE, 0., "Minimum Clonality of the CNV ");
-	params_ << FilterParameter("max_clonality", FilterParameterType::DOUBLE, 1., "Maximum Clonality of the CNV ");
+	initParameters({
+		Parameter("min_clonality", "Minimum Clonality of the CNV ", ParameterType::DOUBLE, {}),
+		Parameter("max_clonality", "Maximum Clonality of the CNV ", ParameterType::DOUBLE, {})
+	}, {
+		{"min_clonality", 0.},
+		{"max_clonality", 1.}
+	});
 
 	checkIsRegistered();
 }
@@ -3480,9 +3340,15 @@ FilterCnvGeneOverlap::FilterCnvGeneOverlap()
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter based on gene overlap.";
 
-	params_ << FilterParameter("complete", FilterParameterType::BOOL, true , "Overlaps the complete gene.");
-	params_ << FilterParameter("exonic/splicing", FilterParameterType::BOOL, true , "Overlaps the coding or splicing region of the gene.");
-	params_ << FilterParameter("intronic/intergenic", FilterParameterType::BOOL, false , "Overlaps the intronic/intergenic region of the gene only.");
+	initParameters({
+		Parameter("complete", "Overlaps the complete gene.", ParameterType::BOOL, {}),
+		Parameter("exonic/splicing", "Overlaps the coding or splicing region of the gene.", ParameterType::BOOL, {}),
+		Parameter("intronic/intergenic", "Overlaps the intronic/intergenic region of the gene only.", ParameterType::BOOL, {})
+	}, {
+		{"complete", true},
+		{"exonic/splicing", true},
+		{"intronic/intergenic", false}
+	});
 
 	checkIsRegistered();
 }
@@ -3542,8 +3408,11 @@ FilterCnvPathogenicCnvOverlap::FilterCnvPathogenicCnvOverlap()
 	name_ = "CNV pathogenic CNV overlap";
 	type_ = VariantType::CNVS;
 	description_ = QStringList() << "Filter for overlap with pathogenic CNVs from the NGSD i.e. the 'ngsd_pathogenic_cnvs' column is not empty.";
-	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
-	params_.last().constraints["valid"] = "FILTER,KEEP";
+	initParameters({
+		Parameter("action", "Action to perform", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("FILTER\tKEEP")}})
+	}, {
+		{"action", QByteArray("FILTER")}
+	});
 
 	checkIsRegistered();
 }
@@ -3596,16 +3465,18 @@ FilterSvType::FilterSvType()
 	name_ = "SV type";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter based on SV types.";
-	params_ << FilterParameter("Structural variant type", FilterParameterType::STRINGLIST, QStringList(), "Structural variant type");
-	params_.last().constraints["valid"] = "DEL,DUP,INS,INV,BND";
-	params_.last().constraints["not_empty"] = "";
+	initParameters({
+		Parameter("Structural variant type", "Structural variant type", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("DEL\tDUP\tINS\tINV\tBND")}, {ConstraintType::NON_EMPTY, QVariant()}})
+	}, {
+		{"Structural variant type", QVariant::fromValue(QByteArrayList())}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterSvType::toText() const
 {
-	return name() + " " + getStringList("Structural variant type", false).join(",");
+	return name() + " " + getStringList("Structural variant type").join(",");
 }
 
 void FilterSvType::apply(const BedpeFile& svs, FilterResult& result) const
@@ -3629,9 +3500,11 @@ FilterSvRemoveChromosomeType::FilterSvRemoveChromosomeType()
 	name_ = "SV remove chr type";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Removes all structural variants which contains non-standard/standard chromosomes.";
-	params_ << FilterParameter("chromosome type", FilterParameterType::STRING, "special chromosomes", "Structural variants containing non-standard/standard chromosome are removed.");
-	params_.last().constraints["valid"] = "special chromosomes,standard chromosomes";
-	params_.last().constraints["not_empty"] = "";
+	initParameters({
+		Parameter("chromosome type", "Structural variants containing non-standard/standard chromosome are removed.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("special chromosomes\tstandard chromosomes")}, {ConstraintType::NON_EMPTY, QVariant()}})
+	}, {
+		{"chromosome type", QByteArray("special chromosomes")}
+	});
 	checkIsRegistered();
 }
 
@@ -3669,17 +3542,20 @@ FilterSvGenotypeControl::FilterSvGenotypeControl()
 	name_ = "SV genotype control";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter structural variants of control samples based on their genotype.";
-	params_ << FilterParameter("genotypes", FilterParameterType::STRINGLIST, QStringList(), "Structural variant genotype(s)");
-	params_.last().constraints["valid"] = "wt,het,hom,n/a";
-	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("same_genotype", FilterParameterType::BOOL, false, "Also check that all 'control' samples have the same genotype.");
+	initParameters({
+		Parameter("genotypes", "Structural variant genotype(s)", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("wt\thet\thom\tn/a")}, {ConstraintType::NON_EMPTY, QVariant()}}),
+		Parameter("same_genotype", "Also check that all 'control' samples have the same genotype.", ParameterType::BOOL, {})
+	}, {
+		{"genotypes", QVariant::fromValue(QByteArrayList())},
+		{"same_genotype", false}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterSvGenotypeControl::toText() const
 {
-	return name() + ": " + getStringList("genotypes", false).join(",");
+	return name() + ": " + getStringList("genotypes").join(",");
 }
 
 void FilterSvGenotypeControl::apply(const BedpeFile& svs, FilterResult& result) const
@@ -3745,17 +3621,20 @@ FilterSvGenotypeAffected::FilterSvGenotypeAffected()
 	name_ = "SV genotype affected";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter structural variants (of affected samples) based on their genotype.";
-	params_ << FilterParameter("genotypes", FilterParameterType::STRINGLIST, QStringList(), "Structural variant genotype(s)");
-	params_.last().constraints["valid"] = "wt,het,hom,n/a";
-	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("same_genotype", FilterParameterType::BOOL, false, "Also check that all 'control' samples have the same genotype.");
+	initParameters({
+		Parameter("genotypes", "Structural variant genotype(s)", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("wt\thet\thom\tn/a")}, {ConstraintType::NON_EMPTY, QVariant()}}),
+		Parameter("same_genotype", "Also check that all 'control' samples have the same genotype.", ParameterType::BOOL, {})
+	}, {
+		{"genotypes", QVariant::fromValue(QByteArrayList())},
+		{"same_genotype", false}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterSvGenotypeAffected::toText() const
 {
-	return name() + ": " + getStringList("genotypes", false).join(",");
+	return name() + ": " + getStringList("genotypes").join(",");
 }
 
 void FilterSvGenotypeAffected::apply(const BedpeFile& svs, FilterResult& result) const
@@ -3827,15 +3706,18 @@ FilterSvQuality::FilterSvQuality()
 	name_ = "SV quality";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter structural variants based on their quality.";
-	params_ << FilterParameter("quality", FilterParameterType::INT, 0, "Minimum quality score");
-	params_.last().constraints["min"] = "0";
+	initParameters({
+		Parameter("quality", "Minimum quality score", ParameterType::INT, {{ConstraintType::MIN, "0"}})
+	}, {
+		{"quality", 0}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterSvQuality::toText() const
 {
-	return name() + " &ge; " + QByteArray::number(getInt("quality", false));
+	return name() + " &ge; " + QByteArray::number(getInt("quality"));
 }
 
 void FilterSvQuality::apply(const BedpeFile& svs, FilterResult& result) const
@@ -3869,18 +3751,20 @@ FilterSvFilterColumn::FilterSvFilterColumn()
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter structural variants based on the entries of the 'FILTER' column.";
 
-	params_ << FilterParameter("entries", FilterParameterType::STRINGLIST, QStringList(), "Filter column entries");
-	//params_.last().constraints["valid"] ="PASS,MinSomaticScore,HomRef,MaxDepth,MaxMQ0Frac,MinGQ,MinQUAL,NoPairSupport,Ploidy,SampleFT,off-target";
-	params_.last().constraints["not_empty"] = "";
-	params_ << FilterParameter("action", FilterParameterType::STRING, "REMOVE", "Action to perform");
-	params_.last().constraints["valid"] = "REMOVE,FILTER,KEEP";
+	initParameters({
+		Parameter("entries", "Filter column entries", ParameterType::STRINGLIST, {{ConstraintType::NON_EMPTY, QVariant()}}),
+		Parameter("action", "Action to perform", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("REMOVE\tFILTER\tKEEP")}})
+	}, {
+		{"entries", QVariant::fromValue(QByteArrayList())},
+		{"action", QByteArray("REMOVE")}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterSvFilterColumn::toText() const
 {
-	return name() + " " + getString("action", false) + ": " + getStringList("entries", false).join(",");
+	return name() + " " + getString("action") + ": " + getStringList("entries").join(",");
 }
 
 void FilterSvFilterColumn::apply(const BedpeFile& svs, FilterResult& result) const
@@ -3940,10 +3824,13 @@ FilterSvPairedReadAF::FilterSvPairedReadAF()
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Show only SVs with a certain Paired Read Allele Frequency +/- 10%";
     description_ << "(In trio/multi sample all (affected) samples must meet the requirements.)";
-	params_ << FilterParameter("Paired Read AF", FilterParameterType::DOUBLE, 0.0, "Paired Read Allele Frequency +/- 10%");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "1.0";
-	params_ << FilterParameter("only_affected", FilterParameterType::BOOL, false , "Apply filter only to affected Samples.");
+	initParameters({
+		Parameter("Paired Read AF", "Paired Read Allele Frequency +/- 10%", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "1.0"}}),
+		Parameter("only_affected", "Apply filter only to affected Samples.", ParameterType::BOOL, {})
+	}, {
+		{"Paired Read AF", 0.0},
+		{"only_affected", false}
+	});
 
 
 	checkIsRegistered();
@@ -3951,7 +3838,7 @@ FilterSvPairedReadAF::FilterSvPairedReadAF()
 
 QString FilterSvPairedReadAF::toText() const
 {
-	return name() + " = " + QByteArray::number(getDouble("Paired Read AF", false), 'f', 2) + " &plusmn; 10%" + ((getBool("only_affected"))?" (only affected)": "");
+	return name() + " = " + QByteArray::number(getDouble("Paired Read AF"), 'f', 2) + " &plusmn; 10%" + ((getBool("only_affected"))?" (only affected)": "");
 }
 
 void FilterSvPairedReadAF::apply(const BedpeFile& svs, FilterResult& result) const
@@ -3965,8 +3852,8 @@ void FilterSvPairedReadAF::apply(const BedpeFile& svs, FilterResult& result) con
 	}
 
 	// get allowed interval
-	double upper_limit = getDouble("Paired Read AF", false) + 0.1;
-	double lower_limit = getDouble("Paired Read AF", false) - 0.1;
+	double upper_limit = getDouble("Paired Read AF") + 0.1;
+	double lower_limit = getDouble("Paired Read AF") - 0.1;
     bool only_affected = getBool("only_affected");
 
 
@@ -4026,10 +3913,13 @@ FilterSvSplitReadAF::FilterSvSplitReadAF()
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Show only SVs with a certain Split Read Allele Frequency +/- 10%";
     description_ << "(In trio/multi sample all (affected) samples must meet the requirements.)";
-	params_ << FilterParameter("Split Read AF", FilterParameterType::DOUBLE, 0.0, "Split Read Allele Frequency +/- 10%");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "1.0";
-	params_ << FilterParameter("only_affected", FilterParameterType::BOOL, false , "Apply filter only to affected Samples.");
+	initParameters({
+		Parameter("Split Read AF", "Split Read Allele Frequency +/- 10%", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "1.0"}}),
+		Parameter("only_affected", "Apply filter only to affected Samples.", ParameterType::BOOL, {})
+	}, {
+		{"Split Read AF", 0.0},
+		{"only_affected", false}
+	});
 
 
 
@@ -4038,7 +3928,7 @@ FilterSvSplitReadAF::FilterSvSplitReadAF()
 
 QString FilterSvSplitReadAF::toText() const
 {
-	return name() + " = " + QByteArray::number(getDouble("Split Read AF", false), 'f', 2) + " &plusmn; 10%"  + ((getBool("only_affected"))?" (only affected)" : "");
+	return name() + " = " + QByteArray::number(getDouble("Split Read AF"), 'f', 2) + " &plusmn; 10%"  + ((getBool("only_affected"))?" (only affected)" : "");
 }
 
 void FilterSvSplitReadAF::apply(const BedpeFile& svs, FilterResult& result) const
@@ -4052,8 +3942,8 @@ void FilterSvSplitReadAF::apply(const BedpeFile& svs, FilterResult& result) cons
 	}
 
 	// get allowed interval
-	double upper_limit = getDouble("Split Read AF", false) + 0.1;
-	double lower_limit = getDouble("Split Read AF", false) - 0.1;
+	double upper_limit = getDouble("Split Read AF") + 0.1;
+	double lower_limit = getDouble("Split Read AF") - 0.1;
     bool only_affected = getBool("only_affected");
 
 	int format_col_index = svs.annotationIndexByName("FORMAT");
@@ -4118,9 +4008,13 @@ FilterSvPeReadDepth::FilterSvPeReadDepth()
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Show only SVs with at least a certain number of Paired End Reads";
     description_ << "(In trio/multi sample all (affected) samples must meet the requirements.)";
-	params_ << FilterParameter("PE Read Depth", FilterParameterType::INT, 0, "minimal number of Paired End Reads");
-	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("only_affected", FilterParameterType::BOOL, false , "Apply filter only to affected Samples.");
+	initParameters({
+		Parameter("PE Read Depth", "minimal number of Paired End Reads", ParameterType::INT, {{ConstraintType::MIN, "0"}}),
+		Parameter("only_affected", "Apply filter only to affected Samples.", ParameterType::BOOL, {})
+	}, {
+		{"PE Read Depth", 0},
+		{"only_affected", false}
+	});
 
 
 	checkIsRegistered();
@@ -4128,7 +4022,7 @@ FilterSvPeReadDepth::FilterSvPeReadDepth()
 
 QString FilterSvPeReadDepth::toText() const
 {
-	return name() + " &ge; " + QByteArray::number(getInt("PE Read Depth", false))  + ((getBool("only_affected"))? " (only affected)": "");
+	return name() + " &ge; " + QByteArray::number(getInt("PE Read Depth"))  + ((getBool("only_affected"))? " (only affected)": "");
 }
 
 void FilterSvPeReadDepth::apply(const BedpeFile& svs, FilterResult& result) const
@@ -4142,7 +4036,7 @@ void FilterSvPeReadDepth::apply(const BedpeFile& svs, FilterResult& result) cons
 	}
 
 	// get min PE read depth
-	int min_read_depth = getInt("PE Read Depth", false);
+	int min_read_depth = getInt("PE Read Depth");
     bool only_affected = getBool("only_affected");
 
 	int format_col_index = svs.annotationIndexByName("FORMAT");
@@ -4196,15 +4090,18 @@ FilterSvSomaticscore::FilterSvSomaticscore()
 	name_ = "SV SomaticScore";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Show only SVs with at least a certain Somaticscore";
-	params_ << FilterParameter("Somaticscore", FilterParameterType::INT, 0, "min. Somaticscore");
-	params_.last().constraints["min"] = "0";
+	initParameters({
+		Parameter("Somaticscore", "min. Somaticscore", ParameterType::INT, {{ConstraintType::MIN, "0"}})
+	}, {
+		{"Somaticscore", 0}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterSvSomaticscore::toText() const
 {
-	return name() + " &ge; " + QByteArray::number(getInt("Somaticscore", false));
+	return name() + " &ge; " + QByteArray::number(getInt("Somaticscore"));
 }
 
 void FilterSvSomaticscore::apply(const BedpeFile& svs, FilterResult& result) const
@@ -4220,7 +4117,7 @@ void FilterSvSomaticscore::apply(const BedpeFile& svs, FilterResult& result) con
 
 
 	// get min somaticscore
-    int min_somaticscore = getInt("Somaticscore", false);
+    int min_somaticscore = getInt("Somaticscore");
 
     int i_somaticscore = svs.annotationIndexByName("SOMATICSCORE");
 
@@ -4244,16 +4141,18 @@ FilterSvGeneConstraint::FilterSvGeneConstraint()
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter based on gene constraint (gnomAD o/e score for LOF variants)." << "Note that gene constraint is most helpful for early-onset severe diseases." << "For details on gnomAD o/e, see https://macarthurlab.org/2018/10/17/gnomad-v2-1/";
 
-	params_ << FilterParameter("max_oe_lof", FilterParameterType::DOUBLE, 0.35, "Maximum gnomAD o/e score for LoF variants");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "1.0";
+	initParameters({
+		Parameter("max_oe_lof", "Maximum gnomAD o/e score for LoF variants", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "1.0"}})
+	}, {
+		{"max_oe_lof", 0.35}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterSvGeneConstraint::toText() const
 {
-	return name() + " o/e&le;" + QString::number(getDouble("max_oe_lof", false), 'f', 2);
+	return name() + " o/e&le;" + QString::number(getDouble("max_oe_lof"), 'f', 2);
 }
 
 void FilterSvGeneConstraint::apply(const BedpeFile& svs, FilterResult& result) const
@@ -4310,9 +4209,15 @@ FilterSvGeneOverlap::FilterSvGeneOverlap()
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter based on gene overlap.";
 
-	params_ << FilterParameter("complete", FilterParameterType::BOOL, true , "Overlaps the complete gene.");
-	params_ << FilterParameter("exonic/splicing", FilterParameterType::BOOL, true , "Overlaps the coding or splicing region of the gene.");
-	params_ << FilterParameter("intronic/near gene", FilterParameterType::BOOL, false , "Overlaps the intronic region or less than 5kb up/down stream of the gene .");
+	initParameters({
+		Parameter("complete", "Overlaps the complete gene.", ParameterType::BOOL, {}),
+		Parameter("exonic/splicing", "Overlaps the coding or splicing region of the gene.", ParameterType::BOOL, {}),
+		Parameter("intronic/near gene", "Overlaps the intronic region or less than 5kb up/down stream of the gene .", ParameterType::BOOL, {})
+	}, {
+		{"complete", true},
+		{"exonic/splicing", true},
+		{"intronic/near gene", false}
+	});
 
 	checkIsRegistered();
 }
@@ -4381,18 +4286,21 @@ FilterSvSize::FilterSvSize()
 	name_ = "SV size";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter for SV size in the given range.";
-	params_ << FilterParameter("min_size", FilterParameterType::INT, 0, "Minimum SV size (absolute size).");
-	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("max_size", FilterParameterType::INT, 0, "Maximum SV size (absolute size). Select 0 for infinity.");
-	params_.last().constraints["min"] = "0";
+	initParameters({
+		Parameter("min_size", "Minimum SV size (absolute size).", ParameterType::INT, {{ConstraintType::MIN, "0"}}),
+		Parameter("max_size", "Maximum SV size (absolute size). Select 0 for infinity.", ParameterType::INT, {{ConstraintType::MIN, "0"}})
+	}, {
+		{"min_size", 0},
+		{"max_size", 0}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterSvSize::toText() const
 {
-	int min_size = getInt("min_size", false);
-	int max_size = getInt("max_size", false);
+	int min_size = getInt("min_size");
+	int max_size = getInt("max_size");
 	if (max_size != 0)
 	{
 		return name() + " between " + QString::number(min_size) + " and " + QString::number(max_size) + " bases";
@@ -4404,8 +4312,8 @@ void FilterSvSize::apply(const BedpeFile& svs, FilterResult& result) const
 {
 	if (!enabled_) return;
 
-	int min_size = getInt("min_size", false);
-	int max_size = getInt("max_size", false);
+	int min_size = getInt("min_size");
+	int max_size = getInt("max_size");
 
 	for(int i=0; i<svs.count(); ++i)
 	{
@@ -4423,8 +4331,11 @@ FilterSvOMIM::FilterSvOMIM()
 	name_ = "SV OMIM genes";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter for OMIM genes i.e. the 'OMIM' column is not empty.";
-	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
-	params_.last().constraints["valid"] = "REMOVE,FILTER";
+	initParameters({
+		Parameter("action", "Action to perform", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("REMOVE\tFILTER")}})
+	}, {
+		{"action", QByteArray("FILTER")}
+	});
 	checkIsRegistered();
 }
 
@@ -4470,8 +4381,11 @@ FilterSvCompHet::FilterSvCompHet()
 	name_ = "SV compound-heterozygous";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter for compound-heterozygous SVs." << "Mode 'SV-SV' detects genes with two or more SV hits." << "Mode 'SV-SNV/INDEL' detects genes with at least one SV and at least one small variant hit (after other filters are applied).";
-	params_ << FilterParameter("mode", FilterParameterType::STRING, "n/a", "Compound-heterozygotes detection mode.");
-	params_.last().constraints["valid"] = "n/a,SV-SV,SV-SNV/INDEL";
+	initParameters({
+		Parameter("mode", "Compound-heterozygotes detection mode.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("n/a\tSV-SV\tSV-SNV/INDEL")}})
+	}, {
+		{"mode", QByteArray("n/a")}
+	});
 
 	checkIsRegistered();
 }
@@ -4546,16 +4460,20 @@ FilterSvCountNGSD::FilterSvCountNGSD()
 	name_ = "SV count NGSD";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter based on the hom/het occurances of a structural variant in the NGSD.";
-	params_ << FilterParameter("max_count", FilterParameterType::INT, 20, "Maximum NGSD SV count");
-	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("ignore_genotype", FilterParameterType::BOOL, false, "If set, all NGSD entries are counted independent of the variant genotype. Otherwise, for homozygous variants only homozygous NGSD entries are counted and for heterozygous variants all NGSD entries are counted.");
+	initParameters({
+		Parameter("max_count", "Maximum NGSD SV count", ParameterType::INT, {{ConstraintType::MIN, "0"}}),
+		Parameter("ignore_genotype", "If set, all NGSD entries are counted independent of the variant genotype. Otherwise, for homozygous variants only homozygous NGSD entries are counted and for heterozygous variants all NGSD entries are counted.", ParameterType::BOOL, {})
+	}, {
+		{"max_count", 20},
+		{"ignore_genotype", false}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterSvCountNGSD::toText() const
 {
-	return name() + " &le; " + QString::number(getInt("max_count", false)) + (getBool("ignore_genotype") ? " (ignore genotype)" : "");
+	return name() + " &le; " + QString::number(getInt("max_count")) + (getBool("ignore_genotype") ? " (ignore genotype)" : "");
 }
 
 void FilterSvCountNGSD::apply(const BedpeFile& svs, FilterResult& result) const
@@ -4664,16 +4582,18 @@ FilterSvAfNGSD::FilterSvAfNGSD()
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter based on the allele frequency of this structural variant in the NGSD."
 								 << "Note: this filter should only be used for whole genome samples.";
-	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency in %");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "200.0";
+	initParameters({
+		Parameter("max_af", "Maximum allele frequency in %", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "200.0"}})
+	}, {
+		{"max_af", 1.0}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterSvAfNGSD::toText() const
 {
-	return name() + " &le; " + QString::number(getDouble("max_af", false)) + "%";
+	return name() + " &le; " + QString::number(getDouble("max_af")) + "%";
 }
 
 void FilterSvAfNGSD::apply(const BedpeFile& svs, FilterResult& result) const
@@ -4723,17 +4643,22 @@ FilterSvBreakpointDensityNGSD::FilterSvBreakpointDensityNGSD()
 	name_ = "SV break point density NGSD";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter based on the density of SV break points in the NGSD in the CI of the structural variant.";
-	params_ << FilterParameter("max_density", FilterParameterType::INT, 20, "Maximum density in the confidence interval of the SV");
-	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("remove_strict", FilterParameterType::BOOL, false, "Remove also SVs in which only one break point is above threshold.");
-	params_ << FilterParameter("only_system_specific", FilterParameterType::BOOL, false, "Filter only based on the density of breakpoint of the current processing system.");
+	initParameters({
+		Parameter("max_density", "Maximum density in the confidence interval of the SV", ParameterType::INT, {{ConstraintType::MIN, "0"}}),
+		Parameter("remove_strict", "Remove also SVs in which only one break point is above threshold.", ParameterType::BOOL, {}),
+		Parameter("only_system_specific", "Filter only based on the density of breakpoint of the current processing system.", ParameterType::BOOL, {})
+	}, {
+		{"max_density", 20},
+		{"remove_strict", false},
+		{"only_system_specific", false}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterSvBreakpointDensityNGSD::toText() const
 {
-	return name() + " &le; " + QString::number(getInt("max_density", false)) + QByteArray((getBool("remove_strict"))?" (remove_strict)":"") + QByteArray((getBool("only_system_specific"))?" (only_system_specific)":"");
+	return name() + " &le; " + QString::number(getInt("max_density")) + QByteArray((getBool("remove_strict"))?" (remove_strict)":"") + QByteArray((getBool("only_system_specific"))?" (only_system_specific)":"");
 }
 
 void FilterSvBreakpointDensityNGSD::apply(const BedpeFile& svs, FilterResult& result) const
@@ -4783,19 +4708,21 @@ FilterSvTrio::FilterSvTrio()
     name_ = "SV trio";
 	type_ = VariantType::SVS;
     description_ = QStringList() << "Filter trio structural variants";
-	params_ << FilterParameter("types", FilterParameterType::STRINGLIST, QStringList() << "de-novo" << "recessive" << "comp-het" << "LOH" << "x-linked", "Variant types");
-    params_.last().constraints["valid"] = "de-novo,recessive,comp-het,LOH,x-linked,imprinting";
-    params_.last().constraints["non-empty"] = "";
+	initParameters({
+		Parameter("types", "Variant types", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("de-novo\trecessive\tcomp-het\tLOH\tx-linked\timprinting")}, {ConstraintType::NON_EMPTY, QVariant()}}),
+		Parameter("gender_child", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("male\tfemale\tn/a")}})
+	}, {
+		{"types", QVariant::fromValue(QByteArrayList({"de-novo", "recessive", "comp-het", "LOH", "x-linked"}))},
+		{"gender_child", QByteArray("n/a")}
+	});
 
-	params_ << FilterParameter("gender_child", FilterParameterType::STRING, "n/a", "Gender of the child - if 'n/a', the gender from the GSvar file header is taken");
-    params_.last().constraints["valid"] = "male,female,n/a";
 
     checkIsRegistered();
 }
 
 QString FilterSvTrio::toText() const
 {
-    return name() + " " + getStringList("types", false).join(',');
+    return name() + " " + getStringList("types").join(',');
 }
 
 void FilterSvTrio::apply(const BedpeFile &svs, FilterResult &result) const
@@ -5007,12 +4934,13 @@ FilterSomaticAlleleFrequency::FilterSomaticAlleleFrequency()
 	name_ = "Somatic allele frequency";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based on the allele frequency of variants in tumor/normal samples.";
-	params_ << FilterParameter("min_af_tum", FilterParameterType::DOUBLE, 5.0, "Minimum allele frequency in tumor sample [%]");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "100.0";
-	params_ << FilterParameter("max_af_nor", FilterParameterType::DOUBLE, 1.0, "Maximum allele frequency in normal sample [%]");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "100.0";
+	initParameters({
+		Parameter("min_af_tum", "Minimum allele frequency in tumor sample [%]", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "100.0"}}),
+		Parameter("max_af_nor", "Maximum allele frequency in normal sample [%]", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "100.0"}})
+	}, {
+		{"min_af_tum", 5.0},
+		{"max_af_nor", 1.0}
+	});
 
 	checkIsRegistered();
 }
@@ -5021,13 +4949,13 @@ QString FilterSomaticAlleleFrequency::toText() const
 {
 	QString text = name();
 
-	double min_af_tum = getDouble("min_af_tum", false);
+	double min_af_tum = getDouble("min_af_tum");
 	if (min_af_tum>0.0)
 	{
 		text += " min_af_tum&ge;" + QString::number(min_af_tum) + "%";
 	}
 
-	double max_af_nor = getDouble("max_af_nor", false);
+	double max_af_nor = getDouble("max_af_nor");
 	if (max_af_nor<1.0)
 	{
 		text += " max_af_nor&le;" + QString::number(max_af_nor) + "%";
@@ -5076,12 +5004,13 @@ FilterTumorOnlyHomHet::FilterTumorOnlyHomHet()
 	name_ = "Tumor zygosity";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based on the zygosity of tumor-only samples. Filters out germline het/hom calls.";
-	params_ << FilterParameter("het_af_range", FilterParameterType::DOUBLE, 0.0, "Consider allele frequencies of 50% ± het_af_range as heterozygous and thus as germline.");
-	params_.last().constraints["min"] = "0";
-	params_.last().constraints["max"] = "49.9";
-	params_ << FilterParameter("hom_af_range", FilterParameterType::DOUBLE, 0.0, "Consider allele frequencies of 100% ± hom_af_range as homozygous and thus as germline.");
-	params_.last().constraints["min"] = "0";
-	params_.last().constraints["max"] = "99.9";
+	initParameters({
+		Parameter("het_af_range", "Consider allele frequencies of 50% ± het_af_range as heterozygous and thus as germline.", ParameterType::DOUBLE, {{ConstraintType::MIN, "0"}, {ConstraintType::MAX, "49.9"}}),
+		Parameter("hom_af_range", "Consider allele frequencies of 100% ± hom_af_range as homozygous and thus as germline.", ParameterType::DOUBLE, {{ConstraintType::MIN, "0"}, {ConstraintType::MAX, "99.9"}})
+	}, {
+		{"het_af_range", 0.0},
+		{"hom_af_range", 0.0}
+	});
 
 	checkIsRegistered();
 }
@@ -5090,13 +5019,13 @@ QString FilterTumorOnlyHomHet::toText() const
 {
 	QString text = name();
 
-	double het_af_range = getDouble("het_af_range", false);
+	double het_af_range = getDouble("het_af_range");
 	if(het_af_range != 0.0)
 	{
 		text += ", het=50%&plusmn;" + QString::number(het_af_range) + "%";
 	}
 
-	double hom_af_range = getDouble("hom_af_range", false);
+	double hom_af_range = getDouble("hom_af_range");
 	if(hom_af_range != 0.0)
 	{
 		text += ", hom=100%&plusmn;" + QString::number(hom_af_range) + "%";
@@ -5146,8 +5075,11 @@ FilterGSvarScoreAndRank::FilterGSvarScoreAndRank()
 	name_ = "GSvar score/rank";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based GSvar score/rank.";
-	params_ << FilterParameter("top", FilterParameterType::INT, 10, "Show top X rankging variants only.");
-	params_.last().constraints["min"] = "1";
+	initParameters({
+		Parameter("top", "Show top X rankging variants only.", ParameterType::INT, {{ConstraintType::MIN, "1"}})
+	}, {
+		{"top", 10}
+	});
 
 	checkIsRegistered();
 }
@@ -5156,7 +5088,7 @@ QString FilterGSvarScoreAndRank::toText() const
 {
 	QString text = name();
 
-	int top = getInt("top", false);
+	int top = getInt("top");
 	text += " top=" + QString::number(top);
 
 	return text;
@@ -5166,7 +5098,7 @@ void FilterGSvarScoreAndRank::apply(const VariantList& variants, FilterResult& r
 {
 	if (!enabled_) return;
 
-	int top = getInt("top", true);
+	int top = getInt("top");
 	int i_rank = annotationColumn(variants, "GSvar_rank");
 	for(int i=0; i<variants.count(); ++i)
 	{
@@ -5185,14 +5117,17 @@ FilterSpliceEffect::FilterSpliceEffect()
 	name_="Splice effect";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based on the predicted change in splice effect";
-	params_ << FilterParameter("SpliceAi", FilterParameterType::DOUBLE, 0.5, "Minimum SpliceAi score. Disabled if set to zero.");
-	params_.last().constraints["min"] = "0";
-	params_.last().constraints["max"] = "1";
-	params_ << FilterParameter("MaxEntScan", FilterParameterType::STRING, "HIGH", "Minimum predicted splice effect. Disabled if set to LOW.");
-	params_.last().constraints["valid"] = "HIGH,MODERATE,LOW";
-	params_ << FilterParameter("splice_site_only", FilterParameterType::BOOL, true, "Use native splice site predictions only and skip de-novo acceptor/donor predictions.");
-	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
-	params_.last().constraints["valid"] = "KEEP,FILTER";
+	initParameters({
+		Parameter("SpliceAi", "Minimum SpliceAi score. Disabled if set to zero.", ParameterType::DOUBLE, {{ConstraintType::MIN, "0"}, {ConstraintType::MAX, "1"}}),
+		Parameter("MaxEntScan", "Minimum predicted splice effect. Disabled if set to LOW.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("HIGH\tMODERATE\tLOW")}}),
+		Parameter("splice_site_only", "Use native splice site predictions only and skip de-novo acceptor/donor predictions.", ParameterType::BOOL, {}),
+		Parameter("action", "Action to perform", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("KEEP\tFILTER")}})
+	}, {
+		{"SpliceAi", 0.5},
+		{"MaxEntScan", QByteArray("HIGH")},
+		{"splice_site_only", true},
+		{"action", QByteArray("FILTER")}
+	});
 	checkIsRegistered();
 }
 
@@ -5200,13 +5135,13 @@ QString FilterSpliceEffect::toText() const
 {
 	QString text = this->name() + " " + getString("action");
 
-	double min_sai = getDouble("SpliceAi", false);
+	double min_sai = getDouble("SpliceAi");
 	if (min_sai>0)
 	{
 		text += " SpliceAi>=" + QString::number(min_sai, 'f', 2);
 	}
 
-	QString min_mes = getString("MaxEntScan", false);
+	QString min_mes = getString("MaxEntScan");
 	if (min_mes!="LOW")
 	{
 		text += " maxEntScan>=" + min_mes;
@@ -5341,19 +5276,20 @@ FilterVariantRNAAseAlleleFrequency::FilterVariantRNAAseAlleleFrequency()
 	name_ = "RNA ASE allele frequency";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based on the allele specific expression allele frequency.";
-	params_ << FilterParameter("min_af", FilterParameterType::DOUBLE, 0.0, "Minimal expression allele frequency.");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "1.0";
-	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "Maximal expression allele frequency.");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "1.0";
+	initParameters({
+		Parameter("min_af", "Minimal expression allele frequency.", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "1.0"}}),
+		Parameter("max_af", "Maximal expression allele frequency.", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "1.0"}})
+	}, {
+		{"min_af", 0.0},
+		{"max_af", 1.0}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterVariantRNAAseAlleleFrequency::toText() const
 {
-	return name() + " between " + QString::number(getDouble("min_af", false), 'f', 2) + " and " + QString::number(getDouble("max_af", false), 'f', 2);
+	return name() + " between " + QString::number(getDouble("min_af"), 'f', 2) + " and " + QString::number(getDouble("max_af"), 'f', 2);
 }
 
 void FilterVariantRNAAseAlleleFrequency::apply(const VariantList& variants, FilterResult& result) const
@@ -5387,15 +5323,18 @@ FilterVariantRNAAseDepth::FilterVariantRNAAseDepth()
 	name_ = "RNA ASE depth";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based on the allele specific expression depth.";
-	params_ << FilterParameter("min_depth", FilterParameterType::INT, 20, "Minimal expression depth.");
-	params_.last().constraints["min"] = "0";
+	initParameters({
+		Parameter("min_depth", "Minimal expression depth.", ParameterType::INT, {{ConstraintType::MIN, "0"}})
+	}, {
+		{"min_depth", 20}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterVariantRNAAseDepth::toText() const
 {
-	return name() + " &ge; " + QString::number(getInt("min_depth", false));
+	return name() + " &ge; " + QString::number(getInt("min_depth"));
 }
 
 void FilterVariantRNAAseDepth::apply(const VariantList& variants, FilterResult& result) const
@@ -5420,15 +5359,18 @@ FilterVariantRNAAseAlt::FilterVariantRNAAseAlt()
 	name_ = "RNA ASE alternative count";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based on the allele specific expression alternative count.";
-	params_ << FilterParameter("min_ac", FilterParameterType::INT, 5, "Minimal expression alternative count.");
-	params_.last().constraints["min"] = "0";
+	initParameters({
+		Parameter("min_ac", "Minimal expression alternative count.", ParameterType::INT, {{ConstraintType::MIN, "0"}})
+	}, {
+		{"min_ac", 5}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterVariantRNAAseAlt::toText() const
 {
-	return name() + " &ge; " + QString::number(getInt("min_ac", false));
+	return name() + " &ge; " + QString::number(getInt("min_ac"));
 }
 
 void FilterVariantRNAAseAlt::apply(const VariantList& variants, FilterResult& result) const
@@ -5461,16 +5403,18 @@ FilterVariantRNAAsePval::FilterVariantRNAAsePval()
 	name_ = "RNA ASE p-value";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based on the allele specific expression p-value.";
-	params_ << FilterParameter("max_pval", FilterParameterType::DOUBLE, 0.05, "Maximal expression p-value.");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "1.0";
+	initParameters({
+		Parameter("max_pval", "Maximal expression p-value.", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "1.0"}})
+	}, {
+		{"max_pval", 0.05}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterVariantRNAAsePval::toText() const
 {
-	return name() + " &le; " + QString::number(getDouble("max_pval", false), 'f', 2);
+	return name() + " &le; " + QString::number(getDouble("max_pval"), 'f', 2);
 }
 
 void FilterVariantRNAAsePval::apply(const VariantList& variants, FilterResult& result) const
@@ -5503,14 +5447,16 @@ FilterVariantRNAAberrantSplicing::FilterVariantRNAAberrantSplicing()
 	name_ = "RNA aberrant splicing fraction";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based on the fraction of aberrant splicing reads.";
-	params_ << FilterParameter("min_asf", FilterParameterType::DOUBLE, 0.01, "Minimal aberrant splicing fraction.");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "1.0";
+	initParameters({
+		Parameter("min_asf", "Minimal aberrant splicing fraction.", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "1.0"}})
+	}, {
+		{"min_asf", 0.01}
+	});
 }
 
 QString FilterVariantRNAAberrantSplicing::toText() const
 {
-	return name() + " &ge; " + QString::number(getDouble("min_asf", false), 'f', 3);
+	return name() + " &ge; " + QString::number(getDouble("min_asf"), 'f', 3);
 }
 
 void FilterVariantRNAAberrantSplicing::apply(const VariantList& variants, FilterResult& result) const
@@ -5546,13 +5492,16 @@ FilterVariantRNAGeneExpression::FilterVariantRNAGeneExpression()
 	name_ = "RNA gene expression";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based on the gene expression in transcripts-per-million";
-	params_ << FilterParameter("min_tpm", FilterParameterType::DOUBLE, 5.0, "Minimal gene expression in transcripts-per-million.");
-	params_.last().constraints["min"] = "0.0";
+	initParameters({
+		Parameter("min_tpm", "Minimal gene expression in transcripts-per-million.", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}})
+	}, {
+		{"min_tpm", 5.0}
+	});
 }
 
 QString FilterVariantRNAGeneExpression::toText() const
 {
-	return name() + " &ge; " + QString::number(getDouble("min_tpm", false), 'f', 2) + "(tpm)";
+	return name() + " &ge; " + QString::number(getDouble("min_tpm"), 'f', 2) + "(tpm)";
 }
 
 void FilterVariantRNAGeneExpression::apply(const VariantList& variants, FilterResult& result) const
@@ -5588,13 +5537,16 @@ FilterVariantRNAExpressionFC::FilterVariantRNAExpressionFC()
 	name_ = "RNA expression fold-change";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based on the absolute gene expression log2 fold-change.";
-	params_ << FilterParameter("min_fc", FilterParameterType::DOUBLE, 2.0, "Minimal absolute fold-change.");
-	params_.last().constraints["min"] = "0.0";
+	initParameters({
+		Parameter("min_fc", "Minimal absolute fold-change.", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}})
+	}, {
+		{"min_fc", 2.0}
+	});
 }
 
 QString FilterVariantRNAExpressionFC::toText() const
 {
-	return name() + " (abs) &ge; " + QString::number(getDouble("min_fc", false), 'f', 2);
+	return name() + " (abs) &ge; " + QString::number(getDouble("min_fc"), 'f', 2);
 }
 
 void FilterVariantRNAExpressionFC::apply(const VariantList& variants, FilterResult& result) const
@@ -5630,13 +5582,16 @@ FilterVariantRNAExpressionZScore::FilterVariantRNAExpressionZScore()
 	name_ = "RNA expression z-score";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter based on the absolute gene expression z-score.";
-	params_ << FilterParameter("min_zscore", FilterParameterType::DOUBLE, 2.0, "Minimal absolute z-score.");
-	params_.last().constraints["min"] = "0.0";
+	initParameters({
+		Parameter("min_zscore", "Minimal absolute z-score.", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}})
+	}, {
+		{"min_zscore", 2.0}
+	});
 }
 
 QString FilterVariantRNAExpressionZScore::toText() const
 {
-	return name() + " (abs) &ge; " + QString::number(getDouble("min_zscore", false), 'f', 2);
+	return name() + " (abs) &ge; " + QString::number(getDouble("min_zscore"), 'f', 2);
 }
 
 void FilterVariantRNAExpressionZScore::apply(const VariantList& variants, FilterResult& result) const
@@ -5673,7 +5628,11 @@ FilterVariantLrSrOverlap::FilterVariantLrSrOverlap()
 	name_ = "lr short-read overlap";
 	type_ = VariantType::SNVS_INDELS;
 	description_ = QStringList() << "Filter that preserves variants if they were called in short-read WGS sample only.";
-	params_ << FilterParameter("invert", FilterParameterType::BOOL, false, "If set, removes all variants if they were called in short-read WGS sample.");
+	initParameters({
+		Parameter("invert", "If set, removes all variants if they were called in short-read WGS sample.", ParameterType::BOOL, {})
+	}, {
+		{"invert", false}
+	});
 
 }
 
@@ -5711,16 +5670,18 @@ FilterSvCnvOverlap::FilterSvCnvOverlap()
 	name_ = "SV CNV overlap";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter the removes DEL/DUP without support from CNV calling.";
-	params_ << FilterParameter("min_ol", FilterParameterType::DOUBLE, 0.50, "Minimum CNV overlap.");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "1.0";
-	params_ << FilterParameter("min_size", FilterParameterType::INT, 10000, "Minimum SV size in bases.");
-	params_.last().constraints["min"] = "0";
+	initParameters({
+		Parameter("min_ol", "Minimum CNV overlap.", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "1.0"}}),
+		Parameter("min_size", "Minimum SV size in bases.", ParameterType::INT, {{ConstraintType::MIN, "0"}})
+	}, {
+		{"min_ol", 0.50},
+		{"min_size", 10000}
+	});
 }
 
 QString FilterSvCnvOverlap::toText() const
 {
-	return name() + " &ge; " + QString::number(getDouble("min_ol", false), 'f', 2)+ " (size &ge; " + QString::number(getInt("min_size", false)/1000.0, 'f', 2) + "kb)";
+	return name() + " &ge; " + QString::number(getDouble("min_ol"), 'f', 2)+ " (size &ge; " + QString::number(getInt("min_size")/1000.0, 'f', 2) + "kb)";
 }
 
 void FilterSvCnvOverlap::apply(const BedpeFile& svs, FilterResult& result) const
@@ -5728,10 +5689,10 @@ void FilterSvCnvOverlap::apply(const BedpeFile& svs, FilterResult& result) const
 	if (!enabled_) return;
 
 	//init
-	double min_ol = getDouble("min_ol", false);
+	double min_ol = getDouble("min_ol");
 	int ol_col = svs.annotationIndexByName("CNV_OVERLAP");
 	if (ol_col==-1) THROW(ProgrammingException, "Missing column CNV_OVERLAP");
-	int min_size = getInt("min_size", false);
+	int min_size = getInt("min_size");
 
 	for(int i=0; i<svs.count(); ++i)
 	{
@@ -5755,19 +5716,20 @@ FilterSvLrAF::FilterSvLrAF()
 	name_ = "SV-lr AF";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Show only (lr) SVs with a allele frequency between the given interval";
-	params_ << FilterParameter("min_af", FilterParameterType::DOUBLE, 0.0, "minimal allele frequency");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "1.0";
-	params_ << FilterParameter("max_af", FilterParameterType::DOUBLE, 1.0, "maximal allele frequency");
-	params_.last().constraints["min"] = "0.0";
-	params_.last().constraints["max"] = "1.0";
+	initParameters({
+		Parameter("min_af", "minimal allele frequency", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "1.0"}}),
+		Parameter("max_af", "maximal allele frequency", ParameterType::DOUBLE, {{ConstraintType::MIN, "0.0"}, {ConstraintType::MAX, "1.0"}})
+	}, {
+		{"min_af", 0.0},
+		{"max_af", 1.0}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterSvLrAF::toText() const
 {
-	return name() + " between " + QByteArray::number(getDouble("min_af", false), 'f', 2) + " and "  + QByteArray::number(getDouble("max_af", false), 'f', 2);
+	return name() + " between " + QByteArray::number(getDouble("min_af"), 'f', 2) + " and "  + QByteArray::number(getDouble("max_af"), 'f', 2);
 }
 
 void FilterSvLrAF::apply(const BedpeFile& svs, FilterResult& result) const
@@ -5781,8 +5743,8 @@ void FilterSvLrAF::apply(const BedpeFile& svs, FilterResult& result) const
 	}
 
 	// get allowed interval
-	double upper_limit = getDouble("max_af", false);
-	double lower_limit = getDouble("min_af", false);
+	double upper_limit = getDouble("max_af");
+	double lower_limit = getDouble("min_af");
 
 
 	int col_index = svs.annotationIndexByName("AF", false);
@@ -5816,23 +5778,25 @@ FilterSvLrSupportReads::FilterSvLrSupportReads()
 	name_ = "SV-lr support reads";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Show only (lr) SVs with a minimum number of supporting reads";
-	params_ << FilterParameter("min_support", FilterParameterType::INT, 5, "Minimum support read count");
-	params_.last().constraints["min"] = "0";
-	params_.last().constraints["max"] = "10000";
+	initParameters({
+		Parameter("min_support", "Minimum support read count", ParameterType::INT, {{ConstraintType::MIN, "0"}, {ConstraintType::MAX, "10000"}})
+	}, {
+		{"min_support", 5}
+	});
 
 	checkIsRegistered();
 }
 
 QString FilterSvLrSupportReads::toText() const
 {
-	return name() + " &ge; " + QString::number(getInt("min_support", false), 'f', 2);
+	return name() + " &ge; " + QString::number(getInt("min_support"), 'f', 2);
 }
 
 void FilterSvLrSupportReads::apply(const BedpeFile& svs, FilterResult& result) const
 {
 	if (!enabled_) return;
 	int col_index = svs.annotationIndexByName("SUPPORT");
-	int min_support = getInt("min_support", true);
+	int min_support = getInt("min_support");
 	// iterate over all SVs
 	for(int i=0; i<svs.count(); ++i)
 	{
@@ -5852,8 +5816,11 @@ FilterSvPathogenic::FilterSvPathogenic()
 	name_ = "SV annotated pathogenic";
 	type_ = VariantType::SVS;
 	description_ = QStringList() << "Filter variants that are already annotated to be pathogenic in NGSD..";
-	params_ << FilterParameter("action", FilterParameterType::STRING, "FILTER", "Action to perform");
-	params_.last().constraints["valid"] = "FILTER,KEEP";
+	initParameters({
+		Parameter("action", "Action to perform", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("FILTER\tKEEP")}})
+	}, {
+		{"action", QByteArray("FILTER")}
+	});
 
 	checkIsRegistered();
 }

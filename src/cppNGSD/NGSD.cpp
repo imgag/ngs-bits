@@ -8570,7 +8570,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, QSharedPointe
 
 		query.bindValue(19, config->includeMutationBurden());
 
-		if (config->filters().count() > 0) query.bindValue(20, config->filters().toText().join("\n"));
+		if (config->filters().count() > 0) query.bindValue(20, QString::fromUtf8(config->filters().toText().join('\n')));
         else query.bindValue(20, QVariant(QString()));
 
 		query.bindValue(21, id);
@@ -8632,7 +8632,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, QSharedPointe
 
 		query.bindValue(23, config->includeMutationBurden());
 
-		if (config->filters().count() > 0) query.bindValue(24, config->filters().toText().join("\n"));
+		if (config->filters().count() > 0) query.bindValue(24, QString::fromUtf8(config->filters().toText().join('\n')));
         else query.bindValue(24, QVariant(QString()));
 
 		query.exec();
@@ -8897,7 +8897,7 @@ QSharedPointer<SomaticReportConfiguration> NGSD::somaticReportConfig(QString t_p
 
 	if(!query.value("filters").isNull())
 	{
-		output->setFilters(FilterCascade::fromText(query.value("filters").toString().split("\n")));
+		output->setFilters(FilterCascade::fromText(query.value("filters").toString().toUtf8().split('\n')));
 	}
 	else if (!query.value("filter_base_name").isNull()) //TODO temp loading help while converting to having the filters completely in the DB
 	{
