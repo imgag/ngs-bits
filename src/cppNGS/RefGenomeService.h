@@ -12,11 +12,11 @@ public:
 	static const QString& getReferenceGenome();
 	//sets the reference genome FASTA file. Setting the reference genome manually should be necessary only in special cases.
 	static void setReferenceGenome(QString filename);
+    static RefGenomeService& instance();
 
 protected:
     RefGenomeService();
     ~RefGenomeService();
-    static RefGenomeService& instance();
 
 private:
     QString ref_genome_file_;

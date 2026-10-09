@@ -6,6 +6,7 @@
 #include <QMessageBox>
 #include <QRegularExpression>
 #include <QStyleFactory>
+#include <RefGenomeService.h>
 #include "AboutDialog.h"
 #include "htslib/hts.h"
 #include <QMessageBox>
@@ -17,15 +18,17 @@ MainWindow::MainWindow(QWidget *parent)
 {
 	ui_.setupUi(this);
 
-	//sginals and slots
+    // signals and slots
 	connect(ui_.actionLoadFile, SIGNAL(triggered()), ui_.gvw, SLOT(openFileDialog()));
 	connect(ui_.actionReloadTracks, SIGNAL(triggered()), ui_.gvw, SLOT(reloadTracks()));
 	connect(ui_.actionNewSession, SIGNAL(triggered()), ui_.gvw, SLOT(newSession()));
 	connect(ui_.actionStore_session, SIGNAL(triggered()), ui_.gvw, SLOT(saveSession()));
     connect(ui_.actionLoadSession, SIGNAL(triggered()), ui_.gvw, SLOT(loadSession()));
-    connect(&api, &CommandServer::commandReceived, this, &MainWindow::executeApiCommand);
 	connect(ui_.actionAbout, SIGNAL(triggered()), this, SLOT(showAboutDialog()));
 	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
+
+    // API
+    connect(&api, &CommandServer::commandReceived, this, &MainWindow::executeApiCommand);
 }
 
 void MainWindow::delayedInitialization()
@@ -79,39 +82,77 @@ void MainWindow::executeApiCommand(GSVCommand cmd) {
 
         case CmdVerb::Goto:
             handleGoto(cmd.arguments);
+            break;
 
         case CmdVerb::Load:
-            // for (QString arg : cmd.arguments)
-            //     loadFile();
+            handleLoad(cmd.arguments);
+            break;
 
+        case CmdVerb::Genome:
+            handleGenome(cmd.arguments);
             break;
 
         default:
             break;
         }
-    } catch (Exception err) {
-        QMessageBox::critical(this, "An invalid command was received", err.message());
+    } catch (Exception e) {
+        err("An invalid command was received", e.message());
     }
+}
+
+void MainWindow::err(QString header, QString text) {
+    auto *box = new QMessageBox(QMessageBox::Warning, header, text, QMessageBox::Ok, this);
+    box->setAttribute(Qt::WA_DeleteOnClose);
+    box->open();   // window-modal, returns immediately
 }
 
 void MainWindow::handleGoto(QString args)
 {
-    QRegularExpression re("[,;]");
+    const QRegularExpression re("[,;]");
 
     auto tracks = args.split(re);
 
     for (QString locus : tracks)
     {
-        //chromosomal region
         BedLine region = BedLine::fromString(locus);
         if (region.isValid())
         {
             SharedData::setRegion(region.chr(), region.start(), region.end());
             return;
         }
+        else
+        {
+            err("Invalid region", "The region specified is not valid and can therefore not be used as a destination. If you meant to jump to a particular coordinate, be sure to include the chromosome and start/end positions in the format (chrN:start-end), or just the chromonose name: (chrN).");
+        }
     }
 }
 
+void MainWindow::handleLoad(QString args)
+{
+    if (args.trimmed().isEmpty())
+        ui_.gvw->openFileDialog();
+
+    else
+    {
+        const QRegularExpression re("[,;]");
+
+        for (QString file : args.split(re))
+            ui_.gvw->loadFile(file);
+    }
+}
+
+void MainWindow::handleGenome(QString args) {
+    QString file = args;
+
+    if (args.trimmed().isEmpty())
+    {
+        QString open_folder = Settings::path("load_store_file_folder", true);
+        file = QFileDialog::getOpenFileName(this, "Open file(s)", open_folder, "Genome files(*.fa, *.fa.gz);;All files(*.*)");
+    }
+
+    ui_.gvw->newSession();
+    RefGenomeService::instance().setReferenceGenome(file);
+}
 void MainWindow::showAboutDialog()
 {
 	AboutDialog dlg(this);

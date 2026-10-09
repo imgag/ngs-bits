@@ -28,10 +28,14 @@ private slots:
 
 private:
 	Ui::MainWindow ui_;
+    DelayedInitializationTimer init_timer_;
+
     CommandServer api;
 
     void handleGoto(QString args);
-	DelayedInitializationTimer init_timer_;
+    void handleLoad(QString args);
+    void handleGenome(QString args);
+    void err(QString header, QString text);
 };
 
 #endif // MAINWINDOW_H

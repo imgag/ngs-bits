@@ -40,8 +40,8 @@ void GenomeVisualizationWidget::openFileDialog()
 	{
 		foreach(QString file, files)
 		{
-			ui_->panel_manager->loadFile(file);
-		}
+            loadFile(file);
+        }
 		Settings::setPath("load_store_file_folder", QFileInfo(files[0]).absolutePath());
 	}
 }
@@ -128,7 +128,7 @@ void GenomeVisualizationWidget::search()
 		}
 		roi.extend(SharedData::settings().transcript_padding);
 		roi.merge();
-		if (roi.count()>1)
+        if (roi.count() > 1)
 		{
 			QToolTip::showText(ui_->search->mapToGlobal(QPoint(0, 0)), "Gene has several transcript regions, using the first one!\nUse transcript identifiers to select a specific transcript of the gene!" + text);
 		}
