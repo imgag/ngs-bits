@@ -1,4 +1,5 @@
 #include "FileLoader.h"
+#include "QtXml/qdom.h"
 #include "TrackGroup.h"
 #include <QApplication>
 #include <QMenu>
@@ -230,15 +231,13 @@ void TrackGroup::writeToXml(QXmlStreamWriter& writer)
 	writer.writeEndElement(); // TrackGroup
 }
 
-void TrackGroup::loadFromXml(const QDomElement& dom_element)
+void TrackGroup::loadFromXml(const QDomElement& dom_element, QStringList& errors)
 {
 	QDomNodeList elements = dom_element.elementsByTagName("Track");
 	for (int i =0; i < elements.count(); ++i)
 	{
 		const QDomElement& track_element = elements.at(i).toElement();
-
-		QString type = track_element.attribute("type");
-		TrackWidget* track = TrackWidget::fromXml(track_element, this);
+		TrackWidget* track = TrackWidget::fromXml(track_element, this, errors);
 		if (track)
 		{
 			connect(track, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
@@ -249,16 +248,14 @@ void TrackGroup::loadFromXml(const QDomElement& dom_element)
 	}
 }
 
-TrackGroup* TrackGroup::fromXml(const QDomElement& dom_element)
+TrackGroup* TrackGroup::fromXml(const QDomElement& dom_element, QStringList& errors)
 {
 	QDomNodeList elements = dom_element.elementsByTagName("Track");
 	QVector<TrackWidget*> tracks;
 	for (int i =0; i < elements.count(); ++i)
 	{
 		const QDomElement& track_element = elements.at(i).toElement();
-
-		QString type = track_element.attribute("type");
-		TrackWidget* track = TrackWidget::fromXml(track_element, nullptr);
+		TrackWidget* track = TrackWidget::fromXml(track_element, nullptr, errors);
 		if (track) tracks.append(track);
 	}
 

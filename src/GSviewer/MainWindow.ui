@@ -59,12 +59,7 @@
      <string>File</string>
     </property>
     <addaction name="actionLoadFile"/>
-    <addaction name="separator"/>
-    <addaction name="actionReloadTracks"/>
-    <addaction name="separator"/>
-    <addaction name="actionNewSession"/>
-    <addaction name="actionLoadSession"/>
-    <addaction name="actionStore_session"/>
+    <addaction name="actionLoadURL"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -74,7 +69,19 @@
     </property>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menuSession">
+    <property name="title">
+     <string>Session</string>
+    </property>
+    <addaction name="actionClearSession"/>
+    <addaction name="separator"/>
+    <addaction name="actionReloadTracks"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoadSession"/>
+    <addaction name="actionStore_session"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuSession"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionLoadFile">
@@ -82,9 +89,9 @@
     <string>Load file</string>
    </property>
   </action>
-  <action name="actionNewSession">
+  <action name="actionClearSession">
    <property name="text">
-    <string>New session</string>
+    <string>Clear session</string>
    </property>
   </action>
   <action name="actionReloadTracks">
@@ -110,6 +117,11 @@
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionLoadURL">
+   <property name="text">
+    <string>Load URL</string>
    </property>
   </action>
  </widget>

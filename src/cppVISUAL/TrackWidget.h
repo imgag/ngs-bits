@@ -3,14 +3,10 @@
 
 #include "cppVISUAL_global.h"
 #include "BedFile.h"
-
-#include <QUuid>
-#include <QVector>
-#include <QDomElement>
-#include <QHash>
 #include <QMouseEvent>
 #include <QWidget>
 #include <QXmlStreamWriter>
+#include <QDomElement>
 
 struct CPPVISUALSHARED_EXPORT Viewport
 {
@@ -25,35 +21,33 @@ struct CPPVISUALSHARED_EXPORT Viewport
 	bool isOutOfDrawRegion(int x_pos) const;
 };
 
-// A generic Track, all tracks must inherit from this and implement the getType() function
+// Track base class - all tracks inherit from this
 class CPPVISUALSHARED_EXPORT TrackWidget
 	: public QWidget
 {
 	Q_OBJECT
 
 public:
-	explicit TrackWidget(QWidget* parent, QString file_path, QString name);
+	TrackWidget(QWidget* parent, QString file_path, QString name, QString type);
 	QSize minimumSizeHint() const override;
 
-	// const QUuid& id() {return id_;}
 	// writes properties in XML
 	void writeToXml(QXmlStreamWriter&);
 	// settings that should be written into XML
 	virtual QMap<QString, QVariant> getSettings() {
 		return QMap<QString, QVariant>();
 	};
-	// parses the DOM and loads corresponding settings
-	void loadSettingsFromXml(const QDomNodeList&);
-	// function that should be overriden by child classes (re reading the file)
+	//re-loads a the track from file/URL
 	virtual void reloadTrack() {};
 	// mathod for loading a setting from XML
 	virtual void loadKeyValueFromXml(QString, QString){}
 
-	// creates TrackWidget by parsing XML
-	static TrackWidget* fromXml(const QDomElement&, QWidget* parent);
-	// creates a TrackWidget from a given type, e.g. "BED".
-	static TrackWidget* fromType(QString type, QWidget* parent, QString file_path, QString display_name);
+	// creates TrackWidget based on the given XML specification
+	static TrackWidget* fromXml(const QDomElement&, QWidget* parent, QStringList &errors);
 	virtual void populateContextMenu(QMenu&, const QPoint&);
+
+	//determines a display name from file path or URL
+	static QString getDisplayNameFromFilePath(QString file_path);
 
 signals:
 	void trackDeleted();
@@ -70,20 +64,16 @@ protected:
 	virtual void showInfoPopup(QPointF global_pos, QString info);
 	// draws the name of the widget on the left side
 	void drawLabel(QPainter&);
-	// called when rename is clicked
-	// returns the current viewport
+	// called when rename is clicked. Returns the current viewport
 	virtual Viewport getViewport();
 
-	static QString getDisplayNameFromFilePath(QString file_path);
-
-	virtual QString getType() = 0;
 
 	QPoint drag_start_pos_;
 	bool is_dragging_;
 
-	// QUuid id_;
-	QString file_path_;
-	QString name_;
+	QString file_path_; //path or URL of the source file
+	QString name_; //display name
+	QString type_; //Track type - used to serialize the track to XML
 };
 
 #endif // TRACKWIDGET_H

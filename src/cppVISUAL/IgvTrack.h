@@ -14,13 +14,12 @@ class CPPVISUALSHARED_EXPORT IgvTrack
 	Q_OBJECT
 public:
 	IgvTrack(QWidget* parent, QString file_path, QString name);
+	~IgvTrack();
+	static QByteArray type() { return "IgvTrack"; }
 
 	void setBedFile(QSharedPointer<BedFile> bed_file);
 
 	QSize sizeHint() const override;
-
-	static QString staticType() {return "IGV";}
-	QString getType() override {return staticType();}
 
 	static IgvTrack* createTrack(QWidget* parent, QString file_path, QString name = "");
 

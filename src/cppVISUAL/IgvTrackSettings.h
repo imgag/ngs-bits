@@ -2,18 +2,9 @@
 #define IGVTRACKSETTINGS_H
 
 #include "BedFile.h"
-
-#include <QDomElement>
 #include <QMap>
 #include <QSharedPointer>
 #include <QVariant>
-
-//TODO: make all TrackSettings generic
-// struct TrackSettings //generic track settings
-// {
-// 	// virtual QMap<QString, QVariant> getSettings() = 0;
-// 	// virtual void loadSettings() = 0;
-// };
 
 struct IgvTrackSettings
 {

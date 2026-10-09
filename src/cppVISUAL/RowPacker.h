@@ -5,7 +5,7 @@
 #include <QVector>
 #include <QPair>
 
-//handles row assignment for intervals
+//Handles row assignment for intervals. E.g. used to determine where reads in a BAM file are displayed in the panel
 class CPPVISUALSHARED_EXPORT RowPacker
 {
 public:

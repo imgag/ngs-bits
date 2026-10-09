@@ -47,11 +47,10 @@ class CPPVISUALSHARED_EXPORT BamCoverageTrack
 public:
 	BamCoverageTrack(QWidget* parent, QString file_path, QString name);
 	~BamCoverageTrack();
+	static QByteArray type() { return "BamCoverageTrack"; }
+
 	void setTrackData(QSharedPointer<BamTrackData> track_data);
 	virtual void reloadTrack() override;
-
-	static QString staticType() {return "BAM/CRAM_COVERAGE";}
-	QString getType() override {return staticType();}
 
 	QSize sizeHint() const override;
 

@@ -17,13 +17,13 @@ struct CPPVISUALSHARED_EXPORT GlobalSettings
 	//Width of the label area on the left of panels
 	int label_width  = 165;
 	//Minimum number of bases to show
-	int min_window_size = 40;
+	int min_window_size = 41;
 	//How many bases genes/transcripts are padded with, e.g. after search
 	int transcript_padding = 2000;
 	//Max region length for bam tracks
-	int bam_max_region_len = 30000;
+	int bam_max_region_len = 30000; //TODO Marc - move to track
 	// Threshold for mismatch thresohld in coverage track s.t. the bar is not drawn gray
-	float coverage_mismatch_threshold = .2f; // if > threshold % are mismatched, the bar is colored
+	float coverage_mismatch_threshold = .2f; // if > threshold % are mismatched, the bar is colored //TODO Marc - move to track
 };
 
 //Singleton for data shared by all widgets for visualization.
@@ -77,10 +77,6 @@ public:
 	{
 		return  instance()->char_size_;
 	}
-
-	// writes session information to xml
-	static void writeToXml(QXmlStreamWriter&);
-	static void loadFromXml(QDomElement&);
 
 	//Returns the instance (creates it on first call). This method is public only to connect signal/slots. For all other purposes, use other methods.
 	static SharedData* instance();

@@ -18,7 +18,9 @@ class CPPVISUALSHARED_EXPORT BedTrack
 	Q_OBJECT
 
 public:
-	explicit BedTrack(QWidget* parent, QString file_path, QString name);
+	BedTrack(QWidget* parent, QString file_path, QString name);
+	~BedTrack();
+	static QByteArray type() { return "BedTrack"; }
 
 	// creates a BedTrack, same as the constructor above but
 	// tries to load file_path first into a bed file if that fails
@@ -32,9 +34,6 @@ public:
 
 	// reloads the file, if failed deletes the track
 	void reloadTrack() override;
-
-	static QString staticType() {return "BED";}
-	QString getType() override {return staticType();}
 
 	QMap<QString, QVariant> getSettings() override;
 	void loadKeyValueFromXml(QString, QString) override;

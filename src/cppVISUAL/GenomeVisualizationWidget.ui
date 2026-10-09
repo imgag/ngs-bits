@@ -120,6 +120,13 @@
        </property>
       </spacer>
      </item>
+     <item>
+      <widget class="QPushButton" name="debug_btn">
+       <property name="text">
+        <string>debug</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </item>
    <item>
@@ -172,7 +179,7 @@
          <x>0</x>
          <y>0</y>
          <width>1079</width>
-         <height>553</height>
+         <height>551</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout_2">

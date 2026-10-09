@@ -10,10 +10,14 @@
 #include <QMenu>
 
 IgvTrack::IgvTrack(QWidget* parent, QString file_path, QString name)
-	: TrackWidget(parent, file_path, name)
+	: TrackWidget(parent, file_path, name, "IgvTrack")
 {
 	settings = QSharedPointer<IgvTrackSettings>::create(); // default
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(regionChanged()));
+}
+
+IgvTrack::~IgvTrack()
+{
 }
 
 IgvTrack* IgvTrack::createTrack(QWidget* parent, QString file_path, QString name)

@@ -3,7 +3,7 @@
 
 #include "cppVISUAL_global.h"
 #include "TrackWidget.h"
-#include <QDomElement>
+#include <QtXml/QDomElement>
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QScrollArea>
@@ -24,13 +24,13 @@ public:
 	   track is deleted */
 	void reloadTracks();
 	// writes properties of each track to the XML writer for persistence
-	void writeToXml(QXmlStreamWriter&);
-	// reads <Track> elements in the dom and creates Tracks based on the properties
-	void loadFromXml(const QDomElement&);
+	void writeToXml(QXmlStreamWriter& writer);
+	//Reads Track elements from session XML
+	void loadFromXml(const QDomElement& dom_element, QStringList& errors);
 	//Creates a track group from a file
 	static TrackGroup* fromFile(QString filename);
 	// reads <Track> elements in the dom and creates Tracks based on the properties, if no Track elements were created, returns null ptr
-	static TrackGroup* fromXml(const QDomElement&);
+	static TrackGroup* fromXml(const QDomElement& dom_element, QStringList& errors);
 	//returns the number of tracks
 	int trackCount();
 
@@ -63,8 +63,6 @@ private:
 	inline int getDropIndex(int y);
 	// gives the TrackWidget which is at the specified pos, if none this returns nullptr
 	TrackWidget* getTrackUnderMouse(QPoint pos);
-	// opens a file dialog and creates TrackWidgets using FileLoader
-	static QVector<TrackWidget*> loadTrackWidgetsFromFile(); //TODO Marc: remove?!
 
 private slots:
 	// removes all tracks inside TrackGroup and deletes them

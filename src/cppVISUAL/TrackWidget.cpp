@@ -18,10 +18,11 @@
 #include <QPainter>
 #include <QVBoxLayout>
 
-TrackWidget::TrackWidget(QWidget* parent, QString file_path, QString name)
+TrackWidget::TrackWidget(QWidget* parent, QString file_path, QString name, QString type)
 	: QWidget(parent)
 	, file_path_(file_path)
 	, name_(name)
+	, type_(type)
 {
 }
 
@@ -173,13 +174,31 @@ void TrackWidget::showInfoPopup(QPointF global_pos, QString info)
 
 QString TrackWidget::getDisplayNameFromFilePath(QString file_path)
 {
-	return QFileInfo(file_path).fileName();
+	QString output;
+
+	file_path = file_path.trimmed();
+
+	if (Helper::isHttpUrl(file_path))
+	{
+		QString base_url = file_path.split('?')[0]; //remove arguments like tokens
+		if (base_url.contains("/"))
+		{
+			output = base_url.split("/").last();
+		}
+		output = base_url;
+	}
+	else //local file
+	{
+		output = QFileInfo(file_path).fileName();
+	}
+
+	return output.isEmpty() ? file_path : output;
 }
 
 void TrackWidget::writeToXml(QXmlStreamWriter& writer)
 {
 	writer.writeStartElement("Track");
-	writer.writeAttribute("type", getType());
+	writer.writeAttribute("type", type_);
 	writer.writeAttribute("file_name", file_path_);
 	writer.writeAttribute("display_name", name_);
 	auto settings = getSettings();
@@ -193,38 +212,30 @@ void TrackWidget::writeToXml(QXmlStreamWriter& writer)
 	writer.writeEndElement(); // Track
 }
 
-TrackWidget* TrackWidget::fromXml(const QDomElement& track_element, QWidget* parent)
+TrackWidget* TrackWidget::fromXml(const QDomElement& track_element, QWidget* parent, QStringList& errors)
 {
 	QString type = track_element.attribute("type");
 	QString file_path = track_element.attribute("file_name");
 	QString display_name = track_element.attribute("display_name");
 
-	QDomNodeList settings = track_element.elementsByTagName("Settings");
-
-	TrackWidget* track = TrackWidget::fromType(type, parent, file_path, display_name);
-	if (track) track->loadSettingsFromXml(settings);
-
-	return track;
-}
-
-TrackWidget* TrackWidget::fromType(QString type, QWidget* parent, QString file_path, QString display_name)
-{
-	if (type == BedTrack::staticType()) return BedTrack::createTrack(parent, file_path, display_name);
-	if (type == BamAlignmentTrack::staticType()) return BamAlignmentTrack::createTrack(parent, file_path, display_name);
-	if (type == BamCoverageTrack::staticType()) return BamCoverageTrack::createTrack(parent, file_path, display_name);
-	if (type == IgvTrack::staticType()) return IgvTrack::createTrack(parent, file_path, display_name);
-
-	QMessageBox::warning(QApplication::activeWindow(), "Error", "Track type: " + type + " not supported.");
+	//create track
+	TrackWidget* track = nullptr;
+	if (type == BedTrack::type()) track = BedTrack::createTrack(parent, file_path, display_name);
+	else if (type == BamAlignmentTrack::type()) track = BamAlignmentTrack::createTrack(parent, file_path, display_name);
+	else if (type == BamCoverageTrack::type()) track = BamCoverageTrack::createTrack(parent, file_path, display_name);
+	else if (type == IgvTrack::type()) track = IgvTrack::createTrack(parent, file_path, display_name);
+	else errors << ("Unsupported track type '"+type+"' for " + file_path);
 	return nullptr;
-}
 
-void TrackWidget::loadSettingsFromXml(const QDomNodeList& settings)
-{
+	//load settings
+	QDomNodeList settings = track_element.elementsByTagName("Settings");
 	for (int i =0; i < settings.count(); ++i)
 	{
 		QDomElement item = settings.at(i).toElement();
 		QString key = item.attribute("key");
 		QString value = item.attribute("value");
-		loadKeyValueFromXml(key, value);
+		track->loadKeyValueFromXml(key, value);
 	}
+
+	return track;
 }

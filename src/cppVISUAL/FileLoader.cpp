@@ -10,16 +10,7 @@
 QVector<TrackWidget*> FileLoader::loadTracks(QString file_path, QWidget* parent)
 {
 	//get file name - for URLs removes paramters
-	QString filename = file_path.trimmed();
-	if (Helper::isHttpUrl(filename))
-	{
-		filename = filename.split('?')[0];
-		if (filename.contains("/")) filename = filename.split("/").last();
-	}
-	else
-	{
-		filename = QFileInfo(filename).fileName();
-	}
+	QString filename = TrackWidget::getDisplayNameFromFilePath(file_path);
 
 	QVector<TrackWidget*> output;
 	if (filename.endsWith(".bed"))

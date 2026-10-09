@@ -4,6 +4,7 @@
 #include "cppVISUAL_global.h"
 #include "BedFile.h"
 #include <QWidget>
+#include "DelayedInitializationTimer.h"
 
 namespace Ui {
 class GenomeVisualizationWidget;
@@ -20,14 +21,16 @@ public:
 	GenomeVisualizationWidget(QWidget* parent);
 
 public slots:
-	//Triggers the 'open file' dialog
+	//Shows 'open file' dialog
 	void openFileDialog();
+	//Showse 'open URL' dialog
+	void openUrlDialog();
 	//Loads a file
 	void loadFile(QString filename);
 	//Triggers reload tracks for all tracks
 	void reloadTracks();
 	//Clears everything
-	void newSession(bool add_empty_panel=true);
+	void clearSession();
 	//Save current session
 	void saveSession();
 	// load session from file, triggers 'open file dialog' and loads the session
@@ -38,6 +41,8 @@ protected:
 	void wheelEvent(QWheelEvent* event) override;
 
 protected slots:
+	//Delayed initialization
+	void delayedInitialization();
 	//Perform search based on input field (chromosome, region, gene, transcript, ...)
 	void search();
 	//Zoom in
@@ -56,6 +61,8 @@ protected slots:
 	void updateIndices();
 	//Sets the region of the whole chromosome
 	void setChromosomeRegion(QString chromsome);
+	//Debugging method
+	void debugMethod();
 
 signals:
 	//Emitted when the displayed region has changed.
@@ -63,6 +70,7 @@ signals:
 
 private:
 	Ui::GenomeVisualizationWidget* ui_;
+	DelayedInitializationTimer timer_;
 
 	QStringList valid_chrs_; //chromosome list (normalized)
 	QHash<QByteArray, QSet<int>> gene_to_trans_indices_;

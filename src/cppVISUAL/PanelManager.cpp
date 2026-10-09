@@ -20,20 +20,31 @@ void PanelManager::reloadTracks()
 	}
 }
 
-void PanelManager::newSession(bool add_empty_panel)
+void PanelManager::addEmptyPanel()
 {
-	removeAll();
+	TrackGroup* new_panel = new TrackGroup();
+	insertWidget(0, new_panel);
+	connectSignals(new_panel);
+}
 
-	//add empty panel
-	if (add_empty_panel)
+void PanelManager::resizeGenePanel(int height)
+{
+	QList<int> sizes_old = sizes();
+	if (sizes_old.count()<2) return;
+
+	int height_all = std::accumulate(sizes_old.begin(), sizes_old.end(), 0);
+	double trackgroups_height = height_all - sizes_old.last(); //subtract chromome and gene panel
+	if (trackgroups_height<=0) return;
+
+	QList<int> sizes_new;
+	for (int i=0; i<sizes_old.count()-1; ++i)
 	{
-		TrackGroup* new_panel = new TrackGroup();
-		insertWidget(0, new_panel);
-		connectSignals(new_panel);
-
-		//resize gene track
-		setSizes(QList<int>() << height()-250 << 250);
+		double relative = sizes_old[i]/trackgroups_height;
+		sizes_new << (relative*(height_all-height));
 	}
+	sizes_new << height;
+
+	setSizes(sizes_new);
 }
 
 void PanelManager::mousePressEvent(QMouseEvent* event)
@@ -41,6 +52,9 @@ void PanelManager::mousePressEvent(QMouseEvent* event)
 	if (event->button() == Qt::LeftButton)
 	{
 		int x = event->pos().x();
+		//Only start dragging inside the genomic content area.
+		if (x < SharedData::settings().label_width + 2 || x > width() - 2) return;
+
 		is_dragging_ = true;
 		drag_start_x_ = x;
 		drag_start_region_ = SharedData::region();
@@ -84,22 +98,20 @@ void PanelManager::updateDragRegion(int mouse_x)
 
 void PanelManager::loadFile(QString filename)
 {
-	//qDebug() << __PRETTY_FUNCTION__ << __LINE__ << filename;
 	//empty session => remove all track groups
-	if (isEmptySession())
-	{
-		removeAll();
-		//qDebug() << __PRETTY_FUNCTION__ << __LINE__;
-	}
+	bool empty_session = isEmptySession();
+	if (empty_session) removeAll();
 
 	//add new track group with file contents
 	TrackGroup* new_panel = TrackGroup::fromFile(filename);
-	//qDebug() << __PRETTY_FUNCTION__ << __LINE__ << new_panel;
 	if (new_panel)
 	{
 		connectSignals(new_panel);
 		insertWidget(0, new_panel);
 	}
+
+	//resize gene panel
+	if (empty_session) resizeGenePanel();
 }
 
 void PanelManager::addPanelAbove()
@@ -138,7 +150,6 @@ void PanelManager::connectSignals(TrackGroup* panel)
 	connect(panel, SIGNAL(addPanelBelow()), this, SLOT(addPanelBelow()));
 }
 
-
 void PanelManager::writeToXml(QXmlStreamWriter& writer)
 {
 	for (int i = 0; i < count(); ++i)
@@ -153,13 +164,13 @@ void PanelManager::writeToXml(QXmlStreamWriter& writer)
 	}
 }
 
-void PanelManager::loadFromXml(const QDomElement& dom_element)
+void PanelManager::loadFromXml(const QDomElement& dom_element, QStringList& errors)
 {
 	QDomNodeList elements = dom_element.elementsByTagName("TrackGroup");
 	for (int i =0; i < elements.count(); ++i)
 	{
 		TrackGroup* panel = new TrackGroup();
-		panel->loadFromXml(elements.at(i).toElement());
+		panel->loadFromXml(elements.at(i).toElement(), errors);
 		connectSignals(panel);
 		insertWidget(count() - 1, panel);
 	}
@@ -169,7 +180,10 @@ void PanelManager::removeAll()
 {
 	foreach (TrackGroup* track_group, findChildren<TrackGroup*>())
 	{
-		if (track_group) track_group->deleteLater();
+		//hide and delete
+		track_group->hide();
+		track_group->setParent(nullptr);
+		track_group->deleteLater();
 	}
 }
 

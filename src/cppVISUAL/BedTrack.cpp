@@ -16,11 +16,14 @@ static constexpr int SPACING_BELOW = 20;
 
 
 BedTrack::BedTrack(QWidget* parent, QString file_path, QString name)
-	:TrackWidget(parent, file_path, name)
+	:TrackWidget(parent, file_path, name, type())
 {
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(regionChanged()));
 }
 
+BedTrack::~BedTrack()
+{
+}
 
 void BedTrack::reloadTrack()
 {

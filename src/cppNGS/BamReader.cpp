@@ -5,6 +5,7 @@
 #include "RefGenomeService.h"
 #include <limits>
 #include <new>
+#include <htslib/hts_log.h>
 /*
 External documentation used for the implementation:
 - reading BAM file: https://gist.github.com/PoisonAlien/350677acc03b2fbf98aa
@@ -13,7 +14,6 @@ External documentation used for the implementation:
 - replacing CIGAR data: https://github.com/iontorrent/samtools/blob/master/padding.c
 - replacing base/quality data with different length: https://github.com/samtools/htslib/issues/672
 */
-
 
 BamAlignment::BamAlignment()
 {
@@ -494,7 +494,7 @@ void BamReader::init(const QString& bam_file, QString ref_genome)
 	//open file
 	if (fp_==nullptr)
 	{
-		THROW(FileAccessException, "Could not open BAM/CRAM file " + bam_file_);
+		THROW(FileAccessException, "Could not open  " + bam_file_ + ". sam_open returned errno " + QString::number(errno));
 	}
 
 	//apply optimizations
@@ -534,6 +534,13 @@ BamReader::BamReader(const QString& bam_file)
 	: bam_file_(Helper::canonicalPath(bam_file))
 	, fp_(sam_open(bam_file.toUtf8().constData(), "r"))
 {
+	//for debugging - attention the htlib debug output is often only written to stderr when the application closes...
+	if (fp_==nullptr)
+	{
+		hts_set_log_level(HTS_LOG_DEBUG);
+		fp_ = sam_open(bam_file.toUtf8().constData(), "r");
+	}
+
 	init(bam_file);
 }
 

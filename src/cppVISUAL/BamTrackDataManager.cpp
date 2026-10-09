@@ -7,8 +7,7 @@ static QHash<QString, QWeakPointer<BamTrackData>> cache_;
 
 QSharedPointer<BamTrackData> BamTrackDataManager::getOrCreate(QString file_path)
 {
-	QFileInfo file_info(file_path);
-	QString abs_name = file_info.absoluteFilePath();
+	QString abs_name = Helper::isHttpUrl(file_path) ? file_path : QFileInfo(file_path).absoluteFilePath();
 
 	if (cache_.contains(abs_name))
 	{

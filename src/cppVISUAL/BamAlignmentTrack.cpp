@@ -21,17 +21,14 @@ static constexpr int SPACING_BELOW = 4;
 static constexpr int MAX_QUALITY = 41;
 
 BamAlignmentTrack::BamAlignmentTrack(QWidget* parent, QString file_path, QString name)
-	: TrackWidget(parent, file_path, name)
+	: TrackWidget(parent, file_path, name, type())
 {
-	//qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	setMouseTracking(true);
 	updateFontCache();
-	//qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 }
 
 BamAlignmentTrack::~BamAlignmentTrack()
 {
-	//qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 }
 
 BamAlignmentTrack* BamAlignmentTrack::createTrack(QWidget* parent, QString file_path, QString name)
@@ -174,6 +171,7 @@ void BamAlignmentTrack::calculateRowsNormalMode()
 	num_rows_ = std::max(ROW_HEIGHT, row_packer_.rowCount());
 }
 
+//TODO Marc: improve read packing - it looks like reads that are actually not in the visible range are considered
 void BamAlignmentTrack::calculateRowsPairMode()
 {
 	//TODO: this has a bug, if there are no pairs, then the unpaired strands are always assigned a new row
@@ -356,7 +354,7 @@ QColor BamAlignmentTrack::insertSizeColor(const BamAlignmentWrapper& al_w)
 	}
 	else if (mate_chr.isValid())
 	{
-		return ChromosomeColors::getColor(mate_chr.str());
+		return ChromosomeColors::get(mate_chr.str());
 	}
 	else
 	{

@@ -28,12 +28,11 @@ class CPPVISUALSHARED_EXPORT BamAlignmentTrack
 public:
 	BamAlignmentTrack(QWidget* parent, QString file_path, QString name);
 	~BamAlignmentTrack();
+	static QByteArray type() { return "BamAlignmentTrack"; }
+
 	void setTrackData(QSharedPointer<BamTrackData> track_data);
 
 	QSize sizeHint() const override;
-
-	static QString staticType() {return "BAM/CRAM";}
-	QString getType() override {return staticType();}
 
 	virtual QMap<QString, QVariant> getSettings() override;
 	virtual void loadKeyValueFromXml(QString key, QString value) override;
