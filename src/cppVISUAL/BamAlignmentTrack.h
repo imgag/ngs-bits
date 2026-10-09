@@ -29,6 +29,8 @@ public:
 	BamAlignmentTrack(QWidget* parent, QString file_path, QString name);
 	~BamAlignmentTrack();
 	static QByteArray type() { return "BamAlignmentTrack"; }
+	//Maximum displayed region length; also bounds shared BAM loading and coverage allocation.
+	static constexpr int MAX_REGION_LEN = 30000;
 
 	void setTrackData(QSharedPointer<BamTrackData> track_data);
 

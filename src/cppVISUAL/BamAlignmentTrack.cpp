@@ -97,7 +97,7 @@ void BamAlignmentTrack::fullLoad()
 bool BamAlignmentTrack::isCurrentRegionValid()
 {
 	const BedLine& region = SharedData::region();
-	int max_region_len = SharedData::settings().bam_max_region_len;
+	int max_region_len = BamAlignmentTrack::MAX_REGION_LEN;
 	return (region.length() <= max_region_len);
 }
 
@@ -241,7 +241,7 @@ void BamAlignmentTrack::paintEvent(QPaintEvent*)
 	painter.fillRect(rect(), Qt::white);
 	drawLabel(painter);
 	const BedLine& region = SharedData::region();
-	int max_region_len = SharedData::settings().bam_max_region_len;
+	int max_region_len = BamAlignmentTrack::MAX_REGION_LEN;
 	if (region.length() > max_region_len) drawZoomInText(painter);
 	else
 	{

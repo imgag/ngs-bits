@@ -182,7 +182,7 @@ FilterBase::FilterBase()
 	, type_(VariantType::SNVS_INDELS)
 	, description_()
 	, enabled_(true)
-	, params_(QSharedPointer<ParameterList>::create(QByteArray(), QList<Parameter>(), QHash<QByteArray, QVariant>()))
+	, params_(std::make_unique<ParameterList>(QByteArray(), QList<Parameter>(), QHash<QByteArray, QVariant>()))
 {
 }
 
@@ -214,7 +214,7 @@ QStringList FilterBase::description(bool add_parameter_description) const
 
 void FilterBase::initParameters(const QList<Parameter>& parameters, const QHash<QByteArray, QVariant>& defaults)
 {
-	params_ = QSharedPointer<ParameterList>::create(name_.toUtf8(), parameters, defaults);
+	params_ = std::make_unique<ParameterList>(name_.toUtf8(), parameters, defaults);
 }
 
 void FilterBase::setGeneric(const QString& name, const QString& value)
@@ -273,7 +273,6 @@ void FilterBase::overrideConstraint(const QString& parameter_name, const QString
 	else if (constraint_name == "not_empty" || constraint_name == "non-empty") type = ConstraintType::NON_EMPTY;
 	else THROW(ArgumentException, "Unknown filter constraint '" + constraint_name + "'!");
 	const QVariant value = type == ConstraintType::ALLOWED_VALUES ? QVariant(constraint_value.toUtf8().replace(',', '\t')) : QVariant(constraint_value);
-	//TODO Marc: Constraint updates that invalidate existing selections throw an exception. Decide how the UI should handle them.
 	params_->overrideConstraint(parameter_name.toUtf8(), type, value);
 }
 

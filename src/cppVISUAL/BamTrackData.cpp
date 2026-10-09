@@ -1,4 +1,5 @@
 #include "BamTrackData.h"
+#include "BamAlignmentTrack.h"
 #include "FileLoader.h"
 
 #include <GenomeVisualizationWidget.h>
@@ -27,7 +28,7 @@ void BamTrackData::updateRegion()
 		return;
 	}
 
-	int max_len = SharedData::settings().bam_max_region_len;
+	int max_len = BamAlignmentTrack::MAX_REGION_LEN;
 	const BedLine& region = SharedData::region();
 
 	if (region.length() > max_len)

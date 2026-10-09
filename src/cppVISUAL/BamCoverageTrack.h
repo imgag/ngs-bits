@@ -68,6 +68,8 @@ private:
 	// vector for stroing the coverage everytime the region changes
 	QVector<BaseCoverage> coverage_;
 	int max_coverage_;
+	//Color coverage bars when the fraction of mismatching bases exceeds this threshold.
+	float coverage_mismatch_threshold_ = 0.2f;
 
 	// calculates coverage per base and caches it in coverage_
 	void storeCoverage();

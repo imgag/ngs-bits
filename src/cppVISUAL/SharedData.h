@@ -20,10 +20,6 @@ struct CPPVISUALSHARED_EXPORT GlobalSettings
 	int min_window_size = 41;
 	//How many bases genes/transcripts are padded with, e.g. after search
 	int transcript_padding = 2000;
-	//Max region length for bam tracks
-	int bam_max_region_len = 30000; //TODO Marc - move to track
-	// Threshold for mismatch thresohld in coverage track s.t. the bar is not drawn gray
-	float coverage_mismatch_threshold = .2f; // if > threshold % are mismatched, the bar is colored //TODO Marc - move to track
 };
 
 //Singleton for data shared by all widgets for visualization.

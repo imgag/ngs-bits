@@ -3,6 +3,7 @@
 
 #include "cppVISUAL_global.h"
 #include "BedFile.h"
+#include "ParameterList.h"
 #include <QMouseEvent>
 #include <QWidget>
 #include <QXmlStreamWriter>
@@ -28,7 +29,7 @@ class CPPVISUALSHARED_EXPORT TrackWidget
 	Q_OBJECT
 
 public:
-	TrackWidget(QWidget* parent, QString file_path, QString name, QString type);
+	TrackWidget(QWidget* parent, QString file_path, QString name, QString type, const QList<Parameter>& parameters = {}, const QHash<QByteArray, QVariant>& defaults = {});
 	QSize minimumSizeHint() const override;
 
 	// writes properties in XML
@@ -73,7 +74,8 @@ protected:
 
 	QString file_path_; //path or URL of the source file
 	QString name_; //display name
-	QString type_; //Track type - used to serialize the track to XML
+	QString type_; //track type - used to serialize the track to XML
+	ParameterList settings_; //settings
 };
 
 #endif // TRACKWIDGET_H

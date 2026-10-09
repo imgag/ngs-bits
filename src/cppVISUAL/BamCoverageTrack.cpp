@@ -1,4 +1,5 @@
 #include "BamCoverageTrack.h"
+#include "BamAlignmentTrack.h"
 #include "BamTrackDataManager.h"
 #include "SharedData.h"
 
@@ -14,7 +15,7 @@ BamCoverageTrack::BamCoverageTrack(QWidget* parent, QString file_path, QString n
 {
 	setMouseTracking(true);
 	max_coverage_ = MINIMUM_MAX_COVERAGE;
-	int max_region_length = SharedData::settings().bam_max_region_len;
+	int max_region_length = BamAlignmentTrack::MAX_REGION_LEN;
 	coverage_.fill(BaseCoverage(), max_region_length);
 }
 
@@ -66,7 +67,7 @@ void BamCoverageTrack::dataReady()
 void BamCoverageTrack::storeCoverage()
 {
 	max_coverage_ = MINIMUM_MAX_COVERAGE;
-	int max_region_len = SharedData::settings().bam_max_region_len;
+	int max_region_len = BamAlignmentTrack::MAX_REGION_LEN;
 	coverage_.clear();
 	coverage_.fill(BaseCoverage(), max_region_len);
 
@@ -154,7 +155,7 @@ void BamCoverageTrack::storeCoverage()
 			case 'T': case 't': base_count = cov.t(); break;
 		}
 		if (total_count == 0) cov.is_variant = false;
-		else cov.is_variant = (((double)base_count / total_count) < (1.f - SharedData::settings().coverage_mismatch_threshold));
+		else cov.is_variant = (((double)base_count / total_count) < (1.f - coverage_mismatch_threshold_));
 	}
 }
 
@@ -164,7 +165,7 @@ void BamCoverageTrack::paintEvent(QPaintEvent*)
 	painter.fillRect(rect(), Qt::white);
 	const BedLine& region = SharedData::region();
 	drawLabel(painter);
-	int max_region_length = SharedData::settings().bam_max_region_len;
+	int max_region_length = BamAlignmentTrack::MAX_REGION_LEN;
 	if (region.length() > max_region_length) drawZoomInText(painter);
 	else
 	{
@@ -336,7 +337,7 @@ void BamCoverageTrack::mousePressEvent(QMouseEvent* event)
 bool BamCoverageTrack::isCurrentRegionValid()
 {
 	const BedLine& region = SharedData::region();
-	int max_region_len = SharedData::settings().bam_max_region_len;
+	int max_region_len = BamAlignmentTrack::MAX_REGION_LEN;
 	return (region.length() <= max_region_len);
 }
 

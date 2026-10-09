@@ -19,13 +19,18 @@ namespace
 	const QByteArrayList GRAPH_MODES{HEATMAP, BAR_CHART, POINTS, LINE_PLOT};
 }
 
-QSharedPointer<ParameterList> IgvTrack::parametersFromFile(QSharedPointer<BedFile> bed_file)
+QList<Parameter> IgvTrack::parameterConfig()
 {
 	QList<Parameter> config;
 	config.append(Parameter("graph_mode", "Type of graph", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, GRAPH_MODES.join('\t')}}));
 	config.append(Parameter("track_height", "Track height in pixels", ParameterType::INT, {{ConstraintType::MIN, 1}}));
 	config.append(Parameter("view_min", "Lower plot limit", ParameterType::DOUBLE, {}));
 	config.append(Parameter("view_max", "Upper plot limit", ParameterType::DOUBLE, {}));
+	return config;
+}
+
+QHash<QByteArray, QVariant> IgvTrack::defaultsFromFile(QSharedPointer<BedFile> bed_file)
+{
 	QHash<QByteArray, QVariant> defaults{{"graph_mode", POINTS}, {"track_height", 100}, {"view_min", 0.0}, {"view_max", 1.0}};
 	if (bed_file)
 	{
@@ -68,31 +73,23 @@ QSharedPointer<ParameterList> IgvTrack::parametersFromFile(QSharedPointer<BedFil
 			break;
 		}
 	}
-	auto parameters = QSharedPointer<ParameterList>::create(type(), config, defaults);
-	if (parameters->getDouble("view_min") >= parameters->getDouble("view_max"))
+	if (defaults.value("view_min").toDouble() >= defaults.value("view_max").toDouble())
 	{
 		THROW(ArgumentException, "View min >= view max in IGV track.");
 	}
-	return parameters;
-}
-
-void IgvTrack::setParameters(QSharedPointer<ParameterList> parameters)
-{
-	if (settings_) disconnect(settings_.data(), nullptr, this, nullptr);
-	settings_ = parameters;
-	connect(settings_.data(), &ParameterList::parameterChanged, this, [this]()
-	{
-		updateGeometry();
-		update();
-	});
-	updateGeometry();
-	update();
+	return defaults;
 }
 
 IgvTrack::IgvTrack(QWidget* parent, QString file_path, QString name)
-	: TrackWidget(parent, file_path, name, type())
+	: IgvTrack(parent, file_path, name, defaultsFromFile(nullptr))
 {
-	setParameters(parametersFromFile(nullptr));
+}
+
+IgvTrack::IgvTrack(QWidget* parent, QString file_path, QString name, const QHash<QByteArray, QVariant>& defaults)
+	: TrackWidget(parent, file_path, name, type(), parameterConfig(), defaults)
+{
+	updateGeometry();
+	update();
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(regionChanged()));
 }
 
@@ -104,17 +101,6 @@ IgvTrack* IgvTrack::createTrack(QWidget* parent, QString file_path, QString name
 {
 	QSharedPointer<BedFile> bed_file = FileLoader::loadIgvFile(file_path);
 	if (!bed_file) return nullptr;
-	QSharedPointer<ParameterList> parameters;
-	try
-	{
-		parameters = parametersFromFile(bed_file);
-	}
-	catch (const ArgumentException& e)
-	{
-		QMessageBox::warning(QApplication::activeWindow(), "Error", e.message());
-		return nullptr;
-	}
-
 	QString display_name = name;
 	if (display_name == "")
 	{
@@ -123,15 +109,23 @@ IgvTrack* IgvTrack::createTrack(QWidget* parent, QString file_path, QString name
 		// fallback: set the name to the file name
 		if (display_name == "") display_name = getDisplayNameFromFilePath(file_path);
 	}
-	IgvTrack* igv_track = new IgvTrack(parent, file_path, display_name);
+	IgvTrack* igv_track = nullptr;
+	try
+	{
+		igv_track = new IgvTrack(parent, file_path, display_name, defaultsFromFile(bed_file));
+	}
+	catch (const ArgumentException& e)
+	{
+		QMessageBox::warning(QApplication::activeWindow(), "Error", e.message());
+		return nullptr;
+	}
 	igv_track->setBedFile(bed_file);
-	igv_track->setParameters(parameters);
 	return igv_track;
 }
 
 QSize IgvTrack::sizeHint() const
 {
-	return QSize( parentWidget() ? parentWidget()->width() : 200, settings_->getInt("track_height"));
+	return QSize( parentWidget() ? parentWidget()->width() : 200, settings_.getInt("track_height"));
 }
 
 void IgvTrack::setBedFile(QSharedPointer<BedFile> bed_file)
@@ -151,13 +145,13 @@ void IgvTrack::paintEvent(QPaintEvent*)
 	painter.fillRect(rect(), Qt::white);
 	drawLabel(painter);
 	if (bed_file_) drawPlot(painter);
-	if (settings_->getString("graph_mode") != HEATMAP) drawScaleText(painter);
+	if (settings_.getString("graph_mode") != HEATMAP) drawScaleText(painter);
 }
 
 void IgvTrack::drawScaleText(QPainter& painter)
 {
-	const double view_min = settings_->getDouble("view_min");
-	const double view_max = settings_->getDouble("view_max");
+	const double view_min = settings_.getDouble("view_min");
+	const double view_max = settings_.getDouble("view_max");
 	Viewport viewport = getViewport();
 	painter.setPen(Qt::black);
 	QRect rec(viewport.x0, 0, width(), height());
@@ -166,14 +160,14 @@ void IgvTrack::drawScaleText(QPainter& painter)
 
 IgvTrack::PlotScale IgvTrack::plotScale() const
 {
-	return {settings_->getDouble("view_min"), settings_->getDouble("view_max"), settings_->getInt("track_height")};
+	return {settings_.getDouble("view_min"), settings_.getDouble("view_max"), settings_.getInt("track_height")};
 }
 
 void IgvTrack::drawPlot(QPainter& painter)
 {
 	const BedLine& region = SharedData::region();
 	const PlotScale scale = plotScale();
-	const QByteArray graph_mode = settings_->getString("graph_mode");
+	const QByteArray graph_mode = settings_.getString("graph_mode");
 	//XML settings are restored one at a time; do not draw an invalid intermediate range.
 	if (scale.minimum >= scale.maximum) return;
 
@@ -370,7 +364,7 @@ int IgvTrack::valueToY(float value, const PlotScale& scale)
 
 void IgvTrack::populateContextMenu(QMenu& menu, const QPoint& local_pos)
 {
-	const QByteArray graph_mode = settings_->getString("graph_mode");
+	const QByteArray graph_mode = settings_.getString("graph_mode");
 	QMenu* sub_menu = menu.addMenu("Type Of Graph");
 
 	QAction* heat_map  = sub_menu->addAction("Heatmap");
@@ -395,7 +389,7 @@ void IgvTrack::populateContextMenu(QMenu& menu, const QPoint& local_pos)
 	connect(group, &QActionGroup::triggered, this,
 			[this](QAction* action)
 			{
-				settings_->setString("graph_mode", action->data().toByteArray());
+				settings_.setString("graph_mode", action->data().toByteArray());
 			});
 
 	TrackWidget::populateContextMenu(menu, local_pos);
@@ -424,7 +418,7 @@ void IgvTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 	if (!chr_index_) return;
 	const PlotScale scale = plotScale();
 	if (scale.minimum >= scale.maximum) return;
-	const QByteArray graph_mode = settings_->getString("graph_mode");
+	const QByteArray graph_mode = settings_.getString("graph_mode");
 	const int p_zero = valueToY(scale.minimum, scale);
 	const BedLine& region = SharedData::region();
 	const Viewport viewport = getViewport();
@@ -493,10 +487,10 @@ QString IgvTrack::getIgvText(const BedLine& bd)
 QMap<QString, QVariant> IgvTrack::getSettings()
 {
 	auto widget_settings = TrackWidget::getSettings();
-	widget_settings.insert("graph_mode", settings_->getString("graph_mode"));
-	widget_settings.insert("track_height", settings_->getInt("track_height"));
-	widget_settings.insert("view_min", settings_->getDouble("view_min"));
-	widget_settings.insert("view_max", settings_->getDouble("view_max"));
+	widget_settings.insert("graph_mode", settings_.getString("graph_mode"));
+	widget_settings.insert("track_height", settings_.getInt("track_height"));
+	widget_settings.insert("view_min", settings_.getDouble("view_min"));
+	widget_settings.insert("view_max", settings_.getDouble("view_max"));
 	return widget_settings;
 }
 
@@ -509,17 +503,17 @@ void IgvTrack::loadKeyValueFromXml(QString key, QString value)
 		//Accept the numeric graph modes stored by older sessions.
 		int legacy_mode = value.toInt(&ok);
 		if (ok && legacy_mode >= 0 && legacy_mode < GRAPH_MODES.count()) mode = GRAPH_MODES[legacy_mode];
-		if (GRAPH_MODES.contains(mode)) settings_->setString("graph_mode", mode);
+		if (GRAPH_MODES.contains(mode)) settings_.setString("graph_mode", mode);
 	}
 	else if (key == "track_height")
 	{
 		int height = value.toInt(&ok);
-		if (ok && height > 0) settings_->setInt("track_height", height);
+		if (ok && height > 0) settings_.setInt("track_height", height);
 	}
 	else if (key == "view_min" || key == "view_max")
 	{
 		float limit = value.toFloat(&ok);
-		if (ok && std::isfinite(limit) && limit >= 0 && (key == "view_min" || limit <= 1)) settings_->setDouble(key.toUtf8(), limit);
+		if (ok && std::isfinite(limit) && limit >= 0 && (key == "view_min" || limit <= 1)) settings_.setDouble(key.toUtf8(), limit);
 	}
 }
 

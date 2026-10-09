@@ -18,12 +18,18 @@
 #include <QPainter>
 #include <QVBoxLayout>
 
-TrackWidget::TrackWidget(QWidget* parent, QString file_path, QString name, QString type)
+TrackWidget::TrackWidget(QWidget* parent, QString file_path, QString name, QString type, const QList<Parameter>& parameters, const QHash<QByteArray, QVariant>& defaults)
 	: QWidget(parent)
 	, file_path_(file_path)
 	, name_(name)
 	, type_(type)
+	, settings_(type.toUtf8(), parameters, defaults)
 {
+	connect(&settings_, &ParameterList::parameterChanged, this, [this]()
+	{
+		updateGeometry();
+		update();
+	});
 }
 
 QSize TrackWidget::minimumSizeHint() const

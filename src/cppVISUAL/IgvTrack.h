@@ -5,7 +5,6 @@
 #include "TrackWidget.h"
 #include "BedFile.h"
 #include "ChromosomalIndex.h"
-#include "ParameterList.h"
 
 //Track that shows the IGV data file
 class CPPVISUALSHARED_EXPORT IgvTrack
@@ -33,8 +32,9 @@ protected:
 	void populateContextMenu(QMenu&, const QPoint&) override;
 
 private:
-	static QSharedPointer<ParameterList> parametersFromFile(QSharedPointer<BedFile> bed_file);
-	void setParameters(QSharedPointer<ParameterList> parameters);
+	IgvTrack(QWidget* parent, QString file_path, QString name, const QHash<QByteArray, QVariant>& defaults);
+	static QList<Parameter> parameterConfig();
+	static QHash<QByteArray, QVariant> defaultsFromFile(QSharedPointer<BedFile> bed_file);
 
 	QSharedPointer<BedFile> bed_file_;
 	QPoint mouse_press_pos_;
@@ -67,7 +67,6 @@ private:
 	// file functions
 	static QString getTrackNameFromIgvFile(QSharedPointer<BedFile> bed_file);
 
-	QSharedPointer<ParameterList> settings_;
 };
 
 

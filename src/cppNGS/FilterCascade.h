@@ -7,6 +7,7 @@
 #include "VcfFile.h"
 #include <QBitArray>
 #include <QRegularExpression>
+#include <memory>
 #include "NGSHelper.h"
 
 #include "ParameterList.h"
@@ -163,7 +164,8 @@ class CPPNGSSHARED_EXPORT FilterBase
 		void checkIsRegistered() const;
 
 	private:
-		QSharedPointer<ParameterList> params_;
+		//Exclusive ownership via a pointer allows derived filters to initialize parameters after the base constructor runs.
+		std::unique_ptr<ParameterList> params_;
 };
 
 //Filter cascade that contains polymorphic filters and can apply them
