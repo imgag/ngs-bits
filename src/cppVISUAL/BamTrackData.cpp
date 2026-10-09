@@ -4,8 +4,6 @@
 #include <GenomeVisualizationWidget.h>
 #include <QtConcurrent/QtConcurrent>
 
-#define BAM_OPTIMIZATION
-
 constexpr int REF_OVERHANG = 500; // max
 
 AlignmentKey AlignmentKey::makeKey(const BamAlignment& al)
@@ -42,8 +40,6 @@ void BamTrackData::updateRegion()
 
 	return_empty_ = false;
 
-	#ifdef BAM_OPTIMIZATION
-
 	int new_start = region.start();
 	int new_end = region.end();
 	int old_start = loaded_region_.start();
@@ -72,16 +68,15 @@ void BamTrackData::updateRegion()
 
 		int padding = region.length() / 3;
 
-		int p_start = std::max(0, new_start - padding);
+		int p_start = std::max(1, new_start - padding);
 		int p_end = new_end + padding;
 
 		pruneAlignments(p_start, p_end); // remove out of bound alignments
 
 		// an alignment read can extend past (or before) the padded region
 		// an alignment read is roughly ~101bp (at most) so a overhang of 500 bp should be sufficient
-		int ref_fetch_start = std::max(0, p_start - REF_OVERHANG);
+		int ref_fetch_start = std::max(1, p_start - REF_OVERHANG);
 		int ref_fetch_end   = p_end + REF_OVERHANG;
-
 		ref_seq_ = SharedData::genome().seq(
 			region.chr(),
 			ref_fetch_start,
@@ -107,31 +102,10 @@ void BamTrackData::updateRegion()
 		loaded_region_.setStart(p_start);
 		loaded_region_.setEnd(p_end);
 		is_loading_ = false;
-		// TODO: need to check if this is too slow
-		// std::sort(alignments_.begin(), alignments_.end(),
-		// 		  [](const BamAlignmentWrapper& a, const BamAlignmentWrapper&b){
-		// 			return a.start() < b.start();}
-		// 		  );
 
 		emit onDataUpdate();
 		return;
 	}
-
-
-	#else
-	alignments_.clear();
-	return_empty_ = false;
-
-
-	int padding = region.length() / 3;
-	int start = region.start() - padding;
-	int end = region.end() + padding;
-
-	bam_reader_->setRegion(region.chr(), start, end);
-
-	updateData();
-
-	#endif
 }
 
 void BamTrackData::fullLoad(const BedLine& region)
@@ -147,7 +121,7 @@ void BamTrackData::fullLoad(const BedLine& region)
 	alignments_.squeeze();
 	loaded_ids_.squeeze();
 
-	int ref_fetch_start = std::max(0, p_start - REF_OVERHANG);
+	int ref_fetch_start = std::max(1, p_start - REF_OVERHANG);
 	int ref_fetch_end   = p_end + REF_OVERHANG;
 
 	ref_seq_ = SharedData::genome().seq(
@@ -188,8 +162,7 @@ void BamTrackData::fetchRegion(const BedLine& region, QVector<BamAlignmentWrappe
 		}
 		catch (const Exception& e)
 		{
-			//TODO: decide what to do here
-			// for now the mate_chr remains invalid
+			//TODO: decide what to do here. for now the mate_chr remains invalid
 		}
 		loaded_ids_.insert(wrapped_alignment.id);
 
@@ -200,8 +173,7 @@ void BamTrackData::fetchRegion(const BedLine& region, QVector<BamAlignmentWrappe
 		if (dest) dest->push_back(std::move(wrapped_alignment));
 		else alignments_.push_back(std::move(wrapped_alignment));
 	}
-	//TODO: this can be optimized i.e when we pan only a bit to the left, we dont need to recalculate
-	// only recalulate stats when we change by a large amount
+	//TODO: this can be optimized i.e when we pan only a bit to the left, we dont need to recalculate - only recalulate stats when we change by a large amount
 	computeInsertSizeStats();
 }
 
@@ -245,7 +217,7 @@ void BamTrackData::computeInsertSizeStats()
 
 	std::sort(sizes.begin(), sizes.end());
 	int n = sizes.size();
-	// TODO: these percentiles should come from settings somewhere!
+	//TODO: these percentiles should come from settings somewhere!
 	insert_size_stats_.insert_size_min = sizes[(int)(n * 0.005)];
 	insert_size_stats_.insert_size_max = sizes[(int)(n * 0.995)];
 }
@@ -293,7 +265,7 @@ void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Se
 				continue;
 			case BAM_CHARD_CLIP:
 				continue;
-			default: // TODO: handle exception (invalid cigar op)
+			default: //TODO: handle exception (invalid cigar op)
 				continue;
 		}
 		if (c_data.event == MATCH)
@@ -352,7 +324,6 @@ void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Se
 			else
 			{
 				qDebug() << "DATA BUG: SOFTCLIP NOT AT END OR START" << genome_pos << " " << end() << Qt::endl;
-				// GenomeVisualizationWidget::displayError("Alignment " + name() + " contains soft clip between start/end");
 			}
 		}
 		events << c_data;
@@ -376,9 +347,8 @@ void BamTrackData::updateData()
 		}
 		catch (const Exception&)
 		{
-			// TODO: decide what to do here, give the user an error? Don't display mate?
+			//TODO: decide what to do here, give the user an error? Don't display mate?
 		}
-		qDebug() << wrapped_alignment.mate_chr.str() << Qt::endl;
 		wrapped_alignment.storeCigarData(al, ref_seq_, region.start());
 		alignments_ << wrapped_alignment;
 	}

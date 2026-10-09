@@ -1471,9 +1471,13 @@ QCValue Statistics::mutationBurden(QString somatic_vcf, QString target, QString 
 		if(vcf_file[i].filters().contains("depth-nor")) continue;
 		if(vcf_file[i].filters().contains("depth-tum")) continue;
 		if(vcf_file[i].filters().contains("lt-3-reads")) continue;
+		if(vcf_file[i].filters().contains("too_few_supporting_reads")) continue;
 		if(vcf_file[i].filters().contains("LowEVS")) continue; //Skip strelka2 low quality variants
 		if(vcf_file[i].filters().contains("LowDepth")) continue; //Skip strelka2 low depth variants
 		if(vcf_file[i].filters().contains("weak-evidence")) continue; //Skip dragen low quality variants
+		if(vcf_file[i].filters().contains("weak_evidence")) continue; //Skip dragen low quality variants
+		if(vcf_file[i].filters().contains("base_quality")) continue; //Skip low basequality variants
+		if(vcf_file[i].filters().contains("mnv_component")) continue; //Skip dragen MNV components
 
 		const Chromosome chr = vcf_file[i].chr();
 		int start = vcf_file[i].start();
@@ -1545,9 +1549,14 @@ QCValue Statistics::mutationBurdenNormalized(QString somatic_vcf, QString exons,
 		if(vcf_file[i].filters().contains("depth-nor")) continue;
 		if(vcf_file[i].filters().contains("depth-tum")) continue;
 		if(vcf_file[i].filters().contains("lt-3-reads")) continue;
+		if(vcf_file[i].filters().contains("too_few_supporting_reads")) continue;
 		if(vcf_file[i].filters().contains("LowEVS")) continue; //Skip strelka2 low quality variants
 		if(vcf_file[i].filters().contains("LowDepth")) continue; //Skip strelka2 low depth variants
 		if(vcf_file[i].filters().contains("weak-evidence")) continue; //Skip dragen low quality variants
+		if(vcf_file[i].filters().contains("weak_evidence")) continue; //Skip dragen low quality variants
+		if(vcf_file[i].filters().contains("base_quality")) continue; //Skip low basequality variants
+		if(vcf_file[i].filters().contains("mnv_component")) continue; //Skip dragen MNV components
+
 
 		const Chromosome chr = vcf_file[i].chr();
 		int start = vcf_file[i].start();

@@ -512,15 +512,14 @@ void GermlineReportGenerator::writeHTML(QString filename)
 	///classification explaination
 	if (data_.report_settings.show_class_details)
 	{
-		stream << Qt::endl;
-		stream << "<p><b>" << trans("Klassifikation von Varianten") << ":</b>" << Qt::endl;
+		stream << "<br />" << Qt::endl;
+		stream << "<br /><b>" << trans("Klassifikation von Varianten") << ":</b>" << Qt::endl;
 		stream << "<br />" << trans("Die Klassifikation der Varianten erfolgt in Anlehnung an die Publikation von Plon et al. (Hum Mutat 2008)") << Qt::endl;
 		stream << "<br /><b>" << trans("Klasse 5: Eindeutig pathogene Ver&auml;nderung / Mutation") << ":</b> " << trans("Ver&auml;nderung, die bereits in der Fachliteratur mit ausreichender Evidenz als krankheitsverursachend bezogen auf das vorliegende Krankheitsbild beschrieben wurde sowie als pathogen zu wertende Mutationstypen (i.d.R. Frameshift- bzw. Stoppmutationen).") << Qt::endl;
 		stream << "<br /><b>" << trans("Klasse 4: Wahrscheinlich pathogene Ver&auml;nderung") << ":</b> " << trans("DNA-Ver&auml;nderung, die aufgrund ihrer Eigenschaften als sehr wahrscheinlich krankheitsverursachend zu werten ist.") << Qt::endl;
 		stream << "<br /><b>" << trans("Klasse 3: Variante unklarer Signifikanz (VUS) - Unklare Pathogenit&auml;t") << ":</b> " << trans("Variante, bei der es unklar ist, ob eine krankheitsverursachende Wirkung besteht. Diese Varianten werden tabellarisch im technischen Report mitgeteilt.") << Qt::endl;
 		stream << "<br /><b>" << trans("Klasse 2: Sehr wahrscheinlich benigne Ver&auml;nderungen") << ":</b> " << trans("Aufgrund der H&auml;ufigkeit in der Allgemeinbev&ouml;lkerung oder der Lokalisation bzw. aufgrund von Angaben in der Literatur sehr wahrscheinlich benigne. Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden.") << Qt::endl;
 		stream << "<br /><b>" << trans("Klasse 1: Benigne Ver&auml;nderungen") << ":</b> " << trans("Werden nicht mitgeteilt, k&ouml;nnen aber erfragt werden.") << Qt::endl;
-		stream << "</p>" << Qt::endl;
 	}
 	stream << "<!-- SECTION: MAIN END -->" << Qt::endl;
 
@@ -1813,6 +1812,7 @@ void GermlineReportGenerator::writeHtmlHeader(QTextStream& stream, QString sampl
 	stream << "p" << Qt::endl;
 	stream << "{" << Qt::endl;
 	stream << " margin-bottom: 0cm;" << Qt::endl;
+	stream << " text-align: left;" << Qt::endl;
 	stream << "}" << Qt::endl;
 	stream << "		-->" << Qt::endl;
 	stream << "	   </style>" << Qt::endl;

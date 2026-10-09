@@ -376,7 +376,6 @@ MainWindow::MainWindow(QWidget *parent)
 		connect(active_url_update_timer, SIGNAL(timeout()), this, SLOT(updateActiveUrls()));
 		active_url_update_timer->start(30 * 60 * 1000); // every 30 minutes
 
-
 		//check if there are new notifications for the users
 		if (Settings::boolean("display_user_notifications", true))
 		{
@@ -391,10 +390,9 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int, int)), this, SLOT(uploadToClinvar(int, int)));
 	connect(ui_.vars, SIGNAL(alamutTriggered(QAction*)), this, SLOT(openAlamut(QAction*)));
 
-	// Environment variable containing the file path to the list of certificate authorities
-	// (needed for HTTPS to work correctly, especially for htslib and BamReader)
+	//Set environment variable containing SSL certificates - needed for HTTPS to work for BamReader/htslib
 	QString curl_ca_bundle = Settings::string("curl_ca_bundle", true);
-	if ((Helper::isWindows()) && (!curl_ca_bundle.isEmpty()))
+	if (Helper::isWindows() && !curl_ca_bundle.isEmpty())
 	{
 		if (!qputenv("CURL_CA_BUNDLE", curl_ca_bundle.toUtf8()))
 		{
@@ -3232,7 +3230,7 @@ void MainWindow::on_actionAbout_triggered()
 
 	//show dialog
 	AboutDialog dlg(this);
-	dlg.setIcon(QPixmap(":/Icons/Icon.png"));
+	dlg.setIcon(QPixmap(":/Icons/Icon_highres.png"));
 	dlg.setDescription("A free decision support system for germline and somatic variants.<br>Check the <a href='https://github.com/imgag/ngs-bits/blob/master/doc/GSvar/index.md'>GitHub page</a> for details.");
 	dlg.addLibVersionLine("htslib version: " + QString(hts_version()));
 	dlg.addLibVersionLine("Genome build: " + GSvarHelper::buildAsString());

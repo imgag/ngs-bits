@@ -6,51 +6,53 @@
 #include <QMessageBox>
 #include <QRegularExpression>
 #include <QStyleFactory>
+#include "AboutDialog.h"
+#include "htslib/hts.h"
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 	, ui_()
+	, init_timer_(this, true)
 {
 	ui_.setupUi(this);
 
 	//sginals and slots
-	connect(ui_.actionLoadFile, SIGNAL(triggered()), ui_.gvw, SLOT(loadFile()));
+	connect(ui_.actionLoadFile, SIGNAL(triggered()), ui_.gvw, SLOT(openFileDialog()));
 	connect(ui_.actionReloadTracks, SIGNAL(triggered()), ui_.gvw, SLOT(reloadTracks()));
 	connect(ui_.actionNewSession, SIGNAL(triggered()), ui_.gvw, SLOT(newSession()));
 	connect(ui_.actionStore_session, SIGNAL(triggered()), ui_.gvw, SLOT(saveSession()));
-	connect(ui_.actionLoadSession, SIGNAL(triggered()), ui_.gvw, SLOT(loadSession()));
+    connect(ui_.actionLoadSession, SIGNAL(triggered()), ui_.gvw, SLOT(loadSession()));
     connect(&api, &CommandServer::commandReceived, this, &MainWindow::executeApiCommand);
+	connect(ui_.actionAbout, SIGNAL(triggered()), this, SLOT(showAboutDialog()));
+	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(close()));
+}
 
-	//set windows 10 style
-	QStyle* style = QStyleFactory::create("windowsvista");
-	QApplication::setStyle(style);
-
+void MainWindow::delayedInitialization()
+{
+	//load transcripts from GFF
 	try
 	{
-		//load transcripts from GFF
 		QElapsedTimer timer;
 		timer.start();
-        {
-			GffSettings gff_settings;
-            gff_settings.source = "ensembl";
-            gff_settings.include_all = false;
-            gff_settings.skip_not_hgnc = false;
-            gff_settings.print_to_stdout = true;
-			GffData data = GffData::load(Settings::string("ensembl_gff", false), gff_settings);
+		{
+			GffSettings settings;
+			settings.print_to_stdout = false;
+			GffData data = GffData::load(Settings::string("ensembl_gff"), settings);
 			SharedData::setTranscripts(data.transcripts);
-        }
-		qDebug() << "Parsing transcripts took: " << Helper::elapsedTime(timer);
+		}
+        qDebug() << "Parsing transcripts took: " << Helper::elapsedTime(timer);
 
         bool enableApi = Settings::boolean("enable_remote_application_control", false);
 
         if (enableApi)
             ui_.actionEnable_Remote_Application_Control->setChecked(true);
 
-		SharedData::setRegion("chr17", 43091889, 43093530);
+        SharedData::setRegion("chr17", 43091889, 43093530);
     }
 	catch (Exception e)
 	{
-		qDebug() << e.message();
+		QTextStream(stderr) << "Error loading transcripts: "+e.message();
         exit(-1);
 	}
 }
@@ -92,11 +94,30 @@ void MainWindow::executeApiCommand(GSVCommand cmd) {
     }
 }
 
-void MainWindow::handleGoto(QString args) {
+void MainWindow::handleGoto(QString args)
+{
     QRegularExpression re("[,;]");
 
     auto tracks = args.split(re);
 
     for (QString locus : tracks)
-        ui_.gvw.
+    {
+        //chromosomal region
+        BedLine region = BedLine::fromString(locus);
+        if (region.isValid())
+        {
+            SharedData::setRegion(region.chr(), region.start(), region.end());
+            return;
+        }
+    }
+}
+
+void MainWindow::showAboutDialog()
+{
+	AboutDialog dlg(this);
+	dlg.setIcon(QPixmap(":/Icons/Icon.png"));
+	dlg.setDescription("A free viewer for sequencing data.<br>Check the <a href='https://github.com/imgag/ngs-bits/blob/master/doc/GSviewer/index.md'>GitHub page</a> for details.");
+	dlg.addLibVersionLine("htslib version: " + QString(hts_version()));
+	dlg.addLibVersionLine("Genome build: GRCh38");
+    dlg.exec();
 }

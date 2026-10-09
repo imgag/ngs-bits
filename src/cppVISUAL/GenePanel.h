@@ -15,15 +15,14 @@ class CPPVISUALSHARED_EXPORT GenePanel
 public:
 	GenePanel(QWidget* parent);
 
-signals:
-	void mouseCoordinate(QString);
-
 private slots:
 	void contextMenu(QPoint pos);
 	//Updates the region displayed by this widget
 	void updateRegion();
 
 private:
+	//only show GENCODE primary data
+	bool show_only_gencode_primary = true;
 	//strand for which the bases are shown
 	bool strand_forward_ = true;
 	//show all three posible codon translations

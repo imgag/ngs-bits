@@ -19,18 +19,15 @@ public:
 	//Default constructor
 	GenomeVisualizationWidget(QWidget* parent);
 
-	//display errors to user
-	static void displayError(QString msg);
-	//opens file dialog and returns selected the file path
-	static QString getOpenFileName(QString caption, QString dir, QString options);
-
 public slots:
 	//Triggers the 'open file' dialog
-	void loadFile();
+	void openFileDialog();
+	//Loads a file
+	void loadFile(QString filename);
 	//Triggers reload tracks for all tracks
 	void reloadTracks();
 	//Clears everything
-	void newSession();
+	void newSession(bool add_empty_panel=true);
 	//Save current session
 	void saveSession();
 	// load session from file, triggers 'open file dialog' and loads the session

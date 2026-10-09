@@ -1,7 +1,5 @@
 #include "FileLoader.h"
-#include "GenomeVisualizationWidget.h"
 #include "TrackGroup.h"
-
 #include <QApplication>
 #include <QMenu>
 #include <QMessageBox>
@@ -12,7 +10,9 @@
 
 
 TrackGroup::TrackGroup(QWidget* parent)
-	:QScrollArea(parent), layout_(new QVBoxLayout(this)), content_widget_(new QWidget(this))
+	: QScrollArea(parent)
+	, layout_(new QVBoxLayout(this))
+	, content_widget_(new QWidget(this))
 {
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	setContextMenuPolicy(Qt::CustomContextMenu);
@@ -60,7 +60,7 @@ void TrackGroup::trackMoved()
 	}
 }
 
-void TrackGroup::addTrackWidgets(TrackWidgetList widgets)
+void TrackGroup::addTrackWidgets(QVector<TrackWidget*> widgets)
 {
 	foreach (TrackWidget* widget, widgets)
 	{
@@ -73,33 +73,23 @@ void TrackGroup::addTrackWidgets(TrackWidgetList widgets)
 
 void TrackGroup::loadTracksFromFile()
 {
-	TrackWidgetList widgets = loadTrackWidgetsFromFile();
+	QString file_path =  QFileDialog::getOpenFileName(QApplication::activeWindow(), "Open file(s)", "", "NGS files(*.bam *.cram *.bed *.igv);;All files(*.*)");
+	if (file_path.isEmpty()) return;
+
+	QVector<TrackWidget*> widgets = FileLoader::loadTracks(file_path, nullptr);
 	addTrackWidgets(widgets);
 }
 
-TrackGroup* TrackGroup::fromFile()
+TrackGroup* TrackGroup::fromFile(QString filename)
 {
-	TrackWidgetList widgets = loadTrackWidgetsFromFile();
-	if (widgets.isEmpty()) return nullptr;
-
 	TrackGroup* tr = new TrackGroup;
-	tr->addTrackWidgets(widgets);
+	tr->addTrackWidgets(FileLoader::loadTracks(filename, nullptr));
 	return tr;
-}
-
-TrackWidgetList TrackGroup::loadTrackWidgetsFromFile()
-{
-	QString file_path = GenomeVisualizationWidget::getOpenFileName(tr("Open File"), "", tr("Bed Files(*.bed);;Bam Files(*.bam);;Cram Files(*.cram);;BAF Files(*.igv)"));
-	if (file_path.isEmpty()) return TrackWidgetList();
-
-	TrackWidgetList widgets = FileLoader::loadTracks(file_path, nullptr);
-	return widgets;
 }
 
 void TrackGroup::reloadTracks()
 {
-	QList<TrackWidget*> track_widgets = findChildren<TrackWidget*>();
-	foreach (TrackWidget* track_widget, track_widgets)
+	foreach (TrackWidget* track_widget, findChildren<TrackWidget*>())
 	{
 		track_widget->reloadTrack();
 	}
@@ -140,13 +130,10 @@ void TrackGroup::contextMenu(QPoint pos)
 
 void TrackGroup::clearLayout()
 {
-	if (layout_)
+	while (QLayoutItem* item = layout_->takeAt(0))
 	{
-		while (QLayoutItem* item = layout_->takeAt(0))
-		{
-			if (QWidget* widget = item->widget()) widget->deleteLater();
-			delete item;
-		}
+		if (QWidget* widget = item->widget()) widget->deleteLater();
+		delete item;
 	}
 }
 
@@ -165,13 +152,14 @@ void TrackGroup::dragEnterEvent(QDragEnterEvent* event)
 	}
 }
 
-
 inline int TrackGroup::getDropIndex(int y)
 {
 	int drop_index =0;
-	for (int i = 0; i < layout_->count() - 1; ++i) {
+	for (int i = 0; i < layout_->count() - 1; ++i)
+	{
 		QWidget* w = layout_->itemAt(i)->widget();
-		if (w && y > w->geometry().center().y()) {
+		if (w && y > w->geometry().center().y())
+		{
 			drop_index = i + 1;
 		}
 	}
@@ -235,9 +223,7 @@ void TrackGroup::wheelEvent(QWheelEvent* event)
 void TrackGroup::writeToXml(QXmlStreamWriter& writer)
 {
 	writer.writeStartElement("TrackGroup");
-	QList<TrackWidget*> tracks = findChildren<TrackWidget*>();
-
-	foreach (TrackWidget* track, tracks)
+	foreach (TrackWidget* track, findChildren<TrackWidget*>())
 	{
 		track->writeToXml(writer);
 	}
@@ -266,7 +252,7 @@ void TrackGroup::loadFromXml(const QDomElement& dom_element)
 TrackGroup* TrackGroup::fromXml(const QDomElement& dom_element)
 {
 	QDomNodeList elements = dom_element.elementsByTagName("Track");
-	TrackWidgetList tracks;
+	QVector<TrackWidget*> tracks;
 	for (int i =0; i < elements.count(); ++i)
 	{
 		const QDomElement& track_element = elements.at(i).toElement();
@@ -283,4 +269,8 @@ TrackGroup* TrackGroup::fromXml(const QDomElement& dom_element)
 	return tr;
 }
 
+int TrackGroup::trackCount()
+{
+	return findChildren<TrackWidget*>().count();
+}
 

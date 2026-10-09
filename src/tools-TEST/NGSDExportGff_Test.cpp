@@ -5,7 +5,7 @@ TEST_CLASS(NGSDExportGff_Test)
 {
 private:
 	
-	TEST_METHOD(default_parameters)
+	TEST_METHOD(no_genes)
 	{
 		SKIP_IF_NO_TEST_NGSD();
 
@@ -15,7 +15,7 @@ private:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExportGff_init.sql"));
 
 		//test
-		EXECUTE("NGSDExportGff", "-test -out out/NGSDExportGff_out1.gff3");
+		EXECUTE("NGSDExportGff", "-test -no_genes -out out/NGSDExportGff_out1.gff3");
 		COMPARE_FILES("out/NGSDExportGff_out1.gff3", TESTDATA("data_out/NGSDExportGff_out1.gff3"));
 	}
 
@@ -29,7 +29,7 @@ private:
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSDExportGff_init.sql"));
 
 		//test
-		EXECUTE("NGSDExportGff", "-test -genes -out out/NGSDExportGff_out2.gff3");
+		EXECUTE("NGSDExportGff", "-test -out out/NGSDExportGff_out2.gff3");
 		COMPARE_FILES("out/NGSDExportGff_out2.gff3", TESTDATA("data_out/NGSDExportGff_out2.gff3"));
 	}
 };

@@ -148,20 +148,20 @@ void RequestWorker::run()
 			}
 		}
 		QString client_type = " - Unknown client";
-		QString user_agent = parsed_request.getHeaderByName("User-Agent").join(" ").trimmed().toLower();
+		QString user_agent = parsed_request.getHeaderByName("User-Agent").join(" ").trimmed();
 		if (!user_agent.isEmpty())
 		{
-			if (user_agent.contains("igv"))
+			if (user_agent.contains("igv", Qt::CaseInsensitive))
 			{
 				client_type = " - IGV";
 			}
-			else if (user_agent.contains("gsvar") || user_agent.contains("qt"))
+			else if (user_agent.contains("gsvar", Qt::CaseInsensitive) || user_agent.contains("qt", Qt::CaseInsensitive))
 			{
-				client_type = " - GSvar";
+				client_type = " - " + user_agent;
 			}
 			else
 			{
-				client_type = " - Browser";
+				client_type = " - Browser: " + user_agent;
 			}
 		}
 
@@ -293,7 +293,7 @@ void RequestWorker::run()
 						return;
 					}
 
-					if (pos >= (file_size-1)) break;
+					if (pos > (file_size-1)) break;
                     streamed_file->seek(pos);
 
 					if ((pos+chunk_size)>(ranges[i].end+1))

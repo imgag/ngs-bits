@@ -14,7 +14,6 @@ public:
 		int start;
 		int end;
 		int payload; // payload is, for example, the index of the BamAlignment object.
-		// TODO: if this class needs to be made generic, payload should be T*, a generic pointer.
 	};
 	void clear()
 	{

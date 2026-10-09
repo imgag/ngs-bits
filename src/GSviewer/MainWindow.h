@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include "CommandServer.h"
 #include "ui_MainWindow.h"
+#include "DelayedInitializationTimer.h"
 
 ///Main window class
 class MainWindow
@@ -16,6 +17,9 @@ public:
 	MainWindow(QWidget* parent = 0);
 
 private slots:
+    void delayedInitialization();
+    void showAboutDialog();
+
     ///Enables/Disables the remote application control API
     void on_actionEnable_Remote_Application_Control_changed();
 
@@ -27,6 +31,7 @@ private:
     CommandServer api;
 
     void handleGoto(QString args);
+	DelayedInitializationTimer init_timer_;
 };
 
 #endif // MAINWINDOW_H

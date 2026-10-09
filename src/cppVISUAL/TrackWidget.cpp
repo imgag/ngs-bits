@@ -6,7 +6,7 @@
 #include "BamCoverageTrack.h"
 #include "GenomeVisualizationWidget.h"
 #include "QInputDialog"
-
+#include <QMessageBox>
 #include <QApplication>
 #include <QFileInfo>
 #include <QDrag>
@@ -19,8 +19,16 @@
 #include <QVBoxLayout>
 
 TrackWidget::TrackWidget(QWidget* parent, QString file_path, QString name)
-	:QWidget(parent), file_path_(file_path), name_(name)
+	: QWidget(parent)
+	, file_path_(file_path)
+	, name_(name)
 {
+}
+
+QSize TrackWidget::minimumSizeHint() const
+{
+	//Allow horizontal shrinking while keeping the label area and track height.
+	return QSize(SharedData::settings().label_width + 5, sizeHint().height());
 }
 
 void TrackWidget::regionChanged()
@@ -32,24 +40,21 @@ void TrackWidget::regionChanged()
 void TrackWidget::populateContextMenu(QMenu& menu, const QPoint&)
 {
 	QAction* reload = menu.addAction("Reload Track");
-	connect(reload, &QAction::triggered,
-			this, &TrackWidget::reloadTrack);
+	connect(reload, &QAction::triggered, this, &TrackWidget::reloadTrack);
 
 	menu.addSeparator();
 
 	QAction* remove = menu.addAction("Remove Track");
-	connect(remove, &QAction::triggered,
-			this, &TrackWidget::trackDeleted);
+	connect(remove, &QAction::triggered, this, &TrackWidget::trackDeleted);
 
 	QAction* rename = menu.addAction("Rename Track...");
-	connect(rename, &QAction::triggered,
-			this, &TrackWidget::handleTrackRename);
+	connect(rename, &QAction::triggered,this, &TrackWidget::handleTrackRename);
 }
 
 void TrackWidget::handleTrackRename()
 {
 	bool ok;
-	QString new_name = QInputDialog::getText(this, tr("Enter Track Name"), "", QLineEdit::Normal, name_, &ok);
+	QString new_name = QInputDialog::getText(this, "Enter Track Name", "", QLineEdit::Normal, name_, &ok);
 
 	if (ok && !new_name.isEmpty()) name_ = new_name;
 }
@@ -152,19 +157,17 @@ Viewport TrackWidget::getViewport()
 void TrackWidget::showInfoPopup(QPointF global_pos, QString info)
 {
 	QDialog* popup = new QDialog(this, Qt::Popup);
-
 	popup->setAttribute(Qt::WA_DeleteOnClose);
 
-	QVBoxLayout* layout = new QVBoxLayout(popup);
-
-	QLabel* label = new QLabel(info);
+	QLabel* label = new QLabel(info.trimmed());
 	label->setTextInteractionFlags(Qt::TextSelectableByMouse);
 	label->setWordWrap(false);
 
+	QVBoxLayout* layout = new QVBoxLayout(popup);
+	layout->setContentsMargins(QMargins(4,4,4,4));
 	layout->addWidget(label);
 
 	popup->move(global_pos.x(), global_pos.y());
-
 	popup->show();
 }
 
@@ -211,7 +214,7 @@ TrackWidget* TrackWidget::fromType(QString type, QWidget* parent, QString file_p
 	if (type == BamCoverageTrack::staticType()) return BamCoverageTrack::createTrack(parent, file_path, display_name);
 	if (type == IgvTrack::staticType()) return IgvTrack::createTrack(parent, file_path, display_name);
 
-	GenomeVisualizationWidget::displayError("Track type: " + type + " not supported.");
+	QMessageBox::warning(QApplication::activeWindow(), "Error", "Track type: " + type + " not supported.");
 	return nullptr;
 }
 

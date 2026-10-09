@@ -4,7 +4,7 @@
 #include "GUIHelper.h"
 #include "SharedData.h"
 #include "XmlHelper.h"
-
+#include "Settings.h"
 #include <QToolTip>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -23,13 +23,32 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	connect(ui_->zoomout_btn, SIGNAL(clicked(bool)), this, SLOT(zoomOut()));
 	connect(SharedData::instance(), SIGNAL(transcriptsChanged()), this, SLOT(updateIndices()));
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
-	connect(ui_->gene_panel, SIGNAL(mouseCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
-	connect(ui_->chr_panel, SIGNAL(mouseCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
+	connect(SharedData::instance(), SIGNAL(updateGenomicCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
+
+	//clean session
+	newSession(false);
+
+	//show the current coordinates before the first region change
+	updateRegion();
 }
 
-void GenomeVisualizationWidget::loadFile()
+void GenomeVisualizationWidget::openFileDialog()
 {
-	ui_->panel_manager->loadFile();
+	QString open_folder = Settings::path("load_store_file_folder", true);
+	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", open_folder, "NGS files(*.bam *.cram *.bed *.igv);;All files(*.*)");
+	if (!files.isEmpty())
+	{
+		foreach(QString file, files)
+		{
+			ui_->panel_manager->loadFile(file);
+		}
+		Settings::setPath("load_store_file_folder", QFileInfo(files[0]).absolutePath());
+	}
+}
+
+void GenomeVisualizationWidget::loadFile(QString filename)
+{
+	ui_->panel_manager->loadFile(filename);
 }
 
 void GenomeVisualizationWidget::reloadTracks()
@@ -37,14 +56,14 @@ void GenomeVisualizationWidget::reloadTracks()
 	ui_->panel_manager->reloadTracks();
 }
 
-
-void GenomeVisualizationWidget::newSession()
+void GenomeVisualizationWidget::newSession(bool add_empty_panel)
 {
-	ui_->panel_manager->newSession();
+	ui_->panel_manager->newSession(add_empty_panel);
 }
 
 void GenomeVisualizationWidget::updateIndices()
 {
+	//qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	//init chromosome list (ordered correctly)
 	ui_->chr_selector->blockSignals(true);
 	ui_->chr_selector->clear();
@@ -62,8 +81,8 @@ void GenomeVisualizationWidget::updateIndices()
 
 		if (trans.source()!=Transcript::ENSEMBL) continue;
 
-		gene_to_trans_indices_[trans.gene()] << i;
-		trans_to_index_[trans.name()] = i;
+		gene_to_trans_indices_[trans.gene().toUpper()] << i;
+		trans_to_index_[trans.name().toUpper()] = i;
 	}
 }
 
@@ -80,7 +99,7 @@ void GenomeVisualizationWidget::setChromosomeRegion(QString chr)
 
 void GenomeVisualizationWidget::search()
 {
-	QString text = ui_->search->text().trimmed();
+	QByteArray text = ui_->search->text().trimmed().toUtf8();
 
 	//chromosome
 	if (valid_chrs_.contains(text) || (!text.startsWith("chr") && valid_chrs_.contains("chr"+text)))
@@ -98,13 +117,13 @@ void GenomeVisualizationWidget::search()
 	}
 
 	//gene
-	if (gene_to_trans_indices_.contains(text.toUtf8()))
+	text = text.toUpper();
+	if (gene_to_trans_indices_.contains(text))
 	{
 		BedFile roi;
-		foreach(int index, gene_to_trans_indices_[text.toUtf8()])
+		foreach(int index, gene_to_trans_indices_[text])
 		{
 			const Transcript& trans = SharedData::transcripts()[index];
-			if (SharedData::settings().show_only_primary && !trans.isGencodePrimaryTranscript()) continue;
 			roi.append(BedLine(trans.chr(), trans.start(), trans.end()));
 		}
 		roi.extend(SharedData::settings().transcript_padding);
@@ -119,9 +138,9 @@ void GenomeVisualizationWidget::search()
 	}
 
 	//transcript
-	if (trans_to_index_.contains(text.toUtf8()))
+	int index = trans_to_index_.value(text, -1);
+	if (index!=-1)
 	{
-		int index = trans_to_index_[text.toUtf8()];
 		const Transcript& trans = SharedData::transcripts()[index];
 		SharedData::setRegion(trans.chr(), trans.start()-SharedData::settings().transcript_padding, trans.end()+SharedData::settings().transcript_padding);
 		return;
@@ -217,100 +236,73 @@ void GenomeVisualizationWidget::updateCoordinateLabel(QString text)
 	ui_->label_coordinate->setText(text);
 }
 
-
-void GenomeVisualizationWidget::displayError(QString msg)
-{
-	auto ptr = QApplication::instance()->findChild<GenomeVisualizationWidget*>();
-	QMessageBox::critical(ptr, "Error", msg);
-}
-
-QString GenomeVisualizationWidget::getOpenFileName(QString caption, QString dir, QString filter)
-{
-	auto ptr = QApplication::instance()->findChild<GenomeVisualizationWidget*>();
-	return QFileDialog::getOpenFileName(ptr, caption, dir, filter);
-}
-
-
 void GenomeVisualizationWidget::saveSession()
 {
-	QString file_path = QFileDialog::getSaveFileName(this, tr("Open Session"), "", tr("Session Files (*.xml)"));
+	QString open_folder = Settings::path("load_store_session_folder", true);
+	QString file_path = QFileDialog::getSaveFileName(this, "Open session", open_folder, "Session files (*.xml)");
 	if (file_path.isEmpty()) return;
 
+	//check it is a XML file
 	if (!file_path.endsWith(".xml"))
 	{
-		displayError("Only XML files are supported");
+		QMessageBox::warning(this, "Error", "Only XML files are supported");
 		return;
 	}
 
+	//open file
 	QFile file(file_path);
-	if (!file.open(QIODevice::WriteOnly)) {
-		displayError("Failed to open file for writing: " + file.errorString());
+	if (!file.open(QIODevice::WriteOnly))
+	{
+		QMessageBox::warning(this, "Error", "Failed to open file for writing: " + file.errorString());
 		return;
 	}
 
 	QXmlStreamWriter writer(&file);
 	writer.setAutoFormatting(true);
 	writer.writeStartDocument();
-
 	writer.writeStartElement("GSviewerSession");
-
 	writer.writeAttribute("version", "1");
-
 	writer.writeStartElement("General");
 	SharedData::writeToXml(writer);
 	writer.writeEndElement(); // General
-
 	ui_->panel_manager->writeToXml(writer);
-
 	writer.writeEndElement(); // GSViewerSession
 	writer.writeEndDocument();
-
 	file.close();
-}
 
+	//store path
+	Settings::setPath("load_store_session_folder", QFileInfo(file_path).absolutePath());
+}
 
 void GenomeVisualizationWidget::loadSession()
 {
-	QString file_path = QFileDialog::getOpenFileName(this, tr("Load Session"), "", tr("Session Files (*.xml)"));
+	QString open_folder = Settings::path("load_store_session_folder", true);
+	QString file_path = QFileDialog::getOpenFileName(this, "Open file(s)", open_folder, "Session files(*.xml);;All files(*.*)");
 	if (file_path.isEmpty()) return;
 
 	if (!file_path.endsWith(".xml"))
 	{
-		displayError("Only XML files are supported");
+		QMessageBox::warning(this, "Error", "Only XML files are supported");
 		return;
 	}
 
 	QString error = XmlHelper::isValidXml(file_path, ":Resources/GSviewerSession.xsd");
-
 	if (!error.isEmpty())
 	{
-		displayError(error);
+		QMessageBox::warning(this, "Error", error);
 		return;
 	}
 
-	// no error
-	newSession(); // clear everything
+	//clear session
+	newSession(false);
 
-	// load session
+	//load session
 	QDomDocument doc = XmlHelper::load(file_path);
-
 	QDomElement root = doc.documentElement(); //GSviewerSession
-
-	// do not need to validate anything because it satisifes the schema
-
 	QDomElement general = root.elementsByTagName("General").at(0).toElement();
-
 	SharedData::loadFromXml(general);
-
 	ui_->panel_manager->loadFromXml(root);
+
+	//store path
+	Settings::setPath("load_store_session_folder", QFileInfo(file_path).absolutePath());
 }
-
-
-//TODO Marc - GSviewer:
-//- "visualaize" > show CRAM
-//- show GenCode primary only does nothing
-//- chr selection does not work
-//- search does not work
-//- gene track:
-//  - context menu to show cDNA and protein position
-//  - show AAs in transcripts if zoomed in enough

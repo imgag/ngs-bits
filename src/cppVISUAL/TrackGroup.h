@@ -3,7 +3,6 @@
 
 #include "cppVISUAL_global.h"
 #include "TrackWidget.h"
-
 #include <QDomElement>
 #include <QWidget>
 #include <QVBoxLayout>
@@ -28,10 +27,12 @@ public:
 	void writeToXml(QXmlStreamWriter&);
 	// reads <Track> elements in the dom and creates Tracks based on the properties
 	void loadFromXml(const QDomElement&);
-	// opens a file dialog and creates a TrackGroup with Tracks if file is valid
-	static TrackGroup* fromFile();
+	//Creates a track group from a file
+	static TrackGroup* fromFile(QString filename);
 	// reads <Track> elements in the dom and creates Tracks based on the properties, if no Track elements were created, returns null ptr
 	static TrackGroup* fromXml(const QDomElement&);
+	//returns the number of tracks
+	int trackCount();
 
 signals:
 	void addPanelAbove();
@@ -57,13 +58,13 @@ private:
 	QPointer<TrackWidget> cur_context_track_ = nullptr;
 
 	// adds track widgets to TrackGroup, called by loadTracksFromFile or the static function fromFile
-	void addTrackWidgets(TrackWidgetList widgets);
+	void addTrackWidgets(QVector<TrackWidget*> widgets);
 	// gives the index of the track on top of which the drop happend
 	inline int getDropIndex(int y);
 	// gives the TrackWidget which is at the specified pos, if none this returns nullptr
 	TrackWidget* getTrackUnderMouse(QPoint pos);
-	// opens a FileDialogue and creates TrackWidgets using FileLoader
-	static TrackWidgetList loadTrackWidgetsFromFile();
+	// opens a file dialog and creates TrackWidgets using FileLoader
+	static QVector<TrackWidget*> loadTrackWidgetsFromFile(); //TODO Marc: remove?!
 
 private slots:
 	// removes all tracks inside TrackGroup and deletes them
