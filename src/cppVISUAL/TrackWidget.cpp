@@ -225,7 +225,7 @@ TrackWidget* TrackWidget::fromXml(const QDomElement& track_element, QWidget* par
 	else if (type == BamCoverageTrack::type()) track = BamCoverageTrack::createTrack(parent, file_path, display_name);
 	else if (type == IgvTrack::type()) track = IgvTrack::createTrack(parent, file_path, display_name);
 	else errors << ("Unsupported track type '"+type+"' for " + file_path);
-	return nullptr;
+	if (!track) return nullptr;
 
 	//load settings
 	QDomNodeList settings = track_element.elementsByTagName("Settings");
