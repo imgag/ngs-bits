@@ -5,7 +5,7 @@
 #include "TrackWidget.h"
 #include "BedFile.h"
 #include "ChromosomalIndex.h"
-#include "IgvTrackSettings.h"
+#include "ParameterList.h"
 
 //Track that shows the IGV data file
 class CPPVISUALSHARED_EXPORT IgvTrack
@@ -33,31 +33,41 @@ protected:
 	void populateContextMenu(QMenu&, const QPoint&) override;
 
 private:
+	static QSharedPointer<ParameterList> parametersFromFile(QSharedPointer<BedFile> bed_file);
+	void setParameters(QSharedPointer<ParameterList> parameters);
+
 	QSharedPointer<BedFile> bed_file_;
 	QPoint mouse_press_pos_;
 	std::unique_ptr<ChromosomalIndex<BedFile>> chr_index_;
 
 	// draw functions
+	struct PlotScale
+	{
+		double minimum;
+		double maximum;
+		int height;
+	};
+	PlotScale plotScale() const;
 	void drawPlot(QPainter&);
-	void drawPoints(QPainter&, const QVector<int>& idxes);
-	void drawLinePlot(QPainter&, const QVector<int>& idxes);
-	void drawHeatMap(QPainter&, const QVector<int>& idxes);
-	void drawBarChart(QPainter&, const QVector<int>& idxes);
-	void drawReferenceLine(QPainter&, float baf_value);
+	void drawPoints(QPainter&, const QVector<int>& idxes, const PlotScale& scale);
+	void drawLinePlot(QPainter&, const QVector<int>& idxes, const PlotScale& scale);
+	void drawHeatMap(QPainter&, const QVector<int>& idxes, const PlotScale& scale);
+	void drawBarChart(QPainter&, const QVector<int>& idxes, const PlotScale& scale);
+	void drawReferenceLine(QPainter&, float baf_value, const PlotScale& scale);
 	void drawScaleText(QPainter&);
 
 	// handles right click by user
 	void handlePopupRequest(QPoint local_pos, QPointF global_pos);
 
 	// utility funcitons
-	inline int valueToY(float value);
+	static int valueToY(float value, const PlotScale& scale);
 	// converts a BedLine to text for the pop up info box
 	QString getIgvText(const BedLine& bd);
 
 	// file functions
 	static QString getTrackNameFromIgvFile(QSharedPointer<BedFile> bed_file);
 
-	QSharedPointer<IgvTrackSettings> settings;
+	QSharedPointer<ParameterList> settings_;
 };
 
 

@@ -32,7 +32,6 @@ unix: QMAKE_CXXFLAGS += $$system(pkg-config --cflags libxml-2.0)
 unix: LIBS += -lxml2
 
 SOURCES += \
-    Parameters.cpp \
     BamAlignmentTrack.cpp \
     BamCoverageTrack.cpp \
     BamTrackData.cpp \
@@ -44,7 +43,6 @@ SOURCES += \
     GenePanel.cpp \
     ChromosomePanel.cpp \
     IgvTrack.cpp \
-    IgvTrackSettings.cpp \
     PanelManager.cpp \
     RowPacker.cpp \
     SharedData.cpp \
@@ -52,7 +50,6 @@ SOURCES += \
     TrackWidget.cpp
 
 HEADERS += \
-    Parameters.h \
     BamAlignmentTrack.h \
     BamCoverageTrack.h \
     BamTrackData.h \
@@ -65,7 +62,6 @@ HEADERS += \
     GenePanel.h \
     ChromosomePanel.h \
     IgvTrack.h \
-    IgvTrackSettings.h \
     PanelManager.h \
     RowPacker.h \
     SharedData.h \
