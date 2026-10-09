@@ -10,7 +10,6 @@ QMap<QString, QVariant> IgvTrackSettings::getSettings() const
 	return settings;
 }
 
-
 QString IgvTrackSettings::getValidationErrors() const
 {
 	QString errors = "";
