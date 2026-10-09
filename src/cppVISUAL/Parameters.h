@@ -1,5 +1,5 @@
-#ifndef TRACKSETTINGS_H
-#define TRACKSETTINGS_H
+#ifndef PARAMETERS_H
+#define PARAMETERS_H
 
 #include "cppVISUAL_global.h"
 #include <QHash>
@@ -62,6 +62,7 @@ public:
 	void append(const ParameterDescription& param);
 	//Returns the metadata for a parameter by name.
 	const ParameterDescription& parameter(const QByteArray& name) const;
+	const QList<ParameterDescription>& parameters() const { return entries_; }
 
 protected:
 	QByteArray track_name_;
@@ -69,36 +70,37 @@ protected:
 };
 
 //Parameter
-class CPPVISUALSHARED_EXPORT TrackSettings
+class CPPVISUALSHARED_EXPORT Parameters
 	: public QObject
 {
 	Q_OBJECT
 
 public:
-	TrackSettings(const ParameterConfig& config, QObject* parent = nullptr);
+	Parameters(const ParameterConfig& config, const QHash<QByteArray, QVariant>& defaults);
 
 	int getInt(const QByteArray& name) const { return checkedValue(name, ParameterType::INT).toInt(); }
-	void setInt(const QByteArray& name, int value);
+	void setInt(const QByteArray& name, int value) { setValue(name, ParameterType::INT, value); }
 	double getFloat(const QByteArray& name) const { return checkedValue(name, ParameterType::FLOAT).toDouble(); }
-	void setFloat(const QByteArray& name, double value);
+	void setFloat(const QByteArray& name, double value) { setValue(name, ParameterType::FLOAT, value); }
 	bool getBool(const QByteArray& name) const { return checkedValue(name, ParameterType::BOOL).toBool(); }
-	void setBool(const QByteArray& name, bool value);
+	void setBool(const QByteArray& name, bool value) { setValue(name, ParameterType::BOOL, value); }
 	QByteArray getString(const QByteArray& name) const { return checkedValue(name, ParameterType::STRING).toByteArray(); }
-	void setString(const QByteArray& name, const QByteArray& value);
+	void setString(const QByteArray& name, const QByteArray& value) { setValue(name, ParameterType::STRING, value); }
 
 signals:
 	void parameterChanged();
 
 protected:
 	const ParameterConfig config_;
-	QHash<QByteArray, QVariant> values_;
 
 private:
+	QHash<QByteArray, QVariant> values_;
+
 	const ParameterDescription& checkParameter(const QByteArray& name, ParameterType type) const;
 	const QVariant& checkedValue(const QByteArray& name, ParameterType type) const;
-	void setValue(const QByteArray& name, ParameterType type, const QVariant& value);
+	void setValue(const QByteArray& name, ParameterType type, const QVariant& value, bool emit_changed_signal = true);
 };
 
 
 
-#endif // TRACKSETTINGS_H
+#endif // PARAMETERS_H

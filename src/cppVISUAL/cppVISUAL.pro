@@ -32,7 +32,7 @@ unix: QMAKE_CXXFLAGS += $$system(pkg-config --cflags libxml-2.0)
 unix: LIBS += -lxml2
 
 SOURCES += \
-    TrackSettings.cpp \
+    Parameters.cpp \
     BamAlignmentTrack.cpp \
     BamCoverageTrack.cpp \
     BamTrackData.cpp \
@@ -52,7 +52,7 @@ SOURCES += \
     TrackWidget.cpp
 
 HEADERS += \
-    TrackSettings.h \
+    Parameters.h \
     BamAlignmentTrack.h \
     BamCoverageTrack.h \
     BamTrackData.h \
