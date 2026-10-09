@@ -51,6 +51,11 @@ ParameterDescription::ParameterDescription(QByteArray name, QByteArrayList descr
 			}
 			else THROW(ArgumentException, "Int/float parameter '"+name_+"' cannot have constraint '" + ParameterDescription::toString(it.key()) + "'!");
 		}
+		if (constraints_.contains(ConstraintType::MIN) && constraints_.contains(ConstraintType::MAX)
+			&& constraints_.value(ConstraintType::MIN).toDouble() > constraints_.value(ConstraintType::MAX).toDouble())
+		{
+			THROW(ArgumentException, "MIN constraint exceeds MAX constraint for parameter '" + name_ + "'.");
+		}
 	}
 	else if (type_ == ParameterType::STRING)
 	{
@@ -140,11 +145,11 @@ void TrackSettings::setValue(const QByteArray& name, ParameterType type, const Q
 			double limit = it.value().toDouble();
 			if (it.key() == ConstraintType::MIN && numeric_value < limit)
 			{
-				THROW(ArgumentException, "Value '"+it.value().toString()+"' of parameter '"+name+"' smaller than MIN constraint ("+QString::number(limit)+") for parameter '" + name + "' in track '"+config_.trackName()+"'.");
+				THROW(ArgumentException, "Value '"+value.toString()+"' of parameter '"+name+"' smaller than MIN constraint ("+QString::number(limit)+") for parameter '" + name + "' in track '"+config_.trackName()+"'.");
 			}
 			if (it.key() == ConstraintType::MAX && numeric_value > limit)
 			{
-				THROW(ArgumentException, "Value '"+it.value().toString()+"' of parameter '"+name+"' larger than MAX constraint ("+QString::number(limit)+") for parameter '" + name + "' in track '"+config_.trackName()+"'.");
+				THROW(ArgumentException, "Value '"+value.toString()+"' of parameter '"+name+"' larger than MAX constraint ("+QString::number(limit)+") for parameter '" + name + "' in track '"+config_.trackName()+"'.");
 			}
 		}
 	}
