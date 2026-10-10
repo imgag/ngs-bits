@@ -1,7 +1,9 @@
 #include "ParameterEditor.h"
+#include "Exceptions.h"
 #include <QCheckBox>
 #include <QComboBox>
 #include <QLineEdit>
+#include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
 #include <QSignalSpy>
@@ -38,6 +40,7 @@ private slots:
 	{
 		ParameterList parameters("test", definitions(), defaults());
 		ParameterEditor editor(parameters);
+		editor.findChild<QCheckBox*>("auto_apply")->setChecked(false);
 		QSignalSpy changes(&parameters, &ParameterList::parameterChanged);
 		QVERIFY(editor.store());
 		QCOMPARE(changes.count(), 0);
@@ -67,6 +70,7 @@ private slots:
 	{
 		ParameterList parameters("test", definitions(), defaults());
 		ParameterEditor editor(parameters);
+		editor.findChild<QCheckBox*>("auto_apply")->setChecked(false);
 		editor.findChild<QLineEdit*>("text")->setText("pending");
 		for (const QString& invalid : {"", "1", "11", "2.5", "nan", "2147483648", "abc"})
 		{
@@ -90,6 +94,7 @@ private slots:
 	{
 		ParameterList parameters("test", definitions(), defaults());
 		ParameterEditor editor(parameters);
+		editor.findChild<QCheckBox*>("auto_apply")->setChecked(false);
 		editor.findChild<QLineEdit*>("count")->setText("invalid");
 		editor.findChild<QLineEdit*>("text")->setText("pending");
 		editor.findChild<QCheckBox*>("auto_apply")->setChecked(true);
@@ -147,6 +152,56 @@ private slots:
 		second.reset({}, {});
 		QVERIFY(!editor.findChild<QLineEdit*>("other"));
 		QVERIFY(editor.store());
+	}
+
+	void displayDigitsConstraint()
+	{
+		QCOMPARE(Parameter::toString(ConstraintType::DISPLAY_DIGITS), QByteArray("DISPLAY_DIGITS"));
+		for (ParameterType type : {ParameterType::INT, ParameterType::BOOL, ParameterType::STRING, ParameterType::STRINGLIST})
+		{
+			QVERIFY_THROWS_EXCEPTION(ArgumentException, Parameter("value", {}, type, {{ConstraintType::DISPLAY_DIGITS, 2}}));
+		}
+		for (const QVariant& digits : QList<QVariant>{QVariant(), -1, 1.5, 18, true, QString("invalid"), std::numeric_limits<double>::quiet_NaN()})
+		{
+			QVERIFY_THROWS_EXCEPTION(ArgumentException, Parameter("value", {}, ParameterType::DOUBLE, {{ConstraintType::DISPLAY_DIGITS, digits}}));
+		}
+		ParameterList parameters("test", {Parameter("value", {}, ParameterType::DOUBLE, {{ConstraintType::DISPLAY_DIGITS, 0}})}, {{"value", 0.123456789}});
+		parameters.overrideConstraint("value", ConstraintType::DISPLAY_DIGITS, 17);
+		QCOMPARE(parameters.getDouble("value"), 0.123456789);
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, parameters.overrideConstraint("value", ConstraintType::DISPLAY_DIGITS, -1));
+		QCOMPARE(parameters.parameter("value").constraints().value(ConstraintType::DISPLAY_DIGITS).toInt(), 17);
+	}
+
+	void displayDigitsFormattingAndPrecision()
+	{
+		const double original = 0.12345678901234566;
+		ParameterList parameters("test", {
+			Parameter("value", "Fraction", ParameterType::DOUBLE, {{ConstraintType::MIN, 0.1234}, {ConstraintType::MAX, 1.0}, {ConstraintType::DISPLAY_DIGITS, 2}}),
+			Parameter("other", {}, ParameterType::BOOL, {})
+		}, {{"value", original}, {"other", false}});
+		ParameterEditor editor(parameters);
+		auto* input = editor.findChild<QLineEdit*>("value");
+		QCOMPARE(input->text(), QString("0.12"));
+		for (auto* widget : editor.findChildren<QWidget*>()) QVERIFY(!widget->toolTip().contains("DISPLAY_DIGITS"));
+		QVERIFY(input->toolTip().contains("MIN"));
+		QSignalSpy changes(&parameters, &ParameterList::parameterChanged);
+		QVERIFY(editor.store());
+		QCOMPARE(changes.count(), 0);
+		QCOMPARE(parameters.getDouble("value"), original);
+		editor.findChild<QCheckBox*>("other")->setChecked(true);
+		QVERIFY(editor.store());
+		QCOMPARE(parameters.getDouble("value"), original);
+		input->setText("0.25");
+		QVERIFY(editor.store());
+		QCOMPARE(parameters.getDouble("value"), 0.25);
+		editor.reset();
+		QCOMPARE(input->text(), QString("0.12"));
+		QVERIFY(editor.store());
+		QCOMPARE(parameters.getDouble("value"), original);
+		parameters.overrideConstraint("value", ConstraintType::DISPLAY_DIGITS, 3);
+		QCOMPARE(editor.findChild<QLineEdit*>("value")->text(), QString("0.123"));
+		QVERIFY(editor.store());
+		QCOMPARE(parameters.getDouble("value"), original);
 	}
 
 	void destroyedList()

@@ -41,10 +41,10 @@ BamAlignmentTrack::BamAlignmentTrack(QWidget* parent, QString file_path, QString
 
 QList<Parameter> BamAlignmentTrack::getParameters() const
 {
-	return {Parameter("view as pairs", "Display read pairs", ParameterType::BOOL, {}),
-		Parameter("show all bases", "Display all bases", ParameterType::BOOL, {}),
-		Parameter("show soft-clipped bases", "Display soft-clipped bases", ParameterType::BOOL, {}),
-		Parameter("color by", "Alignment coloring scheme", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("none\tinsert size\tread strand")}})};
+	return {Parameter("view as pairs", "Connect read-pairs with a line.", ParameterType::BOOL, {}),
+		Parameter("show all bases", "Display all bases, not only ones that are different from the reference base.", ParameterType::BOOL, {}),
+		Parameter("show soft-clipped bases", "Display soft-clipped bases.", ParameterType::BOOL, {}),
+		Parameter("color by", "Alignment coloring scheme.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("none\tinsert size\tread strand")}})};
 }
 
 QHash<QByteArray, QVariant> BamAlignmentTrack::getParameterDefaults() const

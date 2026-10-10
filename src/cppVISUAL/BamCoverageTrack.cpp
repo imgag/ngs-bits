@@ -29,13 +29,13 @@ BamCoverageTrack::BamCoverageTrack(QWidget* parent, QString file_path, QString n
 
 QList<Parameter> BamCoverageTrack::getParameters() const
 {
-	return {Parameter("snp_min_af", "Minimum SNP allele frequency for coloring.", ParameterType::DOUBLE, {{ConstraintType::MIN, 0.0}, {ConstraintType::MAX, 1.0}}),
-		Parameter("track_height", "Height of track in pixels", ParameterType::INT, {{ConstraintType::MIN, 1}})};
+	return {Parameter("min display AF for SNP", "Minimum SNP allele frequency to color coverage bar.", ParameterType::DOUBLE, {{ConstraintType::MIN, 0.0}, {ConstraintType::MAX, 1.0}, {ConstraintType::DISPLAY_DIGITS, 2}}),
+		Parameter("track height", "Height of track in pixels.", ParameterType::INT, {{ConstraintType::MIN, 1}})};
 }
 
 QHash<QByteArray, QVariant> BamCoverageTrack::getParameterDefaults() const
 {
-	return {{"snp_min_af", 0.2}, {"track_height", 50}};
+	return {{"min display AF for SNP", 0.2}, {"track height", 50}};
 }
 
 BamCoverageTrack::~BamCoverageTrack()
@@ -57,7 +57,7 @@ BamCoverageTrack* BamCoverageTrack::createTrack(QWidget* parent, QString file_pa
 QSize BamCoverageTrack::sizeHint() const
 {
 	return QSize(parentWidget() ? parentWidget()->width() : 200,
-				 settings_.getInt("track_height") + SPACING_BELOW);
+				 settings_.getInt("track height") + SPACING_BELOW);
 }
 
 void BamCoverageTrack::setTrackData(QSharedPointer<BamTrackData> track_data)
@@ -87,7 +87,7 @@ void BamCoverageTrack::storeCoverage()
 {
 	max_coverage_ = 10;
 	const int max_region_len = SharedData::settings().bam_max_region_len;
-	const double snp_min_af = settings_.getDouble("snp_min_af");
+	const double snp_min_af = settings_.getDouble("min display AF for SNP");
 	coverage_.clear();
 	coverage_.fill(BaseCoverage(), max_region_len);
 

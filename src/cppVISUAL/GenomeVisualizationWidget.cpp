@@ -416,7 +416,7 @@ void GenomeVisualizationWidget::loadSession()
 
 
 //TODO Marc:
-//- parameters of all tracks: BAM coverage, BED, IGV
+//- check parameters of all tracks: BED, IGV
 //- debug mode drop-down: goto region, goto rene
 //- add region bookmarks stored in Settings
 //- BAM track: "group by"
