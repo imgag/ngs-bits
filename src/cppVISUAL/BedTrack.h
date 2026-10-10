@@ -35,10 +35,10 @@ public:
 	// reloads the file, if failed deletes the track
 	void reloadTrack() override;
 
-	QMap<QString, QVariant> getSettings() override;
-	void loadKeyValueFromXml(QString, QString) override;
 
 protected:
+	QList<Parameter> getParameters() const override;
+	QHash<QByteArray, QVariant> getParameterDefaults() const override;
 	void paintEvent(QPaintEvent* event) override;
 	void mousePressEvent(QMouseEvent* event) override;
 	void mouseReleaseEvent(QMouseEvent* event) override;
@@ -56,7 +56,6 @@ private:
 
 	QSharedPointer<BedFile> bedfile_;
 	std::unique_ptr<ChromosomalIndex<BedFile>> chr_index_;
-	QColor color_ = QColor(0, 0, 178);
 
 	QPointF mouse_press_pos_;
 	/*
@@ -100,7 +99,6 @@ private:
 		EXPANDED
 	};
 
-	DrawMode draw_mode_ = COLLAPSED;
 };
 
 #endif // BEDTRACK_H

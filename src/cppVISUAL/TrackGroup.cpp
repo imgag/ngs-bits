@@ -100,6 +100,7 @@ void TrackGroup::contextMenu(QPoint pos)
 {
 	QMenu menu(this);
 
+	//add track sub-menu (if not empty TrackGroup)
 	TrackWidget* track = getTrackUnderMouse(pos);
 	if (track)
 	{
@@ -108,23 +109,21 @@ void TrackGroup::contextMenu(QPoint pos)
 		menu.addMenu(track_menu);
 	}
 
-	QAction* load_file = menu.addAction("Load file");
-
-	menu.addSeparator();
-
-	QAction* clear_panel = menu.addAction("Clear Panel");
-	QAction* remove_panel = menu.addAction("Remove Panel");
-
-	menu.addSeparator();
-
-	QAction* add_panel_above = menu.addAction("Add Panel Above");
-	QAction* add_panel_below = menu.addAction("Add Panel Below");
-
+	//add panel sub-menu
+	QMenu* panel_menu = new QMenu("Panel", this);
+	QAction* load_file = panel_menu->addAction("Add track(s) from file");
 	connect(load_file, &QAction::triggered, this, &TrackGroup::loadTracksFromFile);
+	panel_menu->addSeparator();
+	QAction* clear_panel = panel_menu->addAction("Clear Panel");
 	connect(clear_panel, &QAction::triggered, this, &TrackGroup::clearLayout);
+	QAction* remove_panel = panel_menu->addAction("Remove Panel");
 	connect(remove_panel, &QAction::triggered, this, &TrackGroup::clearLayoutAndDelete);
+	panel_menu->addSeparator();
+	QAction* add_panel_above = panel_menu->addAction("Add Panel Above");
 	connect(add_panel_above, &QAction::triggered, this, &TrackGroup::addPanelAbove);
+	QAction* add_panel_below = panel_menu->addAction("Add Panel Below");
 	connect(add_panel_below, &QAction::triggered, this, &TrackGroup::addPanelBelow);
+	menu.addMenu(panel_menu);
 
 	menu.exec(mapToGlobal(pos));
 }

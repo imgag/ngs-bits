@@ -29,21 +29,19 @@ public:
 	BamAlignmentTrack(QWidget* parent, QString file_path, QString name);
 	~BamAlignmentTrack();
 	static QByteArray type() { return "BamAlignmentTrack"; }
-	//Maximum displayed region length; also bounds shared BAM loading and coverage allocation.
-	static constexpr int MAX_REGION_LEN = 30000;
 
 	void setTrackData(QSharedPointer<BamTrackData> track_data);
 
 	QSize sizeHint() const override;
 
-	virtual QMap<QString, QVariant> getSettings() override;
-	virtual void loadKeyValueFromXml(QString key, QString value) override;
 
 	virtual void reloadTrack() override;
 
 	static BamAlignmentTrack* createTrack(QWidget* parent, QString file_path, QString name);
 
 protected:
+	QList<Parameter> getParameters() const override;
+	QHash<QByteArray, QVariant> getParameterDefaults() const override;
 	void paintEvent(QPaintEvent*) override;
 	void populateContextMenu(QMenu&, const QPoint&) override;
 	void mousePressEvent(QMouseEvent*) override;
@@ -78,7 +76,7 @@ private:
 	// draws bases in BamAlignment that do not match the reference base
 	// which are pre calculated in the AlignmentWrapper
 	void drawMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y);
-	// draws all bases (only if show_all_bases_ flag is true), draws soft clip bases too
+	// draws all bases if enabled in settings_, including soft clips if enabled
 	// if the corresponding flag is set
 	void drawAllBases(QPainter&, const BamAlignmentWrapper& al, int row_y);
 	// draws a highlight on the given alignment
@@ -139,10 +137,6 @@ private:
 		READ_STRAND
 	};
 
-	bool view_as_pairs_ = false;
-	bool show_all_bases_ = false;
-	bool show_soft_clip_bases_ = false;
-	ColoringScheme coloring_scheme_ = INSERT_SIZE;
 	QString selected_name_ = ""; // name of selected alignment
 
 

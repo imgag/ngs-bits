@@ -47,16 +47,29 @@
 												<xs:documentation>Track settings</xs:documentation>
 											</xs:annotation>
 											<xs:complexType>
-												<xs:attribute name="key" use="required">
+												<xs:sequence>
+													<xs:element name="Value" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+														<xs:annotation>
+															<xs:documentation>Exactly one value for scalar types; zero or more values for STRINGLIST. Scalar cardinality is checked when loading.</xs:documentation>
+														</xs:annotation>
+													</xs:element>
+												</xs:sequence>
+												<xs:attribute name="name" use="required">
 													<xs:simpleType>
 														<xs:restriction base="xs:string">
 															<xs:minLength value="1"/>
 														</xs:restriction>
 													</xs:simpleType>
 												</xs:attribute>
-												<xs:attribute name="value" use="required">
+												<xs:attribute name="type" use="required">
 													<xs:simpleType>
-														<xs:restriction base="xs:string"/>
+														<xs:restriction base="xs:string">
+															<xs:enumeration value="INT"/>
+															<xs:enumeration value="DOUBLE"/>
+															<xs:enumeration value="BOOL"/>
+															<xs:enumeration value="STRING"/>
+															<xs:enumeration value="STRINGLIST"/>
+														</xs:restriction>
 													</xs:simpleType>
 												</xs:attribute>
 											</xs:complexType>

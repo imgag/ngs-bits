@@ -1,22 +1,41 @@
 #include "BamCoverageTrack.h"
-#include "BamAlignmentTrack.h"
 #include "BamTrackDataManager.h"
 #include "SharedData.h"
 
 #include <QApplication>
 #include <QPainter>
 
-static constexpr int TRACK_HEIGHT = 50;
 static constexpr int SPACING_BELOW = 4;
-static constexpr unsigned int MINIMUM_MAX_COVERAGE = 10;
 
 BamCoverageTrack::BamCoverageTrack(QWidget* parent, QString file_path, QString name)
 	: TrackWidget(parent, file_path, name, type())
 {
+	connect(&settings_, &ParameterList::parameterChanged, this, [this]()
+	{
+		storeCoverage();
+		updateGeometry();
+		update();
+	});
+	initializeSettings();
+	connect(SharedData::instance(), &SharedData::settingsChanged, this, [this]()
+	{
+		//Attached BAM data refreshes coverage through onDataUpdate after reloading.
+		if (!track_data_) storeCoverage();
+		updateGeometry();
+		update();
+	});
 	setMouseTracking(true);
-	max_coverage_ = MINIMUM_MAX_COVERAGE;
-	int max_region_length = BamAlignmentTrack::MAX_REGION_LEN;
-	coverage_.fill(BaseCoverage(), max_region_length);
+}
+
+QList<Parameter> BamCoverageTrack::getParameters() const
+{
+	return {Parameter("snp_min_af", "Minimum SNP allele frequency for coloring.", ParameterType::DOUBLE, {{ConstraintType::MIN, 0.0}, {ConstraintType::MAX, 1.0}}),
+		Parameter("track_height", "Height of track in pixels", ParameterType::INT, {{ConstraintType::MIN, 1}})};
+}
+
+QHash<QByteArray, QVariant> BamCoverageTrack::getParameterDefaults() const
+{
+	return {{"snp_min_af", 0.2}, {"track_height", 50}};
 }
 
 BamCoverageTrack::~BamCoverageTrack()
@@ -38,7 +57,7 @@ BamCoverageTrack* BamCoverageTrack::createTrack(QWidget* parent, QString file_pa
 QSize BamCoverageTrack::sizeHint() const
 {
 	return QSize(parentWidget() ? parentWidget()->width() : 200,
-				 TRACK_HEIGHT + SPACING_BELOW);
+				 settings_.getInt("track_height") + SPACING_BELOW);
 }
 
 void BamCoverageTrack::setTrackData(QSharedPointer<BamTrackData> track_data)
@@ -66,8 +85,9 @@ void BamCoverageTrack::dataReady()
 // (it's here for now because coverage is not needed if BamCoverageTrack does not exist)
 void BamCoverageTrack::storeCoverage()
 {
-	max_coverage_ = MINIMUM_MAX_COVERAGE;
-	int max_region_len = BamAlignmentTrack::MAX_REGION_LEN;
+	max_coverage_ = 10;
+	const int max_region_len = SharedData::settings().bam_max_region_len;
+	const double snp_min_af = settings_.getDouble("snp_min_af");
 	coverage_.clear();
 	coverage_.fill(BaseCoverage(), max_region_len);
 
@@ -155,7 +175,7 @@ void BamCoverageTrack::storeCoverage()
 			case 'T': case 't': base_count = cov.t(); break;
 		}
 		if (total_count == 0) cov.is_variant = false;
-		else cov.is_variant = (((double)base_count / total_count) < (1.f - coverage_mismatch_threshold_));
+		else cov.is_variant = (((double)base_count / total_count) < (1.0 - snp_min_af));
 	}
 }
 
@@ -165,7 +185,7 @@ void BamCoverageTrack::paintEvent(QPaintEvent*)
 	painter.fillRect(rect(), Qt::white);
 	const BedLine& region = SharedData::region();
 	drawLabel(painter);
-	int max_region_length = BamAlignmentTrack::MAX_REGION_LEN;
+	int max_region_length = SharedData::settings().bam_max_region_len;
 	if (region.length() > max_region_length) drawZoomInText(painter);
 	else
 	{
@@ -337,7 +357,7 @@ void BamCoverageTrack::mousePressEvent(QMouseEvent* event)
 bool BamCoverageTrack::isCurrentRegionValid()
 {
 	const BedLine& region = SharedData::region();
-	int max_region_len = BamAlignmentTrack::MAX_REGION_LEN;
+	int max_region_len = SharedData::settings().bam_max_region_len;
 	return (region.length() <= max_region_len);
 }
 

@@ -22,19 +22,17 @@ public:
 
 	static IgvTrack* createTrack(QWidget* parent, QString file_path, QString name = "");
 
-	QMap<QString, QVariant> getSettings() override;
-	void loadKeyValueFromXml(QString key, QString value) override;
 
 protected:
+	QList<Parameter> getParameters() const override;
+	QHash<QByteArray, QVariant> getParameterDefaults() const override;
 	void paintEvent(QPaintEvent*) override;
 	void mousePressEvent(QMouseEvent*) override;
 	void mouseReleaseEvent(QMouseEvent*) override;
 	void populateContextMenu(QMenu&, const QPoint&) override;
 
 private:
-	IgvTrack(QWidget* parent, QString file_path, QString name, const QHash<QByteArray, QVariant>& defaults);
-	static QList<Parameter> parameterConfig();
-	static QHash<QByteArray, QVariant> defaultsFromFile(QSharedPointer<BedFile> bed_file);
+	IgvTrack(QWidget* parent, QString file_path, QString name, QSharedPointer<BedFile> bed_file);
 
 	QSharedPointer<BedFile> bed_file_;
 	QPoint mouse_press_pos_;

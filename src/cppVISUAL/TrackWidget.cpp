@@ -17,19 +17,20 @@
 #include <QMimeData>
 #include <QPainter>
 #include <QVBoxLayout>
+#include <limits>
 
-TrackWidget::TrackWidget(QWidget* parent, QString file_path, QString name, QString type, const QList<Parameter>& parameters, const QHash<QByteArray, QVariant>& defaults)
+TrackWidget::TrackWidget(QWidget* parent, QString file_path, QString display_name, QString type)
 	: QWidget(parent)
 	, file_path_(file_path)
-	, name_(name)
+	, display_name_(display_name)
 	, type_(type)
-	, settings_(type.toUtf8(), parameters, defaults)
+	, settings_(type.toUtf8(), {}, {})
 {
-	connect(&settings_, &ParameterList::parameterChanged, this, [this]()
-	{
-		updateGeometry();
-		update();
-	});
+}
+
+void TrackWidget::initializeSettings()
+{
+	settings_.reset(getParameters(), getParameterDefaults());
 }
 
 QSize TrackWidget::minimumSizeHint() const
@@ -46,10 +47,7 @@ void TrackWidget::regionChanged()
 
 void TrackWidget::populateContextMenu(QMenu& menu, const QPoint&)
 {
-	QAction* reload = menu.addAction("Reload Track");
-	connect(reload, &QAction::triggered, this, &TrackWidget::reloadTrack);
-
-	menu.addSeparator();
+	if (menu.actions().count()>0) menu.addSeparator();
 
 	QAction* remove = menu.addAction("Remove Track");
 	connect(remove, &QAction::triggered, this, &TrackWidget::trackDeleted);
@@ -61,9 +59,9 @@ void TrackWidget::populateContextMenu(QMenu& menu, const QPoint&)
 void TrackWidget::handleTrackRename()
 {
 	bool ok;
-	QString new_name = QInputDialog::getText(this, "Enter Track Name", "", QLineEdit::Normal, name_, &ok);
+	QString new_name = QInputDialog::getText(this, "Enter Track Name", "", QLineEdit::Normal, display_name_, &ok);
 
-	if (ok && !new_name.isEmpty()) name_ = new_name;
+	if (ok && !new_name.isEmpty()) display_name_ = new_name;
 }
 
 
@@ -94,7 +92,7 @@ void TrackWidget::mouseMoveEvent(QMouseEvent* event)
 	QDrag* drag = new QDrag(this);
 	QMimeData* mime_data = new QMimeData;
 	// mime_data->setData("application/track-data", id_.toByteArray());
-	mime_data->setData("application/track-name", name_.toUtf8());
+	mime_data->setData("application/track-name", display_name_.toUtf8());
 	drag->setMimeData(mime_data);
 
 	//draw the drag block
@@ -124,8 +122,7 @@ void TrackWidget::drawLabel(QPainter& painter)
 	QRectF text_rect(0, 0, label_width-2, height());
 
 	painter.setPen(Qt::black);
-	painter.drawText(text_rect, Qt::AlignLeft, name_);
-
+	painter.drawText(text_rect, Qt::AlignLeft, display_name_);
 }
 
 float Viewport::genomePosToScreen(int genome_pos) const
@@ -206,13 +203,27 @@ void TrackWidget::writeToXml(QXmlStreamWriter& writer)
 	writer.writeStartElement("Track");
 	writer.writeAttribute("type", type_);
 	writer.writeAttribute("file_name", file_path_);
-	writer.writeAttribute("display_name", name_);
-	auto settings = getSettings();
-	for (auto it = settings.begin(); it != settings.end(); ++it)
+	writer.writeAttribute("display_name", display_name_);
+	for(const Parameter& param: settings_.parameters())
 	{
 		writer.writeStartElement("Settings");
-		writer.writeAttribute("key", it.key());
-		writer.writeAttribute("value", it.value().toString());
+		writer.writeAttribute("name", QString::fromUtf8(param.name()));
+		writer.writeAttribute("type", QString::fromUtf8(Parameter::toString(param.type())));
+		if (param.type() == ParameterType::STRINGLIST)
+		{
+			for (const QByteArray& entry : param.value().value<QByteArrayList>())
+			{
+				writer.writeTextElement("Value", QString::fromUtf8(entry));
+			}
+		}
+		else
+		{
+			//Preserve double precision when saving and loading a session.
+			QByteArray value = param.value().toByteArray();
+			if (param.type() == ParameterType::DOUBLE) value = QByteArray::number(param.value().toDouble(), 'g', std::numeric_limits<double>::max_digits10);
+			else if (param.type() == ParameterType::BOOL) value = param.value().toBool() ? "yes" : "no";
+			writer.writeTextElement("Value", QString::fromUtf8(value));
+		}
 		writer.writeEndElement(); // Settings
 	}
 	writer.writeEndElement(); // Track
@@ -234,13 +245,70 @@ TrackWidget* TrackWidget::fromXml(const QDomElement& track_element, QWidget* par
 	if (!track) return nullptr;
 
 	//load settings
-	QDomNodeList settings = track_element.elementsByTagName("Settings");
-	for (int i =0; i < settings.count(); ++i)
+	for (QDomElement item = track_element.firstChildElement("Settings"); !item.isNull(); item = item.nextSiblingElement("Settings"))
 	{
-		QDomElement item = settings.at(i).toElement();
-		QString key = item.attribute("key");
-		QString value = item.attribute("value");
-		track->loadKeyValueFromXml(key, value);
+		const QByteArray key = item.attribute("name").toUtf8();
+		try
+		{
+			const Parameter& parameter = track->settings_.parameter(key);
+			if (item.attribute("type").toUtf8() != Parameter::toString(parameter.type()))
+			{
+				THROW(ArgumentException, "Parameter type does not match '" + Parameter::toString(parameter.type()) + "'.");
+			}
+			QByteArrayList values;
+			for (QDomElement entry = item.firstChildElement("Value"); !entry.isNull(); entry = entry.nextSiblingElement("Value"))
+			{
+				values.append(entry.text().toUtf8());
+			}
+			if (parameter.type() != ParameterType::STRINGLIST && values.size() != 1)
+			{
+				THROW(ArgumentException, "Expected exactly one Value element.");
+			}
+			const QString value = values.isEmpty() ? QString() : QString::fromUtf8(values.first());
+			bool ok = false;
+			switch (parameter.type())
+			{
+				case ParameterType::INT:
+				{
+					const int number = value.toInt(&ok);
+					if (!ok) THROW(ArgumentException, "Invalid integer '" + value + "'.");
+					track->settings_.setInt(key, number);
+					break;
+				}
+				case ParameterType::DOUBLE:
+				{
+					const double number = value.toDouble(&ok);
+					if (!ok) THROW(ArgumentException, "Invalid double '" + value + "'.");
+					track->settings_.setDouble(key, number);
+					break;
+				}
+				case ParameterType::BOOL:
+				{
+					const QString boolean = value.trimmed().toLower();
+					if (boolean != "yes" && boolean != "no" && boolean != "true" && boolean != "false" && boolean != "1" && boolean != "0")
+					{
+						THROW(ArgumentException, "Invalid boolean '" + value + "'.");
+					}
+					track->settings_.setBool(key, boolean == "yes" || boolean == "true" || boolean == "1");
+					break;
+				}
+				case ParameterType::STRING:
+				{
+					track->settings_.setString(key, values.first());
+					break;
+				}
+				case ParameterType::STRINGLIST:
+				{
+					track->settings_.setStringList(key, values);
+					break;
+				}
+				default: THROW(ProgrammingException, "Unhandled parameter type.");
+			}
+		}
+		catch (const Exception& e)
+		{
+			errors << "Invalid setting '" + QString::fromUtf8(key) + "' for " + file_path + ": " + e.message();
+		}
 	}
 
 	return track;

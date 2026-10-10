@@ -5,6 +5,13 @@
 #include <QFileInfo>
 #include <QMessageBox>
 
+void SharedData::setSettings(const GlobalSettings& settings)
+{
+	if (settings.bam_max_region_len < 1) THROW(ArgumentException, "BAM maximum region length must be positive.");
+	instance()->settings_ = settings;
+	emit instance()->settingsChanged();
+}
+
 void SharedData::setTranscripts(const TranscriptList& transcripts)
 {
 	SharedData* inst = instance();
@@ -117,4 +124,3 @@ QSize SharedData::determineCharacterSize()
 	}
 	return QSize(w, h);
 }
-

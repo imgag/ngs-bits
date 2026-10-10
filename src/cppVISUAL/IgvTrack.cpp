@@ -19,7 +19,7 @@ namespace
 	const QByteArrayList GRAPH_MODES{HEATMAP, BAR_CHART, POINTS, LINE_PLOT};
 }
 
-QList<Parameter> IgvTrack::parameterConfig()
+QList<Parameter> IgvTrack::getParameters() const
 {
 	QList<Parameter> config;
 	config.append(Parameter("graph_mode", "Type of graph", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, GRAPH_MODES.join('\t')}}));
@@ -29,12 +29,12 @@ QList<Parameter> IgvTrack::parameterConfig()
 	return config;
 }
 
-QHash<QByteArray, QVariant> IgvTrack::defaultsFromFile(QSharedPointer<BedFile> bed_file)
+QHash<QByteArray, QVariant> IgvTrack::getParameterDefaults() const
 {
 	QHash<QByteArray, QVariant> defaults{{"graph_mode", POINTS}, {"track_height", 100}, {"view_min", 0.0}, {"view_max", 1.0}};
-	if (bed_file)
+	if (bed_file_)
 	{
-		for (const QByteArray& header : bed_file->headers())
+		for (const QByteArray& header : bed_file_->headers())
 		{
 			if (!header.startsWith("#track")) continue;
 			for (const QByteArray& attr : header.split(' '))
@@ -81,13 +81,20 @@ QHash<QByteArray, QVariant> IgvTrack::defaultsFromFile(QSharedPointer<BedFile> b
 }
 
 IgvTrack::IgvTrack(QWidget* parent, QString file_path, QString name)
-	: IgvTrack(parent, file_path, name, defaultsFromFile(nullptr))
+	: IgvTrack(parent, file_path, name, QSharedPointer<BedFile>())
 {
 }
 
-IgvTrack::IgvTrack(QWidget* parent, QString file_path, QString name, const QHash<QByteArray, QVariant>& defaults)
-	: TrackWidget(parent, file_path, name, type(), parameterConfig(), defaults)
+IgvTrack::IgvTrack(QWidget* parent, QString file_path, QString name, QSharedPointer<BedFile> bed_file)
+	: TrackWidget(parent, file_path, name, type())
+	, bed_file_(bed_file)
 {
+	connect(&settings_, &ParameterList::parameterChanged, this, [this]()
+	{
+		updateGeometry();
+		update();
+	});
+	initializeSettings();
 	updateGeometry();
 	update();
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(regionChanged()));
@@ -112,7 +119,7 @@ IgvTrack* IgvTrack::createTrack(QWidget* parent, QString file_path, QString name
 	IgvTrack* igv_track = nullptr;
 	try
 	{
-		igv_track = new IgvTrack(parent, file_path, display_name, defaultsFromFile(bed_file));
+		igv_track = new IgvTrack(parent, file_path, display_name, bed_file);
 	}
 	catch (const ArgumentException& e)
 	{
@@ -482,39 +489,6 @@ QString IgvTrack::getIgvText(const BedLine& bd)
 		.arg(bd.start())
 		.arg(bd.end())
 		.arg(bd.annotations()[1]);
-}
-
-QMap<QString, QVariant> IgvTrack::getSettings()
-{
-	auto widget_settings = TrackWidget::getSettings();
-	widget_settings.insert("graph_mode", settings_.getString("graph_mode"));
-	widget_settings.insert("track_height", settings_.getInt("track_height"));
-	widget_settings.insert("view_min", settings_.getDouble("view_min"));
-	widget_settings.insert("view_max", settings_.getDouble("view_max"));
-	return widget_settings;
-}
-
-void IgvTrack::loadKeyValueFromXml(QString key, QString value)
-{
-	bool ok = false;
-	if (key == "graph_mode")
-	{
-		QByteArray mode = value.toUtf8().toUpper();
-		//Accept the numeric graph modes stored by older sessions.
-		int legacy_mode = value.toInt(&ok);
-		if (ok && legacy_mode >= 0 && legacy_mode < GRAPH_MODES.count()) mode = GRAPH_MODES[legacy_mode];
-		if (GRAPH_MODES.contains(mode)) settings_.setString("graph_mode", mode);
-	}
-	else if (key == "track_height")
-	{
-		int height = value.toInt(&ok);
-		if (ok && height > 0) settings_.setInt("track_height", height);
-	}
-	else if (key == "view_min" || key == "view_max")
-	{
-		float limit = value.toFloat(&ok);
-		if (ok && std::isfinite(limit) && limit >= 0 && (key == "view_min" || limit <= 1)) settings_.setDouble(key.toUtf8(), limit);
-	}
 }
 
 QString IgvTrack::getTrackNameFromIgvFile(QSharedPointer<BedFile> bed_file)

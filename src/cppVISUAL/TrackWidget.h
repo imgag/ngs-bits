@@ -29,23 +29,18 @@ class CPPVISUALSHARED_EXPORT TrackWidget
 	Q_OBJECT
 
 public:
-	TrackWidget(QWidget* parent, QString file_path, QString name, QString type, const QList<Parameter>& parameters = {}, const QHash<QByteArray, QVariant>& defaults = {});
+	TrackWidget(QWidget* parent, QString file_path, QString display_name, QString type);
 	QSize minimumSizeHint() const override;
 
-	// writes properties in XML
-	void writeToXml(QXmlStreamWriter&);
-	// settings that should be written into XML
-	virtual QMap<QString, QVariant> getSettings() {
-		return QMap<QString, QVariant>();
-	};
 	//re-loads a the track from file/URL
 	virtual void reloadTrack() {};
-	// mathod for loading a setting from XML
-	virtual void loadKeyValueFromXml(QString, QString){}
-
-	// creates TrackWidget based on the given XML specification
-	static TrackWidget* fromXml(const QDomElement&, QWidget* parent, QStringList &errors);
+	//adds general track context menu entries
 	virtual void populateContextMenu(QMenu&, const QPoint&);
+
+	//writes properties in XML
+	void writeToXml(QXmlStreamWriter&);
+	//creates TrackWidget based on the given XML specification
+	static TrackWidget* fromXml(const QDomElement&, QWidget* parent, QStringList &errors);
 
 	//determines a display name from file path or URL
 	static QString getDisplayNameFromFilePath(QString file_path);
@@ -59,6 +54,11 @@ public slots:
 	void handleTrackRename();
 
 protected:
+	virtual QList<Parameter> getParameters() const { return {}; }
+	virtual QHash<QByteArray, QVariant> getParameterDefaults() const { return {}; }
+	//Call in the derived constructor body, where virtual dispatch reaches its overrides.
+	void initializeSettings();
+
 	virtual void mousePressEvent(QMouseEvent* event) override;
 	virtual void mouseMoveEvent(QMouseEvent* event) override;
 	// creates a pop up at global_pos and displays the info text on that
@@ -68,12 +68,11 @@ protected:
 	// called when rename is clicked. Returns the current viewport
 	virtual Viewport getViewport();
 
-
 	QPoint drag_start_pos_;
 	bool is_dragging_;
 
 	QString file_path_; //path or URL of the source file
-	QString name_; //display name
+	QString display_name_; //display name
 	QString type_; //track type - used to serialize the track to XML
 	ParameterList settings_; //settings
 };

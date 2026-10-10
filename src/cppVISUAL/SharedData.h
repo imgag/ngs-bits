@@ -20,6 +20,8 @@ struct CPPVISUALSHARED_EXPORT GlobalSettings
 	int min_window_size = 41;
 	//How many bases genes/transcripts are padded with, e.g. after search
 	int transcript_padding = 2000;
+	//Maximum region length for BAM loading, alignments and coverage.
+	int bam_max_region_len = 30000;
 };
 
 //Singleton for data shared by all widgets for visualization.
@@ -55,11 +57,7 @@ public:
 	{
 		return  instance()->settings_;
 	}
-	static void setSettings(const GlobalSettings& settings)
-	{
-		instance()->settings_ = settings;
-		emit instance()->settingsChanged();
-	}
+	static void setSettings(const GlobalSettings& settings);
 
 	//Return the currently displayed region
 	static const BedLine& region()

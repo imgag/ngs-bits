@@ -158,6 +158,7 @@ public:
 		: file_path_(file_path)
 	{
 		connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
+		connect(SharedData::instance(), &SharedData::settingsChanged, this, &BamTrackData::updateRegion);
 	}
 
 	const QVector<BamAlignmentWrapper>& getAlignments()

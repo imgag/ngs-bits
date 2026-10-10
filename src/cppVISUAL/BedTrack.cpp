@@ -18,7 +18,24 @@ static constexpr int SPACING_BELOW = 20;
 BedTrack::BedTrack(QWidget* parent, QString file_path, QString name)
 	:TrackWidget(parent, file_path, name, type())
 {
+	connect(&settings_, &ParameterList::parameterChanged, this, [this]()
+	{
+		updateGeometry();
+		update();
+	});
+	initializeSettings();
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(regionChanged()));
+}
+
+QList<Parameter> BedTrack::getParameters() const
+{
+	return {Parameter("draw_mode", "Collapsed or expanded display", ParameterType::INT, {{ConstraintType::MIN, COLLAPSED}, {ConstraintType::MAX, EXPANDED}}),
+		Parameter("color", "Band color as a 24-bit RGB integer", ParameterType::INT, {{ConstraintType::MIN, 0}, {ConstraintType::MAX, 0xffffff}})};
+}
+
+QHash<QByteArray, QVariant> BedTrack::getParameterDefaults() const
+{
+	return {{"draw_mode", COLLAPSED}, {"color", 0x0000b2}};
 }
 
 BedTrack::~BedTrack()
@@ -51,23 +68,6 @@ bool BedTrack::load()
 	return false;
 }
 
-QMap<QString, QVariant> BedTrack::getSettings()
-{
-	QMap<QString, QVariant> settings;
-	settings["draw_mode"] = static_cast<int>(draw_mode_);
-	return settings;
-}
-
-void BedTrack::loadKeyValueFromXml(QString key, QString value)
-{
-	bool ok;
-	if (key == "draw_mode")
-	{
-		int draw_mode = value.toInt(&ok);
-		if (ok && draw_mode != -1) draw_mode_ = static_cast<DrawMode>(draw_mode);
-	}
-}
-
 void BedTrack::populateContextMenu(QMenu& menu, const QPoint& local_pos)
 {
 	QAction* collapsed = menu.addAction("Collapsed");
@@ -76,7 +76,7 @@ void BedTrack::populateContextMenu(QMenu& menu, const QPoint& local_pos)
 	collapsed->setCheckable(true);
 	expanded->setCheckable(true);
 
-	switch (draw_mode_)
+	switch (settings_.getInt("draw_mode"))
 	{
 	case COLLAPSED:
 		collapsed->setChecked(true);
@@ -87,12 +87,12 @@ void BedTrack::populateContextMenu(QMenu& menu, const QPoint& local_pos)
 	}
 
 	connect(collapsed, &QAction::triggered, this, [this](){
-		draw_mode_ = COLLAPSED;
+		settings_.setInt("draw_mode", COLLAPSED);
 		updateGeometry(); update();
 	});
 
 	connect(expanded, &QAction::triggered, this, [this](){
-		draw_mode_ = EXPANDED;
+		settings_.setInt("draw_mode", EXPANDED);
 		updateGeometry(); update();
 	});
 
@@ -103,6 +103,8 @@ void BedTrack::populateContextMenu(QMenu& menu, const QPoint& local_pos)
 
 void BedTrack::paintEvent(QPaintEvent* /*event*/)
 {
+	const int draw_mode = settings_.getInt("draw_mode");
+	const QColor color = QColor::fromRgb(settings_.getInt("color"));
 	const BedLine& region = SharedData::region();
 	const Viewport& viewport = getViewport();
 	QPainter painter(this);
@@ -147,10 +149,10 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 			float x_start = viewport.genomePosToScreen(st);
 			float width = viewport.genomeWidthToScreen(en - st + 1);
 
-			if (draw_mode_ == EXPANDED) y_start = row_idxes_[idx] * (BLOCK_HEIGHT + BLOCK_PADDING);
+			if (draw_mode == EXPANDED) y_start = row_idxes_[idx] * (BLOCK_HEIGHT + BLOCK_PADDING);
 
 			QRectF chr_rect(x_start, y_start, width, BLOCK_HEIGHT);
-			painter.setBrush(color_);
+			painter.setBrush(color);
 			painter.setPen(outlinePen);
 			painter.drawRect(chr_rect);
 			// use 4th column as name
@@ -191,7 +193,7 @@ QSize BedTrack::sizeHint() const {
 	int rowHeight = BLOCK_HEIGHT + BLOCK_PADDING;
 	int rowCount = 1;
 
-	if (draw_mode_ == EXPANDED && bedfile_->chromosomes().contains(SharedData::region().chr()))
+	if (settings_.getInt("draw_mode") == EXPANDED && bedfile_ && bedfile_->chromosomes().contains(SharedData::region().chr()))
 	{
 		rowCount = num_rows_[SharedData::region().chr()];
 	}
@@ -290,7 +292,7 @@ void BedTrack::handlePopupRequest(QPointF local_pos, QPointF global_pos)
 
 QString BedTrack::getBandText(const BedLine& region, int row, int x)
 {
-	if (draw_mode_ == COLLAPSED) return getBandTextCollapsedMode(region, row, x);
+	if (settings_.getInt("draw_mode") == COLLAPSED) return getBandTextCollapsedMode(region, row, x);
 	else return getBandTextExpandedMode(region, row, x);
 }
 

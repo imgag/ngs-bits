@@ -70,6 +70,30 @@ private:
 		}
 	}
 
+	TEST_METHOD(reset)
+	{
+		ParameterList parameters("reset", {}, {});
+		int changes = 0;
+		int constraint_changes = 0;
+		QObject::connect(&parameters, &ParameterList::parameterChanged, [&]() { ++changes; });
+		QObject::connect(&parameters, &ParameterList::constraintsChanged, [&]() { ++constraint_changes; });
+		parameters.reset(config(), defaults());
+		I_EQUAL(parameters.getInt("height"), 10);
+		I_EQUAL(changes, 1);
+		I_EQUAL(constraint_changes, 1);
+		auto invalid = defaults();
+		invalid["height"] = 0;
+		IS_THROWN(ArgumentException, parameters.reset(config(), invalid));
+		I_EQUAL(parameters.getInt("height"), 10);
+		I_EQUAL(changes, 1);
+		I_EQUAL(constraint_changes, 1);
+		parameters.reset({Parameter("new", {}, ParameterType::STRING, {})}, {{"new", QByteArray("value")}});
+		S_EQUAL(parameters.getString("new"), "value");
+		IS_THROWN(ArgumentException, parameters.getInt("height"));
+		I_EQUAL(changes, 2);
+		I_EQUAL(constraint_changes, 2);
+	}
+
 	TEST_METHOD(enumStrings)
 	{
 		S_EQUAL(Parameter::toString(ParameterType::INT), "INT");
