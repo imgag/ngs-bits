@@ -41,6 +41,10 @@ public:
 	int drag_start_x_;
 	BedLine drag_start_region_;
 
+signals:
+	void trackSelected(TrackWidget* track);
+	void editSettingsRequested(TrackWidget* track);
+
 public slots:
 	//creates a TrackGroup from a file
 	void loadFile(QString filename);

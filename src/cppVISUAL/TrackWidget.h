@@ -30,6 +30,8 @@ class CPPVISUALSHARED_EXPORT TrackWidget
 public:
 	TrackWidget(QWidget* parent, QString file_path, QString display_name, QString type);
 	QSize minimumSizeHint() const override;
+	ParameterList& parameters() { return settings_; }
+	QString displayName() const { return display_name_; }
 
 	//re-loads a the track from file/URL
 	virtual void reloadTrack() = 0;
@@ -47,6 +49,8 @@ public:
 signals:
 	void trackDeleted();
 	void trackMoved();
+	void trackSelected(TrackWidget* track);
+	void editSettingsRequested(TrackWidget* track);
 
 public slots:
 	void regionChanged();

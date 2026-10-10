@@ -54,6 +54,8 @@ void TrackGroup::trackMoved()
 	if (senderWidget){
 		disconnect(senderWidget, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
 		disconnect(senderWidget, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
+		disconnect(senderWidget, &TrackWidget::trackSelected, this, &TrackGroup::trackSelected);
+		disconnect(senderWidget, &TrackWidget::editSettingsRequested, this, &TrackGroup::editSettingsRequested);
 		layout_->removeWidget(senderWidget);
 		layout_->update();
 
@@ -61,12 +63,19 @@ void TrackGroup::trackMoved()
 	}
 }
 
+void TrackGroup::connectTrackSignals(TrackWidget* track)
+{
+	connect(track, &TrackWidget::trackDeleted, this, &TrackGroup::trackDeleted);
+	connect(track, &TrackWidget::trackMoved, this, &TrackGroup::trackMoved);
+	connect(track, &TrackWidget::trackSelected, this, &TrackGroup::trackSelected);
+	connect(track, &TrackWidget::editSettingsRequested, this, &TrackGroup::editSettingsRequested);
+}
+
 void TrackGroup::addTrackWidgets(QVector<TrackWidget*> widgets)
 {
 	foreach (TrackWidget* widget, widgets)
 	{
-		connect(widget, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
-		connect(widget, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
+		connectTrackSignals(widget);
 		layout_->insertWidget(layout_->count() - 1, widget);
 		layout_->update();
 	}
@@ -104,8 +113,9 @@ void TrackGroup::contextMenu(QPoint pos)
 	TrackWidget* track = getTrackUnderMouse(pos);
 	if (track)
 	{
+		emit trackSelected(track);
 		QMenu* track_menu = new QMenu("Track", this);
-		track->populateContextMenu(*track_menu, track->mapFrom(this, pos));
+		track->populateContextMenu(*track_menu, track->mapFrom(viewport(), pos));
 		menu.addMenu(track_menu);
 	}
 
@@ -125,7 +135,7 @@ void TrackGroup::contextMenu(QPoint pos)
 	connect(add_track_group_below, &QAction::triggered, this, &TrackGroup::addTrackGroupBelow);
 	menu.addMenu(track_group_menu);
 
-	menu.exec(mapToGlobal(pos));
+	menu.exec(viewport()->mapToGlobal(pos));
 }
 
 void TrackGroup::clearLayout()
@@ -172,7 +182,7 @@ TrackWidget* TrackGroup::getTrackUnderMouse(QPoint pos)
 {
 	foreach (TrackWidget* track, findChildren<TrackWidget*>())
 	{
-		if (track->geometry().contains(pos)) return track;
+		if (track->rect().contains(track->mapFrom(viewport(), pos))) return track;
 	}
 	return nullptr;
 }
@@ -194,8 +204,7 @@ void TrackGroup::dropEvent(QDropEvent* event)
 	{
 		emit track->trackMoved(); //disconnects the old signals to the old TrackGroup
 
-		connect(track, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
-		connect(track, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
+		connectTrackSignals(track);
 	}
 	else // dropped in the same TrackGroup
 	{
@@ -239,10 +248,7 @@ void TrackGroup::loadFromXml(const QDomElement& dom_element, QStringList& errors
 		TrackWidget* track = TrackWidget::fromXml(track_element, this, errors);
 		if (track)
 		{
-			connect(track, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
-			connect(track, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
-			layout_->insertWidget(layout_->count() - 1, track);
-			layout_->update();
+			addTrackWidgets({track});
 		}
 	}
 }
@@ -269,4 +275,3 @@ int TrackGroup::trackCount()
 {
 	return findChildren<TrackWidget*>().count();
 }
-

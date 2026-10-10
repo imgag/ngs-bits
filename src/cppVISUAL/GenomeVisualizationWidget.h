@@ -4,11 +4,15 @@
 #include "cppVISUAL_global.h"
 #include "BedFile.h"
 #include <QWidget>
+#include <QPointer>
 #include "DelayedInitializationTimer.h"
 
 namespace Ui {
 class GenomeVisualizationWidget;
 }
+
+class ParameterEditor;
+class TrackWidget;
 
 //Widget for genome visaulization, similar to IGV
 class CPPVISUALSHARED_EXPORT GenomeVisualizationWidget
@@ -19,6 +23,7 @@ class CPPVISUALSHARED_EXPORT GenomeVisualizationWidget
 public:
 	//Default constructor
 	GenomeVisualizationWidget(QWidget* parent);
+	~GenomeVisualizationWidget() override;
 
 public slots:
 	//Shows 'open file' dialog
@@ -63,6 +68,8 @@ protected slots:
 	void setChromosomeRegion(QString chromsome);
 	//Debugging method
 	void debugMethod();
+	//Toggle settings visbilty
+	void toggleSettingsVisibility();
 
 signals:
 	//Emitted when the displayed region has changed.
@@ -71,6 +78,12 @@ signals:
 private:
 	Ui::GenomeVisualizationWidget* ui_;
 	DelayedInitializationTimer timer_;
+	QPointer<TrackWidget> selected_track_;
+	ParameterEditor* parameter_editor_ = nullptr;
+	QMetaObject::Connection selected_track_destroyed_;
+	void selectTrack(TrackWidget* track);
+	void showParameterEditor(TrackWidget* track);
+	void clearParameterEditor();
 
 	QStringList valid_chrs_; //chromosome list (normalized)
 	QHash<QByteArray, QSet<int>> gene_to_trans_indices_;

@@ -172,7 +172,6 @@ void BamAlignmentTrack::calculateRowsNormalMode()
 	num_rows_ = std::max(ROW_HEIGHT, row_packer_.rowCount());
 }
 
-//TODO Marc: improve read packing - it looks like reads that are actually not in the visible range are considered
 void BamAlignmentTrack::calculateRowsPairMode()
 {
 	//TODO: this has a bug, if there are no pairs, then the unpaired strands are always assigned a new row

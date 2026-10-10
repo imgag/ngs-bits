@@ -37,6 +37,8 @@ public:
 signals:
 	void addTrackGroupAbove();
 	void addTrackGroupBelow();
+	void trackSelected(TrackWidget* track);
+	void editSettingsRequested(TrackWidget* track);
 
 public slots:
 	// sent by the track that was deleted, deletes TrackGroup if there are no tracks remaining inside
@@ -59,6 +61,7 @@ private:
 
 	// adds track widgets to TrackGroup, called by loadTracksFromFile or the static function fromFile
 	void addTrackWidgets(QVector<TrackWidget*> widgets);
+	void connectTrackSignals(TrackWidget* track);
 	// gives the index of the track on top of which the drop happend
 	inline int getDropIndex(int y);
 	// gives the TrackWidget which is at the specified pos, if none this returns nullptr

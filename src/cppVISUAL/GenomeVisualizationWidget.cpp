@@ -5,10 +5,12 @@
 #include "SharedData.h"
 #include "XmlHelper.h"
 #include "Settings.h"
+#include "ParameterEditor.h"
 #include <QToolTip>
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QInputDialog>
+#include <QSignalBlocker>
 
 GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	: QWidget(parent)
@@ -16,6 +18,17 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	, timer_(this, true)
 {
 	ui_->setupUi(this);
+	//QMainWindow defaults to a top-level window even when it has a parent.
+	ui_->dock_window->setWindowFlags(Qt::Widget);
+	ui_->settings_dock->hide();
+	connect(ui_->track_group_manager, &TrackGroupManager::trackSelected, this, &GenomeVisualizationWidget::selectTrack);
+	connect(ui_->track_group_manager, &TrackGroupManager::editSettingsRequested, this, &GenomeVisualizationWidget::showParameterEditor);
+	connect(ui_->settings_btn, &QToolButton::clicked, this, &GenomeVisualizationWidget::toggleSettingsVisibility);
+	connect(ui_->settings_dock, &QDockWidget::visibilityChanged, this, [this](bool visible)
+	{
+		QSignalBlocker blocker(ui_->settings_btn);
+		ui_->settings_btn->setChecked(visible);
+	});
 	GUIHelper::styleSplitter(ui_->track_group_manager);
 	ui_->debug_btn->setVisible(Helper::runningInQtCreator());
 
@@ -34,6 +47,44 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 
 	//show the current coordinates before the first region change
 	updateRegion();
+}
+
+GenomeVisualizationWidget::~GenomeVisualizationWidget()
+{
+	disconnect(selected_track_destroyed_);
+	delete ui_;
+}
+
+void GenomeVisualizationWidget::clearParameterEditor()
+{
+	disconnect(selected_track_destroyed_);
+	selected_track_ = nullptr;
+	delete parameter_editor_;
+	parameter_editor_ = nullptr;
+	ui_->settings_placeholder->show();
+	ui_->settings_dock->setWindowTitle("Track settings");
+}
+
+void GenomeVisualizationWidget::selectTrack(TrackWidget* track)
+{
+	if (!track || selected_track_ == track) return;
+	disconnect(selected_track_destroyed_);
+	selected_track_ = track;
+	if (parameter_editor_) parameter_editor_->load(track->parameters());
+	else
+	{
+		parameter_editor_ = new ParameterEditor(track->parameters(), ui_->settings_contents);
+		ui_->settings_layout->addWidget(parameter_editor_);
+	}
+	ui_->settings_placeholder->hide();
+	ui_->settings_dock->setWindowTitle("Track settings: " + track->displayName());
+	selected_track_destroyed_ = connect(track, &QObject::destroyed, this, &GenomeVisualizationWidget::clearParameterEditor);
+}
+
+void GenomeVisualizationWidget::showParameterEditor(TrackWidget* track)
+{
+	selectTrack(track);
+	ui_->settings_dock->show();
 }
 
 void GenomeVisualizationWidget::delayedInitialization()
@@ -85,6 +136,7 @@ void GenomeVisualizationWidget::reloadTracks()
 
 void GenomeVisualizationWidget::clearSession()
 {
+	clearParameterEditor();
 	ui_->track_group_manager->removeAll();
 	ui_->track_group_manager->addEmptyTrackGroup();
 	ui_->track_group_manager->resizeGenePanel();
@@ -130,6 +182,11 @@ void GenomeVisualizationWidget::debugMethod()
 	qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 	loadFile("https://gsvar.megsap.de/v1/assets/rna.bam");
 	qDebug() << __PRETTY_FUNCTION__ << __LINE__;
+}
+
+void GenomeVisualizationWidget::toggleSettingsVisibility()
+{
+	ui_->settings_dock->setVisible(!ui_->settings_dock->isVisible());
 }
 
 void GenomeVisualizationWidget::search()
@@ -232,10 +289,11 @@ void GenomeVisualizationWidget::wheelEvent(QWheelEvent* event)
 		int num_steps = num_deg / 15;
 		if (num_steps != 0)
 		{
-			int x = event->position().x();
+			int x = ui_->track_group_manager->mapFrom(this, event->position().toPoint()).x();
 			int label_width = SharedData::settings().label_width;
 			const BedLine& region = SharedData::region();
-			int w = (width() - label_width - 4);
+			int w = (ui_->track_group_manager->width() - label_width - 4);
+			if (w <= 0) return;
 			float frac = (float)(x - label_width - 2) / w;
 			int region_coord = region.start() + frac * region.length();
 
@@ -340,6 +398,7 @@ void GenomeVisualizationWidget::loadSession()
 	}
 
 	//clear TrackGroups
+	clearParameterEditor();
 	ui_->track_group_manager->removeAll();
 
 	//load session
@@ -361,3 +420,10 @@ void GenomeVisualizationWidget::loadSession()
 	//store path
 	Settings::setPath("load_store_session_folder", QFileInfo(file_path).absolutePath());
 }
+
+
+//TODO Marc:
+//- parameter edit wobble when error is shown
+//- debug mode: gene links
+//- XSD constraint Paramter Value count based on type attribute
+//- add region bookmarks stored in Settings
