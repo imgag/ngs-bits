@@ -2,19 +2,18 @@
 #define TRACKWIDGET_H
 
 #include "cppVISUAL_global.h"
-#include "BedFile.h"
 #include "ParameterList.h"
 #include <QMouseEvent>
 #include <QWidget>
 #include <QXmlStreamWriter>
 #include <QDomElement>
 
+//struct for pixel x coordiante <> genome position calculations
 struct CPPVISUALSHARED_EXPORT Viewport
 {
-	const BedLine& region;
-	int total_width;
-	int x0;
-	float pixels_per_base;
+	int usable_width; //usable width of painting (widget width - label region width - 4px margin)
+	int x0; //leftmost x-coodinate
+	float pixels_per_base; //pixels per base
 
 	float genomePosToScreen(int genome_pos) const;
 	float genomeWidthToScreen(int genome_width) const;

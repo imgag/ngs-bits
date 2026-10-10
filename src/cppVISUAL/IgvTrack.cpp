@@ -257,7 +257,7 @@ void IgvTrack::drawLinePlot(QPainter& painter, const QVector<int>& idxes, const 
 		int py2 = valueToY(value2, scale);
 
 		if ((px1 < viewport.x0 && px2 < viewport.x0) ||
-			((px1 > viewport.x0 + viewport.total_width && px2 > viewport.x0 + viewport.total_width))) continue;
+			((px1 > viewport.x0 + viewport.usable_width && px2 > viewport.x0 + viewport.usable_width))) continue;
 
 
 		if (px1 <= viewport.x0 && px2 >= viewport.x0) // need to interpolate px1
@@ -290,7 +290,7 @@ void IgvTrack::drawHeatMap(QPainter& painter, const QVector<int>& idxes, const P
 	const BedLine& region = SharedData::region();
 	const Viewport& viewport = getViewport();
 
-	painter.fillRect(viewport.x0, 0, viewport.total_width, scale.height, Qt::gray);
+	painter.fillRect(viewport.x0, 0, viewport.usable_width, scale.height, Qt::gray);
 	foreach (int idx, idxes)
 	{
 		const BedLine& bd = (*bed_file_)[idx];
@@ -362,7 +362,7 @@ void IgvTrack::drawReferenceLine(QPainter& painter, float value, const PlotScale
 	const Viewport& viewport = getViewport();
 	painter.setPen(QPen(Qt::lightGray, 1, Qt::DashLine));
 	int y = valueToY(value, scale);
-	painter.drawLine(viewport.x0, y, viewport.x0 + viewport.total_width, y);
+	painter.drawLine(viewport.x0, y, viewport.x0 + viewport.usable_width, y);
 }
 
 int IgvTrack::valueToY(float value, const PlotScale& scale)

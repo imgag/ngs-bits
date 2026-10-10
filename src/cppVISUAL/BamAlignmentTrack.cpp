@@ -379,6 +379,7 @@ QColor BamAlignmentTrack::getAlignmentColor(const BamAlignmentWrapper& al_w)
 
 void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapper& al_w, int row_y)
 {
+	const BedLine& region = SharedData::region();
 	const bool show_soft_clip_bases = settings_.getBool("show_soft_clip_bases");
 	Viewport viewport = getViewport();
 	int last_x = -1.0f;
@@ -388,10 +389,10 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 	// first pass for matches and deletions
 	foreach (const auto& data, al_w.getEvents())
 	{
-		int st = std::max(data.genome_pos, viewport.region.start());
-		int en = std::min(data.genome_pos + data.length - 1 , viewport.region.end() + 1);
+		int st = std::max(data.genome_pos, region.start());
+		int en = std::min(data.genome_pos + data.length - 1 , region.end() + 1);
 
-		if (en <= viewport.region.start()) continue;
+		if (en <= region.start()) continue;
 
 		int x_start = viewport.genomePosToScreen(st);
 		int width = viewport.genomeWidthToScreen(en - st + 1);
@@ -432,10 +433,10 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 	{
 		if (data.event == BamAlignmentWrapper::INSERTION)
 		{
-			int st = std::max(data.genome_pos, viewport.region.start());
-			int en = std::min(data.genome_pos + data.length - 1 , viewport.region.end() + 1);
+			int st = std::max(data.genome_pos, region.start());
+			int en = std::min(data.genome_pos + data.length - 1 , region.end() + 1);
 
-			if (en <= viewport.region.start()) continue;
+			if (en <= region.start()) continue;
 
 			float x_start = viewport.genomePosToScreen(st);
 			float width = viewport.genomeWidthToScreen(en - st + 1);
@@ -474,8 +475,8 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 	}
 
 	//draw the arrows
-	int st = std::max(getAlignmentStart(al_w), viewport.region.start());
-	int en = std::min(getAlignmentEnd(al_w), viewport.region.end());
+	int st = std::max(getAlignmentStart(al_w), region.start());
+	int en = std::min(getAlignmentEnd(al_w), region.end());
 	int x_start = viewport.genomePosToScreen(st);
 	int width = viewport.genomeWidthToScreen(en - st + 1);
 
@@ -510,9 +511,10 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 void BamAlignmentTrack::drawHighlight(QPainter& painter, const BamAlignmentWrapper& al_w, int row_y)
 {
 
+	const BedLine& region = SharedData::region();
 	const Viewport& viewport = getViewport();
-	int st = std::max(getAlignmentStart(al_w), viewport.region.start());
-	int en = std::min(getAlignmentEnd(al_w), viewport.region.end());
+	int st = std::max(getAlignmentStart(al_w), region.start());
+	int en = std::min(getAlignmentEnd(al_w), region.end());
 	int x_start = viewport.genomePosToScreen(st);
 	int width = viewport.genomeWidthToScreen(en - st + 1);
 
