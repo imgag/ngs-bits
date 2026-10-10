@@ -382,5 +382,5 @@ void BamCoverageTrack::mouseMoveEvent(QMouseEvent *event)
 {
 	SharedData::mouseMoved(event->pos().x(), width());
 
-	event->ignore();
+	TrackWidget::mouseMoveEvent(event);
 }

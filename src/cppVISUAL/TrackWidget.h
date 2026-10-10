@@ -33,7 +33,7 @@ public:
 	QSize minimumSizeHint() const override;
 
 	//re-loads a the track from file/URL
-	virtual void reloadTrack() {};
+	virtual void reloadTrack() = 0;
 	//adds general track context menu entries
 	virtual void populateContextMenu(QMenu&, const QPoint&);
 
@@ -50,8 +50,7 @@ signals:
 	void trackMoved();
 
 public slots:
-	virtual void regionChanged();
-	void handleTrackRename();
+	void regionChanged();
 
 protected:
 	virtual QList<Parameter> getParameters() const { return {}; }
@@ -59,22 +58,27 @@ protected:
 	//Call in the derived constructor body, where virtual dispatch reaches its overrides.
 	void initializeSettings();
 
-	virtual void mousePressEvent(QMouseEvent* event) override;
-	virtual void mouseMoveEvent(QMouseEvent* event) override;
+	void mousePressEvent(QMouseEvent* event) override;
+	void mouseMoveEvent(QMouseEvent* event) override;
+	void mouseReleaseEvent(QMouseEvent* event) override;
 	// creates a pop up at global_pos and displays the info text on that
-	virtual void showInfoPopup(QPointF global_pos, QString info);
+	void showInfoPopup(QPointF global_pos, QString info);
 	// draws the name of the widget on the left side
 	void drawLabel(QPainter&);
-	// called when rename is clicked. Returns the current viewport
-	virtual Viewport getViewport();
-
-	QPoint drag_start_pos_;
-	bool is_dragging_;
+	//Returns the current viewport for drawing and coordinate conversion.
+	Viewport getViewport() const;
 
 	QString file_path_; //path or URL of the source file
+	ParameterList settings_; //settings
+
+private:
+	QPoint drag_start_pos_;
+	bool is_dragging_ = false;
 	QString display_name_; //display name
 	QString type_; //track type - used to serialize the track to XML
-	ParameterList settings_; //settings
+
+private slots:
+	void handleTrackRename();
 };
 
 #endif // TRACKWIDGET_H

@@ -4,16 +4,13 @@
 #include "BedTrack.h"
 #include "BamAlignmentTrack.h"
 #include "BamCoverageTrack.h"
-#include "GenomeVisualizationWidget.h"
-#include "QInputDialog"
-#include <QMessageBox>
+#include <QInputDialog>
 #include <QApplication>
 #include <QFileInfo>
 #include <QDrag>
 #include <QDialog>
 #include <QLabel>
 #include <QMenu>
-#include <QMetaEnum>
 #include <QMimeData>
 #include <QPainter>
 #include <QVBoxLayout>
@@ -22,9 +19,9 @@
 TrackWidget::TrackWidget(QWidget* parent, QString file_path, QString display_name, QString type)
 	: QWidget(parent)
 	, file_path_(file_path)
+	, settings_(type.toUtf8(), {}, {})
 	, display_name_(display_name)
 	, type_(type)
-	, settings_(type.toUtf8(), {}, {})
 {
 }
 
@@ -61,7 +58,11 @@ void TrackWidget::handleTrackRename()
 	bool ok;
 	QString new_name = QInputDialog::getText(this, "Enter Track Name", "", QLineEdit::Normal, display_name_, &ok);
 
-	if (ok && !new_name.isEmpty()) display_name_ = new_name;
+	if (ok && !new_name.isEmpty() && new_name != display_name_)
+	{
+		display_name_ = new_name;
+		update();
+	}
 }
 
 
@@ -85,13 +86,17 @@ void TrackWidget::mouseMoveEvent(QMouseEvent* event)
 	if (!is_dragging_) {
 		event->ignore();
 		return;
-	};
-	if (!(event->buttons() & Qt::LeftButton)) return;
+	}
+	if (!(event->buttons() & Qt::LeftButton))
+	{
+		is_dragging_ = false;
+		event->ignore();
+		return;
+	}
 	if ((event->pos() - drag_start_pos_).manhattanLength() < QApplication::startDragDistance()) return;
 
 	QDrag* drag = new QDrag(this);
 	QMimeData* mime_data = new QMimeData;
-	// mime_data->setData("application/track-data", id_.toByteArray());
 	mime_data->setData("application/track-name", display_name_.toUtf8());
 	drag->setMimeData(mime_data);
 
@@ -106,11 +111,20 @@ void TrackWidget::mouseMoveEvent(QMouseEvent* event)
 	painter.setBrush(Qt::NoBrush);
 
 	painter.drawRect(rect);
+	painter.end();
 
 	drag->setPixmap(pixmap);
 	drag->setHotSpot(event->pos());
 
+	//Reset before exec(), which runs an event loop and can move/delete the track.
+	is_dragging_ = false;
 	drag->exec(Qt::MoveAction);
+}
+
+void TrackWidget::mouseReleaseEvent(QMouseEvent* event)
+{
+	if (event->button() == Qt::LeftButton) is_dragging_ = false;
+	QWidget::mouseReleaseEvent(event);
 }
 
 void TrackWidget::drawLabel(QPainter& painter)
@@ -127,13 +141,12 @@ void TrackWidget::drawLabel(QPainter& painter)
 
 float Viewport::genomePosToScreen(int genome_pos) const
 {
-	float scale = (float)total_width / region.length();
-	return ((float)(genome_pos - region.start())) * scale + x0;
+	return (genome_pos - region.start()) * pixels_per_base + x0;
 }
 
 float Viewport::genomeWidthToScreen(int genome_width) const
 {
-	return ((float)genome_width/region.length()) * total_width;
+	return genome_width * pixels_per_base;
 }
 
 bool Viewport::isOutOfDrawRegion(int x) const
@@ -143,11 +156,10 @@ bool Viewport::isOutOfDrawRegion(int x) const
 
 int Viewport::screenXToGenomePos(int x_pos) const
 {
-	float p = (float)(x_pos - x0) / total_width;
-	return region.start() + static_cast<int>(p * region.length());
+	return region.start() + static_cast<int>((x_pos - x0) / pixels_per_base);
 }
 
-Viewport TrackWidget::getViewport()
+Viewport TrackWidget::getViewport() const
 {
 	int w = width();
 	int label_width = SharedData::settings().label_width;

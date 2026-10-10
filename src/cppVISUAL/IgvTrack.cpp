@@ -130,6 +130,13 @@ IgvTrack* IgvTrack::createTrack(QWidget* parent, QString file_path, QString name
 	return igv_track;
 }
 
+void IgvTrack::reloadTrack()
+{
+	QSharedPointer<BedFile> bed_file = FileLoader::loadIgvFile(file_path_);
+	if (bed_file) setBedFile(bed_file);
+	else emit trackDeleted();
+}
+
 QSize IgvTrack::sizeHint() const
 {
 	return QSize( parentWidget() ? parentWidget()->width() : 200, settings_.getInt("track_height"));

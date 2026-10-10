@@ -17,6 +17,7 @@ public:
 	static QByteArray type() { return "IgvTrack"; }
 
 	void setBedFile(QSharedPointer<BedFile> bed_file);
+	void reloadTrack() override;
 
 	QSize sizeHint() const override;
 
