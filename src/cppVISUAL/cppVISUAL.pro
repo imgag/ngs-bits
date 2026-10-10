@@ -43,7 +43,7 @@ SOURCES += \
     GenePanel.cpp \
     ChromosomePanel.cpp \
     IgvTrack.cpp \
-    PanelManager.cpp \
+    TrackGroupManager.cpp \
     RowPacker.cpp \
     SharedData.cpp \
     TrackGroup.cpp \
@@ -62,7 +62,7 @@ HEADERS += \
     GenePanel.h \
     ChromosomePanel.h \
     IgvTrack.h \
-    PanelManager.h \
+    TrackGroupManager.h \
     RowPacker.h \
     SharedData.h \
     TrackGroup.h \

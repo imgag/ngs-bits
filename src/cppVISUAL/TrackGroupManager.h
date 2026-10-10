@@ -1,5 +1,5 @@
-#ifndef PANELMANAGER_H
-#define PANELMANAGER_H
+#ifndef TRACKGROUPMANAGER_H
+#define TRACKGROUPMANAGER_H
 
 #include "BedFile.h"
 #include "TrackGroup.h"
@@ -8,23 +8,23 @@
 #include <QtXml/QDomElement>
 #include <QXmlStreamWriter>
 
-//class for handling the operations related to panels, holds every TrackGroup inside of it
-// and creates a new split for every TrackGroup
-class CPPVISUALSHARED_EXPORT PanelManager:
+//class for handling the operations related to TrackGroups, holds every TrackGroup inside of it
+// and creates a new splitter for every TrackGroup
+class CPPVISUALSHARED_EXPORT TrackGroupManager:
 	public QSplitter
 {
 	Q_OBJECT
 public:
-	PanelManager(QWidget* parent =nullptr);
+	TrackGroupManager(QWidget* parent =nullptr);
 	// calls reloadTracks for all TrackGroups
 	void reloadTracks();
 	//removes all track groups
 	void removeAll();
 	//returns if this is a empty session: only track groups, but no tracks
 	bool isEmptySession() const;
-	//adds an empty panel
-	void addEmptyPanel();
-	//resizes the gene panel to the given height. All other panels maintain their relative heights.
+	//adds an empty TrackGroup
+	void addEmptyTrackGroup();
+	//resizes the gene panel to the given height. All TrackGroups maintain their relative heights.
 	void resizeGenePanel(int height=80);
 
 	// writes current session data to xml
@@ -44,17 +44,17 @@ public:
 public slots:
 	//creates a TrackGroup from a file
 	void loadFile(QString filename);
-	// creates empty panel above the panel that emitted this signal
-	void addPanelAbove();
-	// creates empty panel below the panel that emitted this signal
-	void addPanelBelow();
+	// creates empty TrackGroup above the TrackGroup that emitted this signal
+	void addTrackGroupAbove();
+	// creates empty TrackGroup below the TrackGroup that emitted this signal
+	void addTrackGroupBelow();
 
 private:
-	// connects addPanelAbove and addPanelBelow signals and slots to the TrackGroup
+	// connects addTrackGroupAbove and addTrackGroupBelow signals and slots to the TrackGroup
 	void connectSignals(TrackGroup*);
 	void updateDragRegion(int x);
 };
 
 
 
-#endif // PANELMANAGER_H
+#endif // TRACKGROUPMANAGER_H

@@ -12,7 +12,7 @@
 #include <QPointer>
 #include <QXmlStreamWriter>
 
-// a single panel (collection of TrackWidgets)
+// A TrackGroup containing TrackWidgets.
 class CPPVISUALSHARED_EXPORT TrackGroup
 	: public QScrollArea
 {
@@ -35,8 +35,8 @@ public:
 	int trackCount();
 
 signals:
-	void addPanelAbove();
-	void addPanelBelow();
+	void addTrackGroupAbove();
+	void addTrackGroupBelow();
 
 public slots:
 	// sent by the track that was deleted, deletes TrackGroup if there are no tracks remaining inside

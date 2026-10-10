@@ -109,21 +109,21 @@ void TrackGroup::contextMenu(QPoint pos)
 		menu.addMenu(track_menu);
 	}
 
-	//add panel sub-menu
-	QMenu* panel_menu = new QMenu("Panel", this);
-	QAction* load_file = panel_menu->addAction("Add track(s) from file");
+	//add TrackGroup sub-menu
+	QMenu* track_group_menu = new QMenu("TrackGroup", this);
+	QAction* load_file = track_group_menu->addAction("Add track(s) from file");
 	connect(load_file, &QAction::triggered, this, &TrackGroup::loadTracksFromFile);
-	panel_menu->addSeparator();
-	QAction* clear_panel = panel_menu->addAction("Clear Panel");
-	connect(clear_panel, &QAction::triggered, this, &TrackGroup::clearLayout);
-	QAction* remove_panel = panel_menu->addAction("Remove Panel");
-	connect(remove_panel, &QAction::triggered, this, &TrackGroup::clearLayoutAndDelete);
-	panel_menu->addSeparator();
-	QAction* add_panel_above = panel_menu->addAction("Add Panel Above");
-	connect(add_panel_above, &QAction::triggered, this, &TrackGroup::addPanelAbove);
-	QAction* add_panel_below = panel_menu->addAction("Add Panel Below");
-	connect(add_panel_below, &QAction::triggered, this, &TrackGroup::addPanelBelow);
-	menu.addMenu(panel_menu);
+	track_group_menu->addSeparator();
+	QAction* clear_track_group = track_group_menu->addAction("Clear TrackGroup");
+	connect(clear_track_group, &QAction::triggered, this, &TrackGroup::clearLayout);
+	QAction* remove_track_group = track_group_menu->addAction("Remove TrackGroup");
+	connect(remove_track_group, &QAction::triggered, this, &TrackGroup::clearLayoutAndDelete);
+	track_group_menu->addSeparator();
+	QAction* add_track_group_above = track_group_menu->addAction("Add TrackGroup Above");
+	connect(add_track_group_above, &QAction::triggered, this, &TrackGroup::addTrackGroupAbove);
+	QAction* add_track_group_below = track_group_menu->addAction("Add TrackGroup Below");
+	connect(add_track_group_below, &QAction::triggered, this, &TrackGroup::addTrackGroupBelow);
+	menu.addMenu(track_group_menu);
 
 	menu.exec(mapToGlobal(pos));
 }
@@ -183,21 +183,21 @@ void TrackGroup::dropEvent(QDropEvent* event)
 	TrackWidget* track = qobject_cast<TrackWidget*>(event->source());
 	if (!track) return;
 
-	QWidget* old_panel = track->parentWidget();
-	if (!old_panel)
+	QWidget* old_content_widget = track->parentWidget();
+	if (!old_content_widget)
 	{
 		qDebug() << "Parent widget was not found for source on drop!" << Qt::endl;
 		return;
 	}
 
-	if (old_panel != content_widget_) // came from a different Track
+	if (old_content_widget != content_widget_) // came from a different TrackGroup
 	{
 		emit track->trackMoved(); //disconnects the old signals to the old TrackGroup
 
 		connect(track, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
 		connect(track, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
 	}
-	else // dropped in the same track
+	else // dropped in the same TrackGroup
 	{
 		layout_->removeWidget(track);
 	}

@@ -16,7 +16,7 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	, timer_(this, true)
 {
 	ui_->setupUi(this);
-	GUIHelper::styleSplitter(ui_->panel_manager);
+	GUIHelper::styleSplitter(ui_->track_group_manager);
 	ui_->debug_btn->setVisible(Helper::runningInQtCreator());
 
 	//connect signals and slots
@@ -39,7 +39,7 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 void GenomeVisualizationWidget::delayedInitialization()
 {
 	//resizing the gene panel works only if the widget is already shown
-	ui_->panel_manager->resizeGenePanel();
+	ui_->track_group_manager->resizeGenePanel();
 }
 
 void GenomeVisualizationWidget::openFileDialog()
@@ -75,19 +75,19 @@ void GenomeVisualizationWidget::openUrlDialog()
 
 void GenomeVisualizationWidget::loadFile(QString filename)
 {
-	ui_->panel_manager->loadFile(filename);
+	ui_->track_group_manager->loadFile(filename);
 }
 
 void GenomeVisualizationWidget::reloadTracks()
 {
-	ui_->panel_manager->reloadTracks();
+	ui_->track_group_manager->reloadTracks();
 }
 
 void GenomeVisualizationWidget::clearSession()
 {
-	ui_->panel_manager->removeAll();
-	ui_->panel_manager->addEmptyPanel();
-	ui_->panel_manager->resizeGenePanel();
+	ui_->track_group_manager->removeAll();
+	ui_->track_group_manager->addEmptyTrackGroup();
+	ui_->track_group_manager->resizeGenePanel();
 }
 
 void GenomeVisualizationWidget::updateIndices()
@@ -309,7 +309,7 @@ void GenomeVisualizationWidget::saveSession()
 	writer.writeEndElement();  // DisplayRegion
 
 	writer.writeEndElement(); // General
-	ui_->panel_manager->writeToXml(writer);
+	ui_->track_group_manager->writeToXml(writer);
 	writer.writeEndElement(); // GSViewerSession
 	writer.writeEndDocument();
 	file.close();
@@ -339,8 +339,8 @@ void GenomeVisualizationWidget::loadSession()
 		return;
 	}
 
-	//clear panels
-	ui_->panel_manager->removeAll();
+	//clear TrackGroups
+	ui_->track_group_manager->removeAll();
 
 	//load session
 	QDomDocument doc = XmlHelper::load(file_path);
@@ -352,7 +352,7 @@ void GenomeVisualizationWidget::loadSession()
 	int end = region_info.attribute("end").toInt();
 	SharedData::setRegion(chr, start, end);
 	QStringList errors;
-	ui_->panel_manager->loadFromXml(root, errors);
+	ui_->track_group_manager->loadFromXml(root, errors);
 	if (!errors.isEmpty())
 	{
 		QMessageBox::warning(this, title, "Error(s) while loading session:\n" + errors.join("\n"));

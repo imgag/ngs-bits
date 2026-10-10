@@ -14,7 +14,7 @@
 //Helper struct for globally used settings
 struct CPPVISUALSHARED_EXPORT GlobalSettings
 {
-	//Width of the label area on the left of panels
+	//Width of the label area on the left of tracks and genomic overview widgets
 	int label_width  = 165;
 	//Minimum number of bases to show
 	int min_window_size = 41;
