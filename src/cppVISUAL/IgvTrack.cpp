@@ -4,10 +4,8 @@
 #include "GenomeVisualizationWidget.h"
 #include "SharedData.h"
 #include <QMessageBox>
-#include <QActionGroup>
 #include <QApplication>
 #include <QPainter>
-#include <QMenu>
 #include <cmath>
 
 namespace
@@ -374,39 +372,6 @@ int IgvTrack::valueToY(float value, const PlotScale& scale)
 	int usable_height = scale.height - 2 * margin;
 	float normalized_val = (value - scale.minimum) / (scale.maximum - scale.minimum);
 	return margin + (int)((1.0f - normalized_val) * usable_height);
-}
-
-void IgvTrack::populateContextMenu(QMenu& menu, const QPoint& local_pos)
-{
-	const QByteArray graph_mode = settings_.getString("graph_mode");
-	QMenu* sub_menu = menu.addMenu("Type Of Graph");
-
-	QAction* heat_map  = sub_menu->addAction("Heatmap");
-	QAction* bar_chart = sub_menu->addAction("Bar Chart");
-	QAction* points    = sub_menu->addAction("Points");
-	QAction* line_plot = sub_menu->addAction("Line Plot");
-
-	heat_map->setData(HEATMAP);
-	bar_chart->setData(BAR_CHART);
-	points->setData(POINTS);
-	line_plot->setData(LINE_PLOT);
-
-	auto* group = new QActionGroup(sub_menu);
-	group->setExclusive(true);
-
-	for (QAction* a : {heat_map, bar_chart, points, line_plot}) {
-		a->setCheckable(true);
-		a->setChecked(a->data().toByteArray() == graph_mode);
-		group->addAction(a);
-	}
-
-	connect(group, &QActionGroup::triggered, this,
-			[this](QAction* action)
-			{
-				settings_.setString("graph_mode", action->data().toByteArray());
-			});
-
-	TrackWidget::populateContextMenu(menu, local_pos);
 }
 
 void IgvTrack::mousePressEvent(QMouseEvent* event)

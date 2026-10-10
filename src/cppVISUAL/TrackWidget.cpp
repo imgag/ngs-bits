@@ -45,8 +45,6 @@ void TrackWidget::regionChanged()
 void TrackWidget::populateContextMenu(QMenu& menu, const QPoint&)
 {
 	if (menu.actions().count()>0) menu.addSeparator();
-	QAction* settings = menu.addAction("Edit track settings...");
-	connect(settings, &QAction::triggered, this, [this]() { emit editSettingsRequested(this); });
 
 	QAction* remove = menu.addAction("Remove Track");
 	connect(remove, &QAction::triggered, this, &TrackWidget::trackDeleted);

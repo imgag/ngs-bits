@@ -8,7 +8,6 @@
 #include <QFile>
 #include <QLabel>
 #include <QLineEdit>
-#include <QMenu>
 #include <QMainWindow>
 #include <QDir>
 #include <QUuid>
@@ -32,17 +31,19 @@ private:
 
 	void openEditor(TrackWidget* track)
 	{
-		QMenu menu;
-		track->populateContextMenu(menu, QPoint(1, 1));
-		for (QAction* action : menu.actions())
+		emit track->trackSelected(track);
+		for (QWidget* parent = track->parentWidget(); parent; parent = parent->parentWidget())
 		{
-			if (action->text() == "Edit track settings...")
+			if (auto* viewer = qobject_cast<GenomeVisualizationWidget*>(parent))
 			{
-				action->trigger();
+				if (viewer->findChild<QDockWidget*>("settings_dock")->isHidden())
+				{
+					viewer->findChild<QToolButton*>("settings_btn")->click();
+				}
 				return;
 			}
 		}
-		QFAIL("Missing settings context menu entry");
+		QFAIL("Track is not inside a genome visualization widget");
 	}
 
 private slots:
@@ -77,21 +78,26 @@ private slots:
 		QVERIFY(viewer->findChild<TrackGroupManager*>()->isVisibleTo(viewer));
 		QVERIFY(dock_host->width() > 0);
 		QVERIFY(dock_host->height() > 0);
+		viewer->findChild<QToolButton*>("settings_btn")->click();
+		auto* placeholder = viewer->findChild<QLabel*>("settings_placeholder");
+		QVERIFY(placeholder->isVisible());
+		QCOMPARE(placeholder->text(), QString("Select a track to show settings"));
 		viewer->loadFile(data_.filePath("first.bed"));
 		openEditor(viewer->findChild<TrackWidget*>());
 		QCoreApplication::processEvents();
 		auto* dock = viewer->findChild<QDockWidget*>("settings_dock");
 		QVERIFY(dock->isVisibleTo(viewer));
-		QVERIFY(viewer->findChild<QToolButton*>("settings_btn")->isChecked());
 		dock->close();
 		QCoreApplication::processEvents();
-		QVERIFY(!viewer->findChild<QToolButton*>("settings_btn")->isChecked());
+		QVERIFY(dock->isHidden());
 		QVERIFY(viewer->findChild<TrackGroupManager*>()->isVisibleTo(viewer));
 	}
 
-	void contextMenuSelectionAndCollapse()
+	void trackSelectionAndCollapse()
 	{
 		GenomeVisualizationWidget viewer(nullptr);
+		viewer.show();
+		QCoreApplication::processEvents();
 		auto* dock = viewer.findChild<QDockWidget*>("settings_dock");
 		QVERIFY(dock);
 		QVERIFY(dock->isHidden());
@@ -124,10 +130,9 @@ private slots:
 		QVERIFY(dock->isHidden());
 		openEditor(first);
 		QVERIFY(!dock->isHidden());
-		viewer.findChild<QToolButton*>("settings_btn")->setChecked(true);
-		viewer.findChild<QToolButton*>("settings_btn")->setChecked(false);
+		viewer.findChild<QToolButton*>("settings_btn")->click();
 		QVERIFY(dock->isHidden());
-		viewer.findChild<QToolButton*>("settings_btn")->setChecked(true);
+		viewer.findChild<QToolButton*>("settings_btn")->click();
 		QVERIFY(!dock->isHidden());
 	}
 
@@ -141,6 +146,7 @@ private slots:
 		QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
 		auto* dock = viewer.findChild<QDockWidget*>("settings_dock");
 		QVERIFY(!dock->findChild<ParameterEditor*>());
+		QVERIFY(!dock->isHidden());
 		QVERIFY(!viewer.findChild<QLabel*>("settings_placeholder")->isHidden());
 		viewer.loadFile(data_.filePath("second.bed"));
 		openEditor(viewer.findChild<TrackWidget*>());

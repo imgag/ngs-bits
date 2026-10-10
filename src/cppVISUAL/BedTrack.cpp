@@ -3,10 +3,8 @@
 #include "SharedData.h"
 
 #include <QApplication>
-#include <QActionGroup>
 #include <QDrag>
 #include <QPainter>
-#include <QMenu>
 #include <QMimeData>
 #include <QToolTip>
 
@@ -67,39 +65,6 @@ bool BedTrack::load()
 	}
 	return false;
 }
-
-void BedTrack::populateContextMenu(QMenu& menu, const QPoint& local_pos)
-{
-	QAction* collapsed = menu.addAction("Collapsed");
-	QAction* expanded = menu.addAction("Expanded");
-
-	collapsed->setCheckable(true);
-	expanded->setCheckable(true);
-
-	switch (settings_.getInt("draw_mode"))
-	{
-	case COLLAPSED:
-		collapsed->setChecked(true);
-		break;
-	case EXPANDED:
-		expanded->setChecked(true);
-		break;
-	}
-
-	connect(collapsed, &QAction::triggered, this, [this](){
-		settings_.setInt("draw_mode", COLLAPSED);
-		updateGeometry(); update();
-	});
-
-	connect(expanded, &QAction::triggered, this, [this](){
-		settings_.setInt("draw_mode", EXPANDED);
-		updateGeometry(); update();
-	});
-
-	menu.addSeparator();
-	TrackWidget::populateContextMenu(menu, local_pos);
-}
-
 
 void BedTrack::paintEvent(QPaintEvent* /*event*/)
 {

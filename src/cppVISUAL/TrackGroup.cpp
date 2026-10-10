@@ -1,6 +1,7 @@
 #include "FileLoader.h"
 #include "QtXml/qdom.h"
 #include "TrackGroup.h"
+#include "Helper.h"
 #include <QApplication>
 #include <QMenu>
 #include <QMessageBox>
@@ -8,6 +9,7 @@
 #include <QPainter>
 #include <QFileInfo>
 #include <QFileDialog>
+#include <QInputDialog>
 
 
 TrackGroup::TrackGroup(QWidget* parent)
@@ -55,7 +57,6 @@ void TrackGroup::trackMoved()
 		disconnect(senderWidget, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
 		disconnect(senderWidget, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
 		disconnect(senderWidget, &TrackWidget::trackSelected, this, &TrackGroup::trackSelected);
-		disconnect(senderWidget, &TrackWidget::editSettingsRequested, this, &TrackGroup::editSettingsRequested);
 		layout_->removeWidget(senderWidget);
 		layout_->update();
 
@@ -68,7 +69,6 @@ void TrackGroup::connectTrackSignals(TrackWidget* track)
 	connect(track, &TrackWidget::trackDeleted, this, &TrackGroup::trackDeleted);
 	connect(track, &TrackWidget::trackMoved, this, &TrackGroup::trackMoved);
 	connect(track, &TrackWidget::trackSelected, this, &TrackGroup::trackSelected);
-	connect(track, &TrackWidget::editSettingsRequested, this, &TrackGroup::editSettingsRequested);
 }
 
 void TrackGroup::addTrackWidgets(QVector<TrackWidget*> widgets)
@@ -88,6 +88,26 @@ void TrackGroup::loadTracksFromFile()
 
 	QVector<TrackWidget*> widgets = FileLoader::loadTracks(file_path, nullptr);
 	addTrackWidgets(widgets);
+}
+
+void TrackGroup::loadTracksFromUrl()
+{
+	const QString title = "Add track(s) from URL";
+	const QString url = QInputDialog::getText(this, title, "URL").trimmed();
+	if (url.isEmpty()) return;
+	if (!Helper::isHttpUrl(url))
+	{
+		QMessageBox::warning(this, title, "This is not a URL:\n" + url);
+		return;
+	}
+	try
+	{
+		addTrackWidgets(FileLoader::loadTracks(url, nullptr));
+	}
+	catch (const Exception& e)
+	{
+		QMessageBox::warning(this, title, e.message());
+	}
 }
 
 TrackGroup* TrackGroup::fromFile(QString filename)
@@ -123,6 +143,8 @@ void TrackGroup::contextMenu(QPoint pos)
 	QMenu* track_group_menu = new QMenu("TrackGroup", this);
 	QAction* load_file = track_group_menu->addAction("Add track(s) from file");
 	connect(load_file, &QAction::triggered, this, &TrackGroup::loadTracksFromFile);
+	QAction* load_url = track_group_menu->addAction("Add track(s) from URL");
+	connect(load_url, &QAction::triggered, this, &TrackGroup::loadTracksFromUrl);
 	track_group_menu->addSeparator();
 	QAction* clear_track_group = track_group_menu->addAction("Clear TrackGroup");
 	connect(clear_track_group, &QAction::triggered, this, &TrackGroup::clearLayout);

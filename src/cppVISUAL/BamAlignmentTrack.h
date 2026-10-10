@@ -107,8 +107,6 @@ private:
 	QColor getAlignmentColor(const BamAlignmentWrapper&);
 	// adds Go To Mate, select/delect options to context menu
 	void addAlignmentOptionsToCtxtMenu(QMenu& menu, const QPoint& local_pos);
-	// adds color schemes to context menu
-	void addColorOptionToCtxtMenu(QMenu& menu, const QPoint& local_pos);
 
 
 	/*TODO: all of these need to be stored as LRUCache*/
@@ -128,14 +126,6 @@ private:
 	QPoint mouse_press_pos_;
 	QSize cached_char_size_;
 	QFont cached_font_;
-
-	//settings
-	enum ColoringScheme
-	{
-		NONE,
-		INSERT_SIZE,
-		READ_STRAND
-	};
 
 	QString selected_name_ = ""; // name of selected alignment
 

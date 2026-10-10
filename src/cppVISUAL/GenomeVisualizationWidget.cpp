@@ -22,7 +22,6 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	ui_->dock_window->setWindowFlags(Qt::Widget);
 	ui_->settings_dock->hide();
 	connect(ui_->track_group_manager, &TrackGroupManager::trackSelected, this, &GenomeVisualizationWidget::selectTrack);
-	connect(ui_->track_group_manager, &TrackGroupManager::editSettingsRequested, this, &GenomeVisualizationWidget::showParameterEditor);
 	connect(ui_->settings_btn, &QToolButton::clicked, this, &GenomeVisualizationWidget::toggleSettingsVisibility);
 	connect(ui_->settings_dock, &QDockWidget::visibilityChanged, this, [this](bool visible)
 	{
@@ -79,12 +78,6 @@ void GenomeVisualizationWidget::selectTrack(TrackWidget* track)
 	ui_->settings_placeholder->hide();
 	ui_->settings_dock->setWindowTitle("Track settings: " + track->displayName());
 	selected_track_destroyed_ = connect(track, &QObject::destroyed, this, &GenomeVisualizationWidget::clearParameterEditor);
-}
-
-void GenomeVisualizationWidget::showParameterEditor(TrackWidget* track)
-{
-	selectTrack(track);
-	ui_->settings_dock->show();
 }
 
 void GenomeVisualizationWidget::delayedInitialization()
@@ -423,7 +416,8 @@ void GenomeVisualizationWidget::loadSession()
 
 
 //TODO Marc:
-//- parameter edit wobble when error is shown
-//- debug mode: gene links
-//- XSD constraint Paramter Value count based on type attribute
+//- parameters of all tracks: BAM coverage, BED, IGV
+//- debug mode drop-down: goto region, goto rene
 //- add region bookmarks stored in Settings
+//- BAM track: "group by"
+//- XSD constraint Paramter Value count based on type attribute

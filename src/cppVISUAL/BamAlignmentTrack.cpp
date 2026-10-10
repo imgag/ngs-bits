@@ -41,15 +41,15 @@ BamAlignmentTrack::BamAlignmentTrack(QWidget* parent, QString file_path, QString
 
 QList<Parameter> BamAlignmentTrack::getParameters() const
 {
-	return {Parameter("view_as_pairs", "Display read pairs", ParameterType::BOOL, {}),
-		Parameter("show_all_bases", "Display all bases", ParameterType::BOOL, {}),
-		Parameter("show_soft_clip_bases", "Display soft-clipped bases", ParameterType::BOOL, {}),
-		Parameter("coloring_scheme", "Alignment coloring scheme", ParameterType::INT, {{ConstraintType::MIN, NONE}, {ConstraintType::MAX, READ_STRAND}})};
+	return {Parameter("view as pairs", "Display read pairs", ParameterType::BOOL, {}),
+		Parameter("show all bases", "Display all bases", ParameterType::BOOL, {}),
+		Parameter("show soft-clipped bases", "Display soft-clipped bases", ParameterType::BOOL, {}),
+		Parameter("color by", "Alignment coloring scheme", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("none\tinsert size\tread strand")}})};
 }
 
 QHash<QByteArray, QVariant> BamAlignmentTrack::getParameterDefaults() const
 {
-	return {{"view_as_pairs", true}, {"show_all_bases", false}, {"show_soft_clip_bases", false}, {"coloring_scheme", INSERT_SIZE}};
+	return {{"view as pairs", true}, {"show all bases", false}, {"show soft-clipped bases", false}, {"color by", QByteArray("insert size")}};
 }
 
 BamAlignmentTrack::~BamAlignmentTrack()
@@ -113,21 +113,21 @@ void BamAlignmentTrack::dataReady()
 //TODO: this can, and should be, done on a seperate thread
 void BamAlignmentTrack::calculateRows()
 {
-	const bool view_as_pairs = settings_.getBool("view_as_pairs");
+	const bool view_as_pairs = settings_.getBool("view as pairs");
 	if (view_as_pairs) calculateRowsPairMode();
 	else calculateRowsNormalMode();
 }
 
 int BamAlignmentTrack::getAlignmentStart(const BamAlignmentWrapper& al)
 {
-	const bool show_soft_clip_bases = settings_.getBool("show_soft_clip_bases");
+	const bool show_soft_clip_bases = settings_.getBool("show soft-clipped bases");
 	if (show_soft_clip_bases) return al.startWithSoftClip();
 	return al.start();
 }
 
 int BamAlignmentTrack::getAlignmentEnd(const BamAlignmentWrapper& al)
 {
-	const bool show_soft_clip_bases = settings_.getBool("show_soft_clip_bases");
+	const bool show_soft_clip_bases = settings_.getBool("show soft-clipped bases");
 	if (show_soft_clip_bases) return al.endWithSoftClip();
 	return al.end();
 }
@@ -232,7 +232,7 @@ void BamAlignmentTrack::reloadTrack()
 
 void BamAlignmentTrack::paintEvent(QPaintEvent*)
 {
-	const bool view_as_pairs = settings_.getBool("view_as_pairs");
+	const bool view_as_pairs = settings_.getBool("view as pairs");
 	QPainter painter(this);
 
 	#ifdef ENABLE_ANTIALIASING
@@ -265,7 +265,7 @@ void BamAlignmentTrack::drawAlignmentAndMismatches(QPainter& painter, const BamA
 		getAlignmentStart(al) > region.end()) return;
 
 	drawAlignment(painter, al, row_y);
-	if (!settings_.getBool("show_all_bases")) drawMismatches(painter, al, row_y);
+	if (!settings_.getBool("show all bases")) drawMismatches(painter, al, row_y);
 	drawAllBases(painter, al, row_y);
 }
 
@@ -365,13 +365,13 @@ QColor BamAlignmentTrack::insertSizeColor(const BamAlignmentWrapper& al_w)
 
 QColor BamAlignmentTrack::getAlignmentColor(const BamAlignmentWrapper& al_w)
 {
-	const int coloring_scheme = settings_.getInt("coloring_scheme");
+	const QByteArray coloring_scheme = settings_.getString("color by");
 	//selected always takes priority
 	if (!selected_name_.isEmpty() && al_w.name() == selected_name_) return QColor(255, 100, 0);
 
-	if (coloring_scheme == READ_STRAND) return strandColor(al_w.isReverseStrand());
+	if (coloring_scheme == "read strand") return strandColor(al_w.isReverseStrand());
 
-	else if (coloring_scheme == INSERT_SIZE) return insertSizeColor(al_w);
+	else if (coloring_scheme == "insert size") return insertSizeColor(al_w);
 
 	return QColor(202, 202, 202, 150); //gray
 }
@@ -379,7 +379,7 @@ QColor BamAlignmentTrack::getAlignmentColor(const BamAlignmentWrapper& al_w)
 void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapper& al_w, int row_y)
 {
 	const BedLine& region = SharedData::region();
-	const bool show_soft_clip_bases = settings_.getBool("show_soft_clip_bases");
+	const bool show_soft_clip_bases = settings_.getBool("show soft-clipped bases");
 	Viewport viewport = getViewport();
 	int last_x = -1.0f;
 
@@ -607,8 +607,8 @@ void BamAlignmentTrack::drawMismatches(QPainter& painter, const BamAlignmentWrap
 
 void BamAlignmentTrack::drawAllBases(QPainter& painter, const BamAlignmentWrapper& al, int row_y)
 {
-	const bool show_all_bases = settings_.getBool("show_all_bases");
-	const bool show_soft_clip_bases = settings_.getBool("show_soft_clip_bases");
+	const bool show_all_bases = settings_.getBool("show all bases");
+	const bool show_soft_clip_bases = settings_.getBool("show soft-clipped bases");
 	const Viewport& viewport = getViewport();
 	foreach (const auto& event_data, al.getEvents())
 	{
@@ -662,7 +662,7 @@ void BamAlignmentTrack::makePairs()
 
 void BamAlignmentTrack::addAlignmentOptionsToCtxtMenu(QMenu& menu, const QPoint& local_pos)
 {
-	const bool view_as_pairs = settings_.getBool("view_as_pairs");
+	const bool view_as_pairs = settings_.getBool("view as pairs");
 	int aln_idx = getAlnIndexFromLocalPos(local_pos);
 	// add go_to_mate action, select/deselect action
 	if (aln_idx != -1)
@@ -731,58 +731,11 @@ void BamAlignmentTrack::addAlignmentOptionsToCtxtMenu(QMenu& menu, const QPoint&
 }
 
 
-void BamAlignmentTrack::addColorOptionToCtxtMenu(QMenu& menu, const QPoint&)
-{
-	//TODO: this should be written in a more generalized way (using an action group for instance)
-	QMenu* sub_menu = menu.addMenu("Color by");
-	QAction* insert_size_action = sub_menu->addAction("Insert Size");
-	QAction* read_strand_action = sub_menu->addAction("Read Strand");
-
-	connect(insert_size_action, &QAction::triggered, this, [this](){
-		settings_.setInt("coloring_scheme", INSERT_SIZE);
-	});
-
-	connect(read_strand_action, &QAction::triggered, this, [this](){
-		settings_.setInt("coloring_scheme", READ_STRAND);
-	});
-}
-
-
 void BamAlignmentTrack::populateContextMenu(QMenu& menu, const QPoint& local_pos)
 {
-	const bool view_as_pairs = settings_.getBool("view_as_pairs");
-	const bool show_all_bases = settings_.getBool("show_all_bases");
-	const bool show_soft_clip_bases = settings_.getBool("show_soft_clip_bases");
 	if (isCurrentRegionValid())
 	{
-		QAction* pairs_action = menu.addAction("View As Pairs");
-		pairs_action->setCheckable(true);
-		pairs_action->setChecked(view_as_pairs);
-
-		QAction* all_bases_action = menu.addAction("Show all bases");
-		all_bases_action->setCheckable(true);
-		all_bases_action->setChecked(show_all_bases);
-
-		QAction* soft_clip_bases_action = menu.addAction("Show soft clip bases");
-		soft_clip_bases_action->setCheckable(true);
-		soft_clip_bases_action->setChecked(show_soft_clip_bases);
-
-		connect(pairs_action, &QAction::triggered, this, [this](){
-			settings_.setBool("view_as_pairs", !settings_.getBool("view_as_pairs"));
-		});
-
-		connect(all_bases_action, &QAction::triggered, this, [this](){
-			settings_.setBool("show_all_bases", !settings_.getBool("show_all_bases"));
-		});
-
-		connect(soft_clip_bases_action, &QAction::triggered, this, [this](){
-			settings_.setBool("show_soft_clip_bases", !settings_.getBool("show_soft_clip_bases"));
-		});
-
 		addAlignmentOptionsToCtxtMenu(menu, local_pos);
-
-		addColorOptionToCtxtMenu(menu, local_pos);
-
 	}
 	TrackWidget::populateContextMenu(menu, local_pos);
 }
@@ -873,7 +826,7 @@ QString BamAlignmentTrack::getBamAlignmentText(const BamAlignmentWrapper& al_w, 
 
 void BamAlignmentTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 {
-	const bool view_as_pairs = settings_.getBool("view_as_pairs");
+	const bool view_as_pairs = settings_.getBool("view as pairs");
 	const Viewport& viewport = getViewport();
 	int y = local_pos.y();
 	int row = y / (ROW_HEIGHT + ROW_PADDING);
@@ -906,7 +859,7 @@ void BamAlignmentTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 
 			showInfoPopup(global_pos, info);
 		}
-		else if (!settings_.getBool("view_as_pairs"))
+		else if (!settings_.getBool("view as pairs"))
 		{
 			QString info = QString("Read: %1").arg(getBamAlignmentText(alns[aln_idx], genome_pos));
 			showInfoPopup(global_pos, info);

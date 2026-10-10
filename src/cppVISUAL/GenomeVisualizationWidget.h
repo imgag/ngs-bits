@@ -82,7 +82,6 @@ private:
 	ParameterEditor* parameter_editor_ = nullptr;
 	QMetaObject::Connection selected_track_destroyed_;
 	void selectTrack(TrackWidget* track);
-	void showParameterEditor(TrackWidget* track);
 	void clearParameterEditor();
 
 	QStringList valid_chrs_; //chromosome list (normalized)

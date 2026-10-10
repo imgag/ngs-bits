@@ -38,7 +38,6 @@ signals:
 	void addTrackGroupAbove();
 	void addTrackGroupBelow();
 	void trackSelected(TrackWidget* track);
-	void editSettingsRequested(TrackWidget* track);
 
 public slots:
 	// sent by the track that was deleted, deletes TrackGroup if there are no tracks remaining inside
@@ -74,6 +73,8 @@ private slots:
 	void clearLayoutAndDelete();
 	// opens the FileDialogue and loads tracks from it into the TrackGroup
 	void loadTracksFromFile();
+	//Asks for a URL and loads its tracks into this group.
+	void loadTracksFromUrl();
 };
 
 

@@ -208,7 +208,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>972</width>
+             <width>1020</width>
              <height>551</height>
             </rect>
            </property>
@@ -334,7 +334,7 @@
         <item>
          <widget class="QLabel" name="settings_placeholder">
           <property name="text">
-           <string>Select a track to edit its settings.</string>
+           <string>Select a track to show settings</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignmentFlag::AlignCenter</set>

@@ -43,7 +43,6 @@ public:
 
 signals:
 	void trackSelected(TrackWidget* track);
-	void editSettingsRequested(TrackWidget* track);
 
 public slots:
 	//creates a TrackGroup from a file

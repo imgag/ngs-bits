@@ -30,7 +30,6 @@ protected:
 	void paintEvent(QPaintEvent*) override;
 	void mousePressEvent(QMouseEvent*) override;
 	void mouseReleaseEvent(QMouseEvent*) override;
-	void populateContextMenu(QMenu&, const QPoint&) override;
 
 private:
 	IgvTrack(QWidget* parent, QString file_path, QString name, QSharedPointer<BedFile> bed_file);
