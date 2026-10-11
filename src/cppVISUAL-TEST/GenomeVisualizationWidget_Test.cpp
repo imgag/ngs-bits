@@ -244,6 +244,85 @@ private slots:
 		QCOMPARE(coverage->parameters().getInt("visibility range"), 100);
 	}
 
+	void bamPhaseGroupingAndHitTesting()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		writeFile("phase.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n"
+			"unassigned\t0\tchr22\t10\t60\t10M\t=\t10\t0\tAAAAAAAAAA\tIIIIIIIIII\n"
+			"phase2\t0\tchr22\t10\t60\t10M\t=\t10\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:2\n"
+			"phase1\t0\tchr22\t10\t60\t10M\t=\t10\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:1\n"
+			"unsupported\t0\tchr22\t40\t60\t10M\t=\t40\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:3\n");
+		{
+			BamReader reader(data_.filePath("phase.sam"));
+			BamWriter writer(data_.filePath("phase.bam"));
+			writer.writeHeader(reader);
+			BamAlignment al;
+			while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+		}
+		QCOMPARE(sam_index_build(data_.filePath("phase.bam").toUtf8().constData(), 0), 0);
+		QScopedPointer<BamAlignmentTrack> track(BamAlignmentTrack::createTrack(nullptr, data_.filePath("phase.bam"), ""));
+		QVERIFY(track);
+		QCOMPARE(track->parameters().getString("group by"), QByteArray("none"));
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, track->parameters().setString("group by", "other"));
+		track->parameters().setString("color by", "none");
+		track->resize(SharedData::settings().label_width + 4 + 320, 200);
+		track->show();
+		const int x0 = SharedData::settings().label_width + 2;
+		auto checkRead = [&](int row, int pos, const QString& name)
+		{
+			const QPoint point(x0 + (pos - 1) * 4 + 2, row * 14 + 6);
+			QImage image(track->size(), QImage::Format_ARGB32);
+			track->render(&image);
+			QVERIFY(image.pixelColor(point) != QColor(Qt::white));
+			QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, point);
+			auto* popup = track->findChild<QDialog*>();
+			QVERIFY(popup);
+			QVERIFY(popup->findChild<QLabel*>()->text().contains("<b>" + name + "</b>"));
+			delete popup;
+		};
+		for (bool pairs : {false, true})
+		{
+			track->parameters().setBool("view as pairs", pairs);
+			track->parameters().setString("group by", "phase");
+			checkRead(0, 15, "phase1");
+			checkRead(2, 15, "phase2");
+			checkRead(4, 15, "unassigned");
+			checkRead(4, 45, "unsupported");
+			QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 58, 20));
+			QVERIFY(!track->findChild<QDialog*>());
+			track->parameters().setString("group by", "none");
+			checkRead(0, 15, "unassigned");
+			checkRead(1, 15, "phase2");
+			checkRead(2, 15, "phase1");
+		}
+
+		writeFile("phase-pairs.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n"
+			"assigned-mate\t65\tchr22\t10\t60\t10M\t=\t30\t30\tAAAAAAAAAA\tIIIIIIIIII\n"
+			"phase2\t0\tchr22\t10\t60\t10M\t=\t10\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:2\n"
+			"conflict\t65\tchr22\t10\t60\t10M\t=\t30\t30\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:1\n"
+			"assigned-mate\t129\tchr22\t30\t60\t10M\t=\t10\t-30\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:1\n"
+			"conflict\t129\tchr22\t30\t60\t10M\t=\t10\t-30\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:2\n");
+		{
+			BamReader reader(data_.filePath("phase-pairs.sam"));
+			BamWriter writer(data_.filePath("phase-pairs.bam"));
+			writer.writeHeader(reader);
+			BamAlignment al;
+			while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+		}
+		QCOMPARE(sam_index_build(data_.filePath("phase-pairs.bam").toUtf8().constData(), 0), 0);
+		track.reset(BamAlignmentTrack::createTrack(nullptr, data_.filePath("phase-pairs.bam"), ""));
+		QVERIFY(track);
+		track->parameters().setString("color by", "none");
+		track->parameters().setString("group by", "phase");
+		track->resize(SharedData::settings().label_width + 4 + 320, 200);
+		track->show();
+		checkRead(0, 15, "assigned-mate");
+		checkRead(0, 35, "assigned-mate");
+		checkRead(2, 15, "phase2");
+		checkRead(4, 15, "conflict");
+		checkRead(4, 35, "conflict");
+	}
+
 	void startupEmbeddedInMainWindow()
 	{
 		QMainWindow window;

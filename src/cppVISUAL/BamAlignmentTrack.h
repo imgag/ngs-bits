@@ -60,6 +60,8 @@ private:
 	void calculateRowsNormalMode();
 	// assigns rows to pairs for pair mode
 	void calculateRowsPairMode();
+	// Packs haplotypes 1, 2, and unassigned into separate groups.
+	void calculateRowsByPhase();
 	// computes the stats for insertsize
 	void computeInsertSizeStats();
 	// iterates through the alignments and stores pairs as ReadPair in read_pairs_

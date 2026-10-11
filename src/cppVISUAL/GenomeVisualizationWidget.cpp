@@ -431,4 +431,4 @@ void GenomeVisualizationWidget::loadSession()
 //- test session storing and loading
 //  - XSD constraint Paramter Value count based on type attribute
 //- add region bookmarks stored in Settings
-//- BAM track: "group by": phase/read orientation
+//- BAM track: allow showing/hiding supplementary alignments

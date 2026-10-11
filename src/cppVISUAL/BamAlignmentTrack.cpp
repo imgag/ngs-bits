@@ -46,6 +46,7 @@ QList<Parameter> BamAlignmentTrack::getParameters() const
 		Parameter("view as pairs", "Connect read-pairs with a line.", ParameterType::BOOL, {}),
 		Parameter("show all bases", "Display all bases, not only ones that are different from the reference base.", ParameterType::BOOL, {}),
 		Parameter("show soft-clipped bases", "Display soft-clipped bases.", ParameterType::BOOL, {}),
+		Parameter("group by", "Group reads by haplotype (1, 2, unassigned).", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("none\tphase")}}),
 		Parameter("color by", "Alignment coloring scheme.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("none\tinsert size\tread strand")}}),
 		Parameter("visibility range", "Maximum genomic region for which content is displayed (in bases).", ParameterType::INT, {{ConstraintType::MIN, 1}})
 	};
@@ -53,7 +54,7 @@ QList<Parameter> BamAlignmentTrack::getParameters() const
 
 QHash<QByteArray, QVariant> BamAlignmentTrack::getParameterDefaults() const
 {
-	return {{"visibility range", SharedData::settings().bam_max_region_len}, {"view as pairs", true}, {"show all bases", false}, {"show soft-clipped bases", false}, {"color by", QByteArray("insert size")}};
+	return {{"visibility range", SharedData::settings().bam_max_region_len}, {"view as pairs", true}, {"show all bases", false}, {"show soft-clipped bases", false}, {"group by", QByteArray("none")}, {"color by", QByteArray("insert size")}};
 }
 
 BamAlignmentTrack::~BamAlignmentTrack()
@@ -118,6 +119,11 @@ void BamAlignmentTrack::dataReady()
 //TODO: this can, and should be, done on a seperate thread
 void BamAlignmentTrack::calculateRows()
 {
+	if (settings_.getString("group by") == "phase")
+	{
+		calculateRowsByPhase();
+		return;
+	}
 	const bool view_as_pairs = settings_.getBool("view as pairs");
 	if (view_as_pairs) calculateRowsPairMode();
 	else calculateRowsNormalMode();
@@ -222,6 +228,48 @@ void BamAlignmentTrack::calculateRowsPairMode()
 		}
 	}
 	if (num_rows_ < row_packer_.rowCount()) num_rows_ = row_packer_.rowCount();
+}
+
+void BamAlignmentTrack::calculateRowsByPhase()
+{
+	const auto& alns = track_data_->getAlignments();
+	const bool pairs = settings_.getBool("view as pairs");
+	row_packer_.clear();
+	row_idxes_.clear();
+	pair_row_idxes_.clear();
+	row_stored_with_pair_.clear();
+
+	for (int phase : {1, 2, 0})
+	{
+		RowPacker group;
+		// Leave one empty row between non-empty groups.
+		const int offset = row_packer_.rowCount() == 0 ? 0 : row_packer_.rowCount() + 1;
+		const int count = pairs ? read_pairs_.count() : alns.count();
+		for (int i = 0; i < count; ++i)
+		{
+			const auto& al = alns[pairs ? read_pairs_[i].first : i];
+			int read_phase = al.phase();
+			if (pairs && read_pairs_[i].second != -1)
+			{
+				const int mate_phase = alns[read_pairs_[i].second].phase();
+				// Use the assigned mate when the other is unassigned; conflicting mates are unassigned.
+				if (read_phase == 0) read_phase = mate_phase;
+				else if (mate_phase != 0 && mate_phase != read_phase) read_phase = 0;
+			}
+			if (read_phase != phase) continue;
+			const int start = pairs ? read_pairs_[i].start : getAlignmentStart(al);
+			const int end = pairs ? read_pairs_[i].end : getAlignmentEnd(al);
+			const int row = offset + group.insert(start, end, i);
+			row_packer_.restore(row, start, end, i);
+			if (pairs)
+			{
+				pair_row_idxes_[al.name()] = row;
+				row_stored_with_pair_[al.name()] = read_pairs_[i].second != -1;
+			}
+			else row_idxes_[al.id] = row;
+		}
+	}
+	num_rows_ = std::max(1, row_packer_.rowCount());
 }
 
 QSize BamAlignmentTrack::sizeHint() const
