@@ -430,6 +430,5 @@ void GenomeVisualizationWidget::loadSession()
 //TODO Marc:
 //- test session storing and loading
 //  - XSD constraint Paramter Value count based on type attribute
-//- gene track show strand arrows
 //- add region bookmarks stored in Settings
 //- BAM track: "group by": phase/read orientation

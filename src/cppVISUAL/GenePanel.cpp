@@ -295,6 +295,22 @@ void GenePanel::drawTranscript(QPainter& painter, const Transcript& trans, int y
 	double y_center = y+2+6;
 	painter.drawLine(QLineF(x_start+1.0, y_center, x_end-1.0, y_center));
 
+	//Repeated strand chevrons on the intron line; exon boxes cover them below.
+	if (trans.isPlusStrand() || trans.isMinusStrand())
+	{
+		const double direction = trans.isPlusStrand() ? 1.0 : -1.0;
+		constexpr double arrow_spacing = 30.0;
+		constexpr double arrow_width = 3.0;
+		constexpr double arrow_height = 2.5;
+		for (double x = x_start + arrow_spacing / 2; x + arrow_width / 2 < x_end; x += arrow_spacing)
+		{
+			const double tail_x = x - direction * arrow_width / 2;
+			const double tip_x = x + direction * arrow_width / 2;
+			painter.drawLine(QLineF(tail_x, y_center - arrow_height, tip_x, y_center));
+			painter.drawLine(QLineF(tail_x, y_center + arrow_height, tip_x, y_center));
+		}
+	}
+
 	//draw all exons (8px heigh)
 	painter.setPen(Qt::transparent);
 	painter.setBrush(color);
