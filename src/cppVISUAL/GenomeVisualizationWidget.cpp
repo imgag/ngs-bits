@@ -428,6 +428,7 @@ void GenomeVisualizationWidget::loadSession()
 }
 
 //TODO Marc:
-//- test session storing and loading
-//- check for TODOs in the code in cppVISUAL and GSviewer. List them an propose what do do
 //- add region bookmarks stored in Settings
+//- ask for plan and of which I have infinite?
+//- check for unused methods
+

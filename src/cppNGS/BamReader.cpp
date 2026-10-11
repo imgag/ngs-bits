@@ -811,7 +811,7 @@ const QList<Chromosome>& BamReader::chromosomes() const
 
 const Chromosome& BamReader::chromosome(int chr_id) const
 {
-	if (chr_id>=chrs_.size()) THROW(ArgumentException, "Chromosome ID '" + QString::number(chr_id) + "' out of bounds in BAM/CRAM file " + bam_file_);
+	if (chr_id<0 || chr_id>=chrs_.size()) THROW(ArgumentException, "Chromosome ID '" + QString::number(chr_id) + "' out of bounds in BAM/CRAM file " + bam_file_);
 
 	return chrs_[chr_id];
 }

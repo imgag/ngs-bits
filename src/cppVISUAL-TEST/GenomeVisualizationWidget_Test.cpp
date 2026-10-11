@@ -372,6 +372,57 @@ private slots:
 		}
 	}
 
+	void bamUnpairedReadsReuseRowsAndShrink()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 20);
+		writeFile("unpaired.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n"
+			"dense1\t0\tchr22\t10\t60\t5M\t*\t0\t0\tAAAAA\tIIIII\n"
+			"dense2\t0\tchr22\t10\t60\t5M\t*\t0\t0\tAAAAA\tIIIII\n"
+			"dense3\t0\tchr22\t10\t60\t5M\t*\t0\t0\tAAAAA\tIIIII\n"
+			"sparse1\t0\tchr22\t60\t60\t5M\t*\t0\t0\tAAAAA\tIIIII\n"
+			"sparse2\t0\tchr22\t75\t60\t5M\t*\t0\t0\tAAAAA\tIIIII\n");
+		{
+			BamReader reader(data_.filePath("unpaired.sam"));
+			QVERIFY_EXCEPTION_THROWN(reader.chromosome(-1), ArgumentException);
+			QVERIFY_EXCEPTION_THROWN(reader.chromosome(1), ArgumentException);
+			QCOMPARE(reader.chromosome(0), Chromosome("chr22"));
+			BamWriter writer(data_.filePath("unpaired.bam"));
+			writer.writeHeader(reader);
+			BamAlignment al;
+			while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+		}
+		QCOMPARE(sam_index_build(data_.filePath("unpaired.bam").toUtf8().constData(), 0), 0);
+		QScopedPointer<BamAlignmentTrack> track(BamAlignmentTrack::createTrack(nullptr, data_.filePath("unpaired.bam"), ""));
+		QVERIFY(track);
+		QVERIFY(track->parameters().getBool("view as pairs"));
+		track->resize(SharedData::settings().label_width + 4 + 320, 200);
+		track->show();
+		auto data = BamTrackDataManager::getOrCreate(data_.filePath("unpaired.bam"));
+		for (int repeat = 0; repeat < 2; ++repeat)
+		{
+			SharedData::setRegion(Chromosome("chr22"), 1, 20);
+			const int dense_height = track->sizeHint().height();
+			SharedData::setRegion(Chromosome("chr22"), 55, 85);
+			const int sparse_height = track->sizeHint().height();
+			QVERIFY(sparse_height < dense_height);
+			QCOMPARE(data->getAlignments().count(), 2);
+			for (const auto& alignment : data->getAlignments()) QVERIFY(!alignment.mate_chr.isValid());
+			for (int position : {62, 77})
+			{
+				const BedLine& region = SharedData::region();
+				const int x = SharedData::settings().label_width + 2 + (position - region.start()) * (track->width() - SharedData::settings().label_width - 4) / region.length();
+				QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, QPoint(x, 6));
+				auto* popup = track->findChild<QDialog*>();
+				QVERIFY2(popup, qPrintable(QString("No popup for position %1, repeat %2, width %3").arg(position).arg(repeat).arg(track->width()))); // Both non-overlapping reads must occupy row zero.
+				delete popup;
+			}
+			track->parameters().setBool("show secondary alignments", false);
+			QCOMPARE(track->sizeHint().height(), sparse_height);
+			track->parameters().setBool("show secondary alignments", true);
+			QCOMPARE(track->sizeHint().height(), sparse_height);
+		}
+	}
+
 	void bamInsertSizePercentileSettings()
 	{
 		SharedData::setRegion(Chromosome("chr22"), 1, 80);

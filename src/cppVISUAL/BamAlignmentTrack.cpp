@@ -199,7 +199,6 @@ void BamAlignmentTrack::calculateRowsNormalMode(const DisplaySettings& options)
 
 void BamAlignmentTrack::calculateRowsPairMode()
 {
-	//TODO: this has a bug, if there are no pairs, then the unpaired strands are always assigned a new row
 	const QVector<BamAlignmentWrapper>& alns = track_data_->getAlignments();
 
 	row_packer_.clear();
@@ -241,7 +240,7 @@ void BamAlignmentTrack::calculateRowsPairMode()
 			row_stored_with_pair_[al1.id] = true;
 		}
 	}
-	if (num_rows_ < row_packer_.rowCount()) num_rows_ = row_packer_.rowCount();
+	num_rows_ = std::max(1, row_packer_.rowCount());
 }
 
 void BamAlignmentTrack::calculateRowsByPhase(const DisplaySettings& options)

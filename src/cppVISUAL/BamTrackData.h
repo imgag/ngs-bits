@@ -233,7 +233,7 @@ private:
 	int ref_start_;
 	QSet<AlignmentKey> loaded_ids_;
 
-	void updateData();
+	bool invalid_mate_warning_shown_ = false;
 
 	bool is_loading_;
 	bool return_empty_ = true;

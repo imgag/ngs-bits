@@ -83,7 +83,7 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 
 	//fill background
 	QPainter painter(this);
-	painter.fillRect(rect(), QColor(250, 250, 250));
+	painter.fillRect(rect(), Qt::white);
 
 	//draw label
 	drawLabel(painter);
