@@ -84,7 +84,7 @@ private:
 	// returns true if current region size <= max_region_len
 	bool isCurrentRegionValid();
 
-	// converts BaseCoverage into a string for the pop up info (TODO: this can also be HTML)
+	// converts BaseCoverage into a string for the pop up info
 	QString getCoverageText(const BaseCoverage& coverage, int coverage_idx);
 
 	// used for checking if user is dragging or not

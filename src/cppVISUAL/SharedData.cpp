@@ -4,10 +4,17 @@
 #include <QPainter>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <cmath>
 
 void SharedData::setSettings(const GlobalSettings& settings)
 {
 	if (settings.bam_max_region_len < 1) THROW(ArgumentException, "BAM maximum region length must be positive.");
+	if (!std::isfinite(settings.bam_insert_size_min_percentile) || !std::isfinite(settings.bam_insert_size_max_percentile)
+		|| settings.bam_insert_size_min_percentile < 0.0 || settings.bam_insert_size_max_percentile > 1.0
+		|| settings.bam_insert_size_min_percentile > settings.bam_insert_size_max_percentile)
+	{
+		THROW(ArgumentException, "BAM insert-size percentiles must satisfy 0 <= minimum <= maximum <= 1.");
+	}
 	instance()->settings_ = settings;
 	emit instance()->settingsChanged();
 }

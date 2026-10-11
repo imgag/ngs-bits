@@ -56,7 +56,7 @@ void GenomeVisualizationWidget::setupDebugButton()
 	QMenu* debug_menu = new QMenu(ui_->debug_btn);
 
 	//add goto entries
-	for (const QString& query : QStringList{"BRCA1", "BRCA2", "chr1:9000-10000"})
+	for (const QString& query : QStringList{"CHEK2", "BRCA1", "BRCA2"})
 	{
 		QAction* action = debug_menu->addAction("goto " + query);
 		connect(action, &QAction::triggered, this, [this, query]()
@@ -429,6 +429,5 @@ void GenomeVisualizationWidget::loadSession()
 
 //TODO Marc:
 //- test session storing and loading
-//  - XSD constraint Paramter Value count based on type attribute
+//- check for TODOs in the code in cppVISUAL and GSviewer. List them an propose what do do
 //- add region bookmarks stored in Settings
-//- BAM track: allow showing/hiding supplementary alignments

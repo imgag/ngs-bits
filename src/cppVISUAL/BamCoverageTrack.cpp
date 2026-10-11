@@ -86,8 +86,6 @@ void BamCoverageTrack::dataReady()
 	update();
 }
 
-//TODO: this could be optimized if BamTrackData does this
-// (it's here for now because coverage is not needed if BamCoverageTrack does not exist)
 void BamCoverageTrack::storeCoverage()
 {
 	max_coverage_ = 10;
@@ -107,6 +105,7 @@ void BamCoverageTrack::storeCoverage()
 	//store coverage
 	for (const auto& al : aligns)
 	{
+		if (al.isSecondaryAlignment()) continue;
 		// const BamAlignment& al = wrapped.alignment;
 
 		if (al.end() < region.start()) continue;

@@ -96,8 +96,6 @@ QSharedPointer<BamReader> FileLoader::loadBamFile(QString file_path)
 	}
 }
 
-//TODO: this should check more things, i.e. if the 5th column has numeric values
-// if the 4th column is Features
 bool FileLoader::isValidIgvFile(QSharedPointer<BedFile> bed_file)
 {
 	if (!bed_file) return false; // redundant check but avoids accidental crashes

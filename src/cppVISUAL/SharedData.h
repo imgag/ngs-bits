@@ -22,6 +22,9 @@ struct CPPVISUALSHARED_EXPORT GlobalSettings
 	int transcript_padding = 2000;
 	//Initial visibility range for new BAM alignment and coverage tracks.
 	int bam_max_region_len = 50000;
+	//Insert-size percentile fractions used for alignment coloring (0..1).
+	double bam_insert_size_min_percentile = 0.005;
+	double bam_insert_size_max_percentile = 0.995;
 };
 
 //Singleton for data shared by all widgets for visualization.

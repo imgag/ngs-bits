@@ -113,6 +113,7 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 	int insertSize() const { return insert_size_; }
 	// Diploid haplotype from HP: 1, 2, or 0 for unassigned.
 	int phase() const { return phase_; }
+	bool isSecondaryAlignment() const { return is_secondary_; }
 
 private:
 	int st_ = -1;
@@ -125,6 +126,7 @@ private:
 	int mate_start_;
 	int insert_size_ = -1;
 	int phase_ = 0;
+	bool is_secondary_ = false;
 	QString name_;
 
 	void storeAlignmentInfo(const BamAlignment& al)
@@ -141,6 +143,7 @@ private:
 		insert_size_ = al.insertSize();
 		const int hp = al.tagi("HP");
 		phase_ = hp == 1 || hp == 2 ? hp : 0;
+		is_secondary_ = al.isSecondaryAlignment();
 	}
 };
 
@@ -165,7 +168,11 @@ public:
 		, visibility_range_(SharedData::settings().bam_max_region_len)
 	{
 		connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
-		connect(SharedData::instance(), &SharedData::settingsChanged, this, &BamTrackData::updateRegion);
+		connect(SharedData::instance(), &SharedData::settingsChanged, this, [this]()
+		{
+			computeInsertSizeStats();
+			updateRegion();
+		});
 	}
 
 	const QVector<BamAlignmentWrapper>& getAlignments()

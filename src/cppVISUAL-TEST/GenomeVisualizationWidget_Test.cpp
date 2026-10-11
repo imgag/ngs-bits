@@ -323,6 +323,96 @@ private slots:
 		checkRead(4, 35, "conflict");
 	}
 
+	void bamSecondaryAlignmentVisibility()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		writeFile("secondary.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n"
+			"read\t65\tchr22\t10\t60\t10M\t=\t40\t40\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:1\n"
+			"read\t321\tchr22\t10\t60\t10M\t=\t40\t40\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:2\n"
+			"read\t129\tchr22\t40\t60\t10M\t=\t10\t-40\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:1\n");
+		{
+			BamReader reader(data_.filePath("secondary.sam"));
+			BamWriter writer(data_.filePath("secondary.bam"));
+			writer.writeHeader(reader);
+			BamAlignment al;
+			while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+		}
+		QCOMPARE(sam_index_build(data_.filePath("secondary.bam").toUtf8().constData(), 0), 0);
+		QScopedPointer<BamAlignmentTrack> track(BamAlignmentTrack::createTrack(nullptr, data_.filePath("secondary.bam"), ""));
+		QVERIFY(track);
+		QVERIFY(track->parameters().getBool("show secondary alignments"));
+		auto data = BamTrackDataManager::getOrCreate(data_.filePath("secondary.bam"));
+		QCOMPARE(data->getAlignments().count(), 3); // Same position/name/cigar must not deduplicate primary and secondary.
+		QVERIFY(data->getAlignments()[1].isSecondaryAlignment());
+		track->parameters().setString("color by", "none");
+		track->resize(SharedData::settings().label_width + 4 + 320, 200);
+		track->show();
+		const int x0 = SharedData::settings().label_width + 2;
+		for (bool pairs : {false, true})
+		{
+			track->parameters().setBool("view as pairs", pairs);
+			for (const QByteArray& group : QByteArrayList{"none", "phase"})
+			{
+				track->parameters().setString("group by", group);
+				const QPoint secondary(x0 + 58, (group == "phase" ? 2 : 1) * 14 + 6);
+				for (bool visible : {true, false, true})
+				{
+					track->parameters().setBool("show secondary alignments", visible);
+					QImage image(track->size(), QImage::Format_ARGB32);
+					track->render(&image);
+					QCOMPARE(image.pixelColor(secondary) != QColor(Qt::white), visible);
+					QVERIFY(image.pixelColor(x0 + 58, 6) != QColor(Qt::white));
+					QVERIFY(image.pixelColor(x0 + 178, 6) != QColor(Qt::white));
+					QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, secondary);
+					auto* popup = track->findChild<QDialog*>();
+					QCOMPARE(popup != nullptr, visible);
+					delete popup;
+				}
+			}
+		}
+	}
+
+	void bamInsertSizePercentileSettings()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		QByteArray sam = "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n";
+		for (int i = 1; i <= 10; ++i)
+		{
+			sam += "read" + QByteArray::number(i) + "\t0\tchr22\t10\t60\t10M\t=\t10\t" + QByteArray::number(i * 100) + "\tAAAAAAAAAA\tIIIIIIIIII\n";
+		}
+		writeFile("insert-size.sam", sam);
+		{
+			BamReader reader(data_.filePath("insert-size.sam"));
+			BamWriter writer(data_.filePath("insert-size.bam"));
+			writer.writeHeader(reader);
+			BamAlignment al;
+			while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+		}
+		QCOMPARE(sam_index_build(data_.filePath("insert-size.bam").toUtf8().constData(), 0), 0);
+		auto data = BamTrackDataManager::getOrCreate(data_.filePath("insert-size.bam"));
+		QVERIFY(data);
+		QCOMPARE(data->getInsertSizeStats().insert_size_min, 100);
+		QCOMPARE(data->getInsertSizeStats().insert_size_max, 1000);
+		const GlobalSettings original = SharedData::settings();
+		const auto restore = qScopeGuard([&]() { SharedData::setSettings(original); });
+		GlobalSettings settings = original;
+		settings.bam_insert_size_min_percentile = 0.2;
+		settings.bam_insert_size_max_percentile = 0.8;
+		SharedData::setSettings(settings);
+		QCOMPARE(data->getInsertSizeStats().insert_size_min, 300);
+		QCOMPARE(data->getInsertSizeStats().insert_size_max, 900);
+		settings.bam_insert_size_min_percentile = 0.0;
+		settings.bam_insert_size_max_percentile = 1.0;
+		SharedData::setSettings(settings);
+		QCOMPARE(data->getInsertSizeStats().insert_size_min, 100);
+		QCOMPARE(data->getInsertSizeStats().insert_size_max, 1000);
+		settings.bam_insert_size_min_percentile = -0.1;
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, SharedData::setSettings(settings));
+		settings.bam_insert_size_min_percentile = 0.9;
+		settings.bam_insert_size_max_percentile = 0.8;
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, SharedData::setSettings(settings));
+	}
+
 	void startupEmbeddedInMainWindow()
 	{
 		QMainWindow window;
