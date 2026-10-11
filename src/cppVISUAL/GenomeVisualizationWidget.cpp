@@ -61,7 +61,6 @@ void GenomeVisualizationWidget::clearParameterEditor()
 	delete parameter_editor_;
 	parameter_editor_ = nullptr;
 	ui_->settings_placeholder->show();
-	ui_->settings_dock->setWindowTitle("Track settings");
 }
 
 void GenomeVisualizationWidget::selectTrack(TrackWidget* track)
@@ -76,7 +75,7 @@ void GenomeVisualizationWidget::selectTrack(TrackWidget* track)
 		ui_->settings_layout->addWidget(parameter_editor_);
 	}
 	ui_->settings_placeholder->hide();
-	ui_->settings_dock->setWindowTitle("Track settings: " + track->displayName());
+	parameter_editor_->setTitle("Track: " + track->displayName());
 	selected_track_destroyed_ = connect(track, &QObject::destroyed, this, &GenomeVisualizationWidget::clearParameterEditor);
 }
 
@@ -417,6 +416,7 @@ void GenomeVisualizationWidget::loadSession()
 
 //TODO Marc:
 //- check parameters of all tracks: BED, IGV
+//- gene track show strand arrows
 //- debug mode drop-down: goto region, goto rene
 //- add region bookmarks stored in Settings
 //- BAM track: "group by"

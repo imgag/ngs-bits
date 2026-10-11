@@ -107,7 +107,7 @@ SharedData::SharedData(QObject* parent)
 	, transcripts_()
 	, transcripts_index_(transcripts_)
 	, settings_()
-	, region_(Chromosome("chr22"), 28693851, 28696161) //just some random default to make sure it is not a invalid region
+	, region_(Chromosome("chr22"), 28687785, 28734579) //just some random default to make sure it is not a invalid region
 	, char_size_(determineCharacterSize())
 {
 }

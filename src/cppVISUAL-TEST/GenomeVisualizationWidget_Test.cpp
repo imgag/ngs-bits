@@ -4,6 +4,7 @@
 #include "Settings.h"
 #include "SharedData.h"
 #include <QCheckBox>
+#include <QComboBox>
 #include <QDockWidget>
 #include <QFile>
 #include <QLabel>
@@ -107,25 +108,26 @@ private slots:
 		QCOMPARE(tracks.size(), 2);
 		auto* first = tracks[0];
 		auto* second = tracks[1];
-		second->parameters().setInt("color", 123);
+		second->parameters().setString("color", "red");
 		openEditor(first);
 		QVERIFY(!dock->isHidden());
-		QVERIFY(dock->windowTitle().contains(first->displayName()));
+		QCOMPARE(dock->windowTitle(), QString("Track settings"));
 		auto* editor = dock->findChild<ParameterEditor*>();
 		QVERIFY(editor);
-		editor->findChild<QLineEdit*>("color")->setText("456");
+		QCOMPARE(editor->findChild<QLabel*>("title")->text(), "Track: " + first->displayName());
+		editor->findChild<QComboBox*>("color")->setCurrentText("green");
 		QVERIFY(editor->store());
-		QCOMPARE(first->parameters().getInt("color"), 456);
-		QCOMPARE(second->parameters().getInt("color"), 123);
+		QCOMPARE(first->parameters().getString("color"), QByteArray("green"));
+		QCOMPARE(second->parameters().getString("color"), QByteArray("red"));
 		editor->findChild<QCheckBox*>("auto_apply")->setChecked(true);
 		QTest::mouseClick(second, Qt::LeftButton, Qt::NoModifier, QPoint(2, 2));
 		QCOMPARE(dock->findChild<ParameterEditor*>(), editor);
-		QVERIFY(dock->windowTitle().contains(second->displayName()));
-		QCOMPARE(editor->findChild<QLineEdit*>("color")->text(), QString("123"));
+		QCOMPARE(editor->findChild<QLabel*>("title")->text(), "Track: " + second->displayName());
+		QCOMPARE(editor->findChild<QComboBox*>("color")->currentText(), QString("red"));
 		QVERIFY(editor->findChild<QCheckBox*>("auto_apply")->isChecked());
-		editor->findChild<QLineEdit*>("color")->setText("789");
-		QCOMPARE(second->parameters().getInt("color"), 789);
-		QCOMPARE(first->parameters().getInt("color"), 456);
+		editor->findChild<QComboBox*>("color")->setCurrentText("yellow");
+		QCOMPARE(second->parameters().getString("color"), QByteArray("yellow"));
+		QCOMPARE(first->parameters().getString("color"), QByteArray("green"));
 		dock->close();
 		QVERIFY(dock->isHidden());
 		openEditor(first);

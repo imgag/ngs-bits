@@ -17,6 +17,8 @@ TrackGroup::TrackGroup(QWidget* parent)
 	, layout_(new QVBoxLayout(this))
 	, content_widget_(new QWidget(this))
 {
+	//Override QScrollArea's default minimum height for splitter resizing.
+	setMinimumHeight(25);
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	setContextMenuPolicy(Qt::CustomContextMenu);
 

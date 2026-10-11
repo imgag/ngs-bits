@@ -60,6 +60,7 @@ protected:
 	//Call in the derived constructor body, where virtual dispatch reaches its overrides.
 	void initializeSettings();
 
+	bool event(QEvent* event) override;
 	void mousePressEvent(QMouseEvent* event) override;
 	void mouseMoveEvent(QMouseEvent* event) override;
 	void mouseReleaseEvent(QMouseEvent* event) override;

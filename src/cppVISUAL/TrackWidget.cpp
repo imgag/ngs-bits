@@ -7,12 +7,14 @@
 #include <QInputDialog>
 #include <QApplication>
 #include <QFileInfo>
+#include <QHelpEvent>
 #include <QDrag>
 #include <QDialog>
 #include <QLabel>
 #include <QMenu>
 #include <QMimeData>
 #include <QPainter>
+#include <QToolTip>
 #include <QVBoxLayout>
 #include <limits>
 
@@ -44,7 +46,12 @@ void TrackWidget::regionChanged()
 
 void TrackWidget::populateContextMenu(QMenu& menu, const QPoint&)
 {
-	if (menu.actions().count()>0) menu.addSeparator();
+	QAction* first_action = menu.actions().isEmpty() ? nullptr : menu.actions().first();
+	auto* reload = new QAction("Reload Track", &menu);
+	connect(reload, &QAction::triggered, this, &TrackWidget::reloadTrack);
+	menu.insertAction(first_action, reload);
+	menu.insertSeparator(first_action);
+	if (first_action) menu.addSeparator();
 
 	QAction* remove = menu.addAction("Remove Track");
 	connect(remove, &QAction::triggered, this, &TrackWidget::trackDeleted);
@@ -65,6 +72,26 @@ void TrackWidget::handleTrackRename()
 	}
 }
 
+
+bool TrackWidget::event(QEvent* event)
+{
+	if (event->type() == QEvent::ToolTip)
+	{
+		auto* help_event = static_cast<QHelpEvent*>(event);
+		const QRect header_rect(0, 0, SharedData::settings().label_width, height());
+		if (header_rect.contains(help_event->pos()))
+		{
+			QToolTip::showText(help_event->globalPos(), display_name_, this, header_rect);
+		}
+		else
+		{
+			QToolTip::hideText();
+			event->ignore();
+		}
+		return true;
+	}
+	return QWidget::event(event);
+}
 
 void TrackWidget::mousePressEvent(QMouseEvent* event)
 {

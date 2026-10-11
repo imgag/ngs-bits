@@ -44,11 +44,11 @@ protected:
 	void mouseReleaseEvent(QMouseEvent* event) override;
 
 private:
-	// band data in row
-	struct BandData
+	// region data in row
+	struct RegionData
 	{
-		int start; // band start
-		int end; // band end
+		int start; // region start
+		int end; // region end
 		int ind; // idx in bedfile
 	};
 
@@ -59,44 +59,40 @@ private:
 	QPointF mouse_press_pos_;
 	/*
 	 * it is more efficient to have two maps here
-	 * one from index of the band to the rows --> this makes painting efficient
+	 * one from index of the region to the rows --> this makes painting efficient
 	 * because of the use of ChromosomalIndex
 	 *
-	 * the other map is from rows to vectors of bands stored in that row
-	 * this makes look up faster when the user clicks one of the bands
+	 * the other map is from rows to vectors of regions stored in that row
+	 * this makes look up faster when the user clicks one of the regions
 	 */
 
 	// pre count of num rows required per chromosome
 	QHash<Chromosome, int> num_rows_;
 
-	//hash map from row to vector of data of bands stored in that row
-	using RowInfoType = QHash<int, QVector<BandData>>;
+	//hash map from row to vector of data of regions stored in that row
+	using RowInfoType = QHash<int, QVector<RegionData>>;
 	RowInfoType row_store_;
 
-	// array for storing the draw index of each band
+	// array for storing the draw index of each region
 	QVector<int> row_idxes_;
 	// reloads bedfile_ from file_path_, returns true if successful.
 	bool load();
+	//Row spacing shared by drawing, sizing and popup hit testing.
+	int rowHeight() const;
 
 	// calls the appropriate function depending on the current draw mode
-	QString getBandText(const BedLine& region, int row, int x);
-	// gets the information of the band at position x in row 0 if row is not 0, returns empty string
-	QString getBandTextCollapsedMode(const BedLine& region, int row, int x);
+	QString getRegionText(const BedLine& region, int row, int x);
+	// gets the information of the region at position x in row 0 if row is not 0, returns empty string
+	QString getRegionTextCollapsedMode(const BedLine& region, int row, int x);
 	// same as collapsed mode but returns text based on row
-	QString getBandTextExpandedMode(const BedLine& region, int row, int x);
+	QString getRegionTextExpandedMode(const BedLine& region, int row, int x);
 	// returns the location plus annonations for the bedline as a string
-	QString getBandString(const BedLine&);
+	QString regionTooltip(const BedLine&region);
 	// handles pop up request and displays the correct information at global pos
 	void handlePopupRequest(QPointF local_pos, QPointF global_pos);
 
 	//utility function for calculating the nubmer of rows required/chr
 	void calculateNumRows();
-
-	enum DrawMode
-	{
-		COLLAPSED,
-		EXPANDED
-	};
 
 };
 
