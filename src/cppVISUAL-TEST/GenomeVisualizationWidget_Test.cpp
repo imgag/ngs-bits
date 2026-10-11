@@ -107,6 +107,73 @@ private slots:
 		QVERIFY(empty_index.matchingIndices(Chromosome("chr22"), 1, 10).isEmpty());
 	}
 
+	void igvPopupUsesRenderedPositionAndBarHeight()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		IgvTrack track(nullptr, "", "");
+		track.resize(SharedData::settings().label_width + 4 + 160, 100);
+		track.setIgvFile(QSharedPointer<IgvFile>::create(
+			QVector<IgvFileLine>{IgvFileLine(Chromosome("chr22"), 10, 70, 0.5)}, QByteArrayList{}));
+		track.show();
+		const int x0 = SharedData::settings().label_width + 2;
+		const QPoint marker(x0 + 79, 50);
+		for (const QByteArray& mode : QByteArrayList{"points", "line plot", "heatmap", "bar chart"})
+		{
+			track.parameters().setString("draw mode", mode);
+			QTest::mouseClick(&track, Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 28, 60));
+			QVERIFY(!track.findChild<QDialog*>());
+			if (mode == "line plot") continue; // A single record has no line segment.
+			QTest::mouseClick(&track, Qt::LeftButton, Qt::NoModifier, marker);
+			auto* popup = track.findChild<QDialog*>();
+			QVERIFY(popup);
+			delete popup;
+		}
+		track.parameters().setString("draw mode", "bar chart");
+		track.setIgvFile(QSharedPointer<IgvFile>::create(
+			QVector<IgvFileLine>{IgvFileLine(Chromosome("chr22"), 10, 70, 2.0)}, QByteArrayList{}));
+		QTest::mouseClick(&track, Qt::LeftButton, Qt::NoModifier, QPoint(marker.x(), 1));
+		QVERIFY(!track.findChild<QDialog*>());
+		QTest::mouseClick(&track, Qt::LeftButton, Qt::NoModifier, QPoint(marker.x(), 5));
+		QVERIFY(track.findChild<QDialog*>());
+		delete track.findChild<QDialog*>();
+
+		QSignalSpy selected(&track, &TrackWidget::trackSelected);
+		QTest::mouseClick(&track, Qt::RightButton, Qt::NoModifier, marker);
+		QCOMPARE(selected.count(), 1);
+		selected.clear();
+		QTest::mousePress(&track, Qt::LeftButton, Qt::NoModifier, marker);
+		QTest::mouseRelease(&track, Qt::LeftButton, Qt::NoModifier, marker + QPoint(20, 0));
+		QCOMPARE(selected.count(), 1);
+		QVERIFY(!track.findChild<QDialog*>());
+	}
+
+	void igvPlotClipsLinesAndPreservesFractionalCells()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 20, 59);
+		IgvTrack track(nullptr, "", "");
+		track.resize(SharedData::settings().label_width + 4 + 60, 100);
+		track.setIgvFile(QSharedPointer<IgvFile>::create(
+			QVector<IgvFileLine>{IgvFileLine(Chromosome("chr22"), 10, 10, 0.5), IgvFileLine(Chromosome("chr22"), 70, 70, 0.5)}, QByteArrayList{}));
+		track.parameters().setString("draw mode", "line plot");
+		QImage image(track.size(), QImage::Format_ARGB32);
+		track.render(&image);
+		const int x0 = SharedData::settings().label_width + 2;
+		QCOMPARE(image.pixelColor(x0 - 1, 50), QColor(Qt::white));
+		QCOMPARE(image.pixelColor(x0 + 60, 50), QColor(Qt::white));
+		QCOMPARE(image.pixelColor(x0 + 30, 50), QColor(Qt::blue));
+
+		track.setIgvFile(QSharedPointer<IgvFile>::create(
+			QVector<IgvFileLine>{IgvFileLine(Chromosome("chr22"), 27, 27, 1.0)}, QByteArrayList{}));
+		for (const QByteArray& mode : QByteArrayList{"heatmap", "bar chart"})
+		{
+			track.parameters().setString("draw mode", mode);
+			track.render(&image);
+			// The cell spans x0+10.5 to x0+12: its fractional right edge colors this pixel.
+			QColor edge = image.pixelColor(x0 + 12, 30);
+			QVERIFY(edge.blue() > edge.red());
+		}
+	}
+
 	void startupEmbeddedInMainWindow()
 	{
 		QMainWindow window;

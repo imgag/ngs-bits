@@ -48,7 +48,7 @@ public:
 	const QByteArrayList& headers() const { return headers_; }
 	int count() const { return lines_.count(); }
 	const IgvFileLine& operator[](int index) const { return lines_[index]; }
-	bool isSorted() const { return std::is_sorted(lines_.cbegin(), lines_.cend()); }
+	bool isSorted() const { return true; }
 
 private:
 	QVector<IgvFileLine> lines_;

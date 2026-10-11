@@ -13,7 +13,6 @@ class CPPVISUALSHARED_EXPORT IgvTrack
 	Q_OBJECT
 public:
 	IgvTrack(QWidget* parent, QString file_path, QString name);
-	~IgvTrack();
 	static QByteArray type() { return "IgvTrack"; }
 
 	void setIgvFile(QSharedPointer<IgvFile> igv_file);
@@ -59,6 +58,7 @@ private:
 
 	// utility functons
 	static int valueToY(double value, const PlotScale& scale);
+	static QRectF barRect(const IgvFileLine& line, const Viewport& viewport, const PlotScale& scale);
 
 	// file functions
 	static QString getTrackNameFromIgvFile(QSharedPointer<IgvFile> igv_file);
