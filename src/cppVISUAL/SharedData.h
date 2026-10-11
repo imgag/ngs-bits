@@ -20,7 +20,7 @@ struct CPPVISUALSHARED_EXPORT GlobalSettings
 	int min_window_size = 41;
 	//How many bases genes/transcripts are padded with, e.g. after search
 	int transcript_padding = 2000;
-	//Maximum region length for BAM loading, alignments and coverage.
+	//Initial visibility range for new BAM alignment and coverage tracks.
 	int bam_max_region_len = 50000;
 };
 

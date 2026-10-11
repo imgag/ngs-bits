@@ -20,7 +20,7 @@ QSharedPointer<BamTrackData> BamTrackDataManager::getOrCreate(QString file_path)
 
 	auto track_data = QSharedPointer<BamTrackData>::create(file_path);
 	track_data->setBamReader(reader);
-	cache_[file_path] = track_data.toWeakRef();
+	cache_[abs_name] = track_data.toWeakRef();
 	return track_data;
 }
 
@@ -35,5 +35,4 @@ void BamTrackDataManager::reload(QString file_path)
 		if (existing) existing->reload();
 	}
 }
-
 

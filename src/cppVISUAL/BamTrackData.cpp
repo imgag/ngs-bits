@@ -19,6 +19,25 @@ AlignmentKey AlignmentKey::makeKey(const BamAlignment& al)
 	return {h1, h2};
 }
 
+void BamTrackData::bindVisibilityRange(ParameterList& parameters)
+{
+	parameters.setInt("visibility range", visibility_range_);
+	connect(this, &BamTrackData::visibilityRangeChanged, &parameters, [&parameters](int range)
+	{
+		parameters.setInt("visibility range", range);
+	});
+}
+
+void BamTrackData::setVisibilityRange(int range)
+{
+	if (range < 1) THROW(ArgumentException, "BAM visibility range must be positive.");
+	if (range == visibility_range_) return;
+	visibility_range_ = range;
+	// Refresh data before the other tracks recalculate using the new range.
+	if (bam_reader_) updateRegion();
+	emit visibilityRangeChanged(range);
+}
+
 void BamTrackData::updateRegion()
 {
 	if (!bam_reader_)
@@ -27,7 +46,7 @@ void BamTrackData::updateRegion()
 		return;
 	}
 
-	const int max_len = SharedData::settings().bam_max_region_len;
+	const int max_len = visibility_range_;
 	const BedLine& region = SharedData::region();
 
 	if (region.length() > max_len)

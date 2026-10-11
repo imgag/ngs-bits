@@ -3,6 +3,7 @@
 
 #include "SharedData.h"
 #include "BamReader.h"
+#include "ParameterList.h"
 #include "cppVISUAL_global.h"
 
 #include <QObject>
@@ -156,6 +157,7 @@ class CPPVISUALSHARED_EXPORT BamTrackData : public QObject
 public:
 	BamTrackData(QString file_path)
 		: file_path_(file_path)
+		, visibility_range_(SharedData::settings().bam_max_region_len)
 	{
 		connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
 		connect(SharedData::instance(), &SharedData::settingsChanged, this, &BamTrackData::updateRegion);
@@ -196,17 +198,22 @@ public:
 	InsertSizeStats getInsertSizeStats() { return insert_size_stats_; };
 
 	void reload();
+	// Keeps visibility parameters of all tracks using this data in sync.
+	void bindVisibilityRange(ParameterList& parameters);
+	void setVisibilityRange(int range);
 
 signals:
 	// void onDataChange();
 	void onDataUpdate();
 	void onFullLoad();
+	void visibilityRangeChanged(int range);
 
 public slots:
 	void updateRegion();
 
 private:
 	QString file_path_;
+	int visibility_range_;
 	QSharedPointer<BamReader> bam_reader_;
 	QVector<BamAlignmentWrapper> alignments_;
 	QVector<BamAlignmentWrapper> dummy_alignments_;

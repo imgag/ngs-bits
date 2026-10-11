@@ -414,7 +414,6 @@ void GenomeVisualizationWidget::loadSession()
 }
 
 //TODO Marc:
-//- BamTrack: take visibility range a Paramter. Start with global app settings value. connect Alignment and Coverage track so that they change together
 //- test session storing and loading
 //  - XSD constraint Paramter Value count based on type attribute
 //- gene track show strand arrows

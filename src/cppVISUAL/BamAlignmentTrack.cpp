@@ -25,6 +25,7 @@ BamAlignmentTrack::BamAlignmentTrack(QWidget* parent, QString file_path, QString
 {
 	connect(&settings_, &ParameterList::parameterChanged, this, [this]()
 	{
+		if (track_data_) track_data_->setVisibilityRange(settings_.getInt("visibility range"));
 		if (track_data_ && isCurrentRegionValid())
 		{
 			makePairs();
@@ -41,15 +42,18 @@ BamAlignmentTrack::BamAlignmentTrack(QWidget* parent, QString file_path, QString
 
 QList<Parameter> BamAlignmentTrack::getParameters() const
 {
-	return {Parameter("view as pairs", "Connect read-pairs with a line.", ParameterType::BOOL, {}),
+	return {
+		Parameter("view as pairs", "Connect read-pairs with a line.", ParameterType::BOOL, {}),
 		Parameter("show all bases", "Display all bases, not only ones that are different from the reference base.", ParameterType::BOOL, {}),
 		Parameter("show soft-clipped bases", "Display soft-clipped bases.", ParameterType::BOOL, {}),
-		Parameter("color by", "Alignment coloring scheme.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("none\tinsert size\tread strand")}})};
+		Parameter("color by", "Alignment coloring scheme.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("none\tinsert size\tread strand")}}),
+		Parameter("visibility range", "Maximum genomic region for which content is displayed (in bases).", ParameterType::INT, {{ConstraintType::MIN, 1}})
+	};
 }
 
 QHash<QByteArray, QVariant> BamAlignmentTrack::getParameterDefaults() const
 {
-	return {{"view as pairs", true}, {"show all bases", false}, {"show soft-clipped bases", false}, {"color by", QByteArray("insert size")}};
+	return {{"visibility range", SharedData::settings().bam_max_region_len}, {"view as pairs", true}, {"show all bases", false}, {"show soft-clipped bases", false}, {"color by", QByteArray("insert size")}};
 }
 
 BamAlignmentTrack::~BamAlignmentTrack()
@@ -74,6 +78,7 @@ void BamAlignmentTrack::setTrackData(QSharedPointer<BamTrackData> track_data)
 	track_data_ = track_data;
 	connect(track_data_.get(), SIGNAL(onDataUpdate()), this, SLOT(dataReady()));
 	connect(track_data_.get(), SIGNAL(onFullLoad()), this, SLOT(fullLoad()));
+	track_data_->bindVisibilityRange(settings_);
 	dataReady();
 }
 
@@ -95,7 +100,7 @@ void BamAlignmentTrack::fullLoad()
 bool BamAlignmentTrack::isCurrentRegionValid()
 {
 	const BedLine& region = SharedData::region();
-	const int max_region_len = SharedData::settings().bam_max_region_len;
+	const int max_region_len = settings_.getInt("visibility range");
 	return (region.length() <= max_region_len);
 }
 
@@ -242,7 +247,7 @@ void BamAlignmentTrack::paintEvent(QPaintEvent*)
 	painter.fillRect(rect(), Qt::white);
 	drawLabel(painter);
 	const BedLine& region = SharedData::region();
-	const int max_region_len = SharedData::settings().bam_max_region_len;
+	const int max_region_len = settings_.getInt("visibility range");
 	if (region.length() > max_region_len) drawZoomInText(painter);
 	else
 	{

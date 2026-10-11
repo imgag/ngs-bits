@@ -6,6 +6,11 @@
 #include "BedTrack.h"
 #include "FileLoader.h"
 #include "IgvTrack.h"
+#include "BamAlignmentTrack.h"
+#include "BamCoverageTrack.h"
+#include "BamTrackDataManager.h"
+#include "BamWriter.h"
+#include <QScopeGuard>
 #include <QDialog>
 #include <QFontMetrics>
 #include <QImage>
@@ -172,6 +177,71 @@ private slots:
 			QColor edge = image.pixelColor(x0 + 12, 30);
 			QVERIFY(edge.blue() > edge.red());
 		}
+	}
+
+	void bamVisibilityRangeIsSharedAndControlsLoading()
+	{
+		const GlobalSettings original_settings = SharedData::settings();
+		const auto restore_settings = qScopeGuard([&]() { SharedData::setSettings(original_settings); });
+		GlobalSettings settings = original_settings;
+		settings.bam_max_region_len = 40;
+		SharedData::setSettings(settings);
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		writeFile("visibility.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\nread\t0\tchr22\t10\t60\t10M\t=\t10\t0\tAAAAAAAAAA\tIIIIIIIIII\n");
+		{
+			BamReader reader(data_.filePath("visibility.sam"));
+			BamWriter writer(data_.filePath("visibility.bam"));
+			writer.writeHeader(reader);
+			BamAlignment alignment;
+			while (reader.getNextAlignment(alignment)) writer.writeAlignment(alignment);
+		}
+		QCOMPARE(sam_index_build(data_.filePath("visibility.bam").toUtf8().constData(), 0), 0);
+		const QString relative_path = QDir::current().relativeFilePath(data_.filePath("visibility.bam"));
+		QScopedPointer<BamAlignmentTrack> alignment(BamAlignmentTrack::createTrack(nullptr, relative_path, "alignments"));
+		QScopedPointer<BamCoverageTrack> coverage(BamCoverageTrack::createTrack(nullptr, data_.filePath("visibility.bam"), "coverage"));
+		QVERIFY(alignment);
+		QVERIFY(coverage);
+		auto data = BamTrackDataManager::getOrCreate(relative_path);
+		QCOMPARE(data, BamTrackDataManager::getOrCreate(data_.filePath("visibility.bam")));
+		QCOMPARE(alignment->parameters().getInt("visibility range"), 40);
+		QCOMPARE(coverage->parameters().getInt("visibility range"), 40);
+		QVERIFY(data->getAlignments().isEmpty());
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, alignment->parameters().setInt("visibility range", 0));
+
+		QSignalSpy changes(data.get(), &BamTrackData::visibilityRangeChanged);
+		alignment->parameters().setInt("visibility range", 100);
+		QCOMPARE(coverage->parameters().getInt("visibility range"), 100);
+		QCOMPARE(data->getAlignments().count(), 1);
+		QCOMPARE(changes.count(), 1);
+		coverage->parameters().setInt("visibility range", 20);
+		QCOMPARE(alignment->parameters().getInt("visibility range"), 20);
+		QVERIFY(data->getAlignments().isEmpty());
+		coverage->parameters().setInt("visibility range", 100);
+		QCOMPARE(alignment->parameters().getInt("visibility range"), 100);
+		QCOMPARE(data->getAlignments().count(), 1);
+		QImage image(coverage->size(), QImage::Format_ARGB32);
+		coverage->render(&image);
+
+		QByteArray xml;
+		QXmlStreamWriter writer(&xml);
+		alignment->writeToXml(writer);
+		QDomDocument doc;
+		QVERIFY(doc.setContent(xml));
+		coverage->parameters().setInt("visibility range", 20);
+		QStringList errors;
+		QScopedPointer<TrackWidget> restored(TrackWidget::fromXml(doc.documentElement(), nullptr, errors));
+		QVERIFY(restored);
+		QVERIFY(errors.isEmpty());
+		QCOMPARE(restored->parameters().getInt("visibility range"), 100);
+		QCOMPARE(coverage->parameters().getInt("visibility range"), 100);
+
+		settings.bam_max_region_len = 200;
+		SharedData::setSettings(settings);
+		QCOMPARE(alignment->parameters().getInt("visibility range"), 100);
+		BamCoverageTrack other(nullptr, "", "other");
+		QCOMPARE(other.parameters().getInt("visibility range"), 200);
+		other.parameters().setInt("visibility range", 60);
+		QCOMPARE(coverage->parameters().getInt("visibility range"), 100);
 	}
 
 	void startupEmbeddedInMainWindow()
