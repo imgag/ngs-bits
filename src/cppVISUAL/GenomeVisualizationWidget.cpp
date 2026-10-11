@@ -11,6 +11,7 @@
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QSignalBlocker>
+#include <QMenu>
 
 GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	: QWidget(parent)
@@ -29,7 +30,7 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 		ui_->settings_btn->setChecked(visible);
 	});
 	GUIHelper::styleSplitter(ui_->track_group_manager);
-	ui_->debug_btn->setVisible(Helper::runningInQtCreator());
+	setupDebugButton();
 
 	//connect signals and slots
 	connect(ui_->chr_selector, SIGNAL(currentTextChanged(QString)), this, SLOT(setChromosomeRegion(QString)));
@@ -39,13 +40,33 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	connect(SharedData::instance(), SIGNAL(transcriptsChanged()), this, SLOT(updateIndices()));
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
 	connect(SharedData::instance(), SIGNAL(updateGenomicCoordinate(QString)), this, SLOT(updateCoordinateLabel(QString)));
-	connect(ui_->debug_btn, &QPushButton::clicked, this, &GenomeVisualizationWidget::debugMethod);
 
 	//clean session
 	clearSession();
 
 	//show the current coordinates before the first region change
 	updateRegion();
+}
+
+void GenomeVisualizationWidget::setupDebugButton()
+{
+	//show only in QtCreator
+	ui_->debug_btn->setVisible(Helper::runningInQtCreator());
+
+	QMenu* debug_menu = new QMenu(ui_->debug_btn);
+
+	//add goto entries
+	for (const QString& query : QStringList{"BRCA1", "BRCA2", "chr1:9000-10000"})
+	{
+		QAction* action = debug_menu->addAction("goto " + query);
+		connect(action, &QAction::triggered, this, [this, query]()
+				{
+					ui_->search->setText(query);
+					search();
+				});
+	}
+
+	ui_->debug_btn->setMenu(debug_menu);
 }
 
 GenomeVisualizationWidget::~GenomeVisualizationWidget()
@@ -167,13 +188,6 @@ void GenomeVisualizationWidget::setChromosomeRegion(QString chr)
 	}
 
 	SharedData::setRegion(chr, 1, SharedData::genome().lengthOf(c));
-}
-
-void GenomeVisualizationWidget::debugMethod()
-{
-	qDebug() << __PRETTY_FUNCTION__ << __LINE__;
-	loadFile("https://gsvar.megsap.de/v1/assets/rna.bam");
-	qDebug() << __PRETTY_FUNCTION__ << __LINE__;
 }
 
 void GenomeVisualizationWidget::toggleSettingsVisibility()
@@ -417,6 +431,5 @@ void GenomeVisualizationWidget::loadSession()
 //- test session storing and loading
 //  - XSD constraint Paramter Value count based on type attribute
 //- gene track show strand arrows
-//- debug mode drop-down: goto region, goto gene
 //- add region bookmarks stored in Settings
 //- BAM track: "group by": phase/read orientation

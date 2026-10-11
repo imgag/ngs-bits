@@ -28,7 +28,7 @@ public:
 public slots:
 	//Shows 'open file' dialog
 	void openFileDialog();
-	//Showse 'open URL' dialog
+	//Shows 'open URL' dialog
 	void openUrlDialog();
 	//Loads a file
 	void loadFile(QString filename);
@@ -42,6 +42,8 @@ public slots:
 	void loadSession();
 
 protected:
+	//set up debug button
+	void setupDebugButton();
 	// handles zoom in/out
 	void wheelEvent(QWheelEvent* event) override;
 
@@ -67,7 +69,6 @@ protected slots:
 	//Sets the region of the whole chromosome
 	void setChromosomeRegion(QString chromsome);
 	//Debugging method
-	void debugMethod();
 	//Toggle settings visbilty
 	void toggleSettingsVisibility();
 
