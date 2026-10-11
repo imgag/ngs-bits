@@ -10,7 +10,7 @@
 #include <QMouseEvent>
 #include <QWidget>
 
-//Track that displays a BedFile
+//Track that displays a BED file
 class CPPVISUALSHARED_EXPORT BedTrack
 	: public TrackWidget
 {

@@ -8,28 +8,19 @@
 #include <QPainter>
 #include <cmath>
 
-namespace
-{
-	const QByteArray HEATMAP = "HEATMAP";
-	const QByteArray BAR_CHART = "BAR_CHART";
-	const QByteArray POINTS = "POINTS";
-	const QByteArray LINE_PLOT = "LINE_PLOT";
-	const QByteArrayList GRAPH_MODES{HEATMAP, BAR_CHART, POINTS, LINE_PLOT};
-}
-
 QList<Parameter> IgvTrack::getParameters() const
 {
 	QList<Parameter> config;
-	config.append(Parameter("graph_mode", "Type of graph", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, GRAPH_MODES.join('\t')}}));
-	config.append(Parameter("track_height", "Track height in pixels", ParameterType::INT, {{ConstraintType::MIN, 1}}));
-	config.append(Parameter("view_min", "Lower plot limit", ParameterType::DOUBLE, {}));
-	config.append(Parameter("view_max", "Upper plot limit", ParameterType::DOUBLE, {}));
+	config.append(Parameter("draw mode", "Type of graph.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("heatmap\tbar chart\tpoints\tline plot")}}));
+	config.append(Parameter("min", "Y axis minimum of plot.", ParameterType::DOUBLE, {{ConstraintType::DISPLAY_DIGITS, 2}}));
+	config.append(Parameter("max", "Y axis maximum of plot.", ParameterType::DOUBLE, {{ConstraintType::DISPLAY_DIGITS, 2}}));
+	config.append(Parameter("track_height", "Track height in pixels.", ParameterType::INT, {{ConstraintType::MIN, 1}}));
 	return config;
 }
 
 QHash<QByteArray, QVariant> IgvTrack::getParameterDefaults() const
 {
-	QHash<QByteArray, QVariant> defaults{{"graph_mode", POINTS}, {"track_height", 100}, {"view_min", 0.0}, {"view_max", 1.0}};
+	QHash<QByteArray, QVariant> defaults{{"draw mode", QByteArray("points")}, {"track_height", 100}, {"min", 0.0}, {"max", 1.0}};
 	if (bed_file_)
 	{
 		for (const QByteArray& header : bed_file_->headers())
@@ -43,8 +34,8 @@ QHash<QByteArray, QVariant> IgvTrack::getParameterDefaults() const
 				QByteArray value = attr.mid(idx + 1);
 				if (key == "graphtype")
 				{
-					QByteArray mode = value.toUpper();
-					if (GRAPH_MODES.contains(mode)) defaults["graph_mode"] = mode;
+					QByteArray mode = value.toLower().replace('_', ' ');
+					if (mode == "heatmap" || mode == "bar chart" || mode == "points" || mode == "line plot") defaults["draw mode"] = mode;
 				}
 				else if (key == "viewlimits")
 				{
@@ -56,8 +47,8 @@ QHash<QByteArray, QVariant> IgvTrack::getParameterDefaults() const
 						float maximum = limits[1].toFloat(&ok_max);
 						if (ok_min && ok_max)
 						{
-							defaults["view_min"] = minimum;
-							defaults["view_max"] = maximum;
+							defaults["min"] = minimum;
+							defaults["max"] = maximum;
 						}
 					}
 				}
@@ -71,7 +62,7 @@ QHash<QByteArray, QVariant> IgvTrack::getParameterDefaults() const
 			break;
 		}
 	}
-	if (defaults.value("view_min").toDouble() >= defaults.value("view_max").toDouble())
+	if (defaults.value("min").toDouble() >= defaults.value("max").toDouble())
 	{
 		THROW(ArgumentException, "View min >= view max in IGV track.");
 	}
@@ -106,26 +97,22 @@ IgvTrack* IgvTrack::createTrack(QWidget* parent, QString file_path, QString name
 {
 	QSharedPointer<BedFile> bed_file = FileLoader::loadIgvFile(file_path);
 	if (!bed_file) return nullptr;
+
 	QString display_name = name;
-	if (display_name == "")
-	{
-		// load from file first
-		display_name = getTrackNameFromIgvFile(bed_file);
-		// fallback: set the name to the file name
-		if (display_name == "") display_name = getDisplayNameFromFilePath(file_path);
-	}
-	IgvTrack* igv_track = nullptr;
+	if (display_name.isEmpty()) display_name = getTrackNameFromIgvFile(bed_file);
+	if (display_name.isEmpty()) display_name = getDisplayNameFromFilePath(file_path);
+
 	try
 	{
-		igv_track = new IgvTrack(parent, file_path, display_name, bed_file);
+		IgvTrack* track = new IgvTrack(parent, file_path, display_name, bed_file);
+		track->setBedFile(bed_file);
+		return track;
 	}
 	catch (const ArgumentException& e)
 	{
 		QMessageBox::warning(QApplication::activeWindow(), "Error", e.message());
 		return nullptr;
 	}
-	igv_track->setBedFile(bed_file);
-	return igv_track;
 }
 
 void IgvTrack::reloadTrack()
@@ -154,16 +141,23 @@ void IgvTrack::setBedFile(QSharedPointer<BedFile> bed_file)
 void IgvTrack::paintEvent(QPaintEvent*)
 {
 	QPainter painter(this);
+
+	//fill background
 	painter.fillRect(rect(), Qt::white);
+
+	//draw label
 	drawLabel(painter);
+
+	//draw chart
 	if (bed_file_) drawPlot(painter);
-	if (settings_.getString("graph_mode") != HEATMAP) drawScaleText(painter);
+
+	if (settings_.getString("draw mode") != "heatmap") drawScaleText(painter);
 }
 
 void IgvTrack::drawScaleText(QPainter& painter)
 {
-	const double view_min = settings_.getDouble("view_min");
-	const double view_max = settings_.getDouble("view_max");
+	const double view_min = settings_.getDouble("min");
+	const double view_max = settings_.getDouble("max");
 	Viewport viewport = getViewport();
 	painter.setPen(Qt::black);
 	QRect rec(viewport.x0, 0, width(), height());
@@ -172,34 +166,41 @@ void IgvTrack::drawScaleText(QPainter& painter)
 
 IgvTrack::PlotScale IgvTrack::plotScale() const
 {
-	return {settings_.getDouble("view_min"), settings_.getDouble("view_max"), settings_.getInt("track_height")};
+	return {settings_.getDouble("min"), settings_.getDouble("max"), settings_.getInt("track_height")};
 }
 
 void IgvTrack::drawPlot(QPainter& painter)
 {
 	const BedLine& region = SharedData::region();
 	const PlotScale scale = plotScale();
-	const QByteArray graph_mode = settings_.getString("graph_mode");
-	//XML settings are restored one at a time; do not draw an invalid intermediate range.
+
+	//check min is less than max
 	if (scale.minimum >= scale.maximum) return;
 
+	//draw reference lines
 	drawReferenceLine(painter, scale.minimum, scale);
 	drawReferenceLine(painter, .5 * (scale.minimum + scale.maximum), scale);
 	drawReferenceLine(painter, scale.maximum, scale);
 
+	//get matching indices
 	int padding = region.length() / 3;
 	int start = std::max(0, region.start() - padding);
 	int end = region.end() + padding;
-	const QVector<int>& idxes = chr_index_->matchingIndices(region.chr(), start, end);
+	QVector<int> idxes = chr_index_->matchingIndices(region.chr(), start, end);
 
-	if (graph_mode == HEATMAP) drawHeatMap(painter, idxes, scale);
-	else if (graph_mode == BAR_CHART) drawBarChart(painter, idxes, scale);
-	else if (graph_mode == POINTS) drawPoints(painter, idxes, scale);
-	else if (graph_mode == LINE_PLOT) drawLinePlot(painter, idxes, scale);
+	//draw chart
+	QByteArray draw_mode = settings_.getString("draw mode");
+	if (draw_mode == "heatmap") drawHeatMap(painter, idxes, scale);
+	else if (draw_mode == "bar chart") drawBarChart(painter, idxes, scale);
+	else if (draw_mode == "points") drawPoints(painter, idxes, scale);
+	else if (draw_mode == "line plot") drawLinePlot(painter, idxes, scale);
 }
 
 void IgvTrack::drawPoints(QPainter& painter, const QVector<int>& idxes, const PlotScale& scale)
 {
+	painter.setRenderHint(QPainter::Antialiasing, true);
+	painter.setPen(Qt::NoPen);
+	painter.setBrush(Qt::blue);
 	const BedLine& region = SharedData::region();
 	const Viewport& viewport = getViewport();
 
@@ -221,8 +222,7 @@ void IgvTrack::drawPoints(QPainter& painter, const QVector<int>& idxes, const Pl
 
 		int py = valueToY(value, scale);
 
-		painter.setBrush(Qt::blue);
-		painter.drawEllipse(QPoint(px, py), 2, 2);
+		painter.drawEllipse(QPointF(px, py), 1.5, 1.5);
 	}
 }
 
@@ -280,11 +280,9 @@ void IgvTrack::drawLinePlot(QPainter& painter, const QVector<int>& idxes, const 
 static const QColor HEATMAP_COL1 = QColor(122, 122, 214, 90);
 static const QColor HEATMAP_COL2 = QColor(0, 0, 255, 255);
 
-
 void IgvTrack::drawHeatMap(QPainter& painter, const QVector<int>& idxes, const PlotScale& scale)
 {
 	painter.setRenderHint(QPainter::Antialiasing);
-
 	const BedLine& region = SharedData::region();
 	const Viewport& viewport = getViewport();
 
@@ -397,7 +395,7 @@ void IgvTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 	if (!chr_index_) return;
 	const PlotScale scale = plotScale();
 	if (scale.minimum >= scale.maximum) return;
-	const QByteArray graph_mode = settings_.getString("graph_mode");
+	const QByteArray draw_mode = settings_.getString("draw mode");
 	const int p_zero = valueToY(scale.minimum, scale);
 	const BedLine& region = SharedData::region();
 	const Viewport viewport = getViewport();
@@ -426,17 +424,17 @@ void IgvTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 
 		int py = valueToY(value, scale);
 
-		if (graph_mode == POINTS || graph_mode == LINE_PLOT)
+		if (draw_mode == "points" || draw_mode == "line plot")
 		{
 			// Strict distance check for point structures
 			if (std::abs(py - local_pos.y()) <= 6) candidates.push_back(idx);
 		}
-		else if (graph_mode == BAR_CHART)
+		else if (draw_mode == "bar chart")
 		{
 			// For bar charts, anywhere within the bar height counts
 			if (local_pos.y() >= py && local_pos.y() <= p_zero) candidates.push_back(idx);
 		}
-		else if (graph_mode == HEATMAP)
+		else if (draw_mode == "heatmap")
 		{
 			// For heatmaps, the whole vertical span of the track represents the data
 			candidates.push_back(idx);
@@ -449,18 +447,13 @@ void IgvTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 	foreach (int idx, candidates)
 	{
 		const BedLine& bd = (*bed_file_)[idx];
-		info += getIgvText(bd);
+		info += QString("%1: %2 %3, Value: %4\n")
+					.arg(bd.chr().str())
+					.arg(bd.start())
+					.arg(bd.end())
+					.arg(bd.annotations()[1]);
 	}
 	showInfoPopup(global_pos, info);
-}
-
-QString IgvTrack::getIgvText(const BedLine& bd)
-{
-	return QString("%1: %2 %3, Value: %4\n")
-		.arg(bd.chr().str())
-		.arg(bd.start())
-		.arg(bd.end())
-		.arg(bd.annotations()[1]);
 }
 
 QString IgvTrack::getTrackNameFromIgvFile(QSharedPointer<BedFile> bed_file)

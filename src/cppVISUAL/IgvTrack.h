@@ -57,10 +57,8 @@ private:
 	// handles right click by user
 	void handlePopupRequest(QPoint local_pos, QPointF global_pos);
 
-	// utility funcitons
+	// utility functons
 	static int valueToY(float value, const PlotScale& scale);
-	// converts a BedLine to text for the pop up info box
-	QString getIgvText(const BedLine& bd);
 
 	// file functions
 	static QString getTrackNameFromIgvFile(QSharedPointer<BedFile> bed_file);

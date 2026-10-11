@@ -413,11 +413,11 @@ void GenomeVisualizationWidget::loadSession()
 	Settings::setPath("load_store_session_folder", QFileInfo(file_path).absolutePath());
 }
 
-
 //TODO Marc:
 //- check parameters of all tracks: IGV
+//- test session storing and loading
+//  - XSD constraint Paramter Value count based on type attribute
 //- gene track show strand arrows
-//- debug mode drop-down: goto region, goto rene
+//- debug mode drop-down: goto region, goto gene
 //- add region bookmarks stored in Settings
 //- BAM track: "group by": phase/read orientation
-//- XSD constraint Paramter Value count based on type attribute
