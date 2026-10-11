@@ -414,7 +414,7 @@ void GenomeVisualizationWidget::loadSession()
 }
 
 //TODO Marc:
-//- check parameters of all tracks: IGV
+//- check parameters of all tracks: IGV + general refactoring
 //- test session storing and loading
 //  - XSD constraint Paramter Value count based on type attribute
 //- gene track show strand arrows

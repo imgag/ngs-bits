@@ -49,7 +49,7 @@ QSharedPointer<BedFile> FileLoader::loadBedFile(QString file_path)
 	}
 }
 
-QSharedPointer<BedFile> FileLoader::loadIgvFile(QString file_path)
+QSharedPointer<IgvFile> FileLoader::loadIgvFile(QString file_path)
 {
 	try
 	{
@@ -62,8 +62,18 @@ QSharedPointer<BedFile> FileLoader::loadIgvFile(QString file_path)
 			return nullptr;
 		}
 
-		bedfile->sort();
-		return bedfile;
+		QVector<IgvFileLine> lines;
+		lines.reserve(bedfile->count());
+		for (int i = 0; i < bedfile->count(); ++i)
+		{
+			const BedLine& line = (*bedfile)[i];
+			if (line.annotations().count() < 2) continue;
+			bool ok = false;
+			double value = line.annotations()[1].toDouble(&ok);
+			if (!ok) continue;
+			lines.append(IgvFileLine(line.chr(), line.start(), line.end(), value));
+		}
+		return QSharedPointer<IgvFile>::create(std::move(lines), bedfile->headers());
 	}
 	catch (const Exception& e)
 	{

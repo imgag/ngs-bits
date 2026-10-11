@@ -4,6 +4,8 @@
 #include "Settings.h"
 #include "SharedData.h"
 #include "BedTrack.h"
+#include "FileLoader.h"
+#include "IgvTrack.h"
 #include <QDialog>
 #include <QFontMetrics>
 #include <QImage>
@@ -62,6 +64,47 @@ private slots:
 		SharedData::setRegion(Chromosome("chr22"), 1, 80);
 		writeFile("first.bed", "chr22\t10\t20\n");
 		writeFile("second.bed", "chr22\t30\t40\n");
+	}
+
+	void igvNumericRecordsAndMetadata()
+	{
+		const QByteArray headers = "#track name=numeric graphtype=BAR_CHART viewlimits=-2:3 maxheightpixels=80\nChromosome\tStart\tEnd\tFeature\tSignal\n";
+		writeFile("numeric.igv", headers
+			+ "chr22\t30\t40\tfeature\t0.123456789012345\n"
+			+ "chr22\t20\t25\tfeature\tinvalid\n"
+			+ "chr22\t15\t18\tfeature\n"
+			+ "chr22\t12\t14\n"
+			+ "chr22\t0\t10\tfeature\t-1.5\n"
+			+ "chr2\t0\t5\tfeature\t2.5\n");
+		auto file = FileLoader::loadIgvFile(data_.filePath("numeric.igv"));
+		QVERIFY(file);
+		QCOMPARE(file->count(), 3);
+		QVERIFY(file->isSorted());
+		QCOMPARE(file->headers().count(), 2);
+		QCOMPARE(file->headers()[0], headers.split('\n')[0]);
+		QCOMPARE((*file)[0].chr(), Chromosome("chr2"));
+		QCOMPARE((*file)[1].start(), 1);
+		QCOMPARE((*file)[1].end(), 10);
+		QCOMPARE((*file)[1].value(), -1.5);
+		QCOMPARE((*file)[2].value(), 0.123456789012345);
+		ChromosomalIndex<IgvFile> index(*file);
+		QCOMPARE(index.matchingIndices(Chromosome("chr22"), 10, 10), QVector<int>({1}));
+		QVERIFY(index.matchingIndices(Chromosome("chr22"), 11, 30).isEmpty());
+		QCOMPARE(index.matchingIndices(Chromosome("chr22"), 31, 40), QVector<int>({2}));
+
+		QScopedPointer<IgvTrack> track(IgvTrack::createTrack(nullptr, data_.filePath("numeric.igv")));
+		QVERIFY(track);
+		QCOMPARE(track->parameters().getString("draw mode"), QByteArray("bar chart"));
+		QCOMPARE(track->parameters().getDouble("min"), -2.0);
+		QCOMPARE(track->parameters().getDouble("max"), 3.0);
+		QCOMPARE(track->sizeHint().height(), 80);
+
+		writeFile("empty.igv", headers + "chr22\t0\t10\tfeature\tinvalid\n");
+		auto empty = FileLoader::loadIgvFile(data_.filePath("empty.igv"));
+		QVERIFY(empty);
+		QCOMPARE(empty->count(), 0);
+		ChromosomalIndex<IgvFile> empty_index(*empty);
+		QVERIFY(empty_index.matchingIndices(Chromosome("chr22"), 1, 10).isEmpty());
 	}
 
 	void startupEmbeddedInMainWindow()

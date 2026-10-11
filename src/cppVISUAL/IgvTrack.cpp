@@ -21,9 +21,9 @@ QList<Parameter> IgvTrack::getParameters() const
 QHash<QByteArray, QVariant> IgvTrack::getParameterDefaults() const
 {
 	QHash<QByteArray, QVariant> defaults{{"draw mode", QByteArray("points")}, {"track_height", 100}, {"min", 0.0}, {"max", 1.0}};
-	if (bed_file_)
+	if (igv_file_)
 	{
-		for (const QByteArray& header : bed_file_->headers())
+		for (const QByteArray& header : igv_file_->headers())
 		{
 			if (!header.startsWith("#track")) continue;
 			for (const QByteArray& attr : header.split(' '))
@@ -43,8 +43,8 @@ QHash<QByteArray, QVariant> IgvTrack::getParameterDefaults() const
 					if (limits.size() == 2)
 					{
 						bool ok_min = false, ok_max = false;
-						float minimum = limits[0].toFloat(&ok_min);
-						float maximum = limits[1].toFloat(&ok_max);
+						double minimum = limits[0].toDouble(&ok_min);
+						double maximum = limits[1].toDouble(&ok_max);
 						if (ok_min && ok_max)
 						{
 							defaults["min"] = minimum;
@@ -70,13 +70,13 @@ QHash<QByteArray, QVariant> IgvTrack::getParameterDefaults() const
 }
 
 IgvTrack::IgvTrack(QWidget* parent, QString file_path, QString name)
-	: IgvTrack(parent, file_path, name, QSharedPointer<BedFile>())
+	: IgvTrack(parent, file_path, name, QSharedPointer<IgvFile>())
 {
 }
 
-IgvTrack::IgvTrack(QWidget* parent, QString file_path, QString name, QSharedPointer<BedFile> bed_file)
+IgvTrack::IgvTrack(QWidget* parent, QString file_path, QString name, QSharedPointer<IgvFile> igv_file)
 	: TrackWidget(parent, file_path, name, type())
-	, bed_file_(bed_file)
+	, igv_file_(igv_file)
 {
 	connect(&settings_, &ParameterList::parameterChanged, this, [this]()
 	{
@@ -95,17 +95,17 @@ IgvTrack::~IgvTrack()
 
 IgvTrack* IgvTrack::createTrack(QWidget* parent, QString file_path, QString name)
 {
-	QSharedPointer<BedFile> bed_file = FileLoader::loadIgvFile(file_path);
-	if (!bed_file) return nullptr;
+	QSharedPointer<IgvFile> igv_file = FileLoader::loadIgvFile(file_path);
+	if (!igv_file) return nullptr;
 
 	QString display_name = name;
-	if (display_name.isEmpty()) display_name = getTrackNameFromIgvFile(bed_file);
+	if (display_name.isEmpty()) display_name = getTrackNameFromIgvFile(igv_file);
 	if (display_name.isEmpty()) display_name = getDisplayNameFromFilePath(file_path);
 
 	try
 	{
-		IgvTrack* track = new IgvTrack(parent, file_path, display_name, bed_file);
-		track->setBedFile(bed_file);
+		IgvTrack* track = new IgvTrack(parent, file_path, display_name, igv_file);
+		track->setIgvFile(igv_file);
 		return track;
 	}
 	catch (const ArgumentException& e)
@@ -117,8 +117,8 @@ IgvTrack* IgvTrack::createTrack(QWidget* parent, QString file_path, QString name
 
 void IgvTrack::reloadTrack()
 {
-	QSharedPointer<BedFile> bed_file = FileLoader::loadIgvFile(file_path_);
-	if (bed_file) setBedFile(bed_file);
+	QSharedPointer<IgvFile> igv_file = FileLoader::loadIgvFile(file_path_);
+	if (igv_file) setIgvFile(igv_file);
 	else emit trackDeleted();
 }
 
@@ -127,13 +127,13 @@ QSize IgvTrack::sizeHint() const
 	return QSize( parentWidget() ? parentWidget()->width() : 200, settings_.getInt("track_height"));
 }
 
-void IgvTrack::setBedFile(QSharedPointer<BedFile> bed_file)
+void IgvTrack::setIgvFile(QSharedPointer<IgvFile> igv_file)
 {
-	if (bed_file)
+	if (igv_file)
 	{
-		bed_file_ = bed_file;
-		chr_index_ = std::make_unique<ChromosomalIndex<BedFile>>(*bed_file);
-		chr_index_->createIndex();
+		auto index = std::make_unique<ChromosomalIndex<IgvFile>>(*igv_file);
+		igv_file_ = igv_file;
+		chr_index_ = std::move(index);
 		update();
 	}
 }
@@ -149,7 +149,7 @@ void IgvTrack::paintEvent(QPaintEvent*)
 	drawLabel(painter);
 
 	//draw chart
-	if (bed_file_) drawPlot(painter);
+	if (igv_file_) drawPlot(painter);
 
 	if (settings_.getString("draw mode") != "heatmap") drawScaleText(painter);
 }
@@ -206,11 +206,8 @@ void IgvTrack::drawPoints(QPainter& painter, const QVector<int>& idxes, const Pl
 
 	foreach (int idx, idxes)
 	{
-		const BedLine& bd = (*bed_file_)[idx];
-		if (bd.annotations().count() <= 1) continue;
-		bool ok;
-		float value = bd.annotations()[1].toFloat(&ok);
-		if (!ok) continue;
+		const IgvFileLine& bd = (*igv_file_)[idx];
+		const double value = bd.value();
 
 		int pos = (bd.start() + bd.end()) / 2;
 
@@ -233,17 +230,11 @@ void IgvTrack::drawLinePlot(QPainter& painter, const QVector<int>& idxes, const 
 
 	for (int i =1; i < idxes.count(); ++i)
 	{
-		const BedLine& bd1 = (*bed_file_)[idxes[i-1]];
-		const BedLine& bd2 = (*bed_file_)[idxes[i]];
+		const IgvFileLine& bd1 = (*igv_file_)[idxes[i-1]];
+		const IgvFileLine& bd2 = (*igv_file_)[idxes[i]];
 
-		if (bd1.annotations().count() <= 1 ||
-			bd2.annotations().count() <= 1) continue;
-		bool ok;
-
-		float value1 = bd1.annotations()[1].toFloat(&ok);
-		if (!ok) continue;
-		float value2 = bd2.annotations()[1].toFloat(&ok);
-		if (!ok) continue;
+		const double value1 = bd1.value();
+		const double value2 = bd2.value();
 
 		int pos = (bd1.start() + bd1.end()) / 2;
 		int pos2 = (bd2.start() + bd2.end()) / 2;
@@ -289,11 +280,8 @@ void IgvTrack::drawHeatMap(QPainter& painter, const QVector<int>& idxes, const P
 	painter.fillRect(viewport.x0, 0, viewport.usable_width, scale.height, Qt::gray);
 	foreach (int idx, idxes)
 	{
-		const BedLine& bd = (*bed_file_)[idx];
-		if (bd.annotations().count() <= 1) continue;
-		bool ok;
-		float value = bd.annotations()[1].toFloat(&ok);
-		if (!ok) continue;
+		const IgvFileLine& bd = (*igv_file_)[idx];
+		const double value = bd.value();
 
 		int pos = (bd.start() + bd.end()) / 2;
 
@@ -303,7 +291,7 @@ void IgvTrack::drawHeatMap(QPainter& painter, const QVector<int>& idxes, const P
 		float endx = viewport.genomePosToScreen(pos + 1);
 		float dx = endx - px;
 
-		float t = std::clamp(value, 0.0f, 1.0f);
+		double t = std::clamp(value, 0.0, 1.0);
 
 		int r = HEATMAP_COL1.red()   + t * (HEATMAP_COL2.red()   - HEATMAP_COL1.red());
 		int g = HEATMAP_COL1.green() + t * (HEATMAP_COL2.green() - HEATMAP_COL1.green());
@@ -328,11 +316,8 @@ void IgvTrack::drawBarChart(QPainter& painter, const QVector<int>& idxes, const 
 
 	foreach (int idx, idxes)
 	{
-		const BedLine& bd = (*bed_file_)[idx];
-		if (bd.annotations().count() <= 1) continue;
-		bool ok;
-		float value = bd.annotations()[1].toFloat(&ok);
-		if (!ok) continue;
+		const IgvFileLine& bd = (*igv_file_)[idx];
+		const double value = bd.value();
 
 		int pos = (bd.start() + bd.end()) / 2;
 
@@ -342,7 +327,7 @@ void IgvTrack::drawBarChart(QPainter& painter, const QVector<int>& idxes, const 
 		float endx = viewport.genomePosToScreen(pos + 1);
 		float dx = endx - px;
 
-		float t = std::clamp(value, static_cast<float>(scale.minimum), static_cast<float>(scale.maximum));
+		double t = std::clamp(value, scale.minimum, scale.maximum);
 
 		painter.setPen(Qt::blue);
 		painter.setBrush(Qt::blue);
@@ -353,7 +338,7 @@ void IgvTrack::drawBarChart(QPainter& painter, const QVector<int>& idxes, const 
 }
 
 
-void IgvTrack::drawReferenceLine(QPainter& painter, float value, const PlotScale& scale)
+void IgvTrack::drawReferenceLine(QPainter& painter, double value, const PlotScale& scale)
 {
 	const Viewport& viewport = getViewport();
 	painter.setPen(QPen(Qt::lightGray, 1, Qt::DashLine));
@@ -361,15 +346,14 @@ void IgvTrack::drawReferenceLine(QPainter& painter, float value, const PlotScale
 	painter.drawLine(viewport.x0, y, viewport.x0 + viewport.usable_width, y);
 }
 
-int IgvTrack::valueToY(float value, const PlotScale& scale)
+int IgvTrack::valueToY(double value, const PlotScale& scale)
 {
 	constexpr int margin = 4;
 	if (qFuzzyCompare(scale.maximum, scale.minimum)) return margin;
 
-
 	int usable_height = scale.height - 2 * margin;
-	float normalized_val = (value - scale.minimum) / (scale.maximum - scale.minimum);
-	return margin + (int)((1.0f - normalized_val) * usable_height);
+	double normalized_val = (value - scale.minimum) / (scale.maximum - scale.minimum);
+	return margin + (int)((1.0 - normalized_val) * usable_height);
 }
 
 void IgvTrack::mousePressEvent(QMouseEvent* event)
@@ -415,12 +399,8 @@ void IgvTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 
 	foreach (int idx, idxes)
 	{
-		const BedLine& bd = (*bed_file_)[idx];
-		if (bd.annotations().count() <= 1) continue;
-
-		bool ok;
-		float value = bd.annotations()[1].toFloat(&ok);
-		if (!ok) continue;
+		const IgvFileLine& bd = (*igv_file_)[idx];
+		const double value = bd.value();
 
 		int py = valueToY(value, scale);
 
@@ -446,23 +426,23 @@ void IgvTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 	QString info;
 	foreach (int idx, candidates)
 	{
-		const BedLine& bd = (*bed_file_)[idx];
+		const IgvFileLine& bd = (*igv_file_)[idx];
 		info += QString("%1: %2 %3, Value: %4\n")
 					.arg(bd.chr().str())
 					.arg(bd.start())
 					.arg(bd.end())
-					.arg(bd.annotations()[1]);
+					.arg(bd.value(), 0, 'g', 15);
 	}
 	showInfoPopup(global_pos, info);
 }
 
-QString IgvTrack::getTrackNameFromIgvFile(QSharedPointer<BedFile> bed_file)
+QString IgvTrack::getTrackNameFromIgvFile(QSharedPointer<IgvFile> igv_file)
 {
 	//this function assumes isValidIgvFile has already been called
 
-	if (!bed_file) return "";
+	if (!igv_file) return "";
 
-	foreach (QByteArray header, bed_file->headers())
+	foreach (QByteArray header, igv_file->headers())
 	{
 		if (header.startsWith("#track"))
 		{

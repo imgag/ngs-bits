@@ -62,6 +62,7 @@ HEADERS += \
     GenePanel.h \
     ChromosomePanel.h \
     IgvTrack.h \
+    IgvFile.h \
     TrackGroupManager.h \
     RowPacker.h \
     SharedData.h \

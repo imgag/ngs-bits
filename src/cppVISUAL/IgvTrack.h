@@ -3,7 +3,7 @@
 
 #include "cppVISUAL_global.h"
 #include "TrackWidget.h"
-#include "BedFile.h"
+#include "IgvFile.h"
 #include "ChromosomalIndex.h"
 
 //Track that shows the IGV data file
@@ -16,7 +16,7 @@ public:
 	~IgvTrack();
 	static QByteArray type() { return "IgvTrack"; }
 
-	void setBedFile(QSharedPointer<BedFile> bed_file);
+	void setIgvFile(QSharedPointer<IgvFile> igv_file);
 	void reloadTrack() override;
 
 	QSize sizeHint() const override;
@@ -32,11 +32,11 @@ protected:
 	void mouseReleaseEvent(QMouseEvent*) override;
 
 private:
-	IgvTrack(QWidget* parent, QString file_path, QString name, QSharedPointer<BedFile> bed_file);
+	IgvTrack(QWidget* parent, QString file_path, QString name, QSharedPointer<IgvFile> igv_file);
 
-	QSharedPointer<BedFile> bed_file_;
+	QSharedPointer<IgvFile> igv_file_;
 	QPoint mouse_press_pos_;
-	std::unique_ptr<ChromosomalIndex<BedFile>> chr_index_;
+	std::unique_ptr<ChromosomalIndex<IgvFile>> chr_index_;
 
 	// draw functions
 	struct PlotScale
@@ -51,17 +51,17 @@ private:
 	void drawLinePlot(QPainter&, const QVector<int>& idxes, const PlotScale& scale);
 	void drawHeatMap(QPainter&, const QVector<int>& idxes, const PlotScale& scale);
 	void drawBarChart(QPainter&, const QVector<int>& idxes, const PlotScale& scale);
-	void drawReferenceLine(QPainter&, float baf_value, const PlotScale& scale);
+	void drawReferenceLine(QPainter&, double value, const PlotScale& scale);
 	void drawScaleText(QPainter&);
 
 	// handles right click by user
 	void handlePopupRequest(QPoint local_pos, QPointF global_pos);
 
 	// utility functons
-	static int valueToY(float value, const PlotScale& scale);
+	static int valueToY(double value, const PlotScale& scale);
 
 	// file functions
-	static QString getTrackNameFromIgvFile(QSharedPointer<BedFile> bed_file);
+	static QString getTrackNameFromIgvFile(QSharedPointer<IgvFile> igv_file);
 
 };
 
