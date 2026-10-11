@@ -1,9 +1,21 @@
 #include "SharedData.h"
 #include "Settings.h"
-#include <QApplication>
-#include <QPainter>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <cmath>
+
+void SharedData::setSettings(const GlobalSettings& settings)
+{
+	if (settings.bam_max_region_len < 1) THROW(ArgumentException, "BAM maximum region length must be positive.");
+	if (!std::isfinite(settings.bam_insert_size_min_percentile) || !std::isfinite(settings.bam_insert_size_max_percentile)
+		|| settings.bam_insert_size_min_percentile < 0.0 || settings.bam_insert_size_max_percentile > 1.0
+		|| settings.bam_insert_size_min_percentile > settings.bam_insert_size_max_percentile)
+	{
+		THROW(ArgumentException, "BAM insert-size percentiles must satisfy 0 <= minimum <= maximum <= 1.");
+	}
+	instance()->settings_ = settings;
+	emit instance()->settingsChanged();
+}
 
 void SharedData::setTranscripts(const TranscriptList& transcripts)
 {
@@ -100,41 +112,6 @@ SharedData::SharedData(QObject* parent)
 	, transcripts_()
 	, transcripts_index_(transcripts_)
 	, settings_()
-	, region_(Chromosome("chr22"), 28693851, 28696161) //just some random default to make sure it is not a invalid region
-	, char_size_(determineCharacterSize())
+	, region_(Chromosome("chr22"), 28687785, 28734579) //just some random default to make sure it is not a invalid region
 {
-}
-
-QSize SharedData::determineCharacterSize()
-{
-	QFontMetrics fm(QApplication::font());
-
-	int w = 0;
-	int h = fm.height(); // font height already covers all characters
-	for (QChar c : QString("ACGTN"))
-	{
-		w = std::max(w, fm.horizontalAdvance(c));
-	}
-	return QSize(w, h);
-}
-
-void SharedData::writeToXml(QXmlStreamWriter& writer)
-{
-
-	const BedLine& region = SharedData::region();
-	writer.writeStartElement("DisplayedRegion");
-	writer.writeAttribute("chr", region.chr().strNormalized(true));
-	writer.writeAttribute("start", QString::number(region.start()));
-	writer.writeAttribute("end", QString::number(region.end()));
-	writer.writeEndElement();  // DisplayRegion
-}
-
-void SharedData::loadFromXml(QDomElement& dom)
-{
-	QDomElement region_info = dom.elementsByTagName("DisplayedRegion").at(0).toElement();
-	QString chr = region_info.attribute("chr");
-	int start = region_info.attribute("start").toInt();
-	int end = region_info.attribute("end").toInt();
-
-	setRegion(chr, start, end);
 }

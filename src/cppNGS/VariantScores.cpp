@@ -157,9 +157,9 @@ QList<Variant> VariantScores::loadBlacklist()
 	return output;
 }
 
-QStringList VariantScores::prefilters(const Parameters& parameters)
+QByteArrayList VariantScores::prefilters(const Parameters& parameters)
 {
-	QStringList filters;
+	QByteArrayList filters;
 	filters << "Allele frequency	max_af=0.1"
 			<< "Allele frequency (sub-populations)	max_af=0.1"
 			<< "Variant quality	qual=20	depth=1"
@@ -167,7 +167,7 @@ QStringList VariantScores::prefilters(const Parameters& parameters)
 			<< "Impact	impact=HIGH,MODERATE,LOW"
 			<< "Splice effect	MaxEntScan=LOW	SpliceAi=0.5	splice_site_only=false	action=KEEP"
 			<< "Count NGSD	max_count=100	ignore_genotype=false	mosaic_as_het=false" //make sure too common variants and artefacts with splicing effect prediction are not kept
-			<< "Annotated pathogenic	action=KEEP	sources=HGMD"+QString(parameters.use_clinvar ? ",ClinVar" : "")+"	also_likely_pathogenic=false"
+			<< "Annotated pathogenic	action=KEEP	sources=HGMD"+QByteArray(parameters.use_clinvar ? ",ClinVar" : "")+"	also_likely_pathogenic=false"
 			<< "Allele frequency	max_af=1.0" //make sure too common variants with pathogenic annotation are not kept
 			<< "Filter columns	entries=mosaic	action=REMOVE";
 	if (parameters.use_ngsd_classifications)
@@ -309,7 +309,7 @@ VariantScores::Result VariantScores::score_GSvar_v1(const VariantList& variants,
 	ChromosomalIndex<BedFile> roi_index(roi);
 
 	//apply pre-filters to reduce runtime
-	QStringList filters;
+	QByteArrayList filters;
 	filters << "Allele frequency	max_af=0.1"
 			<< "Allele frequency (sub-populations)	max_af=0.1"
 			<< "Variant quality	qual=20	depth=5"
@@ -568,7 +568,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_dominant(const VariantList& 
 	}
 
 	//apply pre-filters to reduce runtime
-	QStringList filters = prefilters(parameters);
+	QByteArrayList filters = prefilters(parameters);
 	FilterCascade cascade = FilterCascade::fromText(filters);
 	FilterResult cascade_result = cascade.apply(variants);
 
@@ -820,7 +820,7 @@ VariantScores::Result VariantScores::score_GSvar_v2_recessive(const VariantList&
 	}
 
 	//apply pre-filters to reduce runtime
-	QStringList filters = prefilters(parameters);
+	QByteArrayList filters = prefilters(parameters);
 	FilterCascade cascade = FilterCascade::fromText(filters);
 	FilterResult cascade_result = cascade.apply(variants);
 
