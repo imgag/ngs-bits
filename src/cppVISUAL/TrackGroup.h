@@ -9,7 +9,6 @@
 #include <QScrollArea>
 #include <QMouseEvent>
 #include <QPoint>
-#include <QPointer>
 #include <QXmlStreamWriter>
 
 // A TrackGroup containing TrackWidgets.
@@ -29,8 +28,6 @@ public:
 	void loadFromXml(const QDomElement& dom_element, QStringList& errors);
 	//Creates a track group from a file
 	static TrackGroup* fromFile(QString filename);
-	// reads <Track> elements in the dom and creates Tracks based on the properties, if no Track elements were created, returns null ptr
-	static TrackGroup* fromXml(const QDomElement& dom_element, QStringList& errors);
 	//returns the number of tracks
 	int trackCount();
 
@@ -56,7 +53,6 @@ protected:
 private:
 	QVBoxLayout* layout_;
 	QWidget* content_widget_;
-	QPointer<TrackWidget> cur_context_track_ = nullptr;
 
 	// adds track widgets to TrackGroup, called by loadTracksFromFile or the static function fromFile
 	void addTrackWidgets(QVector<TrackWidget*> widgets);

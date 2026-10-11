@@ -62,13 +62,7 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 	QVector<EventData> events;
 	Chromosome mate_chr; //needs to be set on creation, cannot be taken as argument because bam_reader_->chromosome might fail
 
-	BamAlignmentWrapper(BamAlignment aln)
-		: id(AlignmentKey::makeKey(aln))
-	{
-		storeAlignmentInfo(aln);
-	}
-
-	BamAlignmentWrapper(BamAlignment&& aln)
+	BamAlignmentWrapper(const BamAlignment& aln)
 		: id(AlignmentKey::makeKey(aln))
 	{
 		storeAlignmentInfo(aln);
@@ -86,11 +80,6 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 		return events;
 	}
 
-	bool operator==(const BamAlignmentWrapper& other) const
-	{
-		return id == other.id;
-	}
-
 	int start() const { return st_; }
 
 	int end() const { return en_; }
@@ -102,7 +91,6 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 	bool isReverseStrand() const { return is_reverse_; }
 
 	int mateStart() const { return mate_start_; }
-	int mateChrId() const { return mat_chr_id_; }
 
 	bool isMateMapped() const { return mate_is_mapped_; }
 
@@ -122,7 +110,6 @@ private:
 	int en_with_soft_clip_;
 	bool is_reverse_;
 	bool mate_is_mapped_;
-	int mat_chr_id_ = -1;
 	int mate_start_;
 	int insert_size_ = -1;
 	int phase_ = 0;
@@ -138,7 +125,6 @@ private:
 		is_reverse_ = al.isReverseStrand();
 		mate_is_mapped_ = !al.isMateUnmapped();
 		mate_start_ = al.mateStart();
-		mat_chr_id_ = al.mateChrosomeID();
 		name_ = al.name();
 		insert_size_ = al.insertSize();
 		const int hp = al.tagi("HP");
@@ -146,11 +132,6 @@ private:
 		is_secondary_ = al.isSecondaryAlignment();
 	}
 };
-
-inline size_t qHash(const BamAlignmentWrapper& key, size_t seed = 0)
-{
-	return qHash(key.id, seed);
-}
 
 struct InsertSizeStats
 {
@@ -235,7 +216,7 @@ private:
 
 	bool invalid_mate_warning_shown_ = false;
 
-	bool is_loading_;
+	bool is_loading_ = false;
 	bool return_empty_ = true;
 	InsertSizeStats insert_size_stats_;
 

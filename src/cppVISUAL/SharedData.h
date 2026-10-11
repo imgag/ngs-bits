@@ -7,7 +7,6 @@
 #include "ChromosomalIndex.h"
 #include "BedFile.h"
 
-#include <QSize>
 #include <QXmlStreamWriter>
 #include <QDomDocument>
 
@@ -69,12 +68,6 @@ public:
 	}
 	static void setRegion(const Chromosome& chr, int start, int end);
 
-	//Returns the size of a character
-	static const QSize& characterSize()
-	{
-		return  instance()->char_size_;
-	}
-
 	//Returns the instance (creates it on first call). This method is public only to connect signal/slots. For all other purposes, use other methods.
 	static SharedData* instance();
 
@@ -90,14 +83,12 @@ signals:
 protected:
 	explicit SharedData(QObject* parent = nullptr);
 	Q_DISABLE_COPY(SharedData)
-	QSize determineCharacterSize();
 
 	FastaFileIndex genome_index_;
 	TranscriptList transcripts_;
 	ChromosomalIndex<TranscriptList> transcripts_index_;
 	GlobalSettings settings_;
 	BedLine region_;
-	QSize char_size_;
 };
 
 

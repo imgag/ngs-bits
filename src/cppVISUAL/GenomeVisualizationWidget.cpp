@@ -430,5 +430,5 @@ void GenomeVisualizationWidget::loadSession()
 //TODO Marc:
 //- add region bookmarks stored in Settings
 //- ask for plan and of which I have infinite?
-//- check for unused methods
+//- check for unused members
 

@@ -90,14 +90,10 @@ void BamAlignmentTrack::fullLoad()
 	row_idxes_.clear();
 	pair_row_idxes_.clear();
 	row_stored_with_pair_.clear();
-	normal_row_store_.clear();
-	pair_row_store_.clear();
 
 	row_idxes_.squeeze();
 	pair_row_idxes_.squeeze();
 	row_stored_with_pair_.squeeze();
-	normal_row_store_.squeeze();
-	pair_row_store_.squeeze();
 }
 
 bool BamAlignmentTrack::isCurrentRegionValid()
@@ -569,24 +565,6 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 		painter.drawPolygon(arrow);
 	}
 
-	// if (!selected_name_.isEmpty() && al_w.name() == selected_name_) drawHighlight(painter, al_w, row_y, options.show_soft_clip_bases);
-}
-
-void BamAlignmentTrack::drawHighlight(QPainter& painter, const BamAlignmentWrapper& al_w, int row_y, bool show_soft_clip_bases)
-{
-
-	const BedLine& region = SharedData::region();
-	const Viewport& viewport = getViewport();
-	int st = std::max(getAlignmentStart(al_w, show_soft_clip_bases), region.start());
-	int en = std::min(getAlignmentEnd(al_w, show_soft_clip_bases), region.end());
-	int x_start = viewport.genomePosToScreen(st);
-	int width = viewport.genomeWidthToScreen(en - st + 1);
-
-	QRect draw_rect(x_start - 1, row_y - 2, width + 2, ROW_HEIGHT);
-	painter.fillRect(draw_rect, QColor(255, 30, 0, 150));
-	painter.setPen(QPen(QColor(200, 130, 0), 1));
-	painter.setBrush(Qt::NoBrush);
-	painter.drawRect(draw_rect);
 }
 
 QColor BamAlignmentTrack::baseColor(QChar base)

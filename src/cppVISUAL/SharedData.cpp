@@ -1,7 +1,5 @@
 #include "SharedData.h"
 #include "Settings.h"
-#include <QApplication>
-#include <QPainter>
 #include <QFileInfo>
 #include <QMessageBox>
 #include <cmath>
@@ -115,19 +113,5 @@ SharedData::SharedData(QObject* parent)
 	, transcripts_index_(transcripts_)
 	, settings_()
 	, region_(Chromosome("chr22"), 28687785, 28734579) //just some random default to make sure it is not a invalid region
-	, char_size_(determineCharacterSize())
 {
-}
-
-QSize SharedData::determineCharacterSize()
-{
-	QFontMetrics fm(QApplication::font());
-
-	int w = 0;
-	int h = fm.height(); // font height already covers all characters
-	for (QChar c : QString("ACGTN"))
-	{
-		w = std::max(w, fm.horizontalAdvance(c));
-	}
-	return QSize(w, h);
 }

@@ -73,8 +73,6 @@ private:
 	void calculateRowsPairMode();
 	// Packs haplotypes 1, 2, and unassigned into separate groups.
 	void calculateRowsByPhase(const DisplaySettings& options);
-	// computes the stats for insertsize
-	void computeInsertSizeStats();
 	// iterates through the alignments and stores pairs as ReadPair in read_pairs_
 	void makePairs(const DisplaySettings& options);
 
@@ -92,8 +90,6 @@ private:
 	// draws all bases if enabled in settings_, including soft clips if enabled
 	// if the corresponding flag is set
 	void drawAllBases(QPainter&, const BamAlignmentWrapper& al, int row_y, const DisplaySettings& options);
-	// draws a highlight on the given alignment
-	void drawHighlight(QPainter&, const BamAlignmentWrapper& al, int row_y, bool show_soft_clip_bases);
 
 	QString getBamAlignmentText(const BamAlignmentWrapper& al, int genome_pos, bool show_soft_clip_bases);
 
@@ -126,9 +122,6 @@ private:
 	QHash<AlignmentKey, int> pair_row_idxes_; // First alignment ID -> row index
 
 	QHash<AlignmentKey, bool> row_stored_with_pair_; // First alignment ID -> whether a mate was stored
-
-	QHash<int, QVector<int>> normal_row_store_; // row -> vector of alignment indices
-	QHash<int, QVector<int>> pair_row_store_; // row -> vector of pair indices
 
 
 	RowPacker row_packer_;

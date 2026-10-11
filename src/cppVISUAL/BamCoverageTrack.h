@@ -35,8 +35,6 @@ struct CPPVISUALSHARED_EXPORT BaseCoverage // stores coverage at a given genome 
 	bool is_variant =false; // set to true when a significant number of bases differ from the reference base
 
 	int total() const {return a() + c() + g() + t() + n();}
-
-	int max() const {return std::max({a(), c(), g(), t(), n()});}
 };
 
 //Track that displays the coverage of alignments for every genome pos
