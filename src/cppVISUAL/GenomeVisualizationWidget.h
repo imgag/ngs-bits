@@ -84,6 +84,8 @@ private:
 	QMetaObject::Connection selected_track_destroyed_;
 	void selectTrack(TrackWidget* track);
 	void clearParameterEditor();
+	void setupBookmarkMenu();
+	void storeBookmark();
 
 	QStringList valid_chrs_; //chromosome list (normalized)
 	QHash<QByteArray, QSet<int>> gene_to_trans_indices_;

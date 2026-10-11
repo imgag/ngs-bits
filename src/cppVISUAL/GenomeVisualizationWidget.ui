@@ -79,7 +79,7 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>150</width>
+             <width>180</width>
              <height>0</height>
             </size>
            </property>
@@ -87,6 +87,39 @@
             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Search for:&lt;br/&gt;- Chromosome&lt;br/&gt;- Chromosomal region (format e.g.: chr1:400-800)&lt;br/&gt;- HGNC-approved gene names&lt;br/&gt;- Transcript names&lt;br/&gt;&lt;br/&gt;Enter search text and press RETURN to start the search.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
           </widget>
+         </item>
+         <item>
+          <widget class="QToolButton" name="bookmarks_btn">
+           <property name="toolTip">
+            <string>Region bookmarks</string>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="cppVISUAL.qrc">
+             <normaloff>:/Icons/bookmark.png</normaloff>:/Icons/bookmark.png</iconset>
+           </property>
+           <property name="popupMode">
+            <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_3">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Policy::Fixed</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>15</width>
+             <height>5</height>
+            </size>
+           </property>
+          </spacer>
          </item>
          <item>
           <widget class="QToolButton" name="zoomout_btn">
@@ -208,7 +241,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>1020</width>
+             <width>964</width>
              <height>551</height>
             </rect>
            </property>
@@ -378,6 +411,7 @@
  </customwidgets>
  <resources>
   <include location="../cppGUI/resources.qrc"/>
+  <include location="cppVISUAL.qrc"/>
  </resources>
  <connections/>
 </ui>

@@ -6,12 +6,16 @@
 #include "XmlHelper.h"
 #include "Settings.h"
 #include "ParameterEditor.h"
+#include "BookmarkManager.h"
 #include <QToolTip>
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QInputDialog>
 #include <QSignalBlocker>
 #include <QMenu>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QLineEdit>
 
 GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	: QWidget(parent)
@@ -31,6 +35,7 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	});
 	GUIHelper::styleSplitter(ui_->track_group_manager);
 	setupDebugButton();
+	setupBookmarkMenu();
 
 	//connect signals and slots
 	connect(ui_->chr_selector, SIGNAL(currentTextChanged(QString)), this, SLOT(setChromosomeRegion(QString)));
@@ -67,6 +72,60 @@ void GenomeVisualizationWidget::setupDebugButton()
 	}
 
 	ui_->debug_btn->setMenu(debug_menu);
+}
+
+void GenomeVisualizationWidget::setupBookmarkMenu()
+{
+	QMenu* menu = new QMenu(ui_->bookmarks_btn);
+	menu->setObjectName("bookmarks_menu");
+	ui_->bookmarks_btn->setMenu(menu);
+	connect(menu, &QMenu::aboutToShow, this, [this, menu]()
+	{
+		menu->clear();
+		connect(menu->addAction("Store current region"), &QAction::triggered, this, &GenomeVisualizationWidget::storeBookmark);
+
+		connect(menu->addAction("Manage"), &QAction::triggered, this, [this]()
+		{
+			BookmarkManager dialog(this);
+			dialog.exec();
+		});
+
+		const QStringList bookmarks = Settings::stringList("bookmark_regions", true);
+		if (!bookmarks.isEmpty())
+		{
+			menu->addSeparator();
+			for (int i = 0; i < bookmarks.count(); ++i)
+			{
+				const QJsonObject bookmark = QJsonDocument::fromJson(bookmarks[i].toUtf8()).object();
+				const QString name = bookmark.value("name").toString();
+				const BedLine region(Chromosome(bookmark.value("chr").toString()), bookmark.value("start").toInt(), bookmark.value("end").toInt());
+				if (name.isEmpty() || !region.isValid() || region.start() < 1) continue;
+				const QString label = QString(name).replace("&", "&&");
+				QAction* action = menu->addAction(label);
+				action->setToolTip(region.toString(true));
+				connect(action, &QAction::triggered, this, [region]()
+				{
+					SharedData::setRegion(region.chr(), region.start(), region.end());
+				});
+
+			}
+		}
+	});
+}
+
+void GenomeVisualizationWidget::storeBookmark()
+{
+	const BedLine region = SharedData::region();
+	QInputDialog dialog(this);
+	dialog.setWindowTitle("Store bookmark");
+	dialog.setLabelText("Bookmark name:");
+	dialog.setTextValue(region.toString(true));
+	dialog.findChild<QLineEdit*>()->selectAll();
+	if (dialog.exec() != QDialog::Accepted || dialog.textValue().trimmed().isEmpty()) return;
+	const QJsonObject bookmark{{"name", dialog.textValue().trimmed()}, {"chr", QString::fromUtf8(region.chr().strNormalized(true))}, {"start", region.start()}, {"end", region.end()}};
+	QStringList bookmarks = Settings::stringList("bookmark_regions", true);
+	bookmarks.append(QString::fromUtf8(QJsonDocument(bookmark).toJson(QJsonDocument::Compact)));
+	Settings::setStringList("bookmark_regions", bookmarks);
 }
 
 GenomeVisualizationWidget::~GenomeVisualizationWidget()
@@ -426,9 +485,4 @@ void GenomeVisualizationWidget::loadSession()
 	//store path
 	Settings::setPath("load_store_session_folder", QFileInfo(file_path).absolutePath());
 }
-
-//TODO Marc:
-//- add region bookmarks stored in Settings
-//- ask for plan and of which I have infinite?
-//- check for unused members
 

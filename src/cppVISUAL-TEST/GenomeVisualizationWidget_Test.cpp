@@ -1,4 +1,7 @@
 #include "GenomeVisualizationWidget.h"
+#include "BookmarkManager.h"
+#include <QTableWidget>
+#include <QPushButton>
 #include "TrackGroupManager.h"
 #include "ParameterEditor.h"
 #include "Settings.h"
@@ -26,6 +29,10 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QtTest>
+#include <QInputDialog>
+#include <QMenu>
+#include <QStandardPaths>
+#include <QTimer>
 
 class GenomeVisualizationWidget_Test : public QObject
 {
@@ -462,6 +469,99 @@ private slots:
 		settings.bam_insert_size_min_percentile = 0.9;
 		settings.bam_insert_size_max_percentile = 0.8;
 		QVERIFY_THROWS_EXCEPTION(ArgumentException, SharedData::setSettings(settings));
+	}
+
+	void regionBookmarks()
+	{
+		const QString key = "bookmark_regions";
+		const QString original_override = Settings::settingsOverride();
+		const QString local_path = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation);
+		QVERIFY(QDir().mkpath(local_path));
+		QSettings local_settings(local_path + "/" + QCoreApplication::applicationName() + "_local.ini", QSettings::IniFormat);
+		const bool had_bookmarks = local_settings.contains(key);
+		const QVariant original_bookmarks = local_settings.value(key);
+		local_settings.setValue(key, QStringList());
+		local_settings.sync();
+		Settings::setSettingsOverride(local_settings.fileName()); // Read the same file that Settings writes.
+		const auto restore_settings = qScopeGuard([&]()
+		{
+			if (had_bookmarks) local_settings.setValue(key, original_bookmarks);
+			else local_settings.remove(key);
+			local_settings.sync();
+			Settings::setSettingsOverride(original_override);
+		});
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		GenomeVisualizationWidget viewer(nullptr);
+		viewer.show();
+		auto* dropdown = viewer.findChild<QToolButton*>("bookmarks_btn");
+		QVERIFY(dropdown);
+		const QString coordinates = SharedData::region().toString(true);
+		bool default_selected = false;
+		for (const QString& name : QStringList{"Z first & bookmark", "A second bookmark", "M third bookmark"})
+		{
+			bool stored = false;
+			QTimer::singleShot(0, &viewer, [&]()
+			{
+				auto* menu = viewer.findChild<QMenu*>("bookmarks_menu");
+				if (!menu) return;
+				menu->close();
+				QTimer::singleShot(0, &viewer, [&]()
+				{
+					auto* dialog = viewer.findChild<QInputDialog*>();
+					if (!dialog) return;
+					default_selected = dialog->findChild<QLineEdit*>()->selectedText() == coordinates;
+					dialog->setTextValue(name);
+					dialog->accept();
+					stored = true;
+				});
+				menu->actions().first()->trigger();
+			});
+			dropdown->showMenu();
+			QVERIFY(stored);
+			QVERIFY(default_selected);
+		}
+		QCOMPARE(Settings::stringList(key).count(), 3);
+		SharedData::setRegion(Chromosome("chr22"), 40, 100);
+		GenomeVisualizationWidget reopened(nullptr); // Bookmarks must survive viewer recreation.
+		reopened.show();
+		bool order_correct = false;
+		QTimer::singleShot(0, &reopened, [&]()
+		{
+			auto* menu = reopened.findChild<QMenu*>("bookmarks_menu");
+			if (!menu) return;
+			menu->close();
+			order_correct = menu->actions()[3]->text() == "Z first && bookmark" && menu->actions()[4]->text() == "A second bookmark";
+			menu->actions()[3]->trigger();
+		});
+		reopened.findChild<QToolButton*>("bookmarks_btn")->showMenu();
+		QVERIFY(order_correct);
+		QCOMPARE(SharedData::region().toString(true), coordinates);
+		bool deleted = false;
+		QTimer::singleShot(0, &reopened, [&]()
+		{
+			auto* menu = reopened.findChild<QMenu*>("bookmarks_menu");
+			if (!menu) return;
+			menu->close();
+			QTimer::singleShot(0, &reopened, [&]()
+			{
+				auto* manager = reopened.findChild<BookmarkManager*>();
+				if (!manager) return;
+				auto* table = manager->findChild<QTableWidget*>("bookmarks_table");
+				auto* delete_button = manager->findChild<QPushButton*>("delete_btn");
+				if (!table || table->rowCount() != 3 || !delete_button) { manager->reject(); return; }
+				const bool initial_state = !delete_button->isEnabled() && table->columnCount() == 2 && table->item(0, 0)->text() == "Z first & bookmark" && table->item(0, 1)->text() == coordinates;
+				table->item(0, 0)->setCheckState(Qt::Checked);
+				table->item(2, 0)->setCheckState(Qt::Checked);
+				const bool enabled = delete_button->isEnabled();
+				delete_button->click();
+				deleted = initial_state && enabled && table->rowCount() == 1 && table->item(0, 0)->text() == "A second bookmark" && manager->result() == QDialog::Accepted && !manager->isVisible();
+			});
+			menu->actions()[1]->trigger();
+		});
+		reopened.findChild<QToolButton*>("bookmarks_btn")->showMenu();
+		QVERIFY(deleted);
+		QCOMPARE(Settings::stringList(key).count(), 1);
+		QVERIFY(Settings::stringList(key).first().contains("A second bookmark"));
 	}
 
 	void startupEmbeddedInMainWindow()
