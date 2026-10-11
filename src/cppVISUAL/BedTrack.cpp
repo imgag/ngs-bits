@@ -3,13 +3,11 @@
 #include "SharedData.h"
 #include "ColorNames.h"
 #include <QApplication>
-#include <QDrag>
+#include <QFontMetrics>
 #include <QPainter>
-#include <QMimeData>
-#include <QToolTip>
+#include <algorithm>
 
 static constexpr int BLOCK_HEIGHT  = 10;
-static constexpr int BLOCK_PADDING = 15;
 
 BedTrack::BedTrack(QWidget* parent, QString file_path, QString name)
 	:TrackWidget(parent, file_path, name, type())
@@ -21,14 +19,18 @@ BedTrack::BedTrack(QWidget* parent, QString file_path, QString name)
 		update();
 	});
 	initializeSettings();
-	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(regionChanged()));
+	connect(SharedData::instance(), &SharedData::regionChanged, this, [this]()
+	{
+		calculateRows();
+		regionChanged();
+	});
 }
 
 QList<Parameter> BedTrack::getParameters() const
 {
 	return {
 		Parameter("color", "Region color.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, ColorNames::names().join('\t').toUtf8()}}),
-		Parameter("draw mode", "How regions are drawn:\ncollapsed: overlapping regions are drawn as one\nexpanded: ", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("collapsed\texpanded")}}),
+		Parameter("draw mode", "How regions are drawn:\ncollapsed: overlapping regions share one row\nexpanded: overlapping regions occupy separate rows", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("collapsed\texpanded")}}),
 		Parameter("show region names", "Display region names from the fourth BED column.", ParameterType::BOOL, {})
 	};
 }
@@ -42,10 +44,6 @@ QHash<QByteArray, QVariant> BedTrack::getParameterDefaults() const
 	};
 }
 
-BedTrack::~BedTrack()
-{
-}
-
 void BedTrack::reloadTrack()
 {
 	if (!load()) emit trackDeleted();
@@ -53,10 +51,12 @@ void BedTrack::reloadTrack()
 
 void BedTrack::setBedFile(QSharedPointer<BedFile> bedfile)
 {
+	if (!bedfile) THROW(ArgumentException, "Cannot set a null BED file!");
+	//Build first so invalid input leaves the previous file and index intact.
+	auto index = std::make_unique<ChromosomalIndex<BedFile>>(*bedfile);
+	chr_index_ = std::move(index);
 	bedfile_ = bedfile;
-	chr_index_ = std::make_unique<ChromosomalIndex<BedFile>>(*bedfile_);
-	chr_index_->createIndex();
-	calculateNumRows();
+	calculateRows();
 	updateGeometry();
 	update();
 }
@@ -87,23 +87,21 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 
 	//draw label
 	drawLabel(painter);
+	if (!bedfile_ || viewport.usable_width <= 0 || region.length() <= 0) return;
+	painter.setClipRect(QRect(viewport.x0, 0, viewport.usable_width, height()));
 
 	//set up font
-	QFont font = painter.font();
-	font.setPointSize(8); // fixed screen size
-	painter.setFont(font);
-	QFontMetrics fm(font);
+	painter.setFont(regionFont());
+	QFontMetrics fm(painter.font());
 
 
 	//draw regions
-	float last_label_x = -1.0f;
-	float last_label_y = -1.0f;
+	QHash<int, float> last_label_x;
 	if (bedfile_ && bedfile_->chromosomes().contains(region.chr()))
 	{
 		float y_start = 0.0f;
 
-		QVector<int> idxes = chr_index_->matchingIndices(region.chr(), region.start(), region.end());
-		foreach(int idx, idxes)
+		for (int idx : visible_indices_)
 		{
 			const BedLine& bedline = (*bedfile_)[idx];
 			int st = std::max(bedline.start(), region.start());
@@ -112,7 +110,8 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 			float x_start = viewport.genomePosToScreen(st);
 			float width = viewport.genomeWidthToScreen(en - st + 1);
 
-			if (draw_mode == "expanded") y_start = row_idxes_[idx] * row_height;
+			const int row = draw_mode == "expanded" ? row_idxes_.value(idx) : 0;
+			y_start = row * row_height;
 
 			QRectF chr_rect(x_start, y_start, width, BLOCK_HEIGHT);
 			painter.setBrush(color);
@@ -130,75 +129,60 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 
 				if (viewport.isOutOfDrawRegion(text_x)) continue;
 
-				if (text_x > last_label_x || std::abs(y_start - last_label_y) > 1)
+				if (text_x > last_label_x.value(row, -1.0f))
 				{
 					painter.setPen(Qt::black);
 					QRectF text_rect(text_x, y_start + BLOCK_HEIGHT, text_width, fm.height());
 					painter.drawText(text_rect, Qt::AlignCenter, name);
-					last_label_x = text_x + text_width + 5;
-					last_label_y = y_start;
+					last_label_x[row] = text_x + text_width + 5;
 				}
 			}
 		}
 	}
 }
 
+QFont BedTrack::regionFont() const
+{
+	QFont result = font();
+	result.setPointSize(8);
+	return result;
+}
+
 int BedTrack::rowHeight() const
 {
-	return BLOCK_HEIGHT + (settings_.getBool("show region names") ? BLOCK_PADDING : 2);
+	return BLOCK_HEIGHT + (settings_.getBool("show region names") ? QFontMetrics(regionFont()).height() : 0) + 2;
 }
 
 QSize BedTrack::sizeHint() const
 {
 	int rowCount = 1;
 
-	if (settings_.getString("draw mode") == "expanded" && bedfile_ && bedfile_->chromosomes().contains(SharedData::region().chr()))
+	if (settings_.getString("draw mode") == "expanded")
 	{
-		rowCount = num_rows_[SharedData::region().chr()];
+		rowCount = num_rows_;
 	}
 	return QSize(parentWidget() ? parentWidget()->width() : 200, std::max(25, rowCount * rowHeight()));
 }
 
-void BedTrack::calculateNumRows()
+void BedTrack::calculateRows()
 {
-	QHash<Chromosome, QVector<int>> row_end_positions;
-
+	visible_indices_.clear();
 	row_idxes_.clear();
-	row_store_.clear();
-
-	for (int i =0; i < bedfile_->count(); ++i)
+	num_rows_ = 0;
+	if (!chr_index_) return;
+	const BedLine& region = SharedData::region();
+	visible_indices_ = chr_index_->matchingIndices(region.chr(), region.start(), region.end());
+	QVector<int> row_end_positions;
+	for (int idx : visible_indices_)
 	{
-		Chromosome chr = (*bedfile_)[i].chr();
-
-		bool placed = false;
-		int start = (*bedfile_)[i].start();
-		int end = (*bedfile_)[i].end();
-
-		for (int row =0; row < row_end_positions[chr].count(); ++row)
-		{
-			if ((*bedfile_)[i].start() >= row_end_positions[chr][row])
-			{
-				placed = true;
-				row_end_positions[chr][row] = (*bedfile_)[i].end();
-				row_idxes_ << row;
-				row_store_[row] << RegionData{start, end, i};
-				break;
-			}
-		}
-
-		if (!placed)
-		{
-			// create new row
-			row_end_positions[chr].append((*bedfile_)[i].end());
-			row_idxes_ << row_end_positions[chr].count() - 1;
-			row_store_[row_end_positions[chr].count() - 1] << RegionData{start, end, i};
-		}
+		const BedLine& bedline = (*bedfile_)[idx];
+		int row = 0;
+		while (row < row_end_positions.size() && bedline.start() <= row_end_positions[row]) ++row;
+		if (row == row_end_positions.size()) row_end_positions.append(bedline.end());
+		else row_end_positions[row] = bedline.end();
+		row_idxes_.insert(idx, row);
 	}
-
-	for (auto it = row_end_positions.begin(); it != row_end_positions.end(); ++it)
-	{
-		num_rows_[it.key()] = it.value().size();
-	}
+	num_rows_ = row_end_positions.size();
 }
 
 
@@ -240,7 +224,7 @@ void BedTrack::handlePopupRequest(QPointF local_pos, QPointF global_pos)
 
 	const BedLine& region = SharedData::region();
 
-	if (viewport.isOutOfDrawRegion(local_pos.x())) return;
+	if (!chr_index_ || viewport.usable_width <= 0 || region.length() <= 0 || viewport.isOutOfDrawRegion(local_pos.x())) return;
 	int x = viewport.screenXToGenomePos(local_pos.x());
 
 	QString info = getRegionText(region, row, x);
@@ -250,49 +234,20 @@ void BedTrack::handlePopupRequest(QPointF local_pos, QPointF global_pos)
 
 QString BedTrack::getRegionText(const BedLine& region, int row, int x)
 {
-	if (settings_.getString("draw mode") == "collapsed") return getRegionTextCollapsedMode(region, row, x);
-	else return getRegionTextExpandedMode(region, row, x);
-}
-
-QString BedTrack::getRegionTextExpandedMode(const BedLine& region, int row, int x)
-{
-	int label_width = SharedData::settings().label_width;
-	int total_width = width() - label_width - 4;
+	const int total_width = width() - SharedData::settings().label_width - 4;
+	if (!chr_index_ || total_width <= 0 || region.length() <= 0 || row < 0) return {};
+	const bool expanded = settings_.getString("draw mode") == "expanded";
+	if ((!expanded && row != 0) || (expanded && row >= num_rows_)) return {};
 	double bp_per_pixel = (double)region.length() / total_width;
 	int padding = std::max(2, static_cast<int>(bp_per_pixel * 2));
 	QString collected_info;
-	// int resolution = region.length() * .001;
-	foreach (const RegionData& data, row_store_[row])
+	//Keep lookup within the visible region, matching the packed rows.
+	const int start = std::max(region.start(), x - padding);
+	const int end = std::min(region.end(), x + padding);
+	if (start > end) return {};
+	for (int idx : chr_index_->matchingIndices(region.chr(), start, end))
 	{
-		if (x + padding >= data.start &&
-			x - padding <= data.end)
-		{
-			const BedLine& bd = (*bedfile_)[data.ind];
-			if (bd.chr() == region.chr())
-			{
-				collected_info += regionTooltip(bd);
-				collected_info += "\n";
-			}
-		}
-	}
-	return collected_info;
-}
-
-QString BedTrack::getRegionTextCollapsedMode(const BedLine& region, int row, int x)
-{
-	int label_width = SharedData::settings().label_width;
-	int total_width = width() - label_width - 4;
-	double bp_per_pixel = (double)region.length() / total_width;
-	int padding = std::max(2, static_cast<int>(bp_per_pixel * 2));
-
-	QString collected_info;
-
-	if (row != 0) return collected_info;
-
-	QVector<int> idxes = chr_index_->matchingIndices(region.chr(), x - padding, x + padding);
-
-	foreach (int idx, idxes)
-	{
+		if (expanded && row_idxes_.value(idx, -1) != row) continue;
 		const BedLine& bd = (*bedfile_)[idx];
 		collected_info += regionTooltip(bd);
 		collected_info += "\n";

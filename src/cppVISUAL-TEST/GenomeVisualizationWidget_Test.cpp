@@ -3,6 +3,10 @@
 #include "ParameterEditor.h"
 #include "Settings.h"
 #include "SharedData.h"
+#include "BedTrack.h"
+#include <QDialog>
+#include <QFontMetrics>
+#include <QImage>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDockWidget>
@@ -155,6 +159,63 @@ private slots:
 		viewer.clearSession();
 		QVERIFY(!dock->findChild<ParameterEditor*>());
 		QCOMPARE(dock->windowTitle(), QString("Track settings"));
+	}
+
+	void bedTrackVisibleRowsAndHitTesting()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		auto bed = QSharedPointer<BedFile>::create();
+		bed->append(BedLine(Chromosome("chr22"), 10, 20, {"first"}));
+		bed->append(BedLine(Chromosome("chr22"), 20, 30, {"second"}));
+		BedTrack track(nullptr, "", "BED");
+		track.setBedFile(bed);
+		QFont region_font = track.font();
+		region_font.setPointSize(8);
+		const int row_height = 10 + QFontMetrics(region_font).height() + 2;
+		QCOMPARE(track.sizeHint().height(), 2 * row_height);
+		track.resize(600, track.sizeHint().height());
+		track.show();
+		QCoreApplication::processEvents();
+		const int x = SharedData::settings().label_width + 2 + int(24.5 * (600 - SharedData::settings().label_width - 4) / 80);
+		QTest::mouseClick(&track, Qt::LeftButton, Qt::NoModifier, QPoint(x, row_height + 5));
+		auto* popup = track.findChild<QDialog*>();
+		QVERIFY(popup);
+		const QString text = popup->findChild<QLabel*>()->text();
+		QVERIFY(text.contains("second"));
+		QVERIFY(!text.contains("first"));
+		delete popup;
+		track.parameters().setBool("show region names", false);
+		QCOMPARE(track.sizeHint().height(), 25);
+		SharedData::setRegion(Chromosome("chr22"), 50, 100);
+		QCOMPARE(track.sizeHint().height(), 25);
+		track.parameters().setBool("show region names", true);
+		QCOMPARE(track.sizeHint().height(), 25);
+	}
+
+	void bedTrackInvalidInputAndEmptyPopup()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		BedTrack track(nullptr, "", "BED");
+		track.parameters().setString("draw mode", "collapsed");
+		track.resize(600, 25);
+		track.show();
+		QTest::mouseClick(&track, Qt::LeftButton, Qt::NoModifier, QPoint(300, 5));
+		QVERIFY(!track.findChild<QDialog*>());
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, track.setBedFile({}));
+		auto bed = QSharedPointer<BedFile>::create();
+		bed->append(BedLine(Chromosome("chr22"), 10, 20));
+		track.setBedFile(bed);
+		auto unsorted = QSharedPointer<BedFile>::create();
+		unsorted->append(BedLine(Chromosome("chr22"), 30, 40));
+		unsorted->append(BedLine(Chromosome("chr22"), 10, 20));
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, track.setBedFile(unsorted));
+		//The previous data must remain usable after rejected input.
+		QImage image(track.size(), QImage::Format_ARGB32);
+		track.render(&image);
+		track.setMinimumWidth(0);
+		track.resize(SharedData::settings().label_width + 4, 25);
+		QTest::mouseClick(&track, Qt::LeftButton, Qt::NoModifier, QPoint(SharedData::settings().label_width + 2, 5));
+		QVERIFY(!track.findChild<QDialog*>());
 	}
 };
 

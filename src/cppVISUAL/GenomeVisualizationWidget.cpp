@@ -415,9 +415,9 @@ void GenomeVisualizationWidget::loadSession()
 
 
 //TODO Marc:
-//- check parameters of all tracks: BED, IGV
+//- check parameters of all tracks: IGV
 //- gene track show strand arrows
 //- debug mode drop-down: goto region, goto rene
 //- add region bookmarks stored in Settings
-//- BAM track: "group by"
+//- BAM track: "group by": phase/read orientation
 //- XSD constraint Paramter Value count based on type attribute
