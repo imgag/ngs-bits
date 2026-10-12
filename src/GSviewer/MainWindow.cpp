@@ -5,6 +5,8 @@
 #include "AboutDialog.h"
 #include "htslib/hts.h"
 #include "GenomeVisualizationWidget.h"
+#include <QApplication>
+#include <QProgressDialog>
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -42,6 +44,13 @@ void MainWindow::delayedInitialization()
 		QElapsedTimer timer;
 		timer.start();
 		{
+			QProgressDialog loading_dialog("loading gene/transcript Gff file", QString(), 0, 0, this);
+			loading_dialog.setWindowModality(Qt::ApplicationModal);
+			loading_dialog.setCancelButton(nullptr);
+			loading_dialog.setMinimumDuration(0);
+			loading_dialog.show();
+			QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+
 			GffSettings settings;
 			settings.print_to_stdout = false;
 			GffData data = GffData::load(Settings::string("ensembl_gff"), settings);
