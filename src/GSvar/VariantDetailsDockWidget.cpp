@@ -169,7 +169,6 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->gnomad_het, vl, index, "gnomAD_het");
 	setAnnotation(ui->gnomad_wt, vl, index, "gnomAD_wt");
 
-
 	//pathogenity predictions
 	setAnnotation(ui->phylop, vl, index, "phyloP");
 	setAnnotation(ui->cadd, vl, index, "CADD");
@@ -766,9 +765,9 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 	else
 	{
 		//best transcript
-		if (trans_curr==-1 && LoginManager::active())
+		if (LoginManager::active())
 		{
-			NGSD db;
+			NGSD db(false, "", false);
 			int current_best_quality = -1;
 			int transcript_idx = -1;
 

@@ -3,7 +3,7 @@
 
 #include <QMainWindow>
 #include "ui_MainWindow.h"
-#include "GenomeData.h"
+#include "DelayedInitializationTimer.h"
 
 ///Main window class
 class MainWindow
@@ -15,10 +15,14 @@ public:
 	///Constructor
 	MainWindow(QWidget* parent = 0);
 
+private slots:
+	void delayedInitialization();
+	void showAboutDialog();
 
 private:
-    Ui::MainWindow ui_;
-    QSharedPointer<GenomeData> genome_data_;
+	Ui::MainWindow ui_;
+	DelayedInitializationTimer init_timer_;
+
 };
 
 #endif // MAINWINDOW_H

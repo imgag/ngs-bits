@@ -1,6 +1,7 @@
 include("../test.pri")
 
 SOURCES += \
+        ParameterList_Test.cpp \
         BasicStatistics_Test.cpp \
         Helper_Test.cpp \
         Plots_Test.cpp \

@@ -376,7 +376,6 @@ MainWindow::MainWindow(QWidget *parent)
 		connect(active_url_update_timer, SIGNAL(timeout()), this, SLOT(updateActiveUrls()));
 		active_url_update_timer->start(30 * 60 * 1000); // every 30 minutes
 
-
 		//check if there are new notifications for the users
 		if (Settings::boolean("display_user_notifications", true))
 		{
@@ -391,10 +390,9 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int, int)), this, SLOT(uploadToClinvar(int, int)));
 	connect(ui_.vars, SIGNAL(alamutTriggered(QAction*)), this, SLOT(openAlamut(QAction*)));
 
-	// Environment variable containing the file path to the list of certificate authorities
-	// (needed for HTTPS to work correctly, especially for htslib and BamReader)
+	//Set environment variable containing SSL certificates - needed for HTTPS to work for BamReader/htslib
 	QString curl_ca_bundle = Settings::string("curl_ca_bundle", true);
-	if ((Helper::isWindows()) && (!curl_ca_bundle.isEmpty()))
+	if (!curl_ca_bundle.isEmpty())
 	{
 		if (!qputenv("CURL_CA_BUNDLE", curl_ca_bundle.toUtf8()))
 		{
@@ -3238,7 +3236,7 @@ void MainWindow::on_actionAbout_triggered()
 
 	//show dialog
 	AboutDialog dlg(this);
-	dlg.setIcon(QPixmap(":/Icons/Icon.png"));
+	dlg.setIcon(QPixmap(":/Icons/Icon_highres.png"));
 	dlg.setDescription("A free decision support system for germline and somatic variants.<br>Check the <a href='https://github.com/imgag/ngs-bits/blob/master/doc/GSvar/index.md'>GitHub page</a> for details.");
 	dlg.addLibVersionLine("htslib version: " + QString(hts_version()));
 	dlg.addLibVersionLine("Genome build: " + GSvarHelper::buildAsString());
@@ -6182,6 +6180,43 @@ void MainWindow::on_actionOpenGSvarDataFolder_triggered()
 	QDesktopServices::openUrl("file:///"+ QFileInfo(Log::fileName()).absolutePath());
 }
 
+void MainWindow::on_actionPingGSvarServer_triggered()
+{
+	QString title = "GSvar server ping";
+	try
+	{
+		HttpRequestHandler handler;
+		QElapsedTimer timer;
+		timer.start();
+		ServerReply reply = handler.get("https://"+Settings::string("server_host")+":"+Settings::string("server_port"));
+		int elapsed = timer.nsecsElapsed();
+		QMessageBox::information(this, title, title + " time: " + QString::number(elapsed/1000000.0, 'f', 2) + " ms"
+		                                        + "\nHTTP code: " + QString::number(reply.status_code));
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, title, "Failed: " + e.message());
+	}
+}
+
+void MainWindow::on_actionPingNgsdServer_triggered()
+{
+	QString title = "NGSD ping";
+	try
+	{
+		NGSD db;
+		QElapsedTimer timer;
+		timer.start();
+		db.getQuery().exec("SELECT 1");
+		int elapsed = timer.nsecsElapsed();
+		QMessageBox::information(this, title, title + " time: " + QString::number(elapsed/1000000.0, 'f', 2) + " ms");
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, title, "Failed: " + e.message());
+	}
+}
+
 void MainWindow::editVariantClassification(VariantList& variants, int index)
 {
 	try
@@ -7055,7 +7090,7 @@ void MainWindow::updateNGSDSupport()
 	if (ngsd_user_logged_in)
 	{
 		NGSD db;
-		if (db.userRoleIn(LoginManager::userLogin(), QStringList{"user_restricted"}, false)) //do not use the cache - it might still be initializing and then it can take more than 10 seconds...
+		if (db.userRoleIn(LoginManager::userLogin(), QStringList{"user_restricted"}))
 		{
 			auto actions = ui_.menuAdmin->actions();
 			foreach(QAction* action, actions)

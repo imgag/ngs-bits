@@ -153,7 +153,6 @@ void MVHub::tableContextMenu(QPoint pos)
 		ProcessedSampleSearchParameters params;
 		params.run_finished = true;
 		params.p_type = "diagnostic";
-		params.include_bad_quality_samples = true;
 		params.include_tumor_samples = true;
 		QStringList ps_list = genlab.samplesWithSapID(sap_id, params);
 		if (ps_list.isEmpty())
@@ -1048,25 +1047,23 @@ MVHub::PSData MVHub::getMatchingPS(NGSD& db, GenLabDB& genlab, QString sap_id, N
 	params.r_after = QDate(2024, 7, 1);
 	if ((network==SE || network==FBREK) && seq_type=="WGS")
 	{
-		params.include_bad_quality_samples = false;
+		params.ps_quality = {"good", "medium"};
 		params.include_tumor_samples = false;
 		params.sys_type = "WGS";
 	}
 	else if ((network==SE || network==FBREK) && seq_type=="lrGS")
 	{
-		params.include_bad_quality_samples = false;
+		params.ps_quality = {"good", "medium"};
 		params.include_tumor_samples = false;
 		params.sys_type = "lrGS";
 	}
 	else if (network==OE && seq_type=="WES")
 	{
-		params.include_bad_quality_samples = true;
 		params.include_tumor_samples = true;
 		params.sys_type = "WES";
 	}
 	else if (network==OE && seq_type=="WGS")
 	{
-		params.include_bad_quality_samples = true;
 		params.include_tumor_samples = true;
 		params.sys_type = "WGS";
 	}

@@ -1,8 +1,7 @@
 #include "LoginDialog.h"
 #include "GlobalServiceProvider.h"
 #include "LoginManager.h"
-#include "PasswordDialog.h"
-#include <QMessageBox>
+#include "Settings.h"
 
 LoginDialog::LoginDialog(QWidget *parent)
 	: QDialog(parent)
@@ -12,7 +11,12 @@ LoginDialog::LoginDialog(QWidget *parent)
 	connect(ui_.ok_btn, SIGNAL(clicked(bool)), this, SLOT(checkPassword()));
 
 	//init
-	if (ui_.user_name->text().isEmpty()) ui_.user_name->setText(Helper::userName());
+	QString login_name = Settings::string("login_user", true);
+	if (login_name.isEmpty()) login_name = Helper::userName();
+	ui_.user_name->setText(login_name);
+
+	QString login_password = Settings::string("login_password", true);
+	ui_.password->setText(login_password);
 	ui_.password->setFocus();
 }
 
@@ -41,7 +45,7 @@ void LoginDialog::checkPassword()
 	{		
 		message = GlobalServiceProvider::database().checkPassword(user_name, password);
 		if (!message.isEmpty())
-		{			
+		{
 			showMessage(message, true);
 			return;
 		}
@@ -55,30 +59,8 @@ void LoginDialog::checkPassword()
 	try
 	{
 		LoginManager::login(user_name, password);
-
-		// if the user has a single use initial password, a new password has to be set
-		NGSD db;
-		QDateTime last_login = db.userLastLogin(user_name);
-		if (last_login.isNull())
-		{
-			QMessageBox::information(this, "Password reset", "You are using a temporary password. To be able to proceed, a new password (known only to you) has to be set.");
-			PasswordDialog dlg(this);
-			if(dlg.exec()==QDialog::Accepted)
-			{
-				password = dlg.password();
-				db.setPassword(LoginManager::userId(), dlg.password());
-				LoginManager::updateLastLogin(LoginManager::userId());
-				// after setting the "last_login" field the user will not be asked to change the password
-			}
-			// the user refused to set a passoword -> not allowed to continue
-			else LoginManager::logout();
-		}
 		accept();
     }
-	catch (DatabaseException& e)
-	{
-		showMessage(e.message());
-	}
     catch (Exception& e)
 	{
 		showMessage(e.message());

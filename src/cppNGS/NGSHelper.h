@@ -2,7 +2,6 @@
 #define NGSHELPER_H
 
 #include "cppNGS_global.h"
-#include "GenomeBuild.h"
 #include "BedpeFile.h"
 #include "GeneSet.h"
 #include "VcfFile.h"
@@ -75,6 +74,8 @@ public:
 	///Returns the pseudoautomal region (PAR) on chrX/chrY .
 	static const BedFile& pseudoAutosomalRegion();
 
+	///Returns the cytogenetic bands
+	static const BedFile& cytoBands();
 	///Returns the cytogenetic band for to chromosomal position
 	static QByteArray cytoBand(Chromosome chr, int pos);
 	///Returns the chromosomal range of a cytoband or cytoband range.

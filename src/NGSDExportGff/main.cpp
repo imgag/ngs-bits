@@ -18,7 +18,8 @@ public:
 	{
         setDescription("Writes all transcripts and exons of all genes to a gff3 file.");
 		addOutfile("out", "The output GFF file.", false);
-        addFlag("genes", "Add gene lines to group transcripts. This should be turned off when you want to use the file for IGV. This will also skip all transcripts which do not have a gene entry in NGSD.");
+		addFlag("no_genes", "No not add gene lines to group transcripts. Also exports transcripts without gene. Used mainly for use with IGV.");
+		addFlag("gencode_primary", "Export GENCODE primary transcrips only.");
         addFlag("test", "Uses the test database instead of on the production database.");
 	}
 
@@ -35,17 +36,16 @@ public:
 			outfile->write("\n");
 	}
 
-
     virtual void main()
     {
 		//init
-		bool genes_flag = getFlag("genes");
+		NGSD db(getFlag("test"));
+		bool no_genes = getFlag("no_genes");
+		bool gencode_primary = getFlag("gencode_primary");
 
 		//open output file
         QSharedPointer<QFile> outfile = Helper::openFileForWriting(getOutfile("out"), true);
         outfile->write("##gff-version 3\n");
-
-        NGSD db(getFlag("test"));
 
         QList<QByteArray> parts;
         QByteArray info;
@@ -53,12 +53,10 @@ public:
         QByteArray st;
         QByteArray ed;
 
-        const TranscriptList transcripts = db.transcripts();
+		const TranscriptList& transcripts = db.transcripts();
 		const QHash<QString, QHash<QString, QByteArray>> genes = get_genes(db);
 
         QByteArray last_gene_id = "-1";
-
-
         foreach(const Transcript& trans, transcripts)
         {
             const QByteArray gene_id = trans.geneId();
@@ -75,13 +73,15 @@ public:
 				phase = QByteArray::number(3 - ((trans.end()-trans.codingStart()) % 3));
 			}
 
-			if (genes_flag && gene_id=="") continue;
+			if (!no_genes && gene_id=="") continue;
+			if (gencode_primary && !trans.isGencodePrimaryTranscript()) continue;
 
 			const QHash<QString, QByteArray>& gene = genes[gene_id];
 
-			if (genes_flag && gene_id!=last_gene_id)
+			if (!no_genes && gene_id!=last_gene_id)
 			{
                 // GENE LINE
+				outfile->write("###\n");
                 geneId = "gene:" + trans.geneId();
                 parts.clear();
 				parts.append("ID=" + geneId);
@@ -102,7 +102,7 @@ public:
             parts.clear();
 			parts.append("ID=" + transcriptId);
 			parts.append("Name=" + gene["symbol"]);
-			if (genes_flag) parts.append("Parent=" + geneId);
+			if (!no_genes) parts.append("Parent=" + geneId);
             parts.append("transcript_id=" + trans.name());
             parts.append("biotype=" + biotype);
             const QByteArray is_gencode_basic = trans.isGencodeBasicTranscript() ? "1" : "0";
@@ -185,6 +185,11 @@ public:
                 }
             }
         }
+
+		if (!no_genes)
+		{
+			outfile->write("###\n");
+		}
     }
 
     

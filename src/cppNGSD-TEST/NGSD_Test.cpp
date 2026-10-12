@@ -276,11 +276,12 @@ private:
 		S_EQUAL(gene_app3[1].second, "REPLACED: QARS is a previous symbol");
 
 		//geneID
-		int gene_app_id = db.geneId("BRCA1");
-		I_EQUAL(gene_app_id, 1);
-		I_EQUAL(db.geneId("BrCa1"), 1);
-		gene_app_id = db.geneId("BLABLA");
-		I_EQUAL(gene_app_id, -1);
+		I_EQUAL(db.geneId("BRCA1"), 1);
+		I_EQUAL(db.geneId("BrCa1"), 1); //wrong cases
+		I_EQUAL(db.geneId("BLABLA"), -1); //does not exist
+		I_EQUAL(db.geneId("SPG5C"), 652410); //alias for SPG7
+		I_EQUAL(db.geneId("COX2"), -1); //alias both for MT-CO2 and PTGS2
+		I_EQUAL(db.geneId("DAZ1"), 496483); //also listed as alias of SLC25A15, but ignored because current gene symbol
 
 		//geneHgncId
 		S_EQUAL(db.geneHgncId(433223), "HGNC:9605");
@@ -344,6 +345,8 @@ private:
 		I_EQUAL(sample_data.phenotypes.count(), 0);
 		IS_FALSE(sample_data.is_tumor);
 		IS_FALSE(sample_data.is_ffpe);
+		S_EQUAL(sample_data.sender, "Coriell");
+		S_EQUAL(sample_data.species, "human");
 		//second sample (tumor)
 		sample_id = db.sampleId("NA12345_01");
 		sample_data = db.getSampleData(sample_id);
@@ -372,6 +375,7 @@ private:
 		S_EQUAL(processed_sample_data.run_name, "#00372");
 		S_EQUAL(processed_sample_data.normal_sample_name, "");
 		S_EQUAL(processed_sample_data.processing_system, "HaloPlex HBOC v5");
+		S_EQUAL(processed_sample_data.processing_system_short, "hpHBOCv5");
 		S_EQUAL(processed_sample_data.processing_system_type, "Panel Haloplex");
 		S_EQUAL(processed_sample_data.processing_modus, "manual");
 		S_EQUAL(processed_sample_data.batch_number, "batch 17");
@@ -1134,7 +1138,7 @@ private:
 		params.s_sender = "Coriell";
 		params.s_study = "SomeStudy";
 		params.s_tissue = "blood";
-		params.include_bad_quality_samples = false;
+		params.ps_quality = {"n/a", "good", "medium"};
 		params.include_tumor_samples = false;
 		params.include_ffpe_samples = false;
 		params.p_name = "KontrollDNACoriell";
@@ -2450,7 +2454,7 @@ private:
 		som_rep_conf->setCinChromosomes({"chr1", "chr5", "chr9", "chrX", "chrY"});
 		som_rep_conf->setLimitations("Due to low coverage we could not detect all variants for gene BRAF.");
 		som_rep_conf->setFilterName("somatic");
-		QStringList filter_text;
+		QByteArrayList filter_text;
 		filter_text << "Variant type	HIGH=frameshift_variant,splice_acceptor_variant,splice_donor_variant,start_lost,start_retained_variant,stop_gained,stop_lost	MODERATE=inframe_deletion,inframe_insertion,missense_variant	LOW=splice_region_variant	MODIFIER=";
 		filter_text << "Column match	pattern=promoter	column=regulatory	action=KEEP";
 		filter_text << "Filter column empty";
@@ -2542,7 +2546,7 @@ private:
 		S_EQUAL(res_config->filterName(), "somatic");
 		IS_TRUE(res_config->filters() == filters)
 
-		QStringList res_filter_text = res_config->filters().toText();
+		QByteArrayList res_filter_text = res_config->filters().toText();
 		for (int i=0; i< filter_text.count(); i++)
 		{
 			S_EQUAL(res_filter_text[i].trimmed(), filter_text[i]);
@@ -3560,7 +3564,7 @@ private:
 
         S_EQUAL(db.processedSampleId("NA12878_03"), "3999");
 
-		QSqlQuery query = db.getQuery();
+		SqlQuery query = db.getQuery();
 		query.exec("SELECT * FROM processed_sample WHERE id=3999");
 		I_EQUAL(query.size(), 1);
 		query.next();

@@ -169,7 +169,7 @@ BedFile BedpeLine::affectedRegion(bool plus_one) const
 		case StructuralVariantType::BND:
 			// consider pos 1 and pos 2 seperately
 			sv_region.append(BedLine(chr1(), start1() + offset, end1() + offset));
-			sv_region.append(BedLine(chr2(), start2() + offset, end2() + offset));
+			if (chr2()!=".") sv_region.append(BedLine(chr2(), start2() + offset, end2() + offset));
 			break;
 
 		case StructuralVariantType::INS:
@@ -290,11 +290,9 @@ QByteArray BedpeLine::genotypeHumanReadable(const QList<QByteArray>& annotation_
 
 	//convert
 	if (gt=="1/1") return "hom";
-	else if (gt=="0/1") return "het";
-	else if (gt=="1/0") return "het";
+	else if (gt=="0/1" || gt=="1/0" || gt=="./1" || gt=="1/.") return "het";
 	else if (gt=="0/0") return "wt";
-	else if (gt=="") return "n/a";
-	else if (gt=="./.") return "n/a";
+	else if (gt=="" || gt=="./." || gt=="AMBIGUOUS") return "n/a";
 	else THROW(ArgumentException, "Unhandled SV genotype '" + gt + "'!");
 }
 

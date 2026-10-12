@@ -11,7 +11,7 @@ However, there is some more work involved in getting a functioning DMG file.
 
 ## Integration with IGV
 
-For more details related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).
+For more details related to IGV, please see the [`IGV installation page`](GSvar/install_igv.md).
 
 
 # Building ngs-bits from sources MacOS
@@ -92,6 +92,8 @@ Following these steps to create a Mac bundle:
     > macdeployqt GSvar.app -dmg -verbose=2 GSvar.app -libpath=REPOSITORY_LOCATION/ngs-bits/bin
     
 It is recommended to have a developer account, which allows distributing your app easier (and even publishing it in the App Store)
+
+There is the script `tools/macos/create_dmg.sh` that allows to do the things listed above automatically.
 
 ## Server update (for cloud instances)
 

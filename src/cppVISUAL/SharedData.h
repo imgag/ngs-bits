@@ -1,0 +1,96 @@
+#ifndef GENOMEDATA_H
+#define GENOMEDATA_H
+
+#include "cppVISUAL_global.h"
+#include "Transcript.h"
+#include "FastaFileIndex.h"
+#include "ChromosomalIndex.h"
+#include "BedFile.h"
+
+#include <QXmlStreamWriter>
+#include <QDomDocument>
+
+//Helper struct for globally used settings
+struct CPPVISUALSHARED_EXPORT GlobalSettings
+{
+	//Width of the label area on the left of tracks and genomic overview widgets
+	int label_width  = 165;
+	//Minimum number of bases to show
+	int min_window_size = 41;
+	//How many bases genes/transcripts are padded with, e.g. after search
+	int transcript_padding = 2000;
+	//Initial visibility range for new BAM alignment and coverage tracks.
+	int bam_max_region_len = 50000;
+	//Insert-size percentile fractions used for alignment coloring (0..1).
+	double bam_insert_size_min_percentile = 0.005;
+	double bam_insert_size_max_percentile = 0.995;
+};
+
+//Singleton for data shared by all widgets for visualization.
+//Also emits signals if the data changes, so that widgets can react accordingly.
+class CPPVISUALSHARED_EXPORT SharedData
+	: public QObject
+{
+	Q_OBJECT
+
+public:
+	//Returns the genome index
+	static const FastaFileIndex& genome()
+	{
+		return instance()->genome_index_;
+	}
+
+	//Return transcripts
+	static const TranscriptList& transcripts()
+	{
+		return instance()->transcripts_;
+	}
+	//Sets transcripts and creates/updates indices. Do this after initializing GenomeVisualizationWidget!
+	static void setTranscripts(const TranscriptList& transcripts);
+
+	//Returns indices of transcripts in a region
+	static QVector<int> transcriptsInRegion(const Chromosome& chr, int start, int end)
+	{
+		return  instance()->transcripts_index_.matchingIndices(chr, start, end);
+	}
+
+	//Return the global settings
+	static const GlobalSettings& settings()
+	{
+		return  instance()->settings_;
+	}
+	static void setSettings(const GlobalSettings& settings);
+
+	//Return the currently displayed region
+	static const BedLine& region()
+	{
+		return  instance()->region_;
+	}
+	static void setRegion(const Chromosome& chr, int start, int end);
+
+	//Returns the instance (creates it on first call). This method is public only to connect signal/slots. For all other purposes, use other methods.
+	static SharedData* instance();
+
+	//Updates genomic coordinate in status bar
+	static void mouseMoved(int x, int width);
+
+signals:
+	void transcriptsChanged();
+	void settingsChanged();
+	void regionChanged();
+	void updateGenomicCoordinate(QString);
+
+protected:
+	explicit SharedData(QObject* parent = nullptr);
+	Q_DISABLE_COPY(SharedData)
+
+	FastaFileIndex genome_index_;
+	TranscriptList transcripts_;
+	ChromosomalIndex<TranscriptList> transcripts_index_;
+	GlobalSettings settings_;
+	BedLine region_;
+};
+
+
+
+#endif // GENOMEDATA_H

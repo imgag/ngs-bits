@@ -3,25 +3,15 @@
 #include <QPainter>
 #include <QMenu>
 #include <QToolTip>
+#include "SharedData.h"
 
 GenePanel::GenePanel(QWidget *parent)
 	: QWidget(parent)
-	, settings_()
 {
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	setMouseTracking(true);
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenu(QPoint)));
-}
-
-void GenePanel::setGenomeData(QSharedPointer<GenomeData> genome_data)
-{
-    genome_data_ = genome_data;
-}
-
-void GenePanel::setRegion(const BedLine& region)
-{
-	reg_ = region;
-	update();
+	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
 }
 
 void GenePanel::contextMenu(QPoint pos)
@@ -31,10 +21,10 @@ void GenePanel::contextMenu(QPoint pos)
 	QAction* a_flip_strand = menu.addAction("Flip strand");
 	QAction* a_show_translation = menu.addAction("Show translation");
 	a_show_translation->setCheckable(true);
-	a_show_translation->setChecked(settings_.show_translation);
-    QAction* a_show_ensebl_only = menu.addAction("Show only GENCODE primary");
+	a_show_translation->setChecked(show_translation_);
+	QAction* a_show_ensebl_only = menu.addAction("Show GENCODE primary only");
 	a_show_ensebl_only->setCheckable(true);
-    a_show_ensebl_only->setChecked(settings_.show_only_primary);
+	a_show_ensebl_only->setChecked(show_only_gencode_primary);
 
 	//show menu
 	QAction* action = menu.exec(mapToGlobal(pos));
@@ -42,54 +32,59 @@ void GenePanel::contextMenu(QPoint pos)
 	//perform action
 	if (action==a_flip_strand)
 	{
-		settings_.strand_forward = !settings_.strand_forward;
+		strand_forward_ = !strand_forward_;
 		update();
 	}
 	else if (action==a_show_translation)
 	{
-		settings_.show_translation = !settings_.show_translation;
+		show_translation_ = !show_translation_;
 		update();
 	}
 	else if (action==a_show_ensebl_only)
 	{
-        settings_.show_only_primary = !settings_.show_only_primary;
-		update();
+		show_only_gencode_primary = !show_only_gencode_primary;
+		repaint();
 	}
+}
+
+void GenePanel::updateRegion()
+{
+	update();
 }
 
 void GenePanel::paintEvent(QPaintEvent* /*event*/)
 {
-	//check
-    if (genome_data_.isNull()) THROW(ProgrammingException, "Genome data not set!");
-
 	//init
 	int h = height();
 	int w = width();
+	int label_width = SharedData::settings().label_width;
+	const BedLine& region = SharedData::region();
 	QPainter painter(this);
+	painter.setRenderHint(QPainter::Antialiasing, true);
 	char_size_ = characterSize(painter.font());
-	pixels_per_base_ = (double)(w-settings_.label_width-4) / (double)reg_.length();
+	pixels_per_base_ = (double)(w-label_width-4) / (double)region.length();
 	int y_content_start = 2;
 
 	//backgroud
 	painter.fillRect(0,0, w,h, QBrush(Qt::white));
 
 	//paint label region
-	painter.drawLine(QPoint(settings_.label_width, 0), QPoint(settings_.label_width, h));
-	painter.drawText(QRect(2,2, settings_.label_width-4, settings_.label_width-4), "Gene");
-	painter.drawText(QRect(2,2, settings_.label_width-4, settings_.label_width-4), Qt::AlignRight|Qt::AlignTop, settings_.strand_forward ? "→" : "←");
+	painter.drawLine(QPoint(label_width, 0), QPoint(label_width, h));
+	painter.drawText(QRect(2,2, label_width-4, label_width-4), "Gene");
+	painter.drawText(QRect(2,2, label_width-4, label_width-4), Qt::AlignRight|Qt::AlignTop, strand_forward_ ? "→" : "←");
 
 	//paint sequence (only if at lest one pixel per base is available)
-	if (pixels_per_base_ >= 1)
+	if (pixels_per_base_ >= 1 && region.chr() != "")
 	{
-        Sequence seq = genome_data_->genome().seq(reg_.chr(), reg_.start(), reg_.length());
-		if (!settings_.strand_forward) seq.complement();
+		Sequence seq = SharedData::genome().seq(region.chr(), region.start(), region.length());
+		if (!strand_forward_) seq.complement();
 		painter.setPen(Qt::transparent);
 
 		for(int i=0; i<seq.length(); ++i)
 		{
 			QChar base = seq.at(i);
 			QColor color = baseColor(base);
-			QRectF rect(settings_.label_width + 2 + i*pixels_per_base_, y_content_start, pixels_per_base_, char_size_.height());
+			QRectF rect(label_width + 2 + i*pixels_per_base_, y_content_start, pixels_per_base_, char_size_.height());
 			if (pixels_per_base_>=char_size_.width()) //show base characters
 			{
 				painter.setPen(color);
@@ -105,7 +100,7 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 		y_content_start += char_size_.height();
 
 		//paint tranlations
-		if (settings_.show_translation)
+		if (show_translation_)
 		{
 			painter.setPen(Qt::white);
 			for (int offset=0; offset<3; ++offset)
@@ -115,11 +110,11 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 					QByteArray triplet = seq.mid(i, 3);
 					if(triplet.length()<3) continue; //right border
 					if (triplet.contains('N')) continue; //N region
-					if (!settings_.strand_forward) std::reverse(triplet.begin(), triplet.end());
-					QChar aa = NGSHelper::translateCodon(triplet, reg_.chr().isM());
+					if (!strand_forward_) std::reverse(triplet.begin(), triplet.end());
+					QChar aa = NGSHelper::translateCodon(triplet, region.chr().isM());
 
 					//draw rectangle
-					QRectF rect(settings_.label_width + 2 + i*pixels_per_base_, y_content_start, 3*pixels_per_base_, char_size_.height());
+					QRectF rect(label_width + 2 + i*pixels_per_base_, y_content_start, 3*pixels_per_base_, char_size_.height());
 					QColor color = aaColor(i, aa);
 					painter.setBrush(color);
 					painter.drawRect(rect);
@@ -140,14 +135,14 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 	trans_positions_.clear();
 
     //paint important transcripts on top
-    QVector<int> trans_indices = genome_data_->transcriptsIndex().matchingIndices(reg_.chr(), reg_.start(), reg_.end());
+	QVector<int> trans_indices = SharedData::transcriptsInRegion(region.chr(), region.start(), region.end());
     QSet<int> rest;
 	foreach(int i, trans_indices)
 	{
-        const Transcript& trans = genome_data_->transcripts().at(i);
+		const Transcript& trans = SharedData::transcripts().at(i);
 
         //only GENCODE primary
-        if (settings_.show_only_primary && !trans.isGencodePrimaryTranscript()) continue;
+		if (show_only_gencode_primary && !trans.isGencodePrimaryTranscript()) continue;
 
         if (trans.isPreferredTranscript() || trans.isManePlusClinicalTranscript() || trans.isManeSelectTranscript() || trans.isEnsemblCanonicalTranscript())
         {
@@ -162,27 +157,16 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
     //paint other transcripts
     foreach(int i, rest)
 	{
-        const Transcript& trans = genome_data_->transcripts().at(i);
+		const Transcript& trans = SharedData::transcripts().at(i);
 		drawTranscript(painter, trans, y_content_start, QColor(0, 0, 178));
 	}
 }
 
 void GenePanel::mouseMoveEvent(QMouseEvent* event)
 {
-	int x = event->pos().x();
+	SharedData::mouseMoved(event->pos().x(), width());
 
-	int w = width();
-
-	//show
-	if (x>settings_.label_width + 2 && x<w - 2)
-	{
-		int coordinate = reg_.start() + std::floor((double)(x-settings_.label_width - 2) / pixels_per_base_);
-		emit mouseCoordinate(reg_.chr().strNormalized(true) + ":" + QString::number(coordinate));
-	}
-	else
-	{
-		emit mouseCoordinate("");
-	}
+	event->ignore();
 }
 
 bool GenePanel::event(QEvent* event)
@@ -261,12 +245,13 @@ QColor GenePanel::aaColor(int start_index, QChar aa)
 double GenePanel::baseStartX(int pos, bool restrict_to_content_area) const
 {
 	int w = width();
+	int label_width = SharedData::settings().label_width;
 
-	double x = settings_.label_width + 2 + (pos-reg_.start())*pixels_per_base_;
+	double x = label_width + 2 + (pos-SharedData::region().start())*pixels_per_base_;
 
 	if (restrict_to_content_area)
 	{
-		x = BasicStatistics::bound(x, (double)(settings_.label_width + 2), (double)(w - 2));
+		x = BasicStatistics::bound(x, (double)(label_width + 2), (double)(w - 2));
 	}
 
 	return x;
@@ -275,12 +260,13 @@ double GenePanel::baseStartX(int pos, bool restrict_to_content_area) const
 double GenePanel::baseEndX(int pos, bool restrict_to_content_area) const
 {
 	int w = width();
+	int label_width = SharedData::settings().label_width;
 
-	double x = settings_.label_width + 2 + ((pos+1)-reg_.start())*pixels_per_base_;
+	double x = label_width + 2 + ((pos+1)-SharedData::region().start())*pixels_per_base_;
 
 	if (restrict_to_content_area)
 	{
-		x = BasicStatistics::bound(x, (double)(settings_.label_width + 2), (double)(w - 2));
+		x = BasicStatistics::bound(x, (double)(label_width + 2), (double)(w - 2));
 	}
 
 	return x;
@@ -308,6 +294,22 @@ void GenePanel::drawTranscript(QPainter& painter, const Transcript& trans, int y
 	painter.setPen(color);
 	double y_center = y+2+6;
 	painter.drawLine(QLineF(x_start+1.0, y_center, x_end-1.0, y_center));
+
+	//Repeated strand chevrons on the intron line; exon boxes cover them below.
+	if (trans.isPlusStrand() || trans.isMinusStrand())
+	{
+		const double direction = trans.isPlusStrand() ? 1.0 : -1.0;
+		constexpr double arrow_spacing = 30.0;
+		constexpr double arrow_width = 3.0;
+		constexpr double arrow_height = 2.5;
+		for (double x = x_start + arrow_spacing / 2; x + arrow_width / 2 < x_end; x += arrow_spacing)
+		{
+			const double tail_x = x - direction * arrow_width / 2;
+			const double tip_x = x + direction * arrow_width / 2;
+			painter.drawLine(QLineF(tail_x, y_center - arrow_height, tip_x, y_center));
+			painter.drawLine(QLineF(tail_x, y_center + arrow_height, tip_x, y_center));
+		}
+	}
 
 	//draw all exons (8px heigh)
 	painter.setPen(Qt::transparent);

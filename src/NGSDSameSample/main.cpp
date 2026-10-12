@@ -105,15 +105,14 @@ public:
 				if (!filter_system_types.isEmpty() && !filter_system_types.contains(ps_data.processing_system_type)) continue;
 
 				//apply filter (system name)
-				QString sys_name_short = db.getValue("SELECT name_short FROM processing_system WHERE name_manufacturer=:0", false, ps_data.processing_system).toString();
-				if (!filter_systems.isEmpty() && !filter_systems.contains(sys_name_short)) continue;
+				if (!filter_systems.isEmpty() && !filter_systems.contains(ps_data.processing_system_short)) continue;
 
 				//create output
 				QStringList line;
 				line << ps_data.name;
 				line << s_data.type;
 				line << ps_data.processing_system_type;
-				line << sys_name_short;
+				line << ps_data.processing_system_short;
 				line << ps_data.processing_system;
 				line << ps_data.run_name;
 				QDate run_start_date = db.getValue("SELECT start_date FROM sequencing_run WHERE name=:0", false, ps_data.run_name).toDate();

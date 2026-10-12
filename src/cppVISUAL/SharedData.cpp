@@ -1,0 +1,117 @@
+#include "SharedData.h"
+#include "Settings.h"
+#include <QFileInfo>
+#include <QMessageBox>
+#include <cmath>
+
+void SharedData::setSettings(const GlobalSettings& settings)
+{
+	if (settings.bam_max_region_len < 1) THROW(ArgumentException, "BAM maximum region length must be positive.");
+	if (!std::isfinite(settings.bam_insert_size_min_percentile) || !std::isfinite(settings.bam_insert_size_max_percentile)
+		|| settings.bam_insert_size_min_percentile < 0.0 || settings.bam_insert_size_max_percentile > 1.0
+		|| settings.bam_insert_size_min_percentile > settings.bam_insert_size_max_percentile)
+	{
+		THROW(ArgumentException, "BAM insert-size percentiles must satisfy 0 <= minimum <= maximum <= 1.");
+	}
+	instance()->settings_ = settings;
+	emit instance()->settingsChanged();
+}
+
+void SharedData::setTranscripts(const TranscriptList& transcripts)
+{
+	SharedData* inst = instance();
+
+	//copy Ensembl transcripts
+	inst->transcripts_.clear();
+	for(const Transcript& t: transcripts)
+    {
+        if (t.source()!=Transcript::ENSEMBL) continue;
+		inst->transcripts_ << t;
+    }
+
+	//sort transcripts
+	if (!inst->transcripts_.isSorted())
+	{
+		inst->transcripts_.sortByPosition();
+	}
+
+	//index transcripts
+	inst->transcripts_index_.createIndex();
+
+	emit inst->transcriptsChanged();
+}
+
+void SharedData::setRegion(const Chromosome& chr, int start, int end)
+{
+	if (end < start) THROW(ArgumentException, "Invalid chromosome range - end before start: "+QString::number(start) + "-" + QString::number(end));
+
+	//extend region to minimal region size
+	int size = end-start+1;
+	if (size<instance()->settings_.min_window_size)
+	{
+		int missing = instance()->settings_.min_window_size-size;
+		start -= missing/2;
+		end += missing/2;
+		if (missing%2!=0)
+		{
+			start -= 1;
+			end += 1;
+		}
+		size = end-start+1;
+	}
+
+	//make sure the region is in chromosome boundaries
+	if (start<1)
+	{
+		start = 1;
+		end = start + size - 1;
+	}
+	int genome_end = SharedData::genome().lengthOf(chr);
+	if (end>genome_end)
+	{
+		end = genome_end;
+		start = end - size + 1;
+		if (start<1) start = 1; //if size is bigger than chromosome, this can happen
+	}
+
+	//check new region is different from old
+	BedLine new_reg = BedLine(chr, start, end);
+	if (new_reg==instance()->region_) return;
+
+	instance()->region_ = new_reg;
+	emit instance()->regionChanged();
+}
+
+SharedData* SharedData::instance()
+{
+	static SharedData s;
+	return &s;
+}
+
+void SharedData::mouseMoved(int x, int width)
+{
+	int label_width = SharedData::settings().label_width;
+	const BedLine& region = SharedData::region();
+	double pixels_per_base_ =  (double)(width-label_width-4) / (double)region.length();
+
+	//show
+	if (x>label_width + 2 && x<width - 2)
+	{
+		int coordinate = region.start() + std::floor((double)(x-label_width - 2) / pixels_per_base_);
+		emit instance()->updateGenomicCoordinate(region.chr().strNormalized(true) + ":" + QString::number(coordinate));
+	}
+	else
+	{
+		emit instance()->updateGenomicCoordinate("");
+	}
+}
+
+SharedData::SharedData(QObject* parent)
+	: QObject(parent)
+	, genome_index_(Settings::string("reference_genome", false))
+	, transcripts_()
+	, transcripts_index_(transcripts_)
+	, settings_()
+	, region_(Chromosome("chr22"), 28687785, 28734579) //just some random default to make sure it is not a invalid region
+{
+}

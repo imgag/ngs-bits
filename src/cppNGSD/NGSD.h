@@ -322,7 +322,8 @@ struct CPPNGSDSHARED_EXPORT SampleDiseaseInfo
 struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 {
 	QString name;
-	QString processing_system;
+	QString processing_system; //long name
+	QString processing_system_short; //short name, used e.g. in file names
 	QString processing_system_type;
 	QString sequencer_type;
 	QString quality;
@@ -437,7 +438,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	PhenotypeList s_phenotypes;
 	QString s_tissue;
 	QString s_ancestry;
-	bool include_bad_quality_samples = true;
+	QStringList ps_quality = {"n/a", "good", "medium", "bad"};
 	bool include_tumor_samples = true;
 	bool include_germline_samples = true;
 	bool include_ffpe_samples = true;
@@ -481,6 +482,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool add_call_details = false;
 	bool add_lab_columns = false;
 	bool add_study_column = false;
+	bool add_patient_id = false;
 };
 
 ///Meta data about somatic report configuration (e.g. creation/update, target bed file)
@@ -741,8 +743,8 @@ class CPPNGSDSHARED_EXPORT NGSD
 Q_OBJECT
 
 public:
-	///Default constructor that connects to the DB
-	NGSD(bool test_db=false, QString test_name_override="");
+	///Default constructor that connects to the DB. If @p open is false, the database connection is not opened. This can be useful if you just want to access the NGSD cache, but not execute any actual database queries (opening the database connect takes up to 0.3s).
+	NGSD(bool test_db=false, QString test_name_override="", bool open=true);
 	///Destructor.
 	~NGSD();
 	///Returns if the database connection is (still) open
@@ -750,7 +752,7 @@ public:
 	///Returns if the database is a production database based on information in the table 'db_info'.
 	bool isProductionDb() const;
 	///Enables debuggins
-	void enableDebugging(bool enabled) { debug_ = enabled; }
+	void enableDebugging(bool enabled, double debug_min_s=-1) { debug_ = enabled; debug_min_s_ = debug_min_s; }
 
 	///Returns if the database is available (i.e. the credentials are in the settings file or the application is in client-server mode)
 	static bool isAvailable(bool test_db=false);
@@ -800,7 +802,8 @@ public:
 	///Returns a SqlQuery object on the NGSD for custom queries.
 	SqlQuery getQuery() const
 	{
-		return SqlQuery(*db_, debug_);
+		if(!open_) THROW(DatabaseException, "Cannot execute query on NGSD instance with not opened database connection!");
+		return SqlQuery(*db_, debug_, debug_min_s_);
 	}
 	///Executes all queries from a text file.
 	void executeQueriesFromFile(QString filename);
@@ -869,7 +872,7 @@ public:
 	/// The return_quality int is higher the higher the quality of the returned transcript is. Exact numbers may not be constant: preferred > MANE > canonical > longest coding , longest non-coding , not found
 	Transcript bestTranscript(int gene_id, const QList<VariantTranscript>& var_transcripts=QList<VariantTranscript>(), int *return_quality=nullptr);
 	///Return the transcript with the highest impact given the variant transcript impacts
-	Transcript highestImpactTranscript(const TranscriptList &transcripts, const QList<VariantTranscript> &var_transcripts);
+	static Transcript highestImpactTranscript(const TranscriptList &transcripts, const QList<VariantTranscript> &var_transcripts);
 	///Returns a list of the most relevant transcripts for the gene. The order is: preferred, MANE select, MANE plus clinical, Ensembl canonical. If none of those exist, the longest coding or longest transcript are used.
 	TranscriptList relevantTranscripts(int gene_id);
 	///Returns the map of gene symbol to relevant transcripts names. Relevant are preferred, MANE, Ensembl canonical. If non of them exst, the longest coding or longest transcript are used. Note: transcript names do not contain version numbers.
@@ -1063,7 +1066,7 @@ public:
 	QByteArray getUserRole(int user_id);
 
 	///Checks if the user has one of the given roles.
-	bool userRoleIn(QString user, QStringList roles, bool use_cache=true);
+	bool userRoleIn(QString user, QStringList roles);
 	///Checks if the user can access the processed sample. Use for users with role 'restricted_user' only, or it will be slow because the user role has to be checked every time. Uses caching for massive speed-up.
 	bool userCanAccess(int user_id, int ps_id);
 	///Returns the action permissions of a user. Action permissions can be restricted for users with role 'restricted_user' only.
@@ -1353,8 +1356,11 @@ protected:
 	bool test_db_;
 	//Enable debugging (prints executed queries)
 	bool debug_;
+	double debug_min_s_;
 	//production cache=0, test cache=1, no cache=-1
 	int cache_context_;
+	//If database connection was actually opened in constructor.
+	bool open_;
 
 	NGSDReferenceDataCache& referenceCache() const;
 	NGSDUserCache& userCache() const;
