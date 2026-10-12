@@ -33,7 +33,9 @@ HttpRequest RequestParser::parse(QByteArray *request) const
 			}
 			parsed_request.setMethod(inferRequestMethod(request_info[0].toUpper()));
 
-			QList<QString> path_items = QString(request_info[1]).split('/');
+			QString path = QString(request_info[1]);
+			path.replace(QRegularExpression("/+"), "/");
+			QList<QString> path_items = path.split('/');
 
 			parsed_request.setPrefix(getRequestPrefix(path_items));
 			parsed_request.setPath(getRequestPath(path_items));
