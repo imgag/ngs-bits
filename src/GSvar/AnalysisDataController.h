@@ -213,10 +213,10 @@ public slots:
 	///reset all filters to pass all variants
 	void resetFilters();
 	///Filter functions:
-	const FilterResult& applySmallVariantFilter(bool debug_time=false);
-	const FilterResult& applyCnvFilter(bool debug_time=false);
-	const FilterResult& applySvFilter(bool debug_time=false);
-	const FilterResult& applyFusionFilter(bool debug_time=false);
+	void applySmallVariantFilter(bool debug_time=false);
+	void applyCnvFilter(bool debug_time=false);
+	void applySvFilter(bool debug_time=false);
+	void applyFusionFilter(bool debug_time=false);
 
 	///Store changes in the GSvar file
 	void storeSmallVariantList();

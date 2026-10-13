@@ -80,7 +80,7 @@ const QList<JobInfo>& BackgroundJobController::getJobs()
 void BackgroundJobController::started()
 {
 	BackgroundWorkerBase* worker = qobject_cast<BackgroundWorkerBase*>(sender());
-	if (worker==nullptr) THROW(ProgrammingException, "BackgroundJobController::started called by Qobject that is not a BackgroundWorkerBase!");
+	if (worker==nullptr) THROW(ProgrammingException, "BackgroundJobController::started called by QObject that is not a BackgroundWorkerBase!");
 
 	for (int r=0; r<jobs_.count(); ++r)
 	{
@@ -95,7 +95,7 @@ void BackgroundJobController::started()
 void BackgroundJobController::finished()
 {
 	BackgroundWorkerBase* worker = qobject_cast<BackgroundWorkerBase*>(sender());
-	if (worker==nullptr) THROW(ProgrammingException, "BackgroundJobController::finished called by Qobject that is not a BackgroundWorkerBase!");
+	if (worker==nullptr) THROW(ProgrammingException, "BackgroundJobController::finished called by QObject that is not a BackgroundWorkerBase!");
 
 	for (int r=0; r<jobs_.count(); ++r)
 	{
@@ -123,7 +123,7 @@ void BackgroundJobController::finished()
 void BackgroundJobController::failed()
 {
 	BackgroundWorkerBase* worker = qobject_cast<BackgroundWorkerBase*>(sender());
-	if (worker==nullptr) THROW(ProgrammingException, "BackgroundJobController::failed called by Qobject that is not a BackgroundWorkerBase!");
+	if (worker==nullptr) THROW(ProgrammingException, "BackgroundJobController::failed called by QObject that is not a BackgroundWorkerBase!");
 
 	for (int r=0; r<jobs_.count(); ++r)
 	{
@@ -147,4 +147,15 @@ void BackgroundJobController::failed()
 	emit jobChanged(worker->id());
 
 	sender()->deleteLater();
+}
+
+int BackgroundJobController::activeThreadCount()
+{
+	return pool_.activeThreadCount();
+}
+
+void BackgroundJobController::close()
+{
+	pool_.clear();
+	pool_.waitForDone(-1);
 }

@@ -32,6 +32,9 @@ public:
 	QString getJobStatus(int job_id);
 	QString getJobMessages(int job_id);
 	const QList<JobInfo>& getJobs();
+	int activeThreadCount();
+	//waits for all threads to finish and removes the threads from the pool
+	void close();
 
 public slots:
 	void started();

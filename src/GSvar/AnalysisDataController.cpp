@@ -767,7 +767,7 @@ void AnalysisDataController::resetFilters()
 	fusions_filter_result_ = FilterResult(fusions_.count());
 }
 
-const FilterResult& AnalysisDataController::applySmallVariantFilter(bool debug_time)
+void AnalysisDataController::applySmallVariantFilter(bool debug_time)
 {
 	var_het_genes_uptodate_ = false;
 
@@ -908,11 +908,10 @@ const FilterResult& AnalysisDataController::applySmallVariantFilter(bool debug_t
 	qDebug() << "setting small variant filter results. Passing:" << result.countPassing() << "  total:" << result.flags().count() << "  variants_ count: " << variants_.count();
 	variants_filter_result_ = result;
 	emit smallVariantsFilterResultChanged();
-	return variants_filter_result_;
 }
 
 
-const FilterResult& AnalysisDataController::applyCnvFilter(bool debug_time)
+void AnalysisDataController::applyCnvFilter(bool debug_time)
 {
 	int rows = cnvs_.count();
 
@@ -1078,17 +1077,16 @@ const FilterResult& AnalysisDataController::applyCnvFilter(bool debug_time)
 
 	QApplication::restoreOverrideCursor();
 	emit CnvFilterResultChanged();
-	return cnvs_filter_result_;
 }
 
-const FilterResult& AnalysisDataController::applySvFilter(bool debug_time)
+void AnalysisDataController::applySvFilter(bool debug_time)
 {
 	//skip if not necessary
 	int row_count = svs_.count();
 	if (row_count==0)
 	{
 		svs_filter_result_ = FilterResult(svs_.count(), false);
-		return svs_filter_result_;
+		return;
 	}
 
 	// filters based on FilterWidgetSV
@@ -1273,11 +1271,10 @@ const FilterResult& AnalysisDataController::applySvFilter(bool debug_time)
 
 	QApplication::restoreOverrideCursor();
 	emit SvFilterResultChanged();
-	return svs_filter_result_;
 }
 
 
-const FilterResult& AnalysisDataController::applyFusionFilter(bool debug_time)
+void AnalysisDataController::applyFusionFilter(bool debug_time)
 {
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 	const int rows = fusions_.count();
@@ -1439,7 +1436,6 @@ const FilterResult& AnalysisDataController::applyFusionFilter(bool debug_time)
 
 	QApplication::restoreOverrideCursor();
 	emit FusionFilterResultChanged();
-	return fusions_filter_result_;
 }
 
 

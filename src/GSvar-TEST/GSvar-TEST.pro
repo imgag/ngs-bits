@@ -27,7 +27,6 @@ LIBS += -L$$PWD/../../bin -lcppNGSD
 INCLUDEPATH += $$PWD/../cppVISUAL
 LIBS += -L$$PWD/../../bin -lcppVISUAL
 
-
 #include htslib library
 INCLUDEPATH += $$PWD/../../htslib/include/
 LIBS += -L$$PWD/../../htslib/lib/ -lhts
@@ -40,14 +39,12 @@ unix: LIBS += -lxml2
 
 #include GSvar
 INCLUDEPATH += $$PWD/../GSvar
-
-SOURCES += $$files($$PWD/../GSvar/*.cpp, true) \
-    BackgroundJobController_Test.cpp
-SOURCES -= $$PWD/../GSvar/main.cpp
-
 HEADERS += $$files($$PROJECT_ROOT/src/GSvar/*.h, true)
 FORMS += $$files($$PROJECT_ROOT/src/GSvar/*.ui, true)
 RESOURCES += $$files($$PROJECT_ROOT/src/GSvar/*.qrc, true)
+
+SOURCES += $$files($$PWD/../GSvar/*.cpp, true)
+SOURCES -= $$PWD/../GSvar/main.cpp
 
 #test sources:
 SOURCES += \

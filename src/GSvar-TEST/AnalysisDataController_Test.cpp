@@ -4,15 +4,13 @@
 
 #include <QTest>
 #include <QApplication>
-#include "Application.h"
 #include <QMessageBox>
 #include <QTimer>
 #include <QSignalSpy>
 
-#include "MainWindow.h"
-#include "LoginManager.h"
 #include "Background/BackgroundWorkerBase.h"
 #include "IgvSessionManager.h"
+#include "LoginManager.h"
 
 TEST_CLASS(AnalysisDataController_Test)
 {
@@ -71,6 +69,7 @@ TEST_METHOD(controller_load_germline_file)
 	QString gsvar_dragen = TESTDATA("data_in/sample_data/Sample_NA12878-WES-DRAGEN_01/NA12878-WES-DRAGEN_01.GSvar");
 
 	IgvSessionManager::create(nullptr, "test", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), Settings::path("igv_genome"));
+	LoginManager::login("ahmustm1", "", true);
 
 	AnalysisDataController& controller = AnalysisDataController::instance();
 	controller.setTestMode(true);
@@ -81,6 +80,8 @@ TEST_METHOD(controller_load_germline_file)
 	//loading empty
 	QVERIFY_THROWS_EXCEPTION(ProgrammingException, controller.loadFile(""));
 
+	QStringList errors = controller.loadFile("gsvar_doesnt_exist.GSvar");
+	S_EQUAL(errors[0], "Error loading the file gsvar_doesnt_exist.GSvar: Could not open file 'gsvar_doesnt_exist.GSvar'");
 
 	//load default analysis
 	controller.loadFile(gsvar_default);
@@ -116,7 +117,8 @@ TEST_METHOD(controller_load_germline_file)
 	filters[1]->toggleEnabled();
 	filters[6]->toggleEnabled();
 
-	//TODO should this be necessary? applyFilter was not triggered automatically
+	//TODO should this be necessary? applyFilter is not triggered automatically
+	//should FilterCascade be a QObject and send changed SIGNALs itself? Then it could be detected without the intermediary of the FilterWidget.
 	controller.applySmallVariantFilter();
 
 	I_EQUAL(controller.getSmallVariantsFilterResult().countPassing(), 2988);
@@ -147,6 +149,20 @@ TEST_METHOD(controller_load_germline_file)
 	snv_filters.setTargetRegionInfoByName("Sub-panel: test_region");
 	I_EQUAL(controller.getSmallVariantsFilterResult().countPassing(), 5);
 
+	//CNVs:
+	I_EQUAL(controller.getCnvFilterResult().countPassing(), 403);
+
+	FilterState& cnv_filters = controller.getCnvFilterState();
+	QSignalSpy apply_cnv_filter_signal(&cnv_filters, SIGNAL(filterStateChanged()));
+
+	FilterCascade cnv_filtercascade = FilterCascadeFile::load("GSvar_filters_cnv.ini", "WES/WGS relaxed");
+	cnv_filters.setFilterCascade(cnv_filtercascade);
+	I_EQUAL(apply_filter_signal.count(), 1);
+	I_EQUAL(controller.getSmallVariantsFilterResult().countPassing(), 9);
+
+	cnv_filters.setRegionFilter(BedLine("chr1", 629000, 153663000));
+	I_EQUAL(apply_filter_signal.count(), 2);
+	I_EQUAL(controller.getSmallVariantsFilterResult().countPassing(), 8);
 
 	//reset controller:
 	controller.clear();
@@ -169,68 +185,36 @@ TEST_METHOD(controller_load_germline_file)
 }
 
 
-/*
 
 
-TEST_METHOD(data_loading_with_NGSD)
+TEST_METHOD(report_configs)
 {
 	SKIP_IF_NO_TEST_NGSD();
 
 	//init
 	NGSD db(true);
-	db.init();
-	db.executeQueriesFromFile(TESTDATA("data_in/NGSD_base_in.sql"));
-
-	SqlQuery query = db.getQuery();
-	query.prepare("UPDATE processed_sample SET folder_override = :0 WHERE id = :1");
-	query.bindValue(0, TESTDATA("data_in/sample_data/Sample_NA12878-WES-DEFAULT_01/"));
-	query.bindValue(1, 101);
-	query.exec();
-	query.bindValue(0, TESTDATA("data_in/sample_data/Sample_NA12878-WES-DRAGEN_01/"));
-	query.bindValue(1, 102);
-	query.exec();
+	init_test(db);
 
 	QString gsvar_default = TESTDATA("data_in/sample_data/Sample_NA12878-WES-DEFAULT_01/NA12878-WES-DEFAULT_01.GSvar");
-	QString gsvar_dragen = TESTDATA("data_in/sample_data/Sample_NA12878-WES-DRAGEN_01/NA12878-WES-DRAGEN_01.GSvar");
 
-
-	//start application
-	int argc = 1;
-	char app_name[] = "GSvar-TEST";
-	char* argv[] = {app_name, nullptr};
-	//Application a(argc, argv);
-	//MainWindow w;
-	//w.showMaximized();
+	IgvSessionManager::create(nullptr, "test", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), Settings::path("igv_genome"));
+	LoginManager::login("ahmustm1", "", true);
 
 	AnalysisDataController& controller = AnalysisDataController::instance();
+	controller.clear();
+	controller.setTestMode(true);
+
 	IS_FALSE(controller.isValid());
 
 	//load default analysis
 	controller.loadFile(gsvar_default);
-	IS_TRUE(controller.isValid());
 
-	//reset controller:
-	controller.loadFile();
-	IS_FALSE(controller.isValid());
-	I_EQUAL(controller.getSmallVariantList().count(), 0);
-	I_EQUAL(controller.getCnvList().count(), 0);
-	I_EQUAL(controller.getSvList().count(), 0);
-	I_EQUAL(controller.getReList().count(), 0);
-
-	//load dragen analysis
-	controller.loadFile(gsvar_dragen);
-	IS_TRUE(controller.isValid());
+	S_EQUAL(controller.germlineReportSample(), "NA12878-WES-DEFAULT_01");
 
 
-
-	// w.closeAndLogout();
-	S_EQUAL("TODO", "DONE");
 }
 
-TEST_METHOD(report_configs)
-{
-    S_EQUAL("TODO", "DONE");
-}
+/*
 
 TEST_METHOD(use_mainwindow)
 {

@@ -3800,7 +3800,15 @@ void MainWindow::closeEvent(QCloseEvent* event)
     if (ClientHelper::isClientServerMode()) performLogout();
         //here one could cancel closing the window by calling event->ignore()
 
-        event->accept();
+	//hide window while waiting for the backgroundjobs to finish - delayed init takes ~20sec
+	this->hide();
+
+	//make sure all backgroundjobs are closed:
+	qDebug() << "Active Background threads:" << BackgroundJobController::instance().activeThreadCount();
+	BackgroundJobController::instance().close();
+
+	event->accept();
+	QCoreApplication::quit();
 }
 
 void MainWindow::refreshVariantTable(bool keep_widths, bool keep_heights)
@@ -4062,8 +4070,9 @@ void MainWindow::openAlamut(QAction* action)
 
 void MainWindow::closeAndLogout()
 {
+	qDebug() << "hello: close and logout";
     if (ClientHelper::isClientServerMode()) performLogout();
-        close();
+	close();
 }
 
 void MainWindow::displayIgvHistoryTable()
