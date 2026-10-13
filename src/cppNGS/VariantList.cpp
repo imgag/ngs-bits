@@ -6,6 +6,7 @@
 #include "ChromosomalIndex.h"
 #include "VcfFile.h"
 #include "VersatileFile.h"
+#include "StringPool.h"
 #include <QFile>
 #include <QRegularExpression>
 #include <QTextStream>
@@ -843,9 +844,6 @@ void VariantList::loadHeaderOnly(QString filename)
 
 void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert, bool header_only)
 {
-	//create cache to avoid copies of the same string in memory (via Qt implicit sharing)
-	QHash<QByteArray, QByteArray> str_cache;
-
 	//create ROI index (if given)
 	QScopedPointer<ChromosomalIndex<BedFile>> roi_idx;
 	if (roi!=nullptr)
@@ -939,16 +937,10 @@ void VariantList::loadInternal(QString filename, const BedFile* roi, bool invert
 			}
 		}
 
-		//replace repeated strings with cached copy => save ~ 40% of memory
+		//Share repeated strings across data structures via Qt implicit sharing.
 		for(int i=3; i<fields.count(); ++i)
 		{
-			const QByteArray& field = fields[i];
-			if (!str_cache.contains(field))
-			{
-				str_cache.insert(field, field);
-			}
-
-			fields[i] = str_cache[field];
+			fields[i] = StringPool::get(fields[i]);
 		}
 
 		append(Variant(chr, start, end, fields[3], fields[4], fields.mid(special_cols), filter_index));

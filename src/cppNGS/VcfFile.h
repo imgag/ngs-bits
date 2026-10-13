@@ -133,7 +133,7 @@ public:
 	///Remove contig headers of chromosomes that are not unsed. If used chromosomes are not given, they are automatically determined from the loaded VCF lines.
 	void removeUnusedContigHeaders(QSet<QByteArray> used_chrs = QSet<QByteArray>());
 
-	///Clear cache of strings and string lists used to reduce memory consumption.
+	///Clears the application-wide StringPool and VCF string-list cache. Existing owning values remain valid.
 	static void clearCache();
 
 private:
@@ -236,8 +236,6 @@ private:
 	//for using the parse functions in testing
 	friend class VcfLine_Test;
 
-	//caching function to store each QByteArray only once
-	static QByteArray strCache(const QByteArray& str, bool clear_cache=false);
 	//caching function to store each QByteArrayList only once
 	static QByteArrayList strArrayCache(const QByteArrayList& str, bool clear_cache=false);
 };

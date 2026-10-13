@@ -7,6 +7,7 @@ SOURCES += \
         Plots_Test.cpp \
         TSVFileStream_Test.cpp \
         Settings_Test.cpp \
+        StringPool_Test.cpp \
         VersatileFile_Test.cpp \
         VersatileTextStream_Test.cpp \
         HttpRequestHandler_Test.cpp \

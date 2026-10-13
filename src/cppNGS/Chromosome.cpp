@@ -1,190 +1,140 @@
 #include "Chromosome.h"
-#include <QHash>
-#include <QMutex>
+#include <deque>
+#include <mutex>
+#include <shared_mutex>
+#include <unordered_map>
 
-const QHash<QByteArray, int> Chromosome::str2num_cache_ = {
-	{"", 0},
-	//our chromosome names
-	{"chr1", 1},
-	{"chr2", 2},
-	{"chr3", 3},
-	{"chr4", 4},
-	{"chr5", 5},
-	{"chr6", 6},
-	{"chr7", 7},
-	{"chr8", 8},
-	{"chr9", 9},
-	{"chr10", 10},
-	{"chr11", 11},
-	{"chr12", 12},
-	{"chr13", 13},
-	{"chr14", 14},
-	{"chr15", 15},
-	{"chr16", 16},
-	{"chr17", 17},
-	{"chr18", 18},
-	{"chr19", 19},
-	{"chr20", 20},
-	{"chr21", 21},
-	{"chr22", 22},
-	{"chrX", 1001},
-	{"chrY", 1002},
-	{"chrMT", 1003},
-	//Ensembl chromosome names
-	{"1", 1},
-	{"2", 2},
-	{"3", 3},
-	{"4", 4},
-	{"5", 5},
-	{"6", 6},
-	{"7", 7},
-	{"8", 8},
-	{"9", 9},
-	{"10", 10},
-	{"11", 11},
-	{"12", 12},
-	{"13", 13},
-	{"14", 14},
-	{"15", 15},
-	{"16", 16},
-	{"17", 17},
-	{"18", 18},
-	{"19", 19},
-	{"20", 20},
-	{"21", 21},
-	{"22", 22},
-	{"X", 1001},
-	{"Y", 1002},
-	{"MT", 1003}
+struct Chromosome::Pool
+{
+	struct Hash
+	{
+		size_t operator()(QByteArrayView str) const noexcept { return ::qHash(str); }
+	};
+	using Records = std::unordered_map<QByteArrayView, const Data*, Hash>;
+
+	//deque keeps records (and the strings used as map keys) at stable addresses.
+	std::deque<Data> data;
+	Records common;
+	Records other;
+	QHash<QByteArray, int> special_numbers;
+	int next_num = 1004;
+	std::shared_mutex mutex;
+
+	Pool()
+	{
+		common.reserve(55);
+		addCommon(QByteArray(""), QByteArray(""), 0);
+		for (int num = 1; num <= 22; ++num)
+		{
+			const QByteArray name = QByteArray::number(num);
+			addCommon(name, name, num);
+			addCommon("chr" + name, name, num);
+		}
+		for (const auto& entry : {std::pair<const char*, int>{"X", 1001}, {"Y", 1002}, {"MT", 1003}, {"M", 1003}})
+		{
+			const QByteArray name(entry.first);
+			const QByteArray normalized = entry.second == 1003 ? QByteArray("MT") : name;
+			addCommon(name, normalized, entry.second);
+			addCommon("chr" + name, normalized, entry.second);
+		}
+	}
+
+	void addCommon(const QByteArray& original, const QByteArray& normalized, int num)
+	{
+		data.push_back({original, normalized, num});
+		common.emplace(QByteArrayView(data.back().original), &data.back());
+	}
 };
 
-const QHash<int, QByteArray> Chromosome::num2str_cache_ = {
-	{0, ""},
-	{1, "1"},
-	{2, "2"},
-	{3, "3"},
-	{4, "4"},
-	{5, "5"},
-	{6, "6"},
-	{7, "7"},
-	{8, "8"},
-	{9, "9"},
-	{10, "10"},
-	{11, "11"},
-	{12, "12"},
-	{13, "13"},
-	{14, "14"},
-	{15, "15"},
-	{16, "16"},
-	{17, "17"},
-	{18, "18"},
-	{19, "19"},
-	{20, "20"},
-	{21, "21"},
-	{22, "22"},
-	{1001, "X"},
-	{1002, "Y"},
-	{1003,"MT"}
-};
+const Chromosome::Data* Chromosome::getDataPointer(QByteArrayView chr)
+{
+	chr = chr.trimmed();
+	//Keep records alive even during static destruction in other translation units.
+	//Initialization is thread-safe; the common map is immutable after publication.
+	static Pool* const pool = new Pool;
+	thread_local const Data* last = nullptr;
+	if (last != nullptr && QByteArrayView(last->original) == chr) return last;
+
+	const Pool::Records& common_records = pool->common;
+	const auto common = common_records.find(chr);
+	if (common != common_records.end()) return last = common->second;
+
+	{
+		std::shared_lock<std::shared_mutex> lock(pool->mutex);
+		const auto found = pool->other.find(chr);
+		if (found != pool->other.end()) return last = found->second;
+	}
+
+	std::unique_lock<std::shared_mutex> lock(pool->mutex);
+	//Another thread may have inserted this spelling while we changed locks.
+	const auto found = pool->other.find(chr);
+	if (found != pool->other.end()) return last = found->second;
+
+	//Copy the input: callers may supply temporary strings or non-owning views.
+	const QByteArray original = chr.toByteArray();
+	QByteArray normalized = original.toUpper();
+	if (normalized.startsWith("CHR")) normalized = normalized.mid(3);
+	if (normalized == "M") normalized = "MT";
+
+	int num = 0;
+	if (normalized == "X") num = 1001;
+	else if (normalized == "Y") num = 1002;
+	else if (normalized == "MT") num = 1003;
+	else if (!normalized.isEmpty())
+	{
+		bool ok = false;
+		const uint value = normalized.toUInt(&ok);
+		if (!normalized.startsWith('0') && ok && value > 0 && value <= 1000)
+		{
+			num = value;
+			//Preserve the former normalization cache's behavior for 1-22.
+			if (num <= 22) normalized = QByteArray::number(num);
+		}
+		else
+		{
+			auto number = pool->special_numbers.constFind(normalized);
+			if (number == pool->special_numbers.cend())
+			{
+				num = pool->next_num;
+				pool->special_numbers.insert(normalized, num);
+				++pool->next_num;
+			}
+			else num = number.value();
+		}
+	}
+
+	pool->data.push_back({original, normalized, num});
+	const Data* result = &pool->data.back();
+	pool->other.emplace(QByteArrayView(result->original), result);
+	return last = result;
+}
 
 Chromosome::Chromosome()
-	: str_("")
-	, num_(0)
+	: data_(getDataPointer(QByteArrayView()))
 {
 }
 
 Chromosome::Chromosome(const QString& chr)
-	: str_(chr.trimmed().toUtf8())
-	, num_(0)
+	: data_(getDataPointer(chr.trimmed().toUtf8()))
 {
-	num_ = numericRepresentation();
 }
 
 Chromosome::Chromosome(const QByteArray& chr)
-	: str_(chr.trimmed())
-	, num_(0)
+	: data_(getDataPointer(chr))
 {
-	num_ = numericRepresentation();
 }
 
 Chromosome::Chromosome(const char* chr)
-	: str_(chr)
-	, num_(0)
+	: data_(getDataPointer(QByteArrayView(chr)))
 {
-	str_ = str_.trimmed();
-	num_ = numericRepresentation();
 }
 
 Chromosome::Chromosome(const std::string& chr)
-	: str_(chr.c_str())
-	, num_(0)
+	: Chromosome(chr.c_str())
 {
-	str_ = str_.trimmed();
-	num_ = numericRepresentation();
 }
 
 Chromosome::Chromosome(QByteArrayView chr)
-	: str_(chr.trimmed().toByteArray())
-	, num_(0)
+	: data_(getDataPointer(chr))
 {
-	num_ = numericRepresentation();
-}
-
-QByteArray Chromosome::normalizedStringRepresentation() const
-{
-	QByteArray tmp = str_.toUpper();
-	if (tmp.startsWith("CHR")) tmp = tmp.mid(3);
-	if (tmp=="M") tmp = "MT";
-	return tmp;
-}
-
-int Chromosome::numericRepresentation() const
-{
-	//speed up for default representations
-	if (str2num_cache_.contains(str_)) return str2num_cache_[str_];
-
-	//normalize
-	QByteArray tmp = normalizedStringRepresentation();
-
-	//handle special cases empty, X,Y and M/MT
-	if (tmp=="")
-	{
-		return 0;
-	}
-	if (tmp=="X")
-	{
-		return 1001;
-	}
-	if (tmp=="Y")
-	{
-		return 1002;
-	}
-	if (tmp=="MT")
-	{
-		return 1003;
-	}
-
-	//calculate numeric representation
-	if (!tmp.startsWith('0'))
-	{
-		bool ok = false;
-		uint value = tmp.toUInt(&ok);
-		if (ok && value>0 && value<=1000)
-		{
-			return value;
-		}
-	}
-
-	//other non-numeric chromosome
-	static int next_num = 1004;
-	static QHash<QByteArray, int> cache;
-	static QMutex mutex; //mutex to protect static members when accessed in parallel from several threads
-	QMutexLocker locker(&mutex);
-	if (!cache.contains(tmp))
-	{
-		cache[tmp] = next_num;
-		++next_num;
-	}
-
-	return cache[tmp];
 }
