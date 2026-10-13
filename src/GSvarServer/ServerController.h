@@ -6,6 +6,7 @@
 #include "HttpRequest.h"
 #include "EndpointManager.h"
 #include "FastFileInfo.h"
+#include "XmlImportValidator.h"
 
 class ServerController
 {
@@ -87,13 +88,6 @@ public:
 	/// Returns information about the latest available version of the desktop client
 	static HttpResponse getCurrentClientInfo(const HttpRequest& request);
 
-	/// "Finds a sender ID by the name
-	static HttpResponse getSenderIdByName(const HttpRequest& request);
-	/// Finds a user ID by the receiver name
-	static HttpResponse getReceiverIdByName(const HttpRequest& request);
-	/// Finds a species ID by the name
-	static HttpResponse getSpeciesIdByName(const HttpRequest& request);
-
 	/// --------- Database editing ---------
 	/// Adds a new project to NGSD database: returns OK (and a corresponding message) on success or error message when fails
 	static HttpResponse addProjectToDb(const HttpRequest& request);
@@ -127,7 +121,7 @@ public:
 	static HttpResponse clearPermissionsCache(const HttpRequest& request);
 
 	/// Inserts new data into a specific table in NGSD (needed for the data import / batch import functionality)
-	static void importDataToNGSD(NGSD& db, const TableSchema& table, const QHash<QString, QVariant>& values);
+	static void importDataToNGSD(NGSD& db, const QString& table_name, const QHash<QString, QVariant>& values);
 private:
 	/// Find file/folder name corresponding to the id from a temporary URL
 	static QString findPathForTempUrl(QList<QString> path_parts);
@@ -144,15 +138,6 @@ private:
     /// Returns a temporary URL wihtout a parameters (e.g. ?token=123)
     static QString stripParamsFromTempUrl(const QString& url);
 
-	/// Handles quotation mark escaping for the data import
-	static QString escapeQuotationMarks(const QString& identifier)
-	{
-		QString escaped = identifier;
-		escaped.replace('`', "``");
-
-		return "`" + escaped + "`";
-	}
-
 	/// Serves a file for a byte range request (i.e. specific fragment of a file)
 	static HttpResponse createStaticFileRangeResponse(const QString& filename, const QList<ByteRange>& byte_ranges, const ContentType& type, bool is_downloadable);
 	/// Serves a stream, used to transfer large files without opening multiple connections
@@ -162,8 +147,6 @@ private:
 	static HttpResponse createStaticLocationResponse(const QString path, const HttpRequest& request);
 	/// Handles adding new records to the database tables (data import)
 	static HttpResponse addRecordToDbTable(const QString& table_name, const HttpRequest& request);
-	/// Returns a JSON array with id-name pairs for a given table
-	static HttpResponse getIdNamePair(const QString& table_name, const HttpRequest& request);
 };
 
 #endif // SERVERCONTROLLER_H

@@ -199,8 +199,7 @@ void ImportDialog::pasteRow(int row_index, QString line)
 		QStringList parts = line.split("\t");
 		checkNumberOfParts(parts);
 		for (int c=0; c<parts.count(); ++c)
-		{
-			// ui_.table->setItem(row_index, 0, GUIHelper::createTableItem(line));
+		{			
 			QString value = parts[c];
 			QString actual = value;
 			QString validation_error;
@@ -589,7 +588,7 @@ void ImportDialog::import()
 
 				QString salt = Helper::randomString(40);
 				QString password = import_data["password"];
-				if (import_data["password"].isEmpty()) password = db.generateInitialPassword(8);
+				if (import_data["password"].isEmpty()) password = Helper::randomString(8);
 
 				QString hash = QCryptographicHash::hash((salt+password).toUtf8(), QCryptographicHash::Sha1).toHex();
 
@@ -678,10 +677,11 @@ QStringList ImportDialog::extraValues(int r)
 	}
 	else if (type_==PROCESSED_SAMPLES)
 	{
+		NGSD db;
 		//add next processing id of sample
 		QString sample_name = ui_.table->item(r,0)->text();
-		QString sample_id = db_.sampleId(sample_name);
-		QString next_id = db_.nextProcessingId(sample_id);
+		QString sample_id = db.sampleId(sample_name);
+		QString next_id = db.nextProcessingId(sample_id);
 		if (next_id.toInt() > 99)
 		{
 			THROW(ArgumentException, "Error: For sample " + sample_name + " already 99 processed samples exist.\nCannot create more processed samples for " + sample_name + ".\n\nPlease import a new sample e.g. NA12878 -> NA12878x2");

@@ -72,7 +72,7 @@ public:
 	static QList<Endpoint> getEndpointEntities();
 
 	static QString getEndpointHelpTemplate(QList<Endpoint> endpoint_list);
-    static QString formatResponseMessage(const HttpRequest& request, const QString& message);	
+	static QString formatResponseMessage(const HttpRequest& request, const QString& message);
 
 protected:
 	EndpointManager();

@@ -3,13 +3,14 @@
 #include <QXmlStreamReader>
 #include <limits>
 
-XmlImportValidator::XmlImportValidator(const DatabaseSchema& schema)
-	: schema_(schema)
+XmlImportValidator::XmlImportValidator(bool test_db)
+	: test_db_(test_db)
 {
 }
 
 XmlValidationResult XmlImportValidator::validateInsert(const QByteArray& body, const QString& table_name) const
 {
+	NGSD db(test_db_);
 	XmlValidationResult result;
 	constexpr qsizetype MAX_XML_SIZE = 1024 * 1024;
 
@@ -25,7 +26,17 @@ XmlValidationResult XmlImportValidator::validateInsert(const QByteArray& body, c
 		return result;
 	}
 
-	const TableSchema& table = schema_.table(table_name);
+	// check if the table exists
+	SqlQuery query = db.getQuery();
+	query.prepare("SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA=:schema AND TABLE_NAME=:table_name");
+	query.bindValue(":schema", db.databaseName());
+	query.bindValue(":table_name", table_name);
+	query.exec();
+	if (!query.next())
+	{
+		result.errors << "The table '"+table_name+"' does not exist in the database";
+		return result;
+	}
 
 	QXmlStreamReader xml(body);
 	if (!xml.readNextStartElement())
@@ -47,19 +58,18 @@ XmlValidationResult XmlImportValidator::validateInsert(const QByteArray& body, c
 
 	QSet<QString> seen_fields;
 
+	const TableInfo table_info = db.tableInfo(table_name);
+
 	while (xml.readNextStartElement())
 	{
 		const QString field_name = xml.name().toString();
-		const auto column_it = table.columns.constFind(field_name);
-
-		if (column_it == table.columns.constEnd())
+		if (!table_info.fieldNames().contains(field_name))
 		{
 			result.errors << QString("Unknown field <%1>").arg(field_name);
 			xml.skipCurrentElement();
 			continue;
 		}
 
-		const TableFieldInfo& column = column_it.value();
 
 		if (seen_fields.contains(field_name))
 		{
@@ -78,9 +88,9 @@ XmlValidationResult XmlImportValidator::validateInsert(const QByteArray& body, c
 		const QString value = xml.readElementText(QXmlStreamReader::ErrorOnUnexpectedElement);
 		if (xml.hasError()) break;
 
+		const TableFieldInfo& column = table_info.fieldInfo(field_name);
 		if (!column.isValid(value))
 		{
-
 			result.errors << QString("Invalid value in the '%1'").arg(column.name);
 			continue;
 		}
@@ -95,9 +105,9 @@ XmlValidationResult XmlImportValidator::validateInsert(const QByteArray& body, c
 	}
 
 	// Check mandatory database columns
-	for (auto it = table.columns.constBegin(); it != table.columns.constEnd(); it++)
+	for (QString filed_name: table_info.fieldNames())
 	{
-		const TableFieldInfo& column = it.value();
+		const TableFieldInfo& column = table_info.fieldInfo(filed_name);
 
 		bool mandatory_field = true;
 		if ((column.is_primary_key && column.has_auto_increment) || (column.is_nullable) || (!column.default_value.isEmpty())) mandatory_field = false;

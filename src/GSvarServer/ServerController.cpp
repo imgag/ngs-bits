@@ -18,7 +18,6 @@
 #include "Statistics.h"
 #include "ToolBase.h"
 #include "FileLocationProviderLocal.h"
-#include "XmlImportValidator.h"
 
 ServerController::ServerController()
 {
@@ -1723,21 +1722,6 @@ HttpResponse ServerController::getCurrentClientInfo(const HttpRequest& /*request
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
-HttpResponse ServerController::getSenderIdByName(const HttpRequest &request)
-{
-	return getIdNamePair("sender", request);
-}
-
-HttpResponse ServerController::getReceiverIdByName(const HttpRequest &request)
-{
-	return getIdNamePair("user", request);
-}
-
-HttpResponse ServerController::getSpeciesIdByName(const HttpRequest &request)
-{
-	return getIdNamePair("species", request);
-}
-
 HttpResponse ServerController::addProjectToDb(const HttpRequest &request)
 {
 	return addRecordToDbTable("project", request);
@@ -1961,28 +1945,30 @@ QString ServerController::stripParamsFromTempUrl(const QString& url)
     return output;
 }
 
-void ServerController::importDataToNGSD(NGSD &db, const TableSchema &table, const QHash<QString, QVariant> &values)
+void ServerController::importDataToNGSD(NGSD &db, const QString& table_name, const QHash<QString, QVariant> &values)
 {
 	if (values.isEmpty()) THROW(DatabaseException, "No values supplied for INSERT");
 
 	QStringList column_names;
 	QStringList placeholders;
-	QList<QString> keys;
-	int index = 0;
+	QList<QVariant> bound_values;
 
-	for (auto it = values.constBegin(); it != values.constEnd(); it++)
+	for (auto it = values.constBegin(); it != values.constEnd(); ++it)
 	{
 		const QString& column_name = it.key();
-		if (!table.columns.contains(column_name)) THROW(DatabaseException, QString("Unknown column '%1' for table '%2'").arg(column_name, table.name));
 
-		keys.append(column_name);
-		column_names.append(escapeQuotationMarks(column_name));
-		placeholders.append("'" + values[column_name].toString() + "'");
-		index++;
+		TableInfo table_info = db.tableInfo(table_name);
+		if (!table_info.fieldNames().contains(column_name)) THROW(DatabaseException, QString("Unknown column '%1' for table '%2'").arg(column_name, table_name));
+
+		column_names.append(column_name);
+		placeholders.append("?");
+		bound_values.append(it.value());
 	}
 
 	SqlQuery query = db.getQuery();
-	query.exec(QString("INSERT INTO %1 (%2) VALUES (%3)").arg(escapeQuotationMarks(table.name), column_names.join(", "), placeholders.join(", ")));
+	query.prepare(QString("INSERT INTO %1 (%2) VALUES (%3)").arg(table_name, column_names.join(", "), placeholders.join(", ")));
+	for (int i = 0; i < bound_values.size(); ++i) query.addBindValue(bound_values[i]);
+	query.exec();
 }
 
 HttpResponse ServerController::createStaticFolderResponse(const QString path, const HttpRequest& request)
@@ -2061,17 +2047,14 @@ HttpResponse ServerController::createStaticLocationResponse(const QString path, 
 HttpResponse ServerController::addRecordToDbTable(const QString &table_name, const HttpRequest& request)
 {
 	NGSD db;
-	DatabaseSchema db_schema(db);
-
-	XmlImportValidator validator(db_schema);
+	XmlImportValidator validator;
 	const XmlValidationResult result = validator.validateInsert(request.getBody(), table_name);
 
 	if (result.isValid())
 	{
 		try
-		{
-			const TableSchema& table = db_schema.table(table_name);
-			importDataToNGSD(db, table, result.values);
+		{			
+			importDataToNGSD(db, table_name, result.values);
 		}
 		catch (DatabaseException& e)
 		{
@@ -2084,41 +2067,6 @@ HttpResponse ServerController::addRecordToDbTable(const QString &table_name, con
 	{
 		return HttpResponse(ResponseStatus::BAD_REQUEST, ContentType::TEXT_PLAIN, QString("Error while adding a new record to the '%1' table: %2").arg(table_name, result.errors.join(", ")));
 	}
-}
-
-HttpResponse ServerController::getIdNamePair(const QString &table_name, const HttpRequest &request)
-{
-	NGSD db;
-	QJsonDocument json = QJsonDocument::fromJson(request.getBody());
-	if (!json.isArray()) return HttpResponse(ResponseStatus::BAD_REQUEST, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not extract a list of sender names from the JSON"));
-
-	QJsonArray output_list;
-	QJsonArray name_list = json.array();
-	for (int i=0; i<name_list.size(); i++)
-	{
-		QJsonObject id_and_name_pair;
-		int current_id = -1;
-		try
-		{
-			current_id = db.getValue(QString("SELECT id FROM %1 WHERE name='%2'").arg(table_name, name_list[i].toString())).toInt();
-		}
-		catch (DatabaseException& e)
-		{
-			return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not retrieve a sender id from the database: " + e.message()));
-		}
-
-		if (current_id==0) continue;
-		id_and_name_pair.insert("id", current_id);
-		id_and_name_pair.insert("name", name_list[i]);
-		output_list.append(id_and_name_pair);
-	}
-
-	QJsonDocument json_doc_output;
-	json_doc_output.setArray(output_list);
-	BasicResponseData response_data;
-	response_data.length = json_doc_output.toJson().length();
-	response_data.content_type = ContentType::APPLICATION_JSON;
-	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
 HttpResponse ServerController::uploadFileToFolder(QString upload_folder, const HttpRequest& request)

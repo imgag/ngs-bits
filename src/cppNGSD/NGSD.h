@@ -709,33 +709,6 @@ struct  NsxAnalysisSettings
 	bool dragen_analysis = true;
 };
 
-///Contains information about the fields for a specific database table
-struct CPPNGSDSHARED_EXPORT TableSchema
-{
-	QString name;
-	QHash<QString, TableFieldInfo> columns;
-};
-
-///Contains information about all fields in all tables in a specific database
-class CPPNGSDSHARED_EXPORT DatabaseSchema
-	: public QObject
-{
-	Q_OBJECT
-public:
-	DatabaseSchema(NGSD& db);
-
-	const TableSchema& table(const QString& name) const
-	{
-		const auto it = tables_.constFind(name);
-		if (it == tables_.constEnd()) THROW(DatabaseException, QString("Table '%1' does not exist").arg(name));
-		return it.value();
-	}
-
-private:
-	QHash<QString, TableSchema> tables_;
-};
-
-
 ///NGSD access
 class CPPNGSDSHARED_EXPORT NGSD
 		: public QObject
@@ -1057,10 +1030,7 @@ public:
 	///Checks if the given user/password tuple is correct. If ok, returns an empty string. If not, returns an error message.
 	QString checkPassword(QString user_name, QString password, bool only_active=true);
 	///Sets the password for a NGSD user using a new random salt.
-	void setPassword(int user_id, QString password);
-
-	///Generates a random initial password for the first login
-	QString generateInitialPassword(int length);
+	void setPassword(int user_id, QString password);	
 
 	///Return a role for a given user.
 	QByteArray getUserRole(int user_id);

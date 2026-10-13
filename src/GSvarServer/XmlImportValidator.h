@@ -2,13 +2,12 @@
 #define XMLIMPORTVALIDATOR_H
 
 #include "NGSD.h"
-#include "cppNGSD_global.h"
 #include <QByteArray>
 #include <QHash>
 #include <QStringList>
 #include <QVariant>
 
-struct CPPNGSDSHARED_EXPORT XmlValidationResult
+struct XmlValidationResult
 {
 	QHash<QString, QVariant> values;
 	QStringList errors;
@@ -24,14 +23,14 @@ struct CPPNGSDSHARED_EXPORT XmlValidationResult
 };
 
 
-class CPPNGSDSHARED_EXPORT XmlImportValidator
+class XmlImportValidator
 {
 public:
-	explicit XmlImportValidator(const DatabaseSchema& schema);
+	explicit XmlImportValidator(bool test_db = false);
 	XmlValidationResult validateInsert(const QByteArray& xml, const QString& table_name) const;
 
 private:
-	const DatabaseSchema& schema_;
+	bool test_db_;
 };
 
 #endif // XMLIMPORTVALIDATOR_H

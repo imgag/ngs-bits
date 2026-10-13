@@ -53,8 +53,7 @@ SOURCES += \
     TumorOnlyReportWorker.cpp \
     SomaticReportHelper.cpp \
     SomaticRnaReport.cpp \
-    SomaticcfDNAReport.cpp \
-    XmlImportValidator.cpp
+    SomaticcfDNAReport.cpp
 
 HEADERS += \
     ApiCaller.h \
@@ -83,8 +82,7 @@ HEADERS += \
     TumorOnlyReportWorker.h \
     SomaticReportHelper.h \
     SomaticRnaReport.h \
-    SomaticcfDNAReport.h \
-    XmlImportValidator.h
+    SomaticcfDNAReport.h
 
 RESOURCES += \
     cppNGSD.qrc
