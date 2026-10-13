@@ -5066,7 +5066,7 @@ void MainWindow::on_actionDetermineProxy_triggered()
 
 void MainWindow::on_actionCheckBamAccess_triggered()
 {
-	QString bam_file_url = ClientHelper::serverApiUrl()+"assets/rna.bam";
+	QString bam_file_url = ClientHelper::serverApiUrl()+"/assets/rna.bam";
 	try
 	{
 		BamReader reader(bam_file_url);
