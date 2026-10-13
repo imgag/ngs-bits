@@ -44,7 +44,8 @@ void MainWindow::delayedInitialization()
 		QElapsedTimer timer;
 		timer.start();
 		{
-			QProgressDialog loading_dialog("loading gene/transcript Gff file", QString(), 0, 0, this);
+			QString gff_file = Settings::string("ensembl_gff");
+			QProgressDialog loading_dialog("loading gene/transcript Gff file: "+gff_file, QString(), 0, 0, this);
 			loading_dialog.setWindowModality(Qt::ApplicationModal);
 			loading_dialog.setCancelButton(nullptr);
 			loading_dialog.setMinimumDuration(0);
@@ -53,7 +54,7 @@ void MainWindow::delayedInitialization()
 
 			GffSettings settings;
 			settings.print_to_stdout = false;
-			GffData data = GffData::load(Settings::string("ensembl_gff"), settings);
+			GffData data = GffData::load(gff_file, settings);
 			SharedData::setTranscripts(data.transcripts);
 		}
 		qDebug() << "Parsing transcripts took: " << Helper::elapsedTime(timer);
