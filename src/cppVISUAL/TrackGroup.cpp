@@ -1,5 +1,7 @@
 #include "FileLoader.h"
+#include "QtXml/qdom.h"
 #include "TrackGroup.h"
+#include "Helper.h"
 #include <QApplication>
 #include <QMenu>
 #include <QMessageBox>
@@ -7,6 +9,7 @@
 #include <QPainter>
 #include <QFileInfo>
 #include <QFileDialog>
+#include <QInputDialog>
 
 
 TrackGroup::TrackGroup(QWidget* parent)
@@ -14,6 +17,8 @@ TrackGroup::TrackGroup(QWidget* parent)
 	, layout_(new QVBoxLayout(this))
 	, content_widget_(new QWidget(this))
 {
+	//Override QScrollArea's default minimum height for splitter resizing.
+	setMinimumHeight(25);
 	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -53,6 +58,7 @@ void TrackGroup::trackMoved()
 	if (senderWidget){
 		disconnect(senderWidget, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
 		disconnect(senderWidget, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
+		disconnect(senderWidget, &TrackWidget::trackSelected, this, &TrackGroup::trackSelected);
 		layout_->removeWidget(senderWidget);
 		layout_->update();
 
@@ -60,12 +66,18 @@ void TrackGroup::trackMoved()
 	}
 }
 
+void TrackGroup::connectTrackSignals(TrackWidget* track)
+{
+	connect(track, &TrackWidget::trackDeleted, this, &TrackGroup::trackDeleted);
+	connect(track, &TrackWidget::trackMoved, this, &TrackGroup::trackMoved);
+	connect(track, &TrackWidget::trackSelected, this, &TrackGroup::trackSelected);
+}
+
 void TrackGroup::addTrackWidgets(QVector<TrackWidget*> widgets)
 {
 	foreach (TrackWidget* widget, widgets)
 	{
-		connect(widget, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
-		connect(widget, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
+		connectTrackSignals(widget);
 		layout_->insertWidget(layout_->count() - 1, widget);
 		layout_->update();
 	}
@@ -78,6 +90,26 @@ void TrackGroup::loadTracksFromFile()
 
 	QVector<TrackWidget*> widgets = FileLoader::loadTracks(file_path, nullptr);
 	addTrackWidgets(widgets);
+}
+
+void TrackGroup::loadTracksFromUrl()
+{
+	const QString title = "Add track(s) from URL";
+	const QString url = QInputDialog::getText(this, title, "URL").trimmed();
+	if (url.isEmpty()) return;
+	if (!Helper::isHttpUrl(url))
+	{
+		QMessageBox::warning(this, title, "This is not a URL:\n" + url);
+		return;
+	}
+	try
+	{
+		addTrackWidgets(FileLoader::loadTracks(url, nullptr));
+	}
+	catch (const Exception& e)
+	{
+		QMessageBox::warning(this, title, e.message());
+	}
 }
 
 TrackGroup* TrackGroup::fromFile(QString filename)
@@ -99,33 +131,35 @@ void TrackGroup::contextMenu(QPoint pos)
 {
 	QMenu menu(this);
 
+	//add track sub-menu (if not empty TrackGroup)
 	TrackWidget* track = getTrackUnderMouse(pos);
 	if (track)
 	{
+		emit trackSelected(track);
 		QMenu* track_menu = new QMenu("Track", this);
-		track->populateContextMenu(*track_menu, track->mapFrom(this, pos));
+		track->populateContextMenu(*track_menu, track->mapFrom(viewport(), pos));
 		menu.addMenu(track_menu);
 	}
 
-	QAction* load_file = menu.addAction("Load file");
-
-	menu.addSeparator();
-
-	QAction* clear_panel = menu.addAction("Clear Panel");
-	QAction* remove_panel = menu.addAction("Remove Panel");
-
-	menu.addSeparator();
-
-	QAction* add_panel_above = menu.addAction("Add Panel Above");
-	QAction* add_panel_below = menu.addAction("Add Panel Below");
-
+	//add TrackGroup sub-menu
+	QMenu* track_group_menu = new QMenu("TrackGroup", this);
+	QAction* load_file = track_group_menu->addAction("Add track(s) from file");
 	connect(load_file, &QAction::triggered, this, &TrackGroup::loadTracksFromFile);
-	connect(clear_panel, &QAction::triggered, this, &TrackGroup::clearLayout);
-	connect(remove_panel, &QAction::triggered, this, &TrackGroup::clearLayoutAndDelete);
-	connect(add_panel_above, &QAction::triggered, this, &TrackGroup::addPanelAbove);
-	connect(add_panel_below, &QAction::triggered, this, &TrackGroup::addPanelBelow);
+	QAction* load_url = track_group_menu->addAction("Add track(s) from URL");
+	connect(load_url, &QAction::triggered, this, &TrackGroup::loadTracksFromUrl);
+	track_group_menu->addSeparator();
+	QAction* clear_track_group = track_group_menu->addAction("Clear TrackGroup");
+	connect(clear_track_group, &QAction::triggered, this, &TrackGroup::clearLayout);
+	QAction* remove_track_group = track_group_menu->addAction("Remove TrackGroup");
+	connect(remove_track_group, &QAction::triggered, this, &TrackGroup::clearLayoutAndDelete);
+	track_group_menu->addSeparator();
+	QAction* add_track_group_above = track_group_menu->addAction("Add TrackGroup Above");
+	connect(add_track_group_above, &QAction::triggered, this, &TrackGroup::addTrackGroupAbove);
+	QAction* add_track_group_below = track_group_menu->addAction("Add TrackGroup Below");
+	connect(add_track_group_below, &QAction::triggered, this, &TrackGroup::addTrackGroupBelow);
+	menu.addMenu(track_group_menu);
 
-	menu.exec(mapToGlobal(pos));
+	menu.exec(viewport()->mapToGlobal(pos));
 }
 
 void TrackGroup::clearLayout()
@@ -172,7 +206,7 @@ TrackWidget* TrackGroup::getTrackUnderMouse(QPoint pos)
 {
 	foreach (TrackWidget* track, findChildren<TrackWidget*>())
 	{
-		if (track->geometry().contains(pos)) return track;
+		if (track->rect().contains(track->mapFrom(viewport(), pos))) return track;
 	}
 	return nullptr;
 }
@@ -183,21 +217,20 @@ void TrackGroup::dropEvent(QDropEvent* event)
 	TrackWidget* track = qobject_cast<TrackWidget*>(event->source());
 	if (!track) return;
 
-	QWidget* old_panel = track->parentWidget();
-	if (!old_panel)
+	QWidget* old_content_widget = track->parentWidget();
+	if (!old_content_widget)
 	{
 		qDebug() << "Parent widget was not found for source on drop!" << Qt::endl;
 		return;
 	}
 
-	if (old_panel != content_widget_) // came from a different Track
+	if (old_content_widget != content_widget_) // came from a different TrackGroup
 	{
 		emit track->trackMoved(); //disconnects the old signals to the old TrackGroup
 
-		connect(track, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
-		connect(track, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
+		connectTrackSignals(track);
 	}
-	else // dropped in the same track
+	else // dropped in the same TrackGroup
 	{
 		layout_->removeWidget(track);
 	}
@@ -230,47 +263,21 @@ void TrackGroup::writeToXml(QXmlStreamWriter& writer)
 	writer.writeEndElement(); // TrackGroup
 }
 
-void TrackGroup::loadFromXml(const QDomElement& dom_element)
+void TrackGroup::loadFromXml(const QDomElement& dom_element, QStringList& errors)
 {
 	QDomNodeList elements = dom_element.elementsByTagName("Track");
 	for (int i =0; i < elements.count(); ++i)
 	{
 		const QDomElement& track_element = elements.at(i).toElement();
-
-		QString type = track_element.attribute("type");
-		TrackWidget* track = TrackWidget::fromXml(track_element, this);
+		TrackWidget* track = TrackWidget::fromXml(track_element, this, errors);
 		if (track)
 		{
-			connect(track, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
-			connect(track, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
-			layout_->insertWidget(layout_->count() - 1, track);
-			layout_->update();
+			addTrackWidgets({track});
 		}
 	}
-}
-
-TrackGroup* TrackGroup::fromXml(const QDomElement& dom_element)
-{
-	QDomNodeList elements = dom_element.elementsByTagName("Track");
-	QVector<TrackWidget*> tracks;
-	for (int i =0; i < elements.count(); ++i)
-	{
-		const QDomElement& track_element = elements.at(i).toElement();
-
-		QString type = track_element.attribute("type");
-		TrackWidget* track = TrackWidget::fromXml(track_element, nullptr);
-		if (track) tracks.append(track);
-	}
-
-	if (elements.count() > 0 && tracks.empty()) return nullptr;
-
-	TrackGroup* tr = new TrackGroup;
-	tr->addTrackWidgets(tracks);
-	return tr;
 }
 
 int TrackGroup::trackCount()
 {
 	return findChildren<TrackWidget*>().count();
 }
-

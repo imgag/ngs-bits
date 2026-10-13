@@ -4,6 +4,7 @@
 #include "cppVISUAL_global.h"
 #include "TrackWidget.h"
 #include "BedFile.h"
+#include "IgvFile.h"
 #include "BamReader.h"
 #include <QSharedPointer>
 #include <QFileInfo>
@@ -17,8 +18,8 @@ public:
 	static QSharedPointer<BedFile> loadBedFile(QString file_path);
 	// loads bam File
 	static QSharedPointer<BamReader> loadBamFile(QString file_path);
-	// loads baf file
-	static QSharedPointer<BedFile> loadIgvFile(QString file_path);
+	// Loads numeric IGV records and header metadata.
+	static QSharedPointer<IgvFile> loadIgvFile(QString file_path);
 private:
 	// checks if the Bed File is an IGV file
 	static bool isValidIgvFile(QSharedPointer<BedFile> bed_file);

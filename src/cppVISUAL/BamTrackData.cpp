@@ -13,10 +13,30 @@ AlignmentKey AlignmentKey::makeKey(const BamAlignment& al)
 	uint64_t h1 = qHash(al.name());
 	h1 ^= ((uint64_t)al.start() << 1);
 	h1 ^= ((uint64_t)al.isReverseStrand() << 32);
+	h1 ^= ((uint64_t)al.isSecondaryAlignment() << 33);
 
 	uint64_t h2 = qHashBits(cigar.data(), cigar.size());
 
 	return {h1, h2};
+}
+
+void BamTrackData::bindVisibilityRange(ParameterList& parameters)
+{
+	parameters.setInt("visibility range", visibility_range_);
+	connect(this, &BamTrackData::visibilityRangeChanged, &parameters, [&parameters](int range)
+	{
+		parameters.setInt("visibility range", range);
+	});
+}
+
+void BamTrackData::setVisibilityRange(int range)
+{
+	if (range < 1) THROW(ArgumentException, "BAM visibility range must be positive.");
+	if (range == visibility_range_) return;
+	visibility_range_ = range;
+	// Refresh data before the other tracks recalculate using the new range.
+	if (bam_reader_) updateRegion();
+	emit visibilityRangeChanged(range);
 }
 
 void BamTrackData::updateRegion()
@@ -27,7 +47,7 @@ void BamTrackData::updateRegion()
 		return;
 	}
 
-	int max_len = SharedData::settings().bam_max_region_len;
+	const int max_len = visibility_range_;
 	const BedLine& region = SharedData::region();
 
 	if (region.length() > max_len)
@@ -152,17 +172,25 @@ void BamTrackData::fetchRegion(const BedLine& region, QVector<BamAlignmentWrappe
 	BamAlignment al;
 	while (bam_reader_->getNextAlignment(al))
 	{
-		if (al.isUnmapped() || al.isDuplicate() || al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
+		if (al.isUnmapped() || al.isDuplicate() || al.isSupplementaryAlignment()) continue;
 
 		BamAlignmentWrapper wrapped_alignment(al);
 		if (loaded_ids_.contains(wrapped_alignment.id)) continue;
-		try
+		// A negative mate chromosome ID means that no mate location is available.
+		if (al.mateChrosomeID() >= 0)
 		{
-			wrapped_alignment.mate_chr = bam_reader_->chromosome(al.mateChrosomeID());
-		}
-		catch (const Exception& e)
-		{
-			//TODO: decide what to do here. for now the mate_chr remains invalid
+			try
+			{
+				wrapped_alignment.mate_chr = bam_reader_->chromosome(al.mateChrosomeID());
+			}
+			catch (const ArgumentException& e)
+			{
+				if (!invalid_mate_warning_shown_)
+				{
+					qWarning().noquote() << "Invalid mate chromosome in" << file_path_ << ":" << e.message();
+					invalid_mate_warning_shown_ = true;
+				}
+			}
 		}
 		loaded_ids_.insert(wrapped_alignment.id);
 
@@ -173,7 +201,6 @@ void BamTrackData::fetchRegion(const BedLine& region, QVector<BamAlignmentWrappe
 		if (dest) dest->push_back(std::move(wrapped_alignment));
 		else alignments_.push_back(std::move(wrapped_alignment));
 	}
-	//TODO: this can be optimized i.e when we pan only a bit to the left, we dont need to recalculate - only recalulate stats when we change by a large amount
 	computeInsertSizeStats();
 }
 
@@ -203,7 +230,7 @@ void BamTrackData::computeInsertSizeStats()
 	sizes.reserve(alignments_.size());
 	foreach (const auto& aln, alignments_)
 	{
-		if (aln.isReverseStrand()) continue;
+		if (aln.isReverseStrand() || aln.isSecondaryAlignment()) continue;
 		int tlen = std::abs(aln.insertSize());
 		if (tlen > 0 && tlen < 10000) sizes << tlen;
 	}
@@ -217,9 +244,9 @@ void BamTrackData::computeInsertSizeStats()
 
 	std::sort(sizes.begin(), sizes.end());
 	int n = sizes.size();
-	//TODO: these percentiles should come from settings somewhere!
-	insert_size_stats_.insert_size_min = sizes[(int)(n * 0.005)];
-	insert_size_stats_.insert_size_max = sizes[(int)(n * 0.995)];
+	const GlobalSettings& settings = SharedData::settings();
+	insert_size_stats_.insert_size_min = sizes[std::min(n - 1, (int)(n * settings.bam_insert_size_min_percentile))];
+	insert_size_stats_.insert_size_max = sizes[std::min(n - 1, (int)(n * settings.bam_insert_size_max_percentile))];
 }
 
 void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Sequence& ref_seq, int ref_start)
@@ -265,7 +292,8 @@ void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Se
 				continue;
 			case BAM_CHARD_CLIP:
 				continue;
-			default: //TODO: handle exception (invalid cigar op)
+			default:
+				THROW(ProgrammingException, "Unhandled CIGAR OP " + QString::number(op));
 				continue;
 		}
 		if (c_data.event == MATCH)
@@ -328,31 +356,6 @@ void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Se
 		}
 		events << c_data;
 	}
-}
-
-void BamTrackData::updateData()
-{
-	alignments_.clear();
-	const BedLine& region = SharedData::region();
-	ref_seq_ = SharedData::genome().seq(region.chr(), region.start(), region.length());
-	ref_start_ = region.start();
-	BamAlignment al;
-	while (bam_reader_->getNextAlignment(al))
-	{
-		if (al.isUnmapped() || al.isDuplicate() || al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-		BamAlignmentWrapper wrapped_alignment(al);
-		try
-		{
-			wrapped_alignment.mate_chr = bam_reader_->chromosome(al.mateChrosomeID());
-		}
-		catch (const Exception&)
-		{
-			//TODO: decide what to do here, give the user an error? Don't display mate?
-		}
-		wrapped_alignment.storeCigarData(al, ref_seq_, region.start());
-		alignments_ << wrapped_alignment;
-	}
-	emit onDataUpdate();
 }
 
 void BamTrackData::reload()

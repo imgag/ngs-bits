@@ -225,7 +225,6 @@ GffData GffData::loadEnsembl(QString filename, const GffSettings& settings, int&
 	//init
     QHash<QByteArray, TranscriptData> transcripts;
 	QHash<QByteArray, QByteArray> ensg2hgnc;
-	QHash<QByteArray, QByteArray> chr_cache;
 
     QList<QByteArrayView> parts;
     parts.resize(9);
@@ -337,9 +336,7 @@ GffData GffData::loadEnsembl(QString filename, const GffSettings& settings, int&
 
             tmp.gene_symbol = output.ensg2symbol[tmp.gene_id];
             tmp.hgnc_id = ensg2hgnc[tmp.gene_id];
-			QByteArray chr_str = parts[0].toByteArray();
-			if (!chr_cache.contains(chr_str)) chr_cache[chr_str] = chr_str;
-			tmp.chr = chr_cache[chr_str];
+			tmp.chr = Chromosome(parts[0]);
             tmp.strand = Transcript::stringToStrand(parts[6].toByteArray());
 
             transcripts[tmp.name] = tmp;

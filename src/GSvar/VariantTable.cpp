@@ -102,7 +102,6 @@ void VariantTable::customContextMenu(QPoint pos)
 	QAction* a_copy_genes = copy_menu->addAction("Genes");
 	QAction* a_cnv_sv = menu.addAction("Show CNVs/SVs in gene");
 	QAction* a_visualize = menu.addAction("Visualize");
-	a_visualize->setEnabled(Helper::runningInQtCreator());
 	menu.addSeparator();
 
 	//add web links
