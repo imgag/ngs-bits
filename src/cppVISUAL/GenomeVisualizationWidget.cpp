@@ -422,6 +422,7 @@ void GenomeVisualizationWidget::saveSession()
 	writer.writeStartElement("GSviewerSession");
 	writer.writeAttribute("version", "1");
 	writer.writeStartElement("General");
+	writer.writeAttribute("gene_panel_height", QString::number(ui_->scrollArea->height()));
 
 	//store displayed region
 	const BedLine& region = SharedData::region();
@@ -485,4 +486,3 @@ void GenomeVisualizationWidget::loadSession()
 	//store path
 	Settings::setPath("load_store_session_folder", QFileInfo(file_path).absolutePath());
 }
-

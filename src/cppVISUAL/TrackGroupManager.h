@@ -53,9 +53,13 @@ public slots:
 	void addTrackGroupBelow();
 
 private:
+	void resizeEvent(QResizeEvent* event) override;
+	QList<int> session_group_heights_;
+	int session_gene_height_ = 0;
 	// connects addTrackGroupAbove and addTrackGroupBelow signals and slots to the TrackGroup
 	void connectSignals(TrackGroup*);
 	void updateDragRegion(int x);
+	void restoreSessionHeights();
 };
 
 

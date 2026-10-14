@@ -2,6 +2,7 @@
 #include "SharedData.h"
 #include "TrackGroup.h"
 #include <QMouseEvent>
+#include <QTimer>
 
 TrackGroupManager::TrackGroupManager(QWidget* parent)
 	: QSplitter(Qt::Vertical, parent)
@@ -9,6 +10,12 @@ TrackGroupManager::TrackGroupManager(QWidget* parent)
 	setChildrenCollapsible(false);
 	setHandleWidth(2);
 	setMouseTracking(true);
+	connect(this, &QSplitter::splitterMoved, this, [this]()
+	{
+		if (session_gene_height_ <= 0) return;
+		session_group_heights_ = sizes();
+		session_gene_height_ = session_group_heights_.takeLast();
+	});
 }
 
 
@@ -29,6 +36,7 @@ void TrackGroupManager::addEmptyTrackGroup()
 
 void TrackGroupManager::resizeGenePanel(int height)
 {
+	if (session_gene_height_ > 0) return; //Do not overwrite a restored session during delayed initialization.
 	QList<int> sizes_old = sizes();
 	if (sizes_old.count()<2) return;
 
@@ -167,6 +175,7 @@ void TrackGroupManager::writeToXml(QXmlStreamWriter& writer)
 
 void TrackGroupManager::loadFromXml(const QDomElement& dom_element, QStringList& errors)
 {
+	QList<int> heights;
 	QDomNodeList elements = dom_element.elementsByTagName("TrackGroup");
 	for (int i =0; i < elements.count(); ++i)
 	{
@@ -174,11 +183,55 @@ void TrackGroupManager::loadFromXml(const QDomElement& dom_element, QStringList&
 		track_group->loadFromXml(elements.at(i).toElement(), errors);
 		connectSignals(track_group);
 		insertWidget(count() - 1, track_group);
+		heights.append(elements.at(i).toElement().attribute("height").toInt());
 	}
+	session_group_heights_ = heights;
+	session_gene_height_ = dom_element.firstChildElement("General").attribute("gene_panel_height").toInt();
+	//Wait until loaded widgets have been included in the splitter layout.
+	QTimer::singleShot(0, this, &TrackGroupManager::restoreSessionHeights);
+}
+
+void TrackGroupManager::resizeEvent(QResizeEvent* event)
+{
+	QSplitter::resizeEvent(event);
+	restoreSessionHeights();
+}
+
+void TrackGroupManager::restoreSessionHeights()
+{
+	const QList<int>& group_heights = session_group_heights_;
+	const int gene_panel_height = session_gene_height_;
+	if (gene_panel_height <= 0 || group_heights.size() != count() - 1) return;
+	int total = gene_panel_height;
+	int alignment_total = 0;
+	for (int i = 0; i < group_heights.size(); ++i)
+	{
+		if (group_heights[i] <= 0) return;
+		total += group_heights[i];
+		auto* group = qobject_cast<TrackGroup*>(widget(i));
+		if (group) alignment_total += group->alignmentSessionHeight();
+	}
+	const int difference = contentsRect().height() - handleWidth() * (count() - 1) - total;
+	QList<int> heights;
+	int cumulative = 0;
+	int assigned = 0;
+	for (int i = 0; i < group_heights.size(); ++i)
+	{
+		auto* group = qobject_cast<TrackGroup*>(widget(i));
+		const int weight = alignment_total > 0 ? (group ? group->alignmentSessionHeight() : 0) : group_heights[i];
+		cumulative += weight;
+		const int share = qRound((double)difference * cumulative / (alignment_total > 0 ? alignment_total : total - gene_panel_height));
+		heights.append(std::max(25, group_heights[i] + share - assigned));
+		assigned = share;
+	}
+	heights.append(gene_panel_height);
+	setSizes(heights);
 }
 
 void TrackGroupManager::removeAll()
 {
+	session_group_heights_.clear();
+	session_gene_height_ = 0;
 	foreach (TrackGroup* track_group, findChildren<TrackGroup*>())
 	{
 		//hide and delete

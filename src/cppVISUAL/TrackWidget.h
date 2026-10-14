@@ -32,6 +32,7 @@ public:
 	QSize minimumSizeHint() const override;
 	ParameterList& parameters() { return settings_; }
 	QString displayName() const { return display_name_; }
+	int sessionHeight() const { return session_height_; }
 
 	//re-loads a the track from file/URL
 	virtual void reloadTrack() = 0;
@@ -79,6 +80,7 @@ private:
 	bool is_dragging_ = false;
 	QString display_name_; //display name
 	QString type_; //track type - used to serialize the track to XML
+	int session_height_ = 0;
 
 private slots:
 	void handleTrackRename();

@@ -30,6 +30,8 @@ public:
 	static TrackGroup* fromFile(QString filename);
 	//returns the number of tracks
 	int trackCount();
+	//Saved alignment heights determine how additional viewport space is shared.
+	int alignmentSessionHeight() const;
 
 signals:
 	void addTrackGroupAbove();
@@ -44,6 +46,7 @@ public slots:
 	void contextMenu(QPoint);
 
 protected:
+	void resizeEvent(QResizeEvent* event) override;
 	void dragEnterEvent(QDragEnterEvent*) override;
 	// check which TrackWidget sent the event, moves that TrackWidget into this TrackGroup
 	void dropEvent(QDropEvent*) override;
@@ -53,6 +56,8 @@ protected:
 private:
 	QVBoxLayout* layout_;
 	QWidget* content_widget_;
+	int session_height_ = 0;
+	void restoreAlignmentHeights();
 
 	// adds track widgets to TrackGroup, called by loadTracksFromFile or the static function fromFile
 	void addTrackWidgets(QVector<TrackWidget*> widgets);

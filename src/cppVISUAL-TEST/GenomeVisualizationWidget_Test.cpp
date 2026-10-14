@@ -7,6 +7,7 @@
 #include "Settings.h"
 #include "SharedData.h"
 #include "GenePanel.h"
+#include "XmlHelper.h"
 #include <QScrollArea>
 #include <QScrollBar>
 #include <QHBoxLayout>
@@ -619,6 +620,85 @@ private slots:
 		QTRY_VERIFY(scroll.verticalScrollBar()->maximum() > 0);
 		SharedData::setTranscripts(TranscriptList());
 		QTRY_COMPARE(scroll.verticalScrollBar()->maximum(), 0);
+	}
+
+	void sessionRestoresAndScalesTrackHeights()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		writeFile("heights.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\nread\t0\tchr22\t10\t60\t10M\t*\t0\t0\tAAAAAAAAAA\tIIIIIIIIII\n");
+		{
+			BamReader reader(data_.filePath("heights.sam"));
+			BamWriter writer(data_.filePath("heights.bam"));
+			writer.writeHeader(reader);
+			BamAlignment al;
+			while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+		}
+		QCOMPARE(sam_index_build(data_.filePath("heights.bam").toUtf8().constData(), 0), 0);
+		GenomeVisualizationWidget source(nullptr);
+		source.resize(1100, 800);
+		source.show();
+		source.loadFile(data_.filePath("heights.bam"));
+		source.loadFile(data_.filePath("first.bed"));
+		auto* source_manager = source.findChild<TrackGroupManager*>();
+		source.findChild<BamAlignmentTrack*>()->setFixedHeight(160);
+		source.findChild<BamCoverageTrack*>()->setFixedHeight(60);
+		source.findChild<BedTrack*>()->setFixedHeight(70);
+		QTest::qWait(60); //Finish delayed initialization before arranging the splitter.
+		source_manager->setSizes({100, 320, 110});
+		QCoreApplication::processEvents();
+		const QList<int> saved_sizes = source_manager->sizes();
+		QByteArray xml;
+		QXmlStreamWriter writer(&xml);
+		writer.writeStartElement("GSviewerSession");
+		writer.writeAttribute("version", "1");
+		writer.writeStartElement("General");
+		writer.writeAttribute("gene_panel_height", QString::number(saved_sizes.last()));
+		writer.writeStartElement("DisplayedRegion");
+		writer.writeAttribute("chr", "chr22");
+		writer.writeAttribute("start", "1");
+		writer.writeAttribute("end", "80");
+		writer.writeEndElement();
+		writer.writeEndElement();
+		source_manager->writeToXml(writer);
+		writer.writeEndElement();
+		writeFile("heights.xml", xml);
+		QCOMPARE(XmlHelper::isValidXml(data_.filePath("heights.xml"), ":Resources/GSviewerSession.xsd"), QString());
+		QDomDocument doc;
+		QVERIFY(doc.setContent(xml));
+		GenomeVisualizationWidget restored(nullptr);
+		restored.resize(source.size());
+		restored.show();
+		auto* manager = restored.findChild<TrackGroupManager*>();
+		manager->removeAll();
+		QStringList errors;
+		manager->loadFromXml(doc.documentElement(), errors);
+		QVERIFY2(errors.isEmpty(), qPrintable(errors.join("\n")));
+		QTest::qWait(60);
+		QTRY_COMPARE(manager->sizes(), saved_sizes);
+		auto* alignment = restored.findChild<BamAlignmentTrack*>();
+		auto* coverage = restored.findChild<BamCoverageTrack*>();
+		auto* bed = restored.findChild<BedTrack*>();
+		QVERIFY(alignment && coverage && bed);
+		QCOMPARE(alignment->height(), 160);
+		QCOMPARE(coverage->height(), 60);
+		QCOMPARE(bed->height(), 70);
+		for (int difference : {100, -80, 0})
+		{
+			restored.resize(source.width(), source.height() + difference);
+			QTRY_COMPARE(alignment->height(), 160 + difference);
+			QCOMPARE(coverage->height(), 60);
+			QCOMPARE(bed->height(), 70);
+			QCOMPARE(manager->sizes().last(), saved_sizes.last());
+		}
+		//Sessions without required height attributes are rejected.
+		QDomElement general = doc.documentElement().firstChildElement("General");
+		general.removeAttribute("gene_panel_height");
+		const QDomNodeList groups = doc.elementsByTagName("TrackGroup");
+		for (int i = 0; i < groups.count(); ++i) groups.at(i).toElement().removeAttribute("height");
+		const QDomNodeList tracks = doc.elementsByTagName("Track");
+		for (int i = 0; i < tracks.count(); ++i) tracks.at(i).toElement().removeAttribute("height");
+		writeFile("legacy-heights.xml", doc.toByteArray());
+		QVERIFY(!XmlHelper::isValidXml(data_.filePath("legacy-heights.xml"), ":Resources/GSviewerSession.xsd").isEmpty());
 	}
 
 	void startupEmbeddedInMainWindow()

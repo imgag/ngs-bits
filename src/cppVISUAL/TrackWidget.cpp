@@ -245,6 +245,7 @@ void TrackWidget::writeToXml(QXmlStreamWriter& writer)
 	writer.writeAttribute("type", type_);
 	writer.writeAttribute("file_name", file_path_);
 	writer.writeAttribute("display_name", display_name_);
+	writer.writeAttribute("height", QString::number(height()));
 	for(const Parameter& param: settings_.parameters())
 	{
 		writer.writeStartElement("Settings");
@@ -352,5 +353,13 @@ TrackWidget* TrackWidget::fromXml(const QDomElement& track_element, QWidget* par
 		}
 	}
 
+	bool ok = false;
+	const int height = track_element.attribute("height").toInt(&ok);
+	if (ok && height > 0)
+	{
+		track->session_height_ = height;
+		track->setFixedHeight(height);
+	}
+	else errors << "Missing or invalid track height for " + file_path;
 	return track;
 }
