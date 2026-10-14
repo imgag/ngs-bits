@@ -525,6 +525,141 @@ private slots:
 		}
 	}
 
+	void bamMappingQualityFilter()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		writeFile("mapq.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n"
+			"read\t65\tchr22\t10\t0\t10M\t=\t40\t40\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:1\n"
+			"read\t129\tchr22\t40\t30\t10M\t=\t10\t-40\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:1\n");
+		{
+			BamReader reader(data_.filePath("mapq.sam"));
+			BamWriter writer(data_.filePath("mapq.bam"));
+			writer.writeHeader(reader);
+			BamAlignment al;
+			while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+		}
+		QCOMPARE(sam_index_build(data_.filePath("mapq.bam").toUtf8().constData(), 0), 0);
+		QScopedPointer<BamAlignmentTrack> track(BamAlignmentTrack::createTrack(nullptr, data_.filePath("mapq.bam"), ""));
+		QVERIFY(track);
+		QCOMPARE(track->parameters().getInt("min MQ"), 0);
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, track->parameters().setInt("min MQ", -1));
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, track->parameters().setInt("min MQ", 256));
+		track->parameters().setString("color by", "none");
+		track->resize(SharedData::settings().label_width + 4 + 320, 200);
+		track->show();
+		const int x0 = SharedData::settings().label_width + 2;
+		for (bool pairs : {false, true})
+		{
+			track->parameters().setBool("view as pairs", pairs);
+			for (const QByteArray& group : QByteArrayList{"none", "phase", "mate chromosome", "pair orientation"})
+			{
+				track->parameters().setString("group by", group);
+				const int y = (group == "none" ? 0 : 14) + 6;
+				for (int min_mq : {0, 1, 30, 31, 0})
+				{
+					track->parameters().setInt("min MQ", min_mq);
+					QImage image(track->size(), QImage::Format_ARGB32);
+					track->render(&image);
+					QCOMPARE(image.pixelColor(x0 + 58, y) != QColor(Qt::white), min_mq == 0);
+					QCOMPARE(image.pixelColor(x0 + 178, y) != QColor(Qt::white), min_mq <= 30);
+					QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 58, y));
+					auto* popup = track->findChild<QDialog*>();
+					QCOMPARE(popup != nullptr, min_mq == 0);
+					delete popup;
+					QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 178, y));
+					popup = track->findChild<QDialog*>();
+					QCOMPARE(popup != nullptr, min_mq <= 30);
+					if (popup)
+					{
+						const QString info = popup->findChild<QLabel*>()->text();
+						QVERIFY(info.contains("<b>Mapping quality:</b> 30<br/>"));
+						QCOMPARE(info.contains("<b>Mapping quality:</b> 0<br/>"), pairs && min_mq == 0);
+					}
+					delete popup;
+				}
+			}
+		}
+		QCOMPARE(BamTrackDataManager::getOrCreate(data_.filePath("mapq.bam"))->getAlignments().count(), 2);
+	}
+
+	void bamCoverageReadFiltersAreShared()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		writeFile("coverage-filters.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n"
+			"primary\t0\tchr22\t10\t30\t3S10M2S\t*\t0\t0\tCCCAAAAAAAAAATT\tIIIIIIIIIIIIIII\n"
+			"secondary\t272\tchr22\t10\t0\t3S10M2S\t*\t0\t0\tCCCAAAAAAAAAATT\tIIIIIIIIIIIIIII\n");
+		const QString bam_path = data_.filePath("coverage-filters.bam");
+		{
+			BamReader reader(data_.filePath("coverage-filters.sam"));
+			BamWriter writer(bam_path);
+			writer.writeHeader(reader);
+			BamAlignment al;
+			while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+		}
+		QCOMPARE(sam_index_build(bam_path.toUtf8().constData(), 0), 0);
+		QScopedPointer<BamCoverageTrack> coverage(BamCoverageTrack::createTrack(nullptr, bam_path, ""));
+		QScopedPointer<BamAlignmentTrack> alignment(BamAlignmentTrack::createTrack(nullptr, QDir::current().relativeFilePath(bam_path), ""));
+		QVERIFY(coverage && alignment);
+		QVERIFY(!coverage->parameters().getBool("show soft-clipped bases"));
+		QVERIFY(coverage->parameters().getBool("show secondary alignments"));
+		QCOMPARE(coverage->parameters().getInt("min MQ"), 0);
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, coverage->parameters().setInt("min MQ", -1));
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, coverage->parameters().setInt("min MQ", 256));
+		coverage->resize(SharedData::settings().label_width + 4 + 320, 100);
+		coverage->show();
+		const auto check_depth = [&](int position, int depth)
+		{
+			const int x0 = SharedData::settings().label_width + 2;
+			const int x = x0 + (position - SharedData::region().start()) * 320 / SharedData::region().length() + 2;
+			QTest::mouseClick(coverage.get(), Qt::LeftButton, Qt::NoModifier, QPoint(x, 50));
+			auto* popup = coverage->findChild<QDialog*>();
+			QVERIFY(popup);
+			const QString info = popup->findChild<QLabel*>()->text();
+			QVERIFY2(info.contains(QString("Depth: %1\n").arg(depth)), qPrintable(info));
+			delete popup;
+		};
+		check_depth(10, 2);
+		check_depth(7, 0);
+		auto data = BamTrackDataManager::getOrCreate(bam_path);
+		QSignalSpy changes(data.get(), &BamTrackData::readFilterChanged);
+		coverage->parameters().setInt("min MQ", 1);
+		QCOMPARE(alignment->parameters().getInt("min MQ"), 1);
+		QCOMPARE(changes.count(), 1);
+		check_depth(10, 1);
+		alignment->parameters().setInt("min MQ", 31);
+		QCOMPARE(coverage->parameters().getInt("min MQ"), 31);
+		check_depth(10, 0);
+		alignment->parameters().setInt("min MQ", 0);
+		check_depth(10, 2);
+		alignment->parameters().setBool("show secondary alignments", false);
+		QVERIFY(!coverage->parameters().getBool("show secondary alignments"));
+		check_depth(10, 1);
+		alignment->parameters().setBool("show soft-clipped bases", true);
+		QVERIFY(coverage->parameters().getBool("show soft-clipped bases"));
+		check_depth(7, 1);
+		check_depth(20, 1);
+		coverage->parameters().setBool("show secondary alignments", true);
+		QVERIFY(alignment->parameters().getBool("show secondary alignments"));
+		check_depth(7, 2);
+		coverage->parameters().setInt("min MQ", 30);
+		check_depth(7, 1);
+		// A track attached later inherits the current filters without resetting existing tracks.
+		QScopedPointer<BamCoverageTrack> late(BamCoverageTrack::createTrack(nullptr, bam_path, ""));
+		QVERIFY(late);
+		QVERIFY(late->parameters().getBool("show soft-clipped bases"));
+		QCOMPARE(late->parameters().getInt("min MQ"), 30);
+		SharedData::setRegion(Chromosome("chr22"), 7, 9); // Only the clipped bases overlap.
+		check_depth(7, 1);
+		coverage->parameters().setBool("show soft-clipped bases", false);
+		QVERIFY(!alignment->parameters().getBool("show soft-clipped bases"));
+		QVERIFY(!late->parameters().getBool("show soft-clipped bases"));
+		check_depth(7, 0);
+		QCOMPARE(changes.count(), 8);
+		coverage->parameters().setInt("track height", 80);
+		QCOMPARE(changes.count(), 8);
+		QCOMPARE(data->getAlignments().count(), 2);
+	}
+
 	void bamUnpairedReadsReuseRowsAndShrink()
 	{
 		SharedData::setRegion(Chromosome("chr22"), 1, 20);

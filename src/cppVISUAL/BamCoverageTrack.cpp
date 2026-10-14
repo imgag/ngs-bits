@@ -31,6 +31,9 @@ BamCoverageTrack::BamCoverageTrack(QWidget* parent, QString file_path, QString n
 QList<Parameter> BamCoverageTrack::getParameters() const
 {
 	return {
+		Parameter("show soft-clipped bases", "Include soft-clipped bases in coverage.", ParameterType::BOOL, {}),
+		Parameter("show secondary alignments", "Include secondary alignments in coverage.", ParameterType::BOOL, {}),
+		Parameter("min MQ", "Minimum mapping quality of displayed reads.", ParameterType::INT, {{ConstraintType::MIN, 0}, {ConstraintType::MAX, 255}}),
 		Parameter("min display AF for SNP", "Minimum SNP allele frequency to color coverage bar.", ParameterType::DOUBLE, {{ConstraintType::MIN, 0.0}, {ConstraintType::MAX, 1.0}, {ConstraintType::DISPLAY_DIGITS, 2}}),
 		Parameter("track height", "Height of track in pixels.", ParameterType::INT, {{ConstraintType::MIN, 1}}),
 		Parameter("visibility range", "Maximum genomic region for which content is displayed (in bases).", ParameterType::INT, {{ConstraintType::MIN, 1}})
@@ -39,7 +42,7 @@ QList<Parameter> BamCoverageTrack::getParameters() const
 
 QHash<QByteArray, QVariant> BamCoverageTrack::getParameterDefaults() const
 {
-	return {{"visibility range", SharedData::settings().bam_max_region_len}, {"min display AF for SNP", 0.2}, {"track height", 50}};
+	return {{"visibility range", SharedData::settings().bam_max_region_len}, {"show soft-clipped bases", false}, {"show secondary alignments", true}, {"min MQ", 0}, {"min display AF for SNP", 0.2}, {"track height", 50}};
 }
 
 BamCoverageTrack::~BamCoverageTrack()
@@ -71,6 +74,7 @@ void BamCoverageTrack::setTrackData(QSharedPointer<BamTrackData> track_data)
 		track_data_ = track_data;
 		connect(track_data_.get(), SIGNAL(onDataUpdate()), this, SLOT(dataReady()));
 		track_data_->bindVisibilityRange(settings_);
+		track_data_->bindReadFilters(settings_);
 		dataReady();
 	}
 }
@@ -91,6 +95,9 @@ void BamCoverageTrack::storeCoverage()
 	max_coverage_ = 10;
 	const int max_region_len = settings_.getInt("visibility range");
 	const double snp_min_af = settings_.getDouble("min display AF for SNP");
+	const bool show_soft_clipped_bases = settings_.getBool("show soft-clipped bases");
+	const bool show_secondary_alignments = settings_.getBool("show secondary alignments");
+	const int min_mq = settings_.getInt("min MQ");
 	coverage_.clear();
 
 	const BedLine& region = SharedData::region();
@@ -105,16 +112,16 @@ void BamCoverageTrack::storeCoverage()
 	//store coverage
 	for (const auto& al : aligns)
 	{
-		if (al.isSecondaryAlignment()) continue;
-		// const BamAlignment& al = wrapped.alignment;
+		if (!show_secondary_alignments && al.isSecondaryAlignment()) continue;
+		if (al.mappingQuality() < min_mq) continue;
 
-		if (al.end() < region.start()) continue;
-		if (al.start() > region.end()) continue;
+		if ((show_soft_clipped_bases ? al.endWithSoftClip() : al.end()) < region.start()) continue;
+		if ((show_soft_clipped_bases ? al.startWithSoftClip() : al.start()) > region.end()) continue;
 
 		foreach (const auto& data, al.getEvents())
 		{
 			int base_idx = data.genome_pos - region.start();
-			if (data.event == BamAlignmentWrapper::MATCH)
+			if (data.event == BamAlignmentWrapper::MATCH || (show_soft_clipped_bases && data.event == BamAlignmentWrapper::SOFT_CLIP))
 			{
 				for (int i =0; i < data.length; ++i)
 				{

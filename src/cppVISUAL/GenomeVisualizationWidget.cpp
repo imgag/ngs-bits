@@ -68,7 +68,7 @@ void GenomeVisualizationWidget::setupDebugButton()
 	QMenu* debug_menu = new QMenu(ui_->debug_btn);
 
 	//add goto entries
-	for (const QString& query : QStringList{"CHEK2", "BRCA1", "BRCA2", "FOXG1"})
+	for (const QString& query : QStringList{"CHEK2", "BRCA1", "BRCA2", "FOXG1", "PMS2"})
 	{
 		QAction* action = debug_menu->addAction("goto " + query);
 		connect(action, &QAction::triggered, this, [this, query]()

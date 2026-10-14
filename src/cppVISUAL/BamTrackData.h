@@ -105,6 +105,7 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 	// Diploid haplotype from HP: 1, 2, or 0 for unassigned.
 	int phase() const { return phase_; }
 	bool isSecondaryAlignment() const { return is_secondary_; }
+	int mappingQuality() const { return mapping_quality_; }
 
 private:
 	int st_ = -1;
@@ -119,6 +120,7 @@ private:
 	int insert_size_ = -1;
 	int phase_ = 0;
 	bool is_secondary_ = false;
+	int mapping_quality_ = 0;
 	QString name_;
 
 	void storeAlignmentInfo(const BamAlignment& al)
@@ -140,6 +142,7 @@ private:
 		const int hp = al.tagi("HP");
 		phase_ = hp == 1 || hp == 2 ? hp : 0;
 		is_secondary_ = al.isSecondaryAlignment();
+		mapping_quality_ = al.mappingQuality();
 	}
 };
 
@@ -207,12 +210,15 @@ public:
 	// Keeps visibility parameters of all tracks using this data in sync.
 	void bindVisibilityRange(ParameterList& parameters);
 	void setVisibilityRange(int range);
+	// Synchronizes read filters between alignment and coverage tracks for this file.
+	void bindReadFilters(ParameterList& parameters);
 
 signals:
 	// void onDataChange();
 	void onDataUpdate();
 	void onFullLoad();
 	void visibilityRangeChanged(int range);
+	void readFilterChanged(const QByteArray& name, const QVariant& value);
 
 public slots:
 	void updateRegion();
@@ -220,6 +226,8 @@ public slots:
 private:
 	QString file_path_;
 	int visibility_range_;
+	QHash<QByteArray, QVariant> read_filters_{{"show soft-clipped bases", false}, {"show secondary alignments", true}, {"min MQ", 0}};
+	bool syncing_read_filters_ = false;
 	QSharedPointer<BamReader> bam_reader_;
 	bool paired_end_ = false;
 	QVector<BamAlignmentWrapper> alignments_;

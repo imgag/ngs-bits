@@ -48,6 +48,7 @@ QList<Parameter> BamAlignmentTrack::getParameters() const
 		Parameter("show all bases", "Display all bases, not only ones that are different from the reference base.", ParameterType::BOOL, {}),
 		Parameter("show soft-clipped bases", "Display soft-clipped bases.", ParameterType::BOOL, {}),
 		Parameter("show secondary alignments", "Display secondary alignments.", ParameterType::BOOL, {}),
+		Parameter("min MQ", "Minimum mapping quality of displayed reads.", ParameterType::INT, {{ConstraintType::MIN, 0}, {ConstraintType::MAX, 255}}),
 		Parameter("group by", "Group reads by different criteria.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("none\tphase\tmate chromosome\tpair orientation")}}),
 		Parameter("color by", "Alignment coloring scheme.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("none\tinsert size\tread strand")}}),
 		Parameter("visibility range", "Maximum genomic region for which content is displayed (in bases).", ParameterType::INT, {{ConstraintType::MIN, 1}})
@@ -56,7 +57,7 @@ QList<Parameter> BamAlignmentTrack::getParameters() const
 
 QHash<QByteArray, QVariant> BamAlignmentTrack::getParameterDefaults() const
 {
-	return {{"visibility range", SharedData::settings().bam_max_region_len}, {"view as pairs", true}, {"show all bases", false}, {"show soft-clipped bases", false}, {"show secondary alignments", true}, {"group by", QByteArray("none")}, {"color by", QByteArray("insert size")}};
+	return {{"visibility range", SharedData::settings().bam_max_region_len}, {"view as pairs", true}, {"show all bases", false}, {"show soft-clipped bases", false}, {"show secondary alignments", true}, {"min MQ", 0}, {"group by", QByteArray("none")}, {"color by", QByteArray("insert size")}};
 }
 
 BamAlignmentTrack::~BamAlignmentTrack()
@@ -82,6 +83,7 @@ void BamAlignmentTrack::setTrackData(QSharedPointer<BamTrackData> track_data)
 	connect(track_data_.get(), SIGNAL(onDataUpdate()), this, SLOT(dataReady()));
 	connect(track_data_.get(), SIGNAL(onFullLoad()), this, SLOT(fullLoad()));
 	track_data_->bindVisibilityRange(settings_);
+	track_data_->bindReadFilters(settings_);
 	dataReady();
 }
 
@@ -121,7 +123,7 @@ BamAlignmentTrack::DisplaySettings BamAlignmentTrack::displaySettings() const
 	if (group_by == "pair orientation" && !track_data_->isPairedEnd()) group_by = "none";
 	return {settings_.getBool("view as pairs"), settings_.getBool("show all bases"),
 		settings_.getBool("show soft-clipped bases"), settings_.getBool("show secondary alignments"),
-		group_by, settings_.getString("color by")};
+		settings_.getInt("min MQ"), group_by, settings_.getString("color by")};
 }
 
 void BamAlignmentTrack::calculateRows(const DisplaySettings& options)
@@ -149,9 +151,9 @@ int BamAlignmentTrack::getAlignmentEnd(const BamAlignmentWrapper& al, bool show_
 	return al.end();
 }
 
-bool BamAlignmentTrack::isAlignmentVisible(const BamAlignmentWrapper& alignment, bool show_secondary_alignments)
+bool BamAlignmentTrack::isAlignmentVisible(const BamAlignmentWrapper& alignment, const DisplaySettings& options)
 {
-	return show_secondary_alignments || !alignment.isSecondaryAlignment();
+	return alignment.mappingQuality() >= options.min_mq && (options.show_secondary_alignments || !alignment.isSecondaryAlignment());
 }
 
 void BamAlignmentTrack::calculateRowsNormalMode(const DisplaySettings& options)
@@ -167,7 +169,7 @@ void BamAlignmentTrack::calculateRowsNormalMode(const DisplaySettings& options)
 	for (int i =0; i < alns.size(); ++i)
 	{
 		const BamAlignmentWrapper& w = alns[i];
-		if (!isAlignmentVisible(w, options.show_secondary_alignments)) continue;
+		if (!isAlignmentVisible(w, options)) continue;
 		const auto& aln_id = w.id;
 		if (row_idxes_.contains(aln_id) && row_packer_.canRestore(row_idxes_[aln_id],
 																  getAlignmentStart(w, options.show_soft_clip_bases),
@@ -184,7 +186,7 @@ void BamAlignmentTrack::calculateRowsNormalMode(const DisplaySettings& options)
 
 	for (int i =0; i < alns.size(); ++i)
 	{
-		if (!isAlignmentVisible(alns[i], options.show_secondary_alignments)) continue;
+		if (!isAlignmentVisible(alns[i], options)) continue;
 		#ifdef CACHE_ROW_ASSIGNMENTS
 		if (restored.contains(i)) continue;
 		#endif
@@ -270,7 +272,7 @@ void BamAlignmentTrack::calculateGroupedRows(const DisplaySettings& options)
 		for (int i = 0; i < count; ++i)
 		{
 			const auto& al = alns[pairs ? read_pairs_[i].first : i];
-			if (!isAlignmentVisible(al, options.show_secondary_alignments)) continue;
+			if (!isAlignmentVisible(al, options)) continue;
 			int read_group;
 			if (by_phase)
 			{
@@ -401,7 +403,7 @@ void BamAlignmentTrack::drawNormalMode(QPainter& painter, const DisplaySettings&
 	for (int i =0; i < alns.size(); ++i)
 	{
 		const BamAlignmentWrapper& al_w = alns[i];
-		if (!isAlignmentVisible(al_w, options.show_secondary_alignments)) continue;
+		if (!isAlignmentVisible(al_w, options)) continue;
 		int row_y = row_idxes_.value(alns[i].id, -1) * (ROW_HEIGHT + ROW_PADDING);
 		drawAlignmentAndMismatches(painter, al_w, row_y, options);
 	}
@@ -502,6 +504,12 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 	int last_x = -1.0f;
 
 	QColor color = getAlignmentColor(al_w, options.coloring_scheme);
+	const bool zero_mq = al_w.mappingQuality() == 0;
+	if (zero_mq)
+	{
+		color = QColor((color.red() + 255) / 2, (color.green() + 255) / 2, (color.blue() + 255) / 2, color.alpha());
+	}
+	const QPen outline = zero_mq ? QPen(Qt::gray) : QPen(Qt::NoPen);
 
 	// first pass for matches and deletions
 	foreach (const auto& data, al_w.getEvents())
@@ -521,10 +529,10 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 			QRectF match_rect(x_start, row_y, width, ROW_HEIGHT);
 			last_x = x_start + width;
 			#ifdef DRAW_TRANSPARENT
-			painter.setPen(color);
+			painter.setPen(zero_mq ? QPen(Qt::gray) : QPen(color));
 			painter.setBrush(Qt::NoBrush);
 			#else
-			painter.setPen(Qt::NoPen);
+			painter.setPen(outline);
 			painter.setBrush(color);
 			#endif
 			painter.drawRect(match_rect);
@@ -597,7 +605,7 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 	int x_start = viewport.genomePosToScreen(st);
 	int width = viewport.genomeWidthToScreen(en - st + 1);
 
-	painter.setPen(Qt::NoPen);
+	painter.setPen(outline);
 	painter.setBrush(color);
 
 	int mid = row_y + ROW_HEIGHT / 2;
@@ -738,7 +746,7 @@ void BamAlignmentTrack::makePairs(const DisplaySettings& options)
 	for (int i =0; i < alns.count(); ++i)
 	{
 		const BamAlignmentWrapper& al = alns[i];
-		if (!isAlignmentVisible(al, options.show_secondary_alignments)) continue;
+		if (!isAlignmentVisible(al, options)) continue;
 		QString name = al.name();
 		if (!al.isSecondaryAlignment() && pending.contains(name))
 		{
@@ -861,11 +869,13 @@ QString BamAlignmentTrack::getBamAlignmentText(const BamAlignmentWrapper& al_w, 
 	// Using simple HTML tags for layout and styling
 	QString text = QString("<b>%1</b><br/>"
 						   "<b>Start:</b> %2 &nbsp; <b>End:</b> %3<br/>"
-						   "<b>Strand:</b> %4<br/>")
+						   "<b>Strand:</b> %4<br/>"
+						   "<b>Mapping quality:</b> %5<br/>")
 					   .arg(al_w.name())
 					   .arg(al_w.start())
 					   .arg(al_w.end())
-					   .arg(al_w.isReverseStrand() ? "Reverse" : "Forward");
+					   .arg(al_w.isReverseStrand() ? "Reverse" : "Forward")
+					   .arg(al_w.mappingQuality());
 
 	if (genome_pos < getAlignmentStart(al_w, show_soft_clip_bases) || genome_pos > getAlignmentEnd(al_w, show_soft_clip_bases))
 	{

@@ -56,6 +56,7 @@ private:
 		bool show_all_bases;
 		bool show_soft_clip_bases;
 		bool show_secondary_alignments;
+		int min_mq;
 		QByteArray group_by;
 		QByteArray coloring_scheme;
 	};
@@ -113,7 +114,7 @@ private:
 	// if current mode is show_clip_bases_, this gives start and end with that
 	static int getAlignmentStart(const BamAlignmentWrapper&, bool show_soft_clip_bases);
 	static int getAlignmentEnd(const BamAlignmentWrapper&, bool show_soft_clip_bases);
-	static bool isAlignmentVisible(const BamAlignmentWrapper& alignment, bool show_secondary_alignments);
+	static bool isAlignmentVisible(const BamAlignmentWrapper& alignment, const DisplaySettings& options);
 	// returns color of alignment based on its properties and current coloring scheme
 	QColor getAlignmentColor(const BamAlignmentWrapper&, const QByteArray& coloring_scheme);
 	// adds Go To Mate, select/delect options to context menu

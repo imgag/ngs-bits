@@ -1,4 +1,5 @@
 #include "BamTrackData.h"
+#include <QScopedValueRollback>
 #include "FileLoader.h"
 
 #include <GenomeVisualizationWidget.h>
@@ -37,6 +38,29 @@ void BamTrackData::setVisibilityRange(int range)
 	// Refresh data before the other tracks recalculate using the new range.
 	if (bam_reader_) updateRegion();
 	emit visibilityRangeChanged(range);
+}
+
+void BamTrackData::bindReadFilters(ParameterList& parameters)
+{
+	const auto apply_filter = [&parameters](const QByteArray& name, const QVariant& value)
+	{
+		if (name == "min MQ") parameters.setInt(name, value.toInt());
+		else parameters.setBool(name, value.toBool());
+	};
+	for (auto it = read_filters_.cbegin(); it != read_filters_.cend(); ++it) apply_filter(it.key(), it.value());
+	connect(this, &BamTrackData::readFilterChanged, &parameters, apply_filter);
+	connect(&parameters, &ParameterList::parameterChanged, this, [this, &parameters]()
+	{
+		if (syncing_read_filters_) return;
+		QScopedValueRollback<bool> guard(syncing_read_filters_, true);
+		for (auto it = read_filters_.begin(); it != read_filters_.end(); ++it)
+		{
+			const QVariant value = parameters.parameter(it.key()).value();
+			if (value == it.value()) continue;
+			it.value() = value;
+			emit readFilterChanged(it.key(), value);
+		}
+	});
 }
 
 void BamTrackData::updateRegion()
