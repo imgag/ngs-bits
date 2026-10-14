@@ -78,6 +78,7 @@ private:
 
 	void drawNormalMode(QPainter& painter, const DisplaySettings& options);
 	void drawPairMode(QPainter& painter, const BedLine& region, const DisplaySettings& options);
+	void drawPhaseGroups(QPainter& painter);
 
 	void drawAlignmentAndMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y, const DisplaySettings& options);
 
@@ -126,6 +127,12 @@ private:
 
 	RowPacker row_packer_;
 	QVector<ReadPair> read_pairs_; // vector of pairs
+	struct PhaseGroup
+	{
+		int phase;
+		int first_row;
+	};
+	QVector<PhaseGroup> phase_groups_;
 
 	int num_rows_ = 1;
 	QPoint mouse_press_pos_;

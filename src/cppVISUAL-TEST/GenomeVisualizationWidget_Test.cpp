@@ -303,13 +303,29 @@ private slots:
 		{
 			track->parameters().setBool("view as pairs", pairs);
 			track->parameters().setString("group by", "phase");
-			checkRead(0, 15, "phase1");
-			checkRead(2, 15, "phase2");
-			checkRead(4, 15, "unassigned");
-			checkRead(4, 45, "unsupported");
-			QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 58, 20));
+			checkRead(1, 15, "phase1");
+			checkRead(4, 15, "phase2");
+			checkRead(7, 15, "unassigned");
+			checkRead(7, 45, "unsupported");
+			QImage grouped(track->size(), QImage::Format_ARGB32);
+			track->render(&grouped);
+			for (int y : {0, 42, 84}) QCOMPARE(grouped.pixelColor(x0 + 1, y), QColor(Qt::gray)); // Label boxes.
+			for (int y : {35, 77})
+			{
+				int gray = 0, white = 0;
+				for (int x = x0 + 90; x < x0 + 310; ++x)
+				{
+					gray += grouped.pixelColor(x, y) == QColor(Qt::gray);
+					white += grouped.pixelColor(x, y) == QColor(Qt::white);
+				}
+				QVERIFY(gray > 0 && white > 0); // Dashed separators.
+			}
+			QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 58, 35));
 			QVERIFY(!track->findChild<QDialog*>());
 			track->parameters().setString("group by", "none");
+			QImage ungrouped(track->size(), QImage::Format_ARGB32);
+			track->render(&ungrouped);
+			QCOMPARE(ungrouped.pixelColor(x0 + 1, 0), QColor(Qt::white));
 			checkRead(0, 15, "unassigned");
 			checkRead(1, 15, "phase2");
 			checkRead(2, 15, "phase1");
@@ -335,11 +351,11 @@ private slots:
 		track->parameters().setString("group by", "phase");
 		track->resize(SharedData::settings().label_width + 4 + 320, 200);
 		track->show();
-		checkRead(0, 15, "assigned-mate");
-		checkRead(0, 35, "assigned-mate");
-		checkRead(2, 15, "phase2");
-		checkRead(4, 15, "conflict");
-		checkRead(4, 35, "conflict");
+		checkRead(1, 15, "assigned-mate");
+		checkRead(1, 35, "assigned-mate");
+		checkRead(4, 15, "phase2");
+		checkRead(7, 15, "conflict");
+		checkRead(7, 35, "conflict");
 	}
 
 	void bamSecondaryAlignmentVisibility()
@@ -373,15 +389,16 @@ private slots:
 			for (const QByteArray& group : QByteArrayList{"none", "phase"})
 			{
 				track->parameters().setString("group by", group);
-				const QPoint secondary(x0 + 58, (group == "phase" ? 2 : 1) * 14 + 6);
+				const QPoint secondary(x0 + 58, (group == "phase" ? 4 : 1) * 14 + 6);
 				for (bool visible : {true, false, true})
 				{
 					track->parameters().setBool("show secondary alignments", visible);
 					QImage image(track->size(), QImage::Format_ARGB32);
 					track->render(&image);
 					QCOMPARE(image.pixelColor(secondary) != QColor(Qt::white), visible);
-					QVERIFY(image.pixelColor(x0 + 58, 6) != QColor(Qt::white));
-					QVERIFY(image.pixelColor(x0 + 178, 6) != QColor(Qt::white));
+					const int primary_y = (group == "phase" ? 14 : 0) + 6;
+					QVERIFY(image.pixelColor(x0 + 58, primary_y) != QColor(Qt::white));
+					QVERIFY(image.pixelColor(x0 + 178, primary_y) != QColor(Qt::white));
 					QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, secondary);
 					auto* popup = track->findChild<QDialog*>();
 					QCOMPARE(popup != nullptr, visible);

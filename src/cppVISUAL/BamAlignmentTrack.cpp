@@ -124,6 +124,7 @@ BamAlignmentTrack::DisplaySettings BamAlignmentTrack::displaySettings() const
 
 void BamAlignmentTrack::calculateRows(const DisplaySettings& options)
 {
+	phase_groups_.clear();
 	if (options.group_by == "phase")
 	{
 		calculateRowsByPhase(options);
@@ -251,8 +252,8 @@ void BamAlignmentTrack::calculateRowsByPhase(const DisplaySettings& options)
 	for (int phase : {1, 2, 0})
 	{
 		RowPacker group;
-		// Leave one empty row between non-empty groups.
-		const int offset = row_packer_.rowCount() == 0 ? 0 : row_packer_.rowCount() + 1;
+		// Reserve a label row, plus a separator row between non-empty groups.
+		const int offset = row_packer_.rowCount() == 0 ? 1 : row_packer_.rowCount() + 2;
 		const int count = pairs ? read_pairs_.count() : alns.count();
 		for (int i = 0; i < count; ++i)
 		{
@@ -278,6 +279,7 @@ void BamAlignmentTrack::calculateRowsByPhase(const DisplaySettings& options)
 			}
 			else row_idxes_[al.id] = row;
 		}
+		if (group.rowCount() > 0) phase_groups_.append({phase, offset});
 	}
 	num_rows_ = std::max(1, row_packer_.rowCount());
 }
@@ -311,7 +313,40 @@ void BamAlignmentTrack::paintEvent(QPaintEvent*)
 	{
 		if (options.view_as_pairs) drawPairMode(painter, region, options);
 		else drawNormalMode(painter, options);
+		if (options.group_by == "phase") drawPhaseGroups(painter);
 	}
+}
+
+void BamAlignmentTrack::drawPhaseGroups(QPainter& painter)
+{
+	painter.save();
+	const Viewport viewport = getViewport();
+	const QRectF plot(viewport.x0, 0, viewport.usable_width, height());
+	painter.setClipRect(plot);
+	QFont label_font = painter.font();
+	label_font.setPixelSize(10);
+	painter.setFont(label_font);
+	const QFontMetrics metrics(label_font);
+	const QPen separator(Qt::gray, 1, Qt::DashLine);
+	for (int i = 0; i < phase_groups_.count(); ++i)
+	{
+		const PhaseGroup& group = phase_groups_[i];
+		const int y = (group.first_row - 1) * (ROW_HEIGHT + ROW_PADDING);
+		if (i > 0)
+		{
+			painter.setPen(separator);
+			painter.drawLine(QPointF(plot.left(), y - (ROW_HEIGHT + ROW_PADDING) / 2),
+				QPointF(plot.right(), y - (ROW_HEIGHT + ROW_PADDING) / 2));
+		}
+		const QString label = group.phase == 0 ? "unphased" : QString("phase %1").arg(group.phase);
+		const QRectF box(plot.left(), y, metrics.horizontalAdvance(label) + 8, ROW_HEIGHT + ROW_PADDING - 1);
+		painter.setPen(Qt::gray);
+		painter.setBrush(Qt::white);
+		painter.drawRect(box);
+		painter.setPen(Qt::black);
+		painter.drawText(box, Qt::AlignCenter, label);
+	}
+	painter.restore();
 }
 
 void BamAlignmentTrack::drawAlignmentAndMismatches(QPainter& painter, const BamAlignmentWrapper& al, int row_y, const DisplaySettings& options)
@@ -809,11 +844,13 @@ QString BamAlignmentTrack::getBamAlignmentText(const BamAlignmentWrapper& al_w, 
 	}
 
 	//mate info
-	text += "<hr>";
-	text += QString("Map is mapped = %1<br/>").arg(al_w.isMateMapped() ? "yes" : "no");
-	text += QString("Mate start = %1:%2<br/>").arg(al_w.mate_chr.str(),
-												   QString::number(al_w.mateStart()));
-	text += QString("Insert size = %1<br/>").arg(al_w.insertSize());
+	if (al_w.isPaired())
+	{
+		text += "<hr>";
+		text += QString("Mate is mapped = %1<br/>").arg(al_w.isMateMapped() ? "yes" : "no");
+		text += QString("Mate start = %1:%2<br/>").arg(al_w.mate_chr.str(), QString::number(al_w.mateStart()));
+		text += QString("Insert size = %1<br/>").arg(al_w.insertSize());
+	}
 
 	// base info
 	const BedLine& region = SharedData::region();
