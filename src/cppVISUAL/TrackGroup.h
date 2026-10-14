@@ -32,6 +32,8 @@ public:
 	int trackCount();
 	//Saved alignment heights determine how additional viewport space is shared.
 	int alignmentSessionHeight() const;
+	//Adds tracks and connects their signals to this group.
+	void addTrackWidgets(QVector<TrackWidget*> widgets);
 
 signals:
 	void addTrackGroupAbove();
@@ -59,8 +61,6 @@ private:
 	int session_height_ = 0;
 	void restoreAlignmentHeights();
 
-	// adds track widgets to TrackGroup, called by loadTracksFromFile or the static function fromFile
-	void addTrackWidgets(QVector<TrackWidget*> widgets);
 	void connectTrackSignals(TrackWidget* track);
 	// gives the index of the track on top of which the drop happend
 	inline int getDropIndex(int y);

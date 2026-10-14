@@ -5,6 +5,12 @@
 #include "AboutDialog.h"
 #include "htslib/hts.h"
 #include "GenomeVisualizationWidget.h"
+#include "FileLoader.h"
+#include <QCryptographicHash>
+#include <QDir>
+#include <QFileInfo>
+#include <QMessageBox>
+#include <QStandardPaths>
 #include <QApplication>
 #include <QProgressDialog>
 
@@ -24,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.actionLoadSession, &QAction::triggered, ui_.gvw, &GenomeVisualizationWidget::loadSession);
 	connect(ui_.actionAbout, &QAction::triggered, this, &MainWindow::showAboutDialog);
 	connect(ui_.actionExit, &QAction::triggered, this, &MainWindow::close);
+	connect(ui_.actionAddNRegions, &QAction::triggered, this, &MainWindow::addNRegions);
 
 	//Set environment variable containing SSL certificates - needed for HTTPS to work for BamReader/htslib
 	QString curl_ca_bundle = Settings::string("curl_ca_bundle", true);
@@ -63,6 +70,37 @@ void MainWindow::delayedInitialization()
 	{
 		QTextStream(stderr) << "Error loading transcripts: "+e.message();
         exit(-1);
+	}
+}
+
+void MainWindow::addNRegions()
+{
+	try
+	{
+		QProgressDialog progress("Finding N regions in the reference genome...", "Cancel", 0, 1, this);
+		progress.setWindowModality(Qt::ApplicationModal);
+		progress.setMinimumDuration(0);
+		progress.setAutoClose(false);
+		progress.setAutoReset(false);
+		auto regions = QSharedPointer<BedFile>::create(FileLoader::referenceNRegions(SharedData::genome(), [&](int completed, int total)
+		{
+			progress.setMaximum(total);
+			progress.setValue(completed);
+			QApplication::processEvents();
+			return !progress.wasCanceled();
+		}));
+		if (progress.wasCanceled()) return;
+		const QString folder = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/generated_tracks";
+		if (!QDir().mkpath(folder)) THROW(FileAccessException, "Could not create directory: " + folder);
+		const QByteArray reference = QFileInfo(Settings::string("reference_genome")).absoluteFilePath().toUtf8();
+		const QString hash = QString::fromLatin1(QCryptographicHash::hash(reference, QCryptographicHash::Sha256).toHex().left(16));
+		const QString file_path = folder + "/N_regions_" + hash + ".bed";
+		regions->store(file_path);
+		ui_.gvw->addBedTrack(regions, file_path, "N regions");
+	}
+	catch (const Exception& e)
+	{
+		QMessageBox::warning(this, "Add N regions", e.message());
 	}
 }
 

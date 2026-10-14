@@ -7,6 +7,7 @@
 #include "Settings.h"
 #include "ParameterEditor.h"
 #include "BookmarkManager.h"
+#include "BedTrack.h"
 #include <QToolTip>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -16,6 +17,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLineEdit>
+#include <QScopedPointer>
 
 GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	: QWidget(parent)
@@ -122,10 +124,11 @@ void GenomeVisualizationWidget::storeBookmark()
 	dialog.setTextValue(region.toString(true));
 	dialog.findChild<QLineEdit*>()->selectAll();
 	if (dialog.exec() != QDialog::Accepted || dialog.textValue().trimmed().isEmpty()) return;
-	const QJsonObject bookmark{{"name", dialog.textValue().trimmed()}, {"chr", QString::fromUtf8(region.chr().strNormalized(true))}, {"start", region.start()}, {"end", region.end()}};
+	const QJsonObject bookmark{{"name", dialog.textValue().trimmed()}, {"chr", QString::fromUtf8(region.chr().strNormalized(true))}, {"start", region.start()}, {"end", region.end()}, {"show_in_chromosome_view", false}};
 	QStringList bookmarks = Settings::stringList("bookmark_regions", true);
 	bookmarks.append(QString::fromUtf8(QJsonDocument(bookmark).toJson(QJsonDocument::Compact)));
 	Settings::setStringList("bookmark_regions", bookmarks);
+	emit SharedData::instance()->bookmarksChanged();
 }
 
 GenomeVisualizationWidget::~GenomeVisualizationWidget()
@@ -199,6 +202,13 @@ void GenomeVisualizationWidget::openUrlDialog()
 void GenomeVisualizationWidget::loadFile(QString filename)
 {
 	ui_->track_group_manager->loadFile(filename);
+}
+
+void GenomeVisualizationWidget::addBedTrack(QSharedPointer<BedFile> regions, QString file_path, QString name)
+{
+	QScopedPointer<BedTrack> track(new BedTrack(this, file_path, name));
+	track->setBedFile(regions);
+	ui_->track_group_manager->addTrack(track.take());
 }
 
 void GenomeVisualizationWidget::reloadTracks()

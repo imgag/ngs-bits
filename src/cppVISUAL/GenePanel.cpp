@@ -231,7 +231,7 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 				{
 					QByteArray triplet = seq.mid(i, 3);
 					if(triplet.length()<3) continue; //right border
-					if (triplet.contains('N')) continue; //N region
+					if (triplet.contains('N')) continue;
 					if (!strand_forward_) std::reverse(triplet.begin(), triplet.end());
 					QChar aa = NGSHelper::translateCodon(triplet, region.chr().isM());
 

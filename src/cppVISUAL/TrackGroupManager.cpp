@@ -34,6 +34,17 @@ void TrackGroupManager::addEmptyTrackGroup()
 	connectSignals(new_track_group);
 }
 
+void TrackGroupManager::addTrack(TrackWidget* track)
+{
+	const bool empty_session = isEmptySession();
+	if (empty_session) removeAll();
+	auto* group = new TrackGroup();
+	group->addTrackWidgets({track});
+	connectSignals(group);
+	insertWidget(0, group);
+	if (empty_session) resizeGenePanel();
+}
+
 void TrackGroupManager::resizeGenePanel(int height)
 {
 	if (session_gene_height_ > 0) return; //Do not overwrite a restored session during delayed initialization.

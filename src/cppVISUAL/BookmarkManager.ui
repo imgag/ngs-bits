@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Manage bookmarks</string>
+   <string>Bookmark manager</string>
   </property>
   <property name="windowIcon">
    <iconset resource="cppVISUAL.qrc">
@@ -65,6 +65,11 @@
      <column>
       <property name="text">
        <string>Region</string>
+      </property>
+     </column>
+     <column>
+      <property name="text">
+       <string>Show in chromosome view</string>
       </property>
      </column>
     </widget>
