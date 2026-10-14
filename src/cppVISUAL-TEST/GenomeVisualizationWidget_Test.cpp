@@ -81,8 +81,8 @@ private slots:
 	void initTestCase()
 	{
 		QVERIFY(QDir().mkpath(data_.path()));
-		writeFile("reference.fa", ">chr22\n" + QByteArray(100, 'A') + "\n>chr23\nATGATGTAA" + QByteArray(91, 'A') + "\n>chrX\n" + QByteArray(100, 'A') + "\n");
-		writeFile("reference.fa.fai", "chr22\t100\t7\t100\t101\nchr23\t100\t115\t100\t101\nchrX\t100\t222\t100\t101\n");
+		writeFile("reference.fa", ">chr22\n" + QByteArray(100, 'A') + "\n>chr23\nATGATGTAA" + QByteArray(91, 'A') + "\n>chrX\n" + QByteArray(100, 'A') + "\n>chrLong\n" + QByteArray(10000, 'A') + "\n");
+		writeFile("reference.fa.fai", "chr22\t100\t7\t100\t101\nchr23\t100\t115\t100\t101\nchrX\t100\t222\t100\t101\nchrLong\t10000\t332\t10000\t10001\n");
 		writeFile("settings.ini", "reference_genome=" + data_.filePath("reference.fa").toUtf8() + "\n");
 		Settings::setSettingsOverride(data_.filePath("settings.ini"));
 		SharedData::setRegion(Chromosome("chr22"), 1, 80);
@@ -469,6 +469,40 @@ private slots:
 			track->parameters().setBool("show secondary alignments", true);
 			QCOMPARE(track->sizeHint().height(), sparse_height);
 		}
+	}
+
+	void bamLongReadsCacheEntireReference()
+	{
+		QTest::failOnWarning(QRegularExpression("Reference sequence too short for alignment.*"));
+		SharedData::setRegion(Chromosome("chrLong"), 3000, 3020);
+		QByteArray bases(5000, 'A');
+		bases[0] = 'C';
+		bases[4900] = 'C';
+		writeFile("long-read.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chrLong\tLN:10000\n"
+			"long-read\t0\tchrLong\t1000\t60\t5000M\t*\t0\t0\t" + bases + "\t" + QByteArray(5000, 'I') + "\n");
+		const QString bam_path = data_.filePath("long-read.bam");
+		{
+			BamReader reader(data_.filePath("long-read.sam"));
+			BamWriter writer(bam_path);
+			writer.writeHeader(reader);
+			BamAlignment al;
+			while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+		}
+		QCOMPARE(sam_index_build(bam_path.toUtf8().constData(), 0), 0);
+		auto data = BamTrackDataManager::getOrCreate(bam_path);
+		QVERIFY(data);
+		QCOMPARE(data->getAlignments().count(), 1);
+		QCOMPARE(data->getRefSeqStart(), 1000);
+		QCOMPARE(data->getReferenceSeq().length(), 5000);
+		const auto& mismatches = data->getAlignments().first().getMismatches();
+		QCOMPARE(mismatches.count(), 2);
+		QCOMPARE(mismatches[0].genomic_pos, 1000);
+		QCOMPARE(mismatches[1].genomic_pos, 5900);
+		SharedData::setRegion(Chromosome("chrLong"), 3010, 3030); // Incremental load.
+		QCOMPARE(data->getAlignments().count(), 1);
+		QCOMPARE(data->getAlignments().first().getMismatches().count(), 2);
+		SharedData::setRegion(Chromosome("chrLong"), 5880, 5920); // Pan to the distant mismatch.
+		QCOMPARE(data->getAlignments().first().getMismatches().last().genomic_pos, 5900);
 	}
 
 	void bamFilePairingControlsUnpairedReadColor()
