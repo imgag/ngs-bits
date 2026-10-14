@@ -168,6 +168,7 @@ void TrackGroupManager::connectSignals(TrackGroup* track_group)
 	connect(track_group, &TrackGroup::addTrackGroupAbove, this, &TrackGroupManager::addTrackGroupAbove);
 	connect(track_group, &TrackGroup::addTrackGroupBelow, this, &TrackGroupManager::addTrackGroupBelow);
 	connect(track_group, &TrackGroup::trackSelected, this, &TrackGroupManager::trackSelected);
+	connect(track_group, &TrackGroup::settingsRequested, this, &TrackGroupManager::settingsRequested);
 }
 
 void TrackGroupManager::writeToXml(QXmlStreamWriter& writer)

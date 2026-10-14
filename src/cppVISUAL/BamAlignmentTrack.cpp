@@ -48,7 +48,7 @@ QList<Parameter> BamAlignmentTrack::getParameters() const
 		Parameter("show all bases", "Display all bases, not only ones that are different from the reference base.", ParameterType::BOOL, {}),
 		Parameter("show soft-clipped bases", "Display soft-clipped bases.", ParameterType::BOOL, {}),
 		Parameter("show secondary alignments", "Display secondary alignments.", ParameterType::BOOL, {}),
-		Parameter("group by", "Group reads by haplotype or mate chromosome.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("none\tphase\tmate chromosome")}}),
+		Parameter("group by", "Group reads by different criteria.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("none\tphase\tmate chromosome\tpair orientation")}}),
 		Parameter("color by", "Alignment coloring scheme.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("none\tinsert size\tread strand")}}),
 		Parameter("visibility range", "Maximum genomic region for which content is displayed (in bases).", ParameterType::INT, {{ConstraintType::MIN, 1}})
 	};
@@ -117,9 +117,11 @@ void BamAlignmentTrack::dataReady()
 
 BamAlignmentTrack::DisplaySettings BamAlignmentTrack::displaySettings() const
 {
+	QByteArray group_by = settings_.getString("group by");
+	if (group_by == "pair orientation" && !track_data_->isPairedEnd()) group_by = "none";
 	return {settings_.getBool("view as pairs"), settings_.getBool("show all bases"),
 		settings_.getBool("show soft-clipped bases"), settings_.getBool("show secondary alignments"),
-		settings_.getString("group by"), settings_.getString("color by")};
+		group_by, settings_.getString("color by")};
 }
 
 void BamAlignmentTrack::calculateRows(const DisplaySettings& options)
@@ -250,7 +252,9 @@ void BamAlignmentTrack::calculateGroupedRows(const DisplaySettings& options)
 	row_stored_with_pair_.clear();
 
 	const bool by_phase = options.group_by == "phase";
-	const QStringList labels = by_phase ? QStringList{"phase 1", "phase 2", "unphased"} : QStringList{"differing", "same"};
+	const bool by_orientation = options.group_by == "pair orientation";
+	const QStringList labels = by_phase ? QStringList{"phase 1", "phase 2", "unphased"}
+		: by_orientation ? QStringList{"RF", "FF", "RR", "FR"} : QStringList{"differing", "same"};
 	const Chromosome& chromosome = SharedData::region().chr();
 	const auto differing_mate = [&chromosome](const BamAlignmentWrapper& alignment)
 	{
@@ -279,6 +283,11 @@ void BamAlignmentTrack::calculateGroupedRows(const DisplaySettings& options)
 					else if (mate_phase != 0 && mate_phase != read_phase) read_phase = 0;
 				}
 				read_group = read_phase == 1 ? 0 : read_phase == 2 ? 1 : 2;
+			}
+			else if (by_orientation)
+			{
+				const int orientation = al.pairOrientation();
+				read_group = orientation == 0 ? 3 : orientation - 1; // FR comes last.
 			}
 			else
 			{

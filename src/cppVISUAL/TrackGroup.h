@@ -39,6 +39,7 @@ signals:
 	void addTrackGroupAbove();
 	void addTrackGroupBelow();
 	void trackSelected(TrackWidget* track);
+	void settingsRequested(TrackWidget* track);
 
 public slots:
 	// sent by the track that was deleted, deletes TrackGroup if there are no tracks remaining inside

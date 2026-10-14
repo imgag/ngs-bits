@@ -412,6 +412,69 @@ private slots:
 		}
 	}
 
+	void bamPairOrientationGroupingAndHitTesting()
+	{
+		const GlobalSettings original = SharedData::settings();
+		const auto restore = qScopeGuard([&]() { SharedData::setSettings(original); });
+		GlobalSettings settings = original;
+		settings.min_window_size = 20;
+		SharedData::setSettings(settings);
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		const QStringList labels{"FR", "RF", "FF", "RR"};
+		const QList<int> first_flags{99, 83, 67, 115};
+		const QList<int> second_flags{147, 163, 131, 179};
+		QByteArray sam = "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n";
+		for (int mate = 0; mate < 2; ++mate)
+		{
+			for (int group = 0; group < 4; ++group)
+			{
+				sam += labels[group].toUtf8() + "\t" + QByteArray::number(mate == 0 ? first_flags[group] : second_flags[group])
+					+ "\tchr22\t" + (mate == 0 ? "10" : "30") + "\t60\t10M\t=\t" + (mate == 0 ? "30" : "10")
+					+ "\t" + (mate == 0 ? "30" : "-30") + "\tAAAAAAAAAA\tIIIIIIIIII\n";
+			}
+		}
+		writeFile("orientation.sam", sam);
+		const QString bam_path = data_.filePath("orientation.bam");
+		{
+			BamReader reader(data_.filePath("orientation.sam"));
+			BamWriter writer(bam_path);
+			writer.writeHeader(reader);
+			BamAlignment al;
+			while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+		}
+		QCOMPARE(sam_index_build(bam_path.toUtf8().constData(), 0), 0);
+		QScopedPointer<BamAlignmentTrack> track(BamAlignmentTrack::createTrack(nullptr, bam_path, ""));
+		QVERIFY(track);
+		track->parameters().setString("color by", "none");
+		track->parameters().setString("group by", "pair orientation");
+		track->resize(SharedData::settings().label_width + 4 + 320, 240);
+		track->show();
+		const int x0 = SharedData::settings().label_width + 2;
+		for (bool pairs : {false, true})
+		{
+			track->parameters().setBool("view as pairs", pairs);
+			for (int group = 0; group < 4; ++group)
+			{
+				for (int position : {15, 35})
+				{
+					const int displayed_group = group == 0 ? 3 : group - 1;
+					const QPoint point(x0 + (position - 1) * 4 + 2, (1 + displayed_group * 3) * 14 + 6);
+					QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, point);
+					auto* popup = track->findChild<QDialog*>();
+					QVERIFY(popup);
+					QVERIFY(popup->findChild<QLabel*>()->text().contains("<b>" + labels[group] + "</b>"));
+					delete popup;
+				}
+			}
+		}
+		// The mate outside the loaded region still determines the orientation.
+		SharedData::setRegion(Chromosome("chr22"), 1, 20);
+		auto data = BamTrackDataManager::getOrCreate(bam_path);
+		data->reload(); // Discard the larger previously cached region.
+		QCOMPARE(data->getAlignments().count(), 4);
+		for (int group = 0; group < 4; ++group) QCOMPARE(data->getAlignments()[group].pairOrientation(), group);
+	}
+
 	void bamSecondaryAlignmentVisibility()
 	{
 		SharedData::setRegion(Chromosome("chr22"), 1, 80);
@@ -518,6 +581,13 @@ private slots:
 				QVERIFY2(popup, qPrintable(QString("No popup for position %1, repeat %2, width %3").arg(position).arg(repeat).arg(track->width()))); // Both non-overlapping reads must occupy row zero.
 				delete popup;
 			}
+			track->parameters().setString("group by", "none");
+			QImage ungrouped(track->size(), QImage::Format_ARGB32);
+			track->render(&ungrouped);
+			track->parameters().setString("group by", "pair orientation");
+			QImage orientation(track->size(), QImage::Format_ARGB32);
+			track->render(&orientation);
+			QCOMPARE(orientation, ungrouped); // No grouping for single-end files.
 			track->parameters().setBool("show secondary alignments", false);
 			QCOMPARE(track->sizeHint().height(), sparse_height);
 			track->parameters().setBool("show secondary alignments", true);
@@ -1157,7 +1227,11 @@ private slots:
 		auto* first = tracks[0];
 		auto* second = tracks[1];
 		second->parameters().setString("color", "red");
-		openEditor(first);
+		QMenu menu;
+		first->populateContextMenu(menu, QPoint(2, 2));
+		QCOMPARE(menu.actions().first()->text(), QString("Open settings"));
+		QVERIFY(menu.actions()[1]->isSeparator());
+		menu.actions().first()->trigger();
 		QVERIFY(!dock->isHidden());
 		QCOMPARE(dock->windowTitle(), QString("Track settings"));
 		auto* editor = dock->findChild<ParameterEditor*>();
@@ -1178,7 +1252,7 @@ private slots:
 		QCOMPARE(first->parameters().getString("color"), QByteArray("green"));
 		dock->close();
 		QVERIFY(dock->isHidden());
-		openEditor(first);
+		menu.actions().first()->trigger();
 		QVERIFY(!dock->isHidden());
 		viewer.findChild<QToolButton*>("settings_btn")->click();
 		QVERIFY(dock->isHidden());

@@ -29,6 +29,11 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	ui_->dock_window->setWindowFlags(Qt::Widget);
 	ui_->settings_dock->hide();
 	connect(ui_->track_group_manager, &TrackGroupManager::trackSelected, this, &GenomeVisualizationWidget::selectTrack);
+	connect(ui_->track_group_manager, &TrackGroupManager::settingsRequested, this, [this](TrackWidget* track)
+	{
+		selectTrack(track);
+		ui_->settings_dock->show();
+	});
 	connect(ui_->settings_btn, &QToolButton::clicked, this, &GenomeVisualizationWidget::toggleSettingsVisibility);
 	connect(ui_->settings_dock, &QDockWidget::visibilityChanged, this, [this](bool visible)
 	{

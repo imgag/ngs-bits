@@ -47,6 +47,10 @@ void TrackWidget::regionChanged()
 void TrackWidget::populateContextMenu(QMenu& menu, const QPoint&)
 {
 	QAction* first_action = menu.actions().isEmpty() ? nullptr : menu.actions().first();
+	auto* settings = new QAction("Open settings", &menu);
+	connect(settings, &QAction::triggered, this, [this]() { emit settingsRequested(this); });
+	menu.insertAction(first_action, settings);
+	menu.insertSeparator(first_action);
 	auto* reload = new QAction("Reload Track", &menu);
 	connect(reload, &QAction::triggered, this, &TrackWidget::reloadTrack);
 	menu.insertAction(first_action, reload);

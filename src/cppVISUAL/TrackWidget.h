@@ -51,6 +51,7 @@ signals:
 	void trackDeleted();
 	void trackMoved();
 	void trackSelected(TrackWidget* track);
+	void settingsRequested(TrackWidget* track);
 
 public slots:
 	void regionChanged();

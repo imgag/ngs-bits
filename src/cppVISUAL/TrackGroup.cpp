@@ -60,6 +60,7 @@ void TrackGroup::trackMoved()
 		disconnect(senderWidget, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
 		disconnect(senderWidget, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
 		disconnect(senderWidget, &TrackWidget::trackSelected, this, &TrackGroup::trackSelected);
+		disconnect(senderWidget, &TrackWidget::settingsRequested, this, &TrackGroup::settingsRequested);
 		layout_->removeWidget(senderWidget);
 		layout_->update();
 
@@ -72,6 +73,7 @@ void TrackGroup::connectTrackSignals(TrackWidget* track)
 	connect(track, &TrackWidget::trackDeleted, this, &TrackGroup::trackDeleted);
 	connect(track, &TrackWidget::trackMoved, this, &TrackGroup::trackMoved);
 	connect(track, &TrackWidget::trackSelected, this, &TrackGroup::trackSelected);
+	connect(track, &TrackWidget::settingsRequested, this, &TrackGroup::settingsRequested);
 }
 
 void TrackGroup::addTrackWidgets(QVector<TrackWidget*> widgets)

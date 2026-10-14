@@ -90,6 +90,8 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 
 	bool isReverseStrand() const { return is_reverse_; }
 	bool isPaired() const { return is_paired_; }
+	// Orientation of the left and right mates: FR, RF, FF, RR.
+	int pairOrientation() const { return pair_orientation_; }
 
 	int mateStart() const { return mate_start_; }
 
@@ -111,6 +113,7 @@ private:
 	int en_with_soft_clip_;
 	bool is_reverse_;
 	bool is_paired_;
+	int pair_orientation_;
 	bool mate_is_mapped_;
 	int mate_start_;
 	int insert_size_ = -1;
@@ -128,6 +131,10 @@ private:
 		is_paired_ = al.isPaired();
 		mate_is_mapped_ = is_paired_ && !al.isMateUnmapped();
 		mate_start_ = al.mateStart();
+		bool left_reverse = is_reverse_;
+		bool right_reverse = al.isMateReverseStrand();
+		if (mate_start_ < st_ || (mate_start_ == st_ && al.isRead2())) std::swap(left_reverse, right_reverse);
+		pair_orientation_ = left_reverse == right_reverse ? (left_reverse ? 3 : 2) : (left_reverse ? 1 : 0);
 		name_ = al.name();
 		insert_size_ = al.insertSize();
 		const int hp = al.tagi("HP");
