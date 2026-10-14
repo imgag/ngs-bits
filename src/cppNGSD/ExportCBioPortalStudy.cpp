@@ -850,7 +850,7 @@ void ExportCBioPortalStudy::exportSvs(const QString& out_folder, bool /*debug*/)
 		int idx_flags = bedpe.annotationIndexByName("FLAGS");
 
 
-		//TODO write filter? In somatic report settings?
+		//TODO Alexander: write filter? In somatic report settings?
 
 		for(int idx_var=0; idx_var<bedpe.count(); idx_var++)
 		{

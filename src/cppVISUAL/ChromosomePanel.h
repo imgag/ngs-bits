@@ -15,9 +15,6 @@ class CPPVISUALSHARED_EXPORT ChromosomePanel
 public:
 	ChromosomePanel(QWidget* parent);
 
-signals:
-	void mouseCoordinate(QString);
-
 private slots:
 	//Updates the region displayed by this widget
 	void updateRegion();

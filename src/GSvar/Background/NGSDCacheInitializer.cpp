@@ -1,5 +1,7 @@
 #include "NGSDCacheInitializer.h"
 #include "NGSD.h"
+#include "GSvarHelper.h"
+#include "NGSHelper.h"
 
 NGSDCacheInitializer::NGSDCacheInitializer()
 	: BackgroundWorkerBase("NGSD cache initializer")
@@ -8,6 +10,9 @@ NGSDCacheInitializer::NGSDCacheInitializer()
 
 void NGSDCacheInitializer::process()
 {
+	//load Ensembl-Refseq matches from resources
+	NGSHelper::transcriptMatches();
+
 	NGSD db;
 
 	//init base gene infos
@@ -18,4 +23,7 @@ void NGSDCacheInitializer::process()
 
 	//init phenotype infos
 	db.phenotypes(QStringList());
+
+	//init relevant transcripts cache
+	GSvarHelper::relevantTranscripts();
 }

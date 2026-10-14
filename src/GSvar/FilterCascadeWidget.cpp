@@ -67,10 +67,10 @@ void FilterCascadeWidget::editColumnFilter(QString column)
 	{
 		if (filters_[i]->name()!="Column match") continue;
 
-		foreach(const FilterParameter& param, filters_[i]->parameters())
+		foreach(const Parameter& param, filters_[i]->parameters())
 		{
-			if (param.name!="column") continue;
-			if (param.value.toString()!=column) continue;
+			if (param.name()!="column") continue;
+			if (param.value().toString()!=column) continue;
 
 			index = i;
 		}
@@ -221,7 +221,7 @@ void FilterCascadeWidget::addFilter()
 	}
 
 	//set genome build if the filter contains the parameter
-	if (filter->hasParameter("build", FilterParameterType::STRING))
+	if (filter->hasParameter("build", ParameterType::STRING))
 	{
 		filter->setString("build", GSvarHelper::buildAsString());
 	}

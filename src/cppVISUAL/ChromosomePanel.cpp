@@ -7,7 +7,6 @@
 ChromosomePanel::ChromosomePanel(QWidget* parent)
 	: QWidget(parent)
 {
-	setMouseTracking(true);
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
 }
 
@@ -85,37 +84,9 @@ void ChromosomePanel::paintEvent(QPaintEvent* /*event*/)
 
 void ChromosomePanel::mouseMoveEvent(QMouseEvent* event)
 {
-	//init
-	int x = event->pos().x();
-	int y = event->pos().y();
-	int w = width();
-	int label_width = SharedData::settings().label_width;
-	const BedLine& region = SharedData::region();
-
-	//show
-	if (x>label_width + 2 && x<w - 2)
-	{
-		int coordinate = std::floor((double)(x-label_width - 2) / pixels_per_base_);
-		emit mouseCoordinate(region.chr().strNormalized(true) + ":" + QString::number(coordinate));
-
-		if (y >= 2 && y < 2 + chr_height_ + text_height_ + padding_)
-		{
-			setCursor(Qt::PointingHandCursor);
-		}
-		else
-		{
-			unsetCursor();
-		}
-	}
-	else
-	{
-		emit mouseCoordinate("");
-		unsetCursor();
-	}
-
 	if (is_dragging_)
 	{
-		drag_current_x_ = x;
+		drag_current_x_ = event->pos().x();
 		update();
 	}
 }

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1000</width>
-    <height>800</height>
+    <width>916</width>
+    <height>690</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -50,7 +50,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1000</width>
+     <width>916</width>
      <height>22</height>
     </rect>
    </property>
@@ -59,12 +59,7 @@
      <string>File</string>
     </property>
     <addaction name="actionLoadFile"/>
-    <addaction name="separator"/>
-    <addaction name="actionReloadTracks"/>
-    <addaction name="separator"/>
-    <addaction name="actionNewSession"/>
-    <addaction name="actionLoadSession"/>
-    <addaction name="actionStore_session"/>
+    <addaction name="actionLoadURL"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -74,18 +69,29 @@
     </property>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menuSession">
+    <property name="title">
+     <string>Session</string>
+    </property>
+    <addaction name="actionClearSession"/>
+    <addaction name="separator"/>
+    <addaction name="actionReloadTracks"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoadSession"/>
+    <addaction name="actionStore_session"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuSession"/>
    <addaction name="menuHelp"/>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
   <action name="actionLoadFile">
    <property name="text">
     <string>Load file</string>
    </property>
   </action>
-  <action name="actionNewSession">
+  <action name="actionClearSession">
    <property name="text">
-    <string>New session</string>
+    <string>Clear session</string>
    </property>
   </action>
   <action name="actionReloadTracks">
@@ -111,6 +117,11 @@
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionLoadURL">
+   <property name="text">
+    <string>Load URL</string>
    </property>
   </action>
  </widget>

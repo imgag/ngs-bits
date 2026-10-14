@@ -3,6 +3,7 @@
 
 #include "SharedData.h"
 #include "BamReader.h"
+#include "ParameterList.h"
 #include "cppVISUAL_global.h"
 
 #include <QObject>
@@ -61,13 +62,7 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 	QVector<EventData> events;
 	Chromosome mate_chr; //needs to be set on creation, cannot be taken as argument because bam_reader_->chromosome might fail
 
-	BamAlignmentWrapper(BamAlignment aln)
-		: id(AlignmentKey::makeKey(aln))
-	{
-		storeAlignmentInfo(aln);
-	}
-
-	BamAlignmentWrapper(BamAlignment&& aln)
+	BamAlignmentWrapper(const BamAlignment& aln)
 		: id(AlignmentKey::makeKey(aln))
 	{
 		storeAlignmentInfo(aln);
@@ -85,11 +80,6 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 		return events;
 	}
 
-	bool operator==(const BamAlignmentWrapper& other) const
-	{
-		return id == other.id;
-	}
-
 	int start() const { return st_; }
 
 	int end() const { return en_; }
@@ -101,7 +91,6 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 	bool isReverseStrand() const { return is_reverse_; }
 
 	int mateStart() const { return mate_start_; }
-	int mateChrId() const { return mat_chr_id_; }
 
 	bool isMateMapped() const { return mate_is_mapped_; }
 
@@ -110,6 +99,9 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 	bool isValid() const { return (st_ >= 0 && en_ >= 0); }
 
 	int insertSize() const { return insert_size_; }
+	// Diploid haplotype from HP: 1, 2, or 0 for unassigned.
+	int phase() const { return phase_; }
+	bool isSecondaryAlignment() const { return is_secondary_; }
 
 private:
 	int st_ = -1;
@@ -118,9 +110,10 @@ private:
 	int en_with_soft_clip_;
 	bool is_reverse_;
 	bool mate_is_mapped_;
-	int mat_chr_id_ = -1;
 	int mate_start_;
 	int insert_size_ = -1;
+	int phase_ = 0;
+	bool is_secondary_ = false;
 	QString name_;
 
 	void storeAlignmentInfo(const BamAlignment& al)
@@ -132,16 +125,13 @@ private:
 		is_reverse_ = al.isReverseStrand();
 		mate_is_mapped_ = !al.isMateUnmapped();
 		mate_start_ = al.mateStart();
-		mat_chr_id_ = al.mateChrosomeID();
 		name_ = al.name();
 		insert_size_ = al.insertSize();
+		const int hp = al.tagi("HP");
+		phase_ = hp == 1 || hp == 2 ? hp : 0;
+		is_secondary_ = al.isSecondaryAlignment();
 	}
 };
-
-inline size_t qHash(const BamAlignmentWrapper& key, size_t seed = 0)
-{
-	return qHash(key.id, seed);
-}
 
 struct InsertSizeStats
 {
@@ -156,8 +146,14 @@ class CPPVISUALSHARED_EXPORT BamTrackData : public QObject
 public:
 	BamTrackData(QString file_path)
 		: file_path_(file_path)
+		, visibility_range_(SharedData::settings().bam_max_region_len)
 	{
 		connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
+		connect(SharedData::instance(), &SharedData::settingsChanged, this, [this]()
+		{
+			computeInsertSizeStats();
+			updateRegion();
+		});
 	}
 
 	const QVector<BamAlignmentWrapper>& getAlignments()
@@ -195,17 +191,22 @@ public:
 	InsertSizeStats getInsertSizeStats() { return insert_size_stats_; };
 
 	void reload();
+	// Keeps visibility parameters of all tracks using this data in sync.
+	void bindVisibilityRange(ParameterList& parameters);
+	void setVisibilityRange(int range);
 
 signals:
 	// void onDataChange();
 	void onDataUpdate();
 	void onFullLoad();
+	void visibilityRangeChanged(int range);
 
 public slots:
 	void updateRegion();
 
 private:
 	QString file_path_;
+	int visibility_range_;
 	QSharedPointer<BamReader> bam_reader_;
 	QVector<BamAlignmentWrapper> alignments_;
 	QVector<BamAlignmentWrapper> dummy_alignments_;
@@ -213,9 +214,9 @@ private:
 	int ref_start_;
 	QSet<AlignmentKey> loaded_ids_;
 
-	void updateData();
+	bool invalid_mate_warning_shown_ = false;
 
-	bool is_loading_;
+	bool is_loading_ = false;
 	bool return_empty_ = true;
 	InsertSizeStats insert_size_stats_;
 

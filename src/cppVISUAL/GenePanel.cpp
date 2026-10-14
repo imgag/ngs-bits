@@ -24,7 +24,7 @@ void GenePanel::contextMenu(QPoint pos)
 	a_show_translation->setChecked(show_translation_);
 	QAction* a_show_ensebl_only = menu.addAction("Show GENCODE primary only");
 	a_show_ensebl_only->setCheckable(true);
-	a_show_ensebl_only->setChecked(SharedData::settings().show_only_primary);
+	a_show_ensebl_only->setChecked(show_only_gencode_primary);
 
 	//show menu
 	QAction* action = menu.exec(mapToGlobal(pos));
@@ -42,9 +42,8 @@ void GenePanel::contextMenu(QPoint pos)
 	}
 	else if (action==a_show_ensebl_only)
 	{
-		GlobalSettings settings = SharedData::settings();
-		settings.show_only_primary = !settings.show_only_primary;
-		SharedData::setSettings(settings);
+		show_only_gencode_primary = !show_only_gencode_primary;
+		repaint();
 	}
 }
 
@@ -143,7 +142,7 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 		const Transcript& trans = SharedData::transcripts().at(i);
 
         //only GENCODE primary
-		if (SharedData::settings().show_only_primary && !trans.isGencodePrimaryTranscript()) continue;
+		if (show_only_gencode_primary && !trans.isGencodePrimaryTranscript()) continue;
 
         if (trans.isPreferredTranscript() || trans.isManePlusClinicalTranscript() || trans.isManeSelectTranscript() || trans.isEnsemblCanonicalTranscript())
         {
@@ -165,22 +164,7 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 
 void GenePanel::mouseMoveEvent(QMouseEvent* event)
 {
-	//init
-	int x = event->pos().x();
-	int w = width();
-	int label_width = SharedData::settings().label_width;
-	const BedLine& region = SharedData::region();
-
-	//show
-	if (x>label_width + 2 && x<w - 2)
-	{
-		int coordinate = region.start() + std::floor((double)(x-label_width - 2) / pixels_per_base_);
-		emit mouseCoordinate(region.chr().strNormalized(true) + ":" + QString::number(coordinate));
-	}
-	else
-	{
-		emit mouseCoordinate("");
-	}
+	SharedData::mouseMoved(event->pos().x(), width());
 
 	event->ignore();
 }
@@ -310,6 +294,22 @@ void GenePanel::drawTranscript(QPainter& painter, const Transcript& trans, int y
 	painter.setPen(color);
 	double y_center = y+2+6;
 	painter.drawLine(QLineF(x_start+1.0, y_center, x_end-1.0, y_center));
+
+	//Repeated strand chevrons on the intron line; exon boxes cover them below.
+	if (trans.isPlusStrand() || trans.isMinusStrand())
+	{
+		const double direction = trans.isPlusStrand() ? 1.0 : -1.0;
+		constexpr double arrow_spacing = 30.0;
+		constexpr double arrow_width = 3.0;
+		constexpr double arrow_height = 2.5;
+		for (double x = x_start + arrow_spacing / 2; x + arrow_width / 2 < x_end; x += arrow_spacing)
+		{
+			const double tail_x = x - direction * arrow_width / 2;
+			const double tip_x = x + direction * arrow_width / 2;
+			painter.drawLine(QLineF(tail_x, y_center - arrow_height, tip_x, y_center));
+			painter.drawLine(QLineF(tail_x, y_center + arrow_height, tip_x, y_center));
+		}
+	}
 
 	//draw all exons (8px heigh)
 	painter.setPen(Qt::transparent);

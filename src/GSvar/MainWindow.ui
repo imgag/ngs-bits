@@ -383,6 +383,8 @@
      <addaction name="separator"/>
      <addaction name="actionPingGSvarServer"/>
      <addaction name="actionPingNgsdServer"/>
+     <addaction name="separator"/>
+     <addaction name="actionCheckBamAccess"/>
     </widget>
     <addaction name="actionOpenDocumentation"/>
     <addaction name="actionChangeLog"/>
@@ -1532,6 +1534,11 @@
   <action name="actionPingNgsdServer">
    <property name="text">
     <string>Ping NGSD</string>
+   </property>
+  </action>
+  <action name="actionCheckBamAccess">
+   <property name="text">
+    <string>Check BAM access</string>
    </property>
   </action>
  </widget>

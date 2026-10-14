@@ -102,7 +102,6 @@ void VariantTable::customContextMenu(QPoint pos)
 	QAction* a_copy_genes = copy_menu->addAction("Genes");
 	QAction* a_cnv_sv = menu.addAction("Show CNVs/SVs in gene");
 	QAction* a_visualize = menu.addAction("Visualize");
-	a_visualize->setEnabled(Helper::runningInQtCreator());
 	menu.addSeparator();
 
 	//add web links
@@ -293,14 +292,25 @@ void VariantTable::customContextMenu(QPoint pos)
 
 	if (action==a_visualize)
 	{
+		//set region
+		SharedData::setRegion(variant.chr(), variant.start(), variant.end());
+		
+		//load BAMs
 		GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this);
+		foreach(const FileLocation& loc, GlobalServiceProvider::fileLocationProvider().getBamFiles(false))
+		{
+			widget->loadFile(loc.filename);
+		}
+
+		//load transcripts
 		if (SharedData::transcripts().isEmpty())
 		{
-			qDebug() << "SET";
 			SharedData::setTranscripts(NGSD().transcripts());
 		}
-		SharedData::setRegion(variant.chr(), variant.start(), variant.end());
-		auto dlg = GUIHelper::createDialog(widget, "GSviewer");
+
+
+		//show
+		auto dlg = GUIHelper::createDialog(widget, "GSvar visualization");
 		dlg->exec();
 	}
 	else if (parent_menu && parent_menu->title()=="Open link")

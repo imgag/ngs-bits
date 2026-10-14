@@ -15,15 +15,14 @@ class CPPVISUALSHARED_EXPORT GenePanel
 public:
 	GenePanel(QWidget* parent);
 
-signals:
-	void mouseCoordinate(QString);
-
 private slots:
 	void contextMenu(QPoint pos);
 	//Updates the region displayed by this widget
 	void updateRegion();
 
 private:
+	//only show GENCODE primary data
+	bool show_only_gencode_primary = true;
 	//strand for which the bases are shown
 	bool strand_forward_ = true;
 	//show all three posible codon translations
@@ -51,8 +50,6 @@ private:
 	static QColor baseColor(QChar base);
 	//Returns the colos to draw the given amino acid.
 	static QColor aaColor(int start_index, QChar aa);
-	//Returns the number of pixels per base.
-	double pixelsPerBase() const;
 	//Draws a transcript at the topmost free position
 	void drawTranscript(QPainter& painter, const Transcript& trans, int y_content_start, QColor color);
 	//Calculates the y position where there is space for the transcript with the given start/end x coordinate

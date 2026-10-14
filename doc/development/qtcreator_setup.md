@@ -47,3 +47,5 @@ To use Codex in QtCreator, follow these instructions.
 
 [Back to main page](index.md)
 
+
+Note: See [list of slash-commands](https://learn.chatgpt.com/docs/developer-commands?surface=cli#cli-built-in-slash-commands) for special commands you can use with Codex.

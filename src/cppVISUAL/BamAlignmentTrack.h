@@ -26,65 +26,72 @@ class CPPVISUALSHARED_EXPORT BamAlignmentTrack
 {
 	Q_OBJECT
 public:
-	explicit BamAlignmentTrack(QWidget* parent, QString file_path, QString name);
+	BamAlignmentTrack(QWidget* parent, QString file_path, QString name);
+	~BamAlignmentTrack();
+	static QByteArray type() { return "BamAlignmentTrack"; }
+
 	void setTrackData(QSharedPointer<BamTrackData> track_data);
 
 	QSize sizeHint() const override;
-	QSize minimumSizeHint() const override {return sizeHint();}
 
-	static QString staticType() {return "BAM/CRAM";}
-	QString getType() override {return staticType();}
-
-	virtual QMap<QString, QVariant> getSettings() override;
-	virtual void loadKeyValueFromXml(QString key, QString value) override;
 
 	virtual void reloadTrack() override;
 
 	static BamAlignmentTrack* createTrack(QWidget* parent, QString file_path, QString name);
 
 protected:
+	QList<Parameter> getParameters() const override;
+	QHash<QByteArray, QVariant> getParameterDefaults() const override;
 	void paintEvent(QPaintEvent*) override;
 	void populateContextMenu(QMenu&, const QPoint&) override;
 	void mousePressEvent(QMouseEvent*) override;
 	void mouseReleaseEvent(QMouseEvent*) override;
-
-
+	void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
+	// Read once before processing or painting alignments.
+	struct DisplaySettings
+	{
+		bool view_as_pairs;
+		bool show_all_bases;
+		bool show_soft_clip_bases;
+		bool show_secondary_alignments;
+		QByteArray group_by;
+		QByteArray coloring_scheme;
+	};
+	DisplaySettings displaySettings() const;
 	QSharedPointer<BamTrackData> track_data_;
 
 	void drawZoomInText(QPainter&);
 
 	// assigns rows to alignments and calculates number of rows
 	// calls the right method depending on view mode
-	void calculateRows();
+	void calculateRows(const DisplaySettings& options);
 	// assigns rows for normal mode
-	void calculateRowsNormalMode();
+	void calculateRowsNormalMode(const DisplaySettings& options);
 	// assigns rows to pairs for pair mode
 	void calculateRowsPairMode();
-	// computes the stats for insertsize
-	void computeInsertSizeStats();
+	// Packs haplotypes 1, 2, and unassigned into separate groups.
+	void calculateRowsByPhase(const DisplaySettings& options);
 	// iterates through the alignments and stores pairs as ReadPair in read_pairs_
-	void makePairs();
+	void makePairs(const DisplaySettings& options);
 
-	void drawNormalMode(QPainter& painter);
-	void drawPairMode(QPainter& painter, const BedLine& region);
+	void drawNormalMode(QPainter& painter, const DisplaySettings& options);
+	void drawPairMode(QPainter& painter, const BedLine& region, const DisplaySettings& options);
 
-	void drawAlignmentAndMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y);
+	void drawAlignmentAndMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y, const DisplaySettings& options);
 
-	void drawAlignment(QPainter&, const BamAlignmentWrapper& al, int row_y);
+	void drawAlignment(QPainter&, const BamAlignmentWrapper& al, int row_y, const DisplaySettings& options);
 	void drawBase(QPainter&, const Viewport& view_port, int genome_pos,
 				  char base, int qual, int row_y);
 	// draws bases in BamAlignment that do not match the reference base
 	// which are pre calculated in the AlignmentWrapper
 	void drawMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y);
-	// draws all bases (only if show_all_bases_ flag is true), draws soft clip bases too
+	// draws all bases if enabled in settings_, including soft clips if enabled
 	// if the corresponding flag is set
-	void drawAllBases(QPainter&, const BamAlignmentWrapper& al, int row_y);
-	// draws a highlight on the given alignment
-	void drawHighlight(QPainter&, const BamAlignmentWrapper& al, int row_y);
+	void drawAllBases(QPainter&, const BamAlignmentWrapper& al, int row_y, const DisplaySettings& options);
 
-	QString getBamAlignmentText(const BamAlignmentWrapper& al, int genome_pos);
+	QString getBamAlignmentText(const BamAlignmentWrapper& al, int genome_pos, bool show_soft_clip_bases);
 
 	void updateFontCache();
 
@@ -103,25 +110,18 @@ private:
 	bool isCurrentRegionValid();
 	// gives the start and end point of the alignments
 	// if current mode is show_clip_bases_, this gives start and end with that
-	// TODO: insertation can also be expanded in the future
-	int getAlignmentStart(const BamAlignmentWrapper&);
-	int getAlignmentEnd(const BamAlignmentWrapper&);
+	static int getAlignmentStart(const BamAlignmentWrapper&, bool show_soft_clip_bases);
+	static int getAlignmentEnd(const BamAlignmentWrapper&, bool show_soft_clip_bases);
+	static bool isAlignmentVisible(const BamAlignmentWrapper& alignment, bool show_secondary_alignments);
 	// returns color of alignment based on its properties and current coloring scheme
-	QColor getAlignmentColor(const BamAlignmentWrapper&);
+	QColor getAlignmentColor(const BamAlignmentWrapper&, const QByteArray& coloring_scheme);
 	// adds Go To Mate, select/delect options to context menu
 	void addAlignmentOptionsToCtxtMenu(QMenu& menu, const QPoint& local_pos);
-	// adds color schemes to context menu
-	void addColorOptionToCtxtMenu(QMenu& menu, const QPoint& local_pos);
 
-
-	/*TODO: all of these need to be stored as LRUCache*/
 	QHash<AlignmentKey, int> row_idxes_; // BamAlignmentWrapperId -> row index
-	QHash<QString, int> pair_row_idxes_; // Pair Name -> row index
+	QHash<AlignmentKey, int> pair_row_idxes_; // First alignment ID -> row index
 
-	QHash<QString, bool> row_stored_with_pair_; // Pair Name -> bool, used for checking if alignment with name was stored as a pair or not
-
-	QHash<int, QVector<int>> normal_row_store_; // row -> vector of alignment indices
-	QHash<int, QVector<int>> pair_row_store_; // row -> vector of pair indices
+	QHash<AlignmentKey, bool> row_stored_with_pair_; // First alignment ID -> whether a mate was stored
 
 
 	RowPacker row_packer_;
@@ -132,18 +132,6 @@ private:
 	QSize cached_char_size_;
 	QFont cached_font_;
 
-	//settings
-	enum ColoringScheme
-	{
-		NONE,
-		INSERT_SIZE,
-		READ_STRAND
-	};
-
-	bool view_as_pairs_ = false;
-	bool show_all_bases_ = false;
-	bool show_soft_clip_bases_ = false;
-	ColoringScheme coloring_scheme_ = INSERT_SIZE;
 	QString selected_name_ = ""; // name of selected alignment
 
 

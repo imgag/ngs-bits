@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>Resources/GSviewerSession.xsd</file>
+        <file>Icons/bookmark.png</file>
     </qresource>
 </RCC>

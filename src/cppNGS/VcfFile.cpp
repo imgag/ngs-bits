@@ -2,6 +2,8 @@
 #include "VersatileOutStream.h"
 #include "Helper.h"
 #include "VersatileFile.h"
+#include "StringPool.h"
+#include <QMutex>
 #include <QRegularExpression>
 
 VcfFile::VcfFile()
@@ -119,14 +121,14 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 	VcfLine vcf_line;
 
 	//chr
-	vcf_line.setChromosome(strCache(line_parts[CHROM]));
+	vcf_line.setChromosome(line_parts[CHROM]);
 	if(!vcf_line.chr().isValid()) THROW(ArgumentException, "Invalid variant chromosome string in line " + QString::number(line_number) + ": " + vcf_line.chr().str() + ".");
 
 	//pos
 	vcf_line.setPos(Helper::toInt(line_parts[POS], "VCF position"));
 
 	//REF
-	vcf_line.setRef(strCache(line_parts[REF].toUpper()));
+	vcf_line.setRef(StringPool::get(line_parts[REF].toUpper()));
 
 	//Skip variants that are not in the target region (if given)
 	if (load_reg_!=nullptr)
@@ -142,7 +144,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 	//ALTs
 	foreach(const QByteArray& alt, line_parts[ALT].split(','))
 	{
-		vcf_line.addAlt(strCache(alt.toUpper()));
+		vcf_line.addAlt(StringPool::get(alt.toUpper()));
 	}
 
 	//QUAL
@@ -165,11 +167,11 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 		if(!filter_ids.contains(filter) && filter!="PASS" && filter!=".")
 		{
 			FilterLine new_filter_line;
-			new_filter_line.id = strCache(filter);
-			new_filter_line.description = strCache("no description available");
+			new_filter_line.id = StringPool::get(filter);
+			new_filter_line.description = StringPool::get(QByteArrayLiteral("no description available"));
 			vcf_header_.addFilterLine(new_filter_line);
 
-			filter_ids.insert(strCache(filter));
+			filter_ids.insert(StringPool::get(filter));
 		}
 	}
 
@@ -182,16 +184,16 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 		foreach(const QByteArray& info, line_parts[INFO].split(';'))
 		{
 			int sep_index = info.indexOf('=');
-            const QByteArray key = strCache(sep_index==-1 ? info : info.left(sep_index));
+            const QByteArray key = StringPool::get(sep_index==-1 ? info : info.left(sep_index));
 
 			//check if the info is known in header
 			if(!info_ids.contains(key))
 			{
 				InfoFormatLine new_info_line;
 				new_info_line.id = key;
-				new_info_line.number = strCache("1");
-				new_info_line.type = strCache("String");
-				new_info_line.description = strCache("no description available");
+				new_info_line.number = StringPool::get(QByteArrayLiteral("1"));
+				new_info_line.type = StringPool::get(QByteArrayLiteral("String"));
+				new_info_line.description = StringPool::get(QByteArrayLiteral("no description available"));
 				vcf_header_.addInfoLine(new_info_line);
 
 				info_ids.insert(key);
@@ -199,11 +201,11 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 
 			if(sep_index==-1) //Flag
 			{
-				info_values.push_back(strCache("TRUE"));
+				info_values.push_back(StringPool::get(QByteArrayLiteral("TRUE")));
 			}
 			else //other types
 			{
-				info_values.push_back(strCache(info.mid(sep_index+1)));
+				info_values.push_back(StringPool::get(info.mid(sep_index+1)));
 			}
 			info_keys.push_back(key);
 		}
@@ -230,9 +232,9 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 			{
 				InfoFormatLine new_format_line;
 				new_format_line.id = format;
-				new_format_line.number = strCache("1");
-				new_format_line.type = strCache("String");
-				new_format_line.description = strCache("no description available");
+				new_format_line.number = StringPool::get(QByteArrayLiteral("1"));
+				new_format_line.type = StringPool::get(QByteArrayLiteral("String"));
+				new_format_line.description = StringPool::get(QByteArrayLiteral("no description available"));
 				vcf_header_.addFormatLine(new_format_line);
 
 				if(format == "GT")
@@ -240,7 +242,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 					vcf_header_.moveFormatLine(vcf_header_.formatLines().count()-1, 0);
 				}
 
-				format_ids.insert(strCache(format));
+				format_ids.insert(StringPool::get(format));
 			}
 		}
 
@@ -270,7 +272,7 @@ void VcfFile::parseVcfEntry(int line_number, const QByteArray& line, QSet<QByteA
 				//parse all available entries
 				for(int i=0; i<sample_entries.count(); ++i)
 				{
-					sample_entries[i] = strCache(sample_entries[i]);
+					sample_entries[i] = StringPool::get(sample_entries[i]);
 				}
 				vcf_line.addFormatValues(strArrayCache(sample_entries));
 			}
@@ -812,11 +814,11 @@ VcfFile VcfFile::fromGSvar(const VariantList& variant_list, const QString& refer
 
 				if (anno_desc.type()==VariantAnnotationDescription::FLAG) //Flags should not have values in VCF
 				{
-					info.push_back(strCache("TRUE"));
+					info.push_back(StringPool::get(QByteArrayLiteral("TRUE")));
 				}
 				else //everything else is just added to info
 				{
-					info.push_back(strCache(encodeInfoValue(anno_val).toUtf8()));
+					info.push_back(StringPool::get(encodeInfoValue(anno_val).toUtf8()));
 				}
 
 				all_info_keys.push_back(anno_header.name().toUtf8());
@@ -1502,23 +1504,11 @@ void VcfFile::checkValues(const DefinitionLine& def, const QByteArrayList& value
 	}
 }
 
-QByteArray VcfFile::strCache(const QByteArray& str, bool clear_cache)
-{
-	static QSet<QByteArray> cache;
-	if (clear_cache) cache.clear();
-
-	QSet<QByteArray>::iterator it = cache.find(str);
-	if (it==cache.end())
-	{
-		it = cache.insert(str);
-	}
-
-	return *it;
-}
-
 QByteArrayList VcfFile::strArrayCache(const QByteArrayList& str, bool clear_cache)
 {
 	static QSet<QByteArrayList> cache;
+	static QMutex mutex;
+	QMutexLocker locker(&mutex);
 
 	if (clear_cache) cache.clear();
 
@@ -1595,7 +1585,7 @@ void VcfFile::removeUnusedContigHeaders(QSet<QByteArray> used_chrs)
 
 void VcfFile::clearCache()
 {
-	strCache("", true);
+	StringPool::clean();
 	strArrayCache(QByteArrayList(), true);
 }
 

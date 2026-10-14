@@ -952,12 +952,12 @@ void CfDNAPanelDesignDialog::writePanelToFile()
 	}
 
 	//open file save dialog
-	QString vcf_file_path = QFileDialog::getSaveFileName(this, tr("Save cfDNA panel"), QDir::homePath() + QDir::separator() + processed_sample_name_ + ".vcf", tr("VCF (*.vcf);;All Files (*)"));
+	QString vcf_file_path = QFileDialog::getSaveFileName(this, "Save cfDNA panel", QDir::homePath() + QDir::separator() + processed_sample_name_ + ".vcf", "VCF (*.vcf);;All Files (*)");
 	if (!vcf_file_path.toLower().endsWith(".vcf")) vcf_file_path += ".vcf";
 	QString bed_file_path = vcf_file_path.mid(0, vcf_file_path.size() - 4) + ".bed";
 	if(QFile::exists(bed_file_path))
 	{
-		int btn = QMessageBox::warning(this, tr("Confirm save."), QFile(bed_file_path).fileName() + " already exists. \nWould you like to overwrite the file?",
+		int btn = QMessageBox::warning(this, "Confirm save.", QFile(bed_file_path).fileName() + " already exists. \nWould you like to overwrite the file?",
 											   QMessageBox::Yes | QMessageBox::No);
 		if (btn!=QMessageBox::Yes)
 		{
