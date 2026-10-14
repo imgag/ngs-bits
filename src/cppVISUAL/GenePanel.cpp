@@ -72,6 +72,12 @@ void GenePanel::updateTranscriptLayout()
 {
 	const BedLine& region = SharedData::region();
 	char_size_ = characterSize(font());
+	amino_acid_width_ = 0;
+	const QFontMetrics metrics(font());
+	for (QChar amino_acid : QString("ACDEFGHIKLMNPQRSTVWY*"))
+	{
+		amino_acid_width_ = std::max(amino_acid_width_, metrics.horizontalAdvance(amino_acid));
+	}
 	pixels_per_base_ = (double)(width() - SharedData::settings().label_width - 4) / region.length();
 	int y_content_start = 4;
 	if (pixels_per_base_ >= 1 && region.chr() != "")
@@ -85,6 +91,7 @@ void GenePanel::updateTranscriptLayout()
 	auto place_transcript = [&](const Transcript& trans)
 	{
 		transcriptY(baseStartX(trans.start(), true), baseEndX(trans.end(), true), y_content_start, trans_height, trans);
+		updateCodingAminoAcids(trans_positions_.last());
 	};
 	for (int i : indices)
 	{
@@ -100,6 +107,48 @@ void GenePanel::updateTranscriptLayout()
 		content_height = std::max(content_height, (int)position.rect.bottom() + 2);
 	}
 	setMinimumHeight(content_height);
+}
+
+void GenePanel::updateCodingAminoAcids(TranscriptPosition& position)
+{
+	const Transcript& trans = position.trans;
+	if (!trans.isCoding() || 3 * pixels_per_base_ < amino_acid_width_ + 2) return;
+
+	//Concatenate CDS exons before translating, so split codons retain their frame.
+	Sequence coding_sequence;
+	for (int i = 0; i < trans.codingRegions().count(); ++i)
+	{
+		const BedLine& exon = trans.codingRegions()[i];
+		coding_sequence += SharedData::genome().seq(exon.chr(), exon.start(), exon.length());
+	}
+	if (trans.isMinusStrand()) coding_sequence.reverseComplement();
+	const BedLine& region = SharedData::region();
+	int prefix = 0;
+	for (int i = 0; i < trans.codingRegions().count(); ++i)
+	{
+		const BedLine& exon = trans.codingRegions()[i];
+		const int cds_start = trans.isPlusStrand() ? prefix : coding_sequence.size() - prefix - exon.length();
+		prefix += exon.length();
+		const int visible_start = std::max(exon.start(), region.start());
+		const int visible_end = std::min(exon.end(), region.end());
+		if (visible_start > visible_end) continue;
+		const int first = cds_start + (trans.isPlusStrand() ? visible_start - exon.start() : exon.end() - visible_end);
+		const int last = cds_start + (trans.isPlusStrand() ? visible_end - exon.start() : exon.end() - visible_start);
+		for (int codon = first - first % 3; codon <= last && codon + 3 <= coding_sequence.size(); codon += 3)
+		{
+			const QByteArray triplet = coding_sequence.mid(codon, 3);
+			if (triplet.contains('N') || std::any_of(triplet.begin(), triplet.end(), [](char base) { return base != 'A' && base != 'C' && base != 'G' && base != 'T'; })) continue;
+			const char amino_acid = NGSHelper::translateCodon(triplet, trans.chr().isM());
+			const int fragment_start = std::max(codon, cds_start) - cds_start;
+			const int fragment_end = std::min(codon + 2, cds_start + exon.length() - 1) - cds_start;
+			const int start = trans.isPlusStrand() ? exon.start() + fragment_start : exon.end() - fragment_end;
+			const int end = trans.isPlusStrand() ? exon.start() + fragment_end : exon.end() - fragment_start;
+			const double x_start = baseStartX(std::max(start, visible_start), true);
+			const double x_end = baseEndX(std::min(end, visible_end), true);
+			if (x_end <= x_start) continue;
+			position.amino_acids.append({QRectF(x_start, position.rect.top() + 2, x_end - x_start, 12), amino_acid, codon / 3, x_end - x_start >= amino_acid_width_ + 2});
+		}
+	}
 }
 
 void GenePanel::paintEvent(QPaintEvent* /*event*/)
@@ -167,9 +216,9 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 					painter.setBrush(color);
 					painter.drawRect(rect);
 
-					if (pixels_per_base_*3>=char_size_.width()) //show AA character
+					if (rect.width() >= amino_acid_width_ + 2) //same width and margins as exon AAs
 					{
-						painter.drawText(rect, Qt::AlignHCenter|Qt::AlignTop, aa);
+						painter.drawText(rect.adjusted(1, 0, -1, 0), Qt::AlignHCenter|Qt::AlignTop, aa);
 					}
 				}
 
@@ -183,7 +232,7 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 	{
 		const Transcript& trans = position.trans;
 		const bool important = trans.isPreferredTranscript() || trans.isManePlusClinicalTranscript() || trans.isManeSelectTranscript() || trans.isEnsemblCanonicalTranscript();
-		drawTranscript(painter, position, important ? QColor(130, 0, 50) : QColor(0, 0, 178));
+		drawTranscript(painter, position, important ? QColor(130, 0, 50) : QColor("#0000B2"));
 	}
 }
 
@@ -360,12 +409,41 @@ void GenePanel::drawTranscript(QPainter& painter, const TranscriptPosition& posi
 		painter.drawRect(rect);
 	}
 
-	//Single-exon transcripts have no intron line on which to show the strand.
-	if (trans.regions().count() == 1)
+	//Shade whole codon fragments, even when a fragment is too narrow for its letter.
+	const QColor light = color == QColor("#0000B2") ? QColor("#5C5CA4") : color;
+	const QColor darker = color == QColor("#0000B2") ? QColor("#0C0C78") : color.darker(130);
+	for (const AminoAcidPosition& amino_acid : position.amino_acids)
 	{
-		const BedLine& exon = trans.regions()[0];
-		draw_strand_arrows(baseStartX(exon.start(), true), baseEndX(exon.end(), true), Qt::white);
+		QColor background = amino_acid.codon_index % 2 == 0 ? light : darker;
+		if ((amino_acid.amino_acid == 'M' && amino_acid.codon_index == 0) || amino_acid.amino_acid == '*') background = aaColor(amino_acid.codon_index, QChar(amino_acid.amino_acid));
+		painter.fillRect(amino_acid.rect, background);
 	}
+
+	//Wide exons show strand arrows when no amino-acid letters are drawn.
+	const bool has_amino_acid_letters = std::any_of(position.amino_acids.begin(), position.amino_acids.end(), [](const AminoAcidPosition& aa) { return aa.draw_letter; });
+	if (!has_amino_acid_letters)
+	{
+		for (int i = 0; i < trans.regions().count(); ++i)
+		{
+			const BedLine& exon = trans.regions()[i];
+			const double start = baseStartX(exon.start(), true);
+			const double end = baseEndX(exon.end(), true);
+			if (end - start >= 40.0) draw_strand_arrows(start, end, Qt::white);
+		}
+	}
+
+	//Amino acids are cached with the layout; painting does not re-read the reference.
+	painter.save();
+	painter.setPen(Qt::white);
+	for (const AminoAcidPosition& amino_acid : position.amino_acids)
+	{
+		if (!amino_acid.draw_letter) continue;
+		painter.save();
+		painter.setClipRect(amino_acid.rect, Qt::IntersectClip);
+		painter.drawText(amino_acid.rect.adjusted(1, 0, -1, 0), Qt::AlignCenter, QString(QChar(amino_acid.amino_acid)));
+		painter.restore();
+	}
+	painter.restore();
 }
 
 int GenePanel::transcriptY(double x_start, double x_end, int y_content_start, int trans_height, const Transcript& trans)
@@ -392,7 +470,7 @@ int GenePanel::transcriptY(double x_start, double x_end, int y_content_start, in
 	double y_start = y_content_start + trans_height * row;
 
 	//store transcript position
-	trans_positions_.append(TranscriptPosition{trans, row, QRectF(x_start, y_start, x_end-x_start, trans_height)});
+	trans_positions_.append(TranscriptPosition{trans, row, QRectF(x_start, y_start, x_end-x_start, trans_height), {}});
 
 	return y_start;
 }

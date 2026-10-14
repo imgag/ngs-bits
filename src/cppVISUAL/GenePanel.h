@@ -31,12 +31,21 @@ private:
 	double pixels_per_base_;
 	//with of a character
 	QSize char_size_;
+	int amino_acid_width_ = 0;
+	struct AminoAcidPosition
+	{
+		QRectF rect;
+		char amino_acid;
+		int codon_index;
+		bool draw_letter;
+	};
 	//transcript positions
 	struct TranscriptPosition
 	{
 		Transcript trans;
 		int row; //row index (0=topmost)
 		QRectF rect; //bounding rectangle
+		QVector<AminoAcidPosition> amino_acids;
 	};
 	QList<TranscriptPosition> trans_positions_;
 
@@ -44,6 +53,7 @@ private:
 	void resizeEvent(QResizeEvent* event) override;
 	void changeEvent(QEvent* event) override;
 	void updateTranscriptLayout();
+	void updateCodingAminoAcids(TranscriptPosition& position);
 	void mouseMoveEvent(QMouseEvent* event) override;
 	bool event(QEvent *event) override; //tooltip
 

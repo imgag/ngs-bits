@@ -22,6 +22,7 @@
 #include <QDialog>
 #include <QFontMetrics>
 #include <QImage>
+#include <QPainter>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDockWidget>
@@ -74,8 +75,8 @@ private slots:
 	void initTestCase()
 	{
 		QVERIFY(QDir().mkpath(data_.path()));
-		writeFile("reference.fa", ">chr22\n" + QByteArray(100, 'A') + "\n");
-		writeFile("reference.fa.fai", "chr22\t100\t7\t100\t101\n");
+		writeFile("reference.fa", ">chr22\n" + QByteArray(100, 'A') + "\n>chr23\nATGATGTAA" + QByteArray(91, 'A') + "\n");
+		writeFile("reference.fa.fai", "chr22\t100\t7\t100\t101\nchr23\t100\t115\t100\t101\n");
 		writeFile("settings.ini", "reference_genome=" + data_.filePath("reference.fa").toUtf8() + "\n");
 		Settings::setSettingsOverride(data_.filePath("settings.ini"));
 		SharedData::setRegion(Chromosome("chr22"), 1, 80);
@@ -567,6 +568,90 @@ private slots:
 		QVERIFY(deleted);
 		QCOMPARE(Settings::stringList(key).count(), 1);
 		QVERIFY(Settings::stringList(key).first().contains("A second bookmark"));
+	}
+
+	void genePanelCodingAminoAcids()
+	{
+		const TranscriptList original_transcripts = SharedData::transcripts();
+		const BedLine original_region = SharedData::region();
+		const auto restore = qScopeGuard([&]()
+		{
+			SharedData::setTranscripts(original_transcripts);
+			SharedData::setRegion(original_region.chr(), original_region.start(), original_region.end());
+		});
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		GenePanel panel(nullptr);
+		QFont font = panel.font();
+		font.setPixelSize(10);
+		panel.setFont(font);
+		panel.resize(SharedData::settings().label_width + 4 + 480, 100); //6 pixels per base.
+		panel.show();
+		const int y = 6 + QFontMetrics(font).height();
+		const int x0 = SharedData::settings().label_width + 2;
+		for (bool plus : {true, false})
+		{
+			Transcript transcript;
+			transcript.setName("ENSTcoding");
+			transcript.setGene("GENE");
+			transcript.setSource(Transcript::ENSEMBL);
+			transcript.setStrand(plus ? Transcript::PLUS : Transcript::MINUS);
+			transcript.setGencodePrimaryTranscript(true);
+			BedFile exons;
+			exons.append(BedLine(Chromosome("chr22"), 10, 15));
+			exons.append(BedLine(Chromosome("chr22"), 30, 36));
+			transcript.setRegions(exons, plus ? 11 : 36, plus ? 36 : 11);
+			TranscriptList transcripts;
+			transcripts.append(transcript);
+			SharedData::setTranscripts(transcripts);
+			QImage actual(panel.size(), QImage::Format_ARGB32);
+			panel.render(&actual);
+			//AAA translates to K; its reverse complement TTT translates to F.
+			for (const QPair<int, int>& fragment : {qMakePair(11, 13), qMakePair(14, 15), qMakePair(31, 33), qMakePair(34, 36)})
+			{
+				const int width = (fragment.second - fragment.first + 1) * 6;
+				QImage expected(width, 12, QImage::Format_ARGB32);
+				const bool darker = plus ? (fragment.first == 14 || fragment.first == 34) : (fragment.first == 11 || fragment.first == 31);
+				expected.fill(darker ? QColor("#0C0C78") : QColor("#5C5CA4"));
+				QPainter painter(&expected);
+				painter.setFont(font);
+				painter.setRenderHint(QPainter::Antialiasing, true);
+				painter.setPen(Qt::white);
+				painter.drawText(QRectF(1, 0, width - 2, 12), Qt::AlignCenter, plus ? "K" : "F");
+				painter.end();
+				QCOMPARE(actual.copy(x0 + (fragment.first - 1) * 6 + 1, y + 1, width - 2, 10), expected.copy(1, 1, width - 2, 10));
+			}
+			//The one-base fragment at position 30 is too narrow for either letter.
+			for (int x = x0 + 29 * 6 + 1; x < x0 + 30 * 6 - 1; ++x)
+			{
+				for (int row = y + 1; row < y + 11; ++row) QCOMPARE(actual.pixelColor(x, row).rgba(), (plus ? QColor("#0C0C78") : QColor("#5C5CA4")).rgba());
+			}
+		}
+		panel.resize(SharedData::settings().label_width + 4 + 160, 100); //Even full codons are too narrow.
+		QImage zoomed_out(panel.size(), QImage::Format_ARGB32);
+		panel.render(&zoomed_out);
+		for (int x = x0 + 10 * 2 + 1; x < x0 + 15 * 2 - 1; ++x)
+		{
+			for (int row = y + 1; row < y + 11; ++row) QCOMPARE(zoomed_out.pixelColor(x, row), QColor("#0000B2"));
+		}
+		SharedData::setRegion(Chromosome("chr23"), 1, 80);
+		panel.resize(SharedData::settings().label_width + 4 + 480, 100);
+		Transcript transcript;
+		transcript.setName("ENSTstartstop");
+		transcript.setGene("STARTSTOP");
+		transcript.setSource(Transcript::ENSEMBL);
+		transcript.setStrand(Transcript::PLUS);
+		transcript.setGencodePrimaryTranscript(true);
+		BedFile exon;
+		exon.append(BedLine(Chromosome("chr23"), 1, 9));
+		transcript.setRegions(exon, 1, 9);
+		TranscriptList transcripts;
+		transcripts.append(transcript);
+		SharedData::setTranscripts(transcripts);
+		QImage colors(panel.size(), QImage::Format_ARGB32);
+		panel.render(&colors);
+		QCOMPARE(colors.pixelColor(x0 + 1, y + 1), QColor(0, 255, 0));
+		QCOMPARE(colors.pixelColor(x0 + 19, y + 1).rgba(), QColor("#0C0C78").rgba());
+		QCOMPARE(colors.pixelColor(x0 + 37, y + 1), QColor(255, 0, 0));
 	}
 
 	void genePanelScrollsToAllTranscripts()
