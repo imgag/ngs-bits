@@ -3,6 +3,7 @@
 #include "Helper.h"
 #include "VersatileFile.h"
 #include "RefGenomeService.h"
+
 #include <limits>
 #include <new>
 #include <htslib/hts_log.h>
@@ -627,6 +628,24 @@ GenomeBuild BamReader::build() const
 	THROW(Exception, "Could not determine genome build of BAM file '" + bam_file_ + "'!");
 }
 
+bool BamReader::checkIfPairedEnd(int use_reads)
+{
+	int done = 0;
+	clearIterator();
+	BamAlignment al;
+	while (getNextAlignment(al))
+	{
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment() || al.isUnmapped()) continue;
+
+		if (al.isPaired()) return true;
+
+		++done;
+		if (done>=use_reads) break;
+	}
+
+	return false;
+}
+
 BamInfo BamReader::info()
 {
 	//we don't need bases and qualities for this method - they are re-enabled at the end
@@ -660,22 +679,8 @@ BamInfo BamReader::info()
 	}
 	catch (...) {}
 
-    //paired end
-	double n_all = 0;
-	double n_paired = 0;
-    clearIterator();
-    BamAlignment al;
-	while (getNextAlignment(al))
-	{
-		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment() || al.isDuplicate() || al.isUnmapped()) continue;
-        if (al.mappingQuality()<20) continue;
-
-		if (al.isPaired()) n_paired += 1.0;
-
-		n_all += 1.0;
-		if (n_all >= 100.0) break;
-	}
-	output.paired_end = n_paired/n_all > 0.1;
+	//paired end
+	output.paired_end = checkIfPairedEnd(100);
 
     //mapper
     QByteArrayList headers = headerLines();
@@ -738,11 +743,12 @@ BamInfo BamReader::info()
     }
 
     //false duplications masked (checks a masked region. Nothing is mapped there if mased. Works for WES/panel as well because of off-target reads).
-    if (output.build=="hg38")
+	if (output.build=="hg38")
 	{
 		try
 		{
 			setRegion("chr21", 5968000, 6160000);
+			BamAlignment al;
 			while(getNextAlignment(al))
 			{
 				output.false_duplications_masked = false;

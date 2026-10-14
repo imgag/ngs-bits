@@ -403,26 +403,20 @@ QColor BamAlignmentTrack::strandColor(bool is_reversed)
 QColor BamAlignmentTrack::insertSizeColor(const BamAlignmentWrapper& al_w)
 {
 	Chromosome mate_chr = al_w.mate_chr;
+	// Missing mates are unexpected in paired-end files, but normal for long reads.
+	if (!al_w.isPaired() || !mate_chr.isValid()) return track_data_->isPairedEnd() ? QColor(0, 0, 0) : QColor(202, 202, 202, 150);
+	if (!al_w.isMateMapped()) return QColor(202, 202, 202, 150);
+
 	const BedLine& region = SharedData::region();
-	if (mate_chr.isValid() && mate_chr == region.chr())
+	if (mate_chr == region.chr())
 	{
-		if (al_w.isMateMapped())
-		{
-			InsertSizeStats i_stats = track_data_->getInsertSizeStats();
-			int i_size = std::abs(al_w.insertSize());
-			if (i_size > i_stats.insert_size_max) return QColor(200, 0, 0);
-			if (i_size < i_stats.insert_size_min) return QColor(0, 0, 150);
-		}
+		InsertSizeStats i_stats = track_data_->getInsertSizeStats();
+		int i_size = std::abs(al_w.insertSize());
+		if (i_size > i_stats.insert_size_max) return QColor(200, 0, 0);
+		if (i_size < i_stats.insert_size_min) return QColor(0, 0, 150);
 		return QColor(202, 202, 202, 150); //gray
 	}
-	else if (mate_chr.isValid())
-	{
-		return ChromosomeColors::get(mate_chr.str());
-	}
-	else
-	{
-		return QColor(0, 0, 0); // faulty
-	}
+	return ChromosomeColors::get(mate_chr.str());
 }
 
 QColor BamAlignmentTrack::getAlignmentColor(const BamAlignmentWrapper& al_w, const QByteArray& coloring_scheme)

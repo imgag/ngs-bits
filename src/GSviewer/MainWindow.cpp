@@ -52,11 +52,11 @@ void MainWindow::delayedInitialization()
 		timer.start();
 		{
 			QString gff_file = Settings::string("ensembl_gff");
-			QProgressDialog loading_dialog("loading gene/transcript Gff file: "+gff_file, QString(), 0, 0, this);
-			loading_dialog.setWindowModality(Qt::ApplicationModal);
-			loading_dialog.setCancelButton(nullptr);
-			loading_dialog.setMinimumDuration(0);
-			loading_dialog.show();
+			QProgressDialog progress_dialog("loading gene/transcript Gff file: "+gff_file, QString(), 0, 0, this);
+			progress_dialog.setWindowModality(Qt::ApplicationModal);
+			progress_dialog.setCancelButton(nullptr);
+			progress_dialog.setMinimumDuration(0);
+			progress_dialog.show();
 			QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
 			GffSettings settings;
@@ -77,25 +77,50 @@ void MainWindow::addNRegions()
 {
 	try
 	{
-		QProgressDialog progress("Finding N regions in the reference genome...", "Cancel", 0, 1, this);
-		progress.setWindowModality(Qt::ApplicationModal);
-		progress.setMinimumDuration(0);
-		progress.setAutoClose(false);
-		progress.setAutoReset(false);
-		auto regions = QSharedPointer<BedFile>::create(FileLoader::referenceNRegions(SharedData::genome(), [&](int completed, int total)
+		//show progress dialog
+		QProgressDialog progress_dialog("Finding N regions in the reference genome...", "Cancel", 0, 27, this);
+		progress_dialog.setWindowModality(Qt::ApplicationModal);
+		progress_dialog.setCancelButton(nullptr);
+		progress_dialog.setMinimumDuration(0);
+		progress_dialog.show();
+
+		//determine N regions
+		QSharedPointer<BedFile> regions(new BedFile());
+		int chr_num = 0;
+		for (const Chromosome& chr : SharedData::genome().chromosomes())
 		{
-			progress.setMaximum(total);
-			progress.setValue(completed);
-			QApplication::processEvents();
-			return !progress.wasCanceled();
-		}));
-		if (progress.wasCanceled()) return;
+			++chr_num;
+			progress_dialog.setValue(chr_num);
+
+			const int length = SharedData::genome().lengthOf(chr);
+			int n_start = 0;
+			for (int start = 1; start <= length; start += 1024 * 1024)
+			{
+				const Sequence sequence = SharedData::genome().seq(chr, start, std::min(1024 * 1024, length - start + 1), false);
+				for (int i = 0; i < sequence.size(); ++i)
+				{
+					if (sequence[i] == 'N' || sequence[i] == 'n')
+					{
+						if (n_start == 0) n_start = start + i;
+					}
+					else if (n_start > 0)
+					{
+						regions->append(BedLine(chr, n_start, start + i - 1));
+						n_start = 0;
+					}
+				}
+			}
+			if (n_start > 0) regions->append(BedLine(chr, n_start, length));
+		}
+		regions->sort();
+
+		//store BED
 		const QString folder = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/generated_tracks";
 		if (!QDir().mkpath(folder)) THROW(FileAccessException, "Could not create directory: " + folder);
 		const QByteArray reference = QFileInfo(Settings::string("reference_genome")).absoluteFilePath().toUtf8();
-		const QString hash = QString::fromLatin1(QCryptographicHash::hash(reference, QCryptographicHash::Sha256).toHex().left(16));
-		const QString file_path = folder + "/N_regions_" + hash + ".bed";
+		const QString file_path = folder + "/N_regions.bed";
 		regions->store(file_path);
+
 		ui_.gvw->addBedTrack(regions, file_path, "N regions");
 	}
 	catch (const Exception& e)

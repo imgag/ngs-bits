@@ -372,6 +372,8 @@ class CPPNGSSHARED_EXPORT BamReader
 		QByteArrayList headerLines() const;
 		//Returns the genome build based on the length of the chr1 (works for human only). Throws an exception if it could not be determined.
 		GenomeBuild build() const;
+		//Checks if BAM is paired-end by checking the first n reads.
+		bool checkIfPairedEnd(int use_reads=200);
 		//Returns general information about a BAM file. Note: it changes the region, thus use before setting a region or re-set region afterwards
 		BamInfo info();
 

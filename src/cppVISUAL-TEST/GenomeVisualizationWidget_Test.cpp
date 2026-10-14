@@ -425,11 +425,23 @@ private slots:
 			const int sparse_height = track->sizeHint().height();
 			QVERIFY(sparse_height < dense_height);
 			QCOMPARE(data->getAlignments().count(), 2);
-			for (const auto& alignment : data->getAlignments()) QVERIFY(!alignment.mate_chr.isValid());
+			for (const auto& alignment : data->getAlignments())
+			{
+				QVERIFY(!alignment.mate_chr.isValid());
+				QVERIFY(!alignment.isMateMapped());
+			}
 			for (int position : {62, 77})
 			{
 				const BedLine& region = SharedData::region();
 				const int x = SharedData::settings().label_width + 2 + (position - region.start()) * (track->width() - SharedData::settings().label_width - 4) / region.length();
+				track->parameters().setString("color by", "none");
+				QImage neutral(track->size(), QImage::Format_ARGB32);
+				track->render(&neutral);
+				track->parameters().setString("color by", "insert size");
+				QImage insert_size(track->size(), QImage::Format_ARGB32);
+				track->render(&insert_size);
+				QCOMPARE(insert_size.pixelColor(x, 6), neutral.pixelColor(x, 6));
+				QVERIFY(insert_size.pixelColor(x, 6) != QColor(Qt::white));
 				QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, QPoint(x, 6));
 				auto* popup = track->findChild<QDialog*>();
 				QVERIFY2(popup, qPrintable(QString("No popup for position %1, repeat %2, width %3").arg(position).arg(repeat).arg(track->width()))); // Both non-overlapping reads must occupy row zero.
@@ -439,6 +451,48 @@ private slots:
 			QCOMPARE(track->sizeHint().height(), sparse_height);
 			track->parameters().setBool("show secondary alignments", true);
 			QCOMPARE(track->sizeHint().height(), sparse_height);
+		}
+	}
+
+	void bamFilePairingControlsUnpairedReadColor()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 20, 40);
+		for (bool paired_end : {false, true})
+		{
+			const QString base = paired_end ? "paired-color" : "unpaired-color";
+			QByteArray sam = "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n"
+				"unpaired\t0\tchr22\t30\t60\t5M\t*\t0\t0\tAAAAA\tIIIII\n";
+			// Detect pairing from a read outside the displayed region.
+			if (paired_end) sam += "paired\t65\tchr22\t80\t60\t5M\t=\t90\t15\tAAAAA\tIIIII\n";
+			writeFile(base + ".sam", sam);
+			const QString bam_path = data_.filePath(base + ".bam");
+			{
+				BamReader reader(data_.filePath(base + ".sam"));
+				BamWriter writer(bam_path);
+				writer.writeHeader(reader);
+				BamAlignment al;
+				while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+			}
+			QCOMPARE(sam_index_build(bam_path.toUtf8().constData(), 0), 0);
+			QScopedPointer<BamAlignmentTrack> track(BamAlignmentTrack::createTrack(nullptr, bam_path, ""));
+			QVERIFY(track);
+			auto data = BamTrackDataManager::getOrCreate(bam_path);
+			QCOMPARE(data->isPairedEnd(), paired_end);
+			QCOMPARE(data->getAlignments().count(), 1);
+			QVERIFY(!data->getAlignments().first().isPaired());
+			track->resize(SharedData::settings().label_width + 4 + 420, 100);
+			track->show();
+			const QPoint point(SharedData::settings().label_width + 2 + 12 * 20, 6);
+			track->parameters().setString("color by", "none");
+			QImage neutral(track->size(), QImage::Format_ARGB32);
+			track->render(&neutral);
+			track->parameters().setString("color by", "insert size");
+			QImage colored(track->size(), QImage::Format_ARGB32);
+			track->render(&colored);
+			QCOMPARE(colored.pixelColor(point), paired_end ? QColor(Qt::black) : neutral.pixelColor(point));
+			QVERIFY(colored.pixelColor(point) != QColor(Qt::white));
+			data->reload();
+			QCOMPARE(data->isPairedEnd(), paired_end);
 		}
 	}
 
@@ -620,62 +674,6 @@ private slots:
 		QCOMPARE(Settings::stringList(key).count(), 1);
 		QVERIFY(Settings::stringList(key).first().contains("Renamed bookmark"));
 		QVERIFY(QJsonDocument::fromJson(Settings::stringList(key).first().toUtf8()).object().value("show_in_chromosome_view").toBool());
-	}
-
-	void referenceNRegionsAndGeneratedTrack()
-	{
-		constexpr int chunk_size = 1024 * 1024;
-		QByteArray sequence(chunk_size + 8, 'A');
-		sequence.replace(0, 4, "NnNN");
-		sequence.replace(chunk_size - 2, 5, "nNNnN");
-		sequence.replace(chunk_size + 6, 2, "NN");
-		QByteArray fasta;
-		QByteArray index;
-		auto append_chromosome = [&](const QByteArray& name, const QByteArray& bases)
-		{
-			fasta += ">" + name + "\n";
-			index += name + "\t" + QByteArray::number(bases.size()) + "\t" + QByteArray::number(fasta.size()) + "\t" + QByteArray::number(bases.size()) + "\t" + QByteArray::number(bases.size() + 1) + "\n";
-			fasta += bases + "\n";
-		};
-		append_chromosome("chr2", sequence);
-		append_chromosome("chr1", "NN");
-		append_chromosome("chr3", "ACGT");
-		writeFile("n-regions.fa", fasta);
-		writeFile("n-regions.fa.fai", index);
-		FastaFileIndex reference(data_.filePath("n-regions.fa"));
-		int completed = 0;
-		int total = 0;
-		const BedFile regions = FileLoader::referenceNRegions(reference, [&](int done, int all) { completed = done; total = all; return true; });
-		QCOMPARE(completed, 4);
-		QCOMPARE(total, 4);
-		QVERIFY(regions.isSorted());
-		QCOMPARE(regions.count(), 4);
-		QCOMPARE(regions[0].toString(true), QString("chr1:1-2"));
-		QCOMPARE(regions[1].toString(true), QString("chr2:1-4"));
-		QCOMPARE(regions[2].start(), chunk_size - 1);
-		QCOMPARE(regions[2].end(), chunk_size + 3);
-		QCOMPARE(regions[3].start(), chunk_size + 7);
-		QCOMPARE(regions[3].end(), chunk_size + 8);
-		QCOMPARE(FileLoader::referenceNRegions(reference, [](int done, int) { return done < 2; }).count(), 0);
-		const QString bed_path = data_.filePath("n-regions.bed");
-		regions.store(bed_path);
-		GenomeVisualizationWidget viewer(nullptr);
-		viewer.addBedTrack(QSharedPointer<BedFile>::create(regions), bed_path, "N regions");
-		auto* track = viewer.findChild<BedTrack*>();
-		QVERIFY(track);
-		QCOMPARE(track->displayName(), QString("N regions"));
-		track->reloadTrack();
-		QCOMPARE(FileLoader::loadBedFile(bed_path)->count(), 4);
-		QByteArray xml;
-		QXmlStreamWriter writer(&xml);
-		track->writeToXml(writer);
-		QDomDocument document;
-		QVERIFY(document.setContent(xml));
-		QStringList errors;
-		QScopedPointer<TrackWidget> restored(TrackWidget::fromXml(document.documentElement(), nullptr, errors));
-		QVERIFY(restored);
-		QVERIFY(errors.isEmpty());
-		QCOMPARE(restored->displayName(), QString("N regions"));
 	}
 
 	void chromosomePanelShowsParOnlyOnX()

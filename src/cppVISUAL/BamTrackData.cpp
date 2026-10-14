@@ -314,12 +314,7 @@ void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Se
 				}
 				else
 				{
-					qWarning()
-					<< "Reference sequence too short for alignment"
-					<< alignment.name()
-					<< genome_pos
-					<< ref_start
-					<< ref_seq.length();
+					qWarning() << "Reference sequence too short for alignment" << alignment.name() << genome_pos << ref_start << ref_seq.length();
 				}
 				++genome_pos;
 				++read_pos;
