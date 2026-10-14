@@ -2,8 +2,39 @@
 #include "NGSHelper.h"
 #include <QPainter>
 #include <QMenu>
-#include <QToolTip>
+#include <QApplication>
+#include <QDialog>
+#include <QLabel>
+#include <QVBoxLayout>
 #include "SharedData.h"
+
+namespace
+{
+Sequence codingSequence(const Transcript& trans)
+{
+	Sequence sequence;
+	for (int i = 0; i < trans.codingRegions().count(); ++i)
+	{
+		const BedLine& exon = trans.codingRegions()[i];
+		sequence += SharedData::genome().seq(exon.chr(), exon.start(), exon.length());
+	}
+	if (trans.isMinusStrand()) sequence.reverseComplement();
+	return sequence;
+}
+
+//One-based position along spliced regions in transcript direction, or zero in an intron.
+int splicedPosition(const BedFile& regions, int genome_pos, bool plus)
+{
+	int offset = 0;
+	for (int j = 0; j < regions.count(); ++j)
+	{
+		const BedLine& exon = regions[plus ? j : regions.count() - 1 - j];
+		if (genome_pos >= exon.start() && genome_pos <= exon.end()) return offset + (plus ? genome_pos - exon.start() : exon.end() - genome_pos) + 1;
+		offset += exon.length();
+	}
+	return 0;
+}
+}
 
 GenePanel::GenePanel(QWidget *parent)
 	: QWidget(parent)
@@ -115,13 +146,7 @@ void GenePanel::updateCodingAminoAcids(TranscriptPosition& position)
 	if (!trans.isCoding() || 3 * pixels_per_base_ < amino_acid_width_ + 2) return;
 
 	//Concatenate CDS exons before translating, so split codons retain their frame.
-	Sequence coding_sequence;
-	for (int i = 0; i < trans.codingRegions().count(); ++i)
-	{
-		const BedLine& exon = trans.codingRegions()[i];
-		coding_sequence += SharedData::genome().seq(exon.chr(), exon.start(), exon.length());
-	}
-	if (trans.isMinusStrand()) coding_sequence.reverseComplement();
+	const Sequence coding_sequence = codingSequence(trans);
 	const BedLine& region = SharedData::region();
 	int prefix = 0;
 	for (int i = 0; i < trans.codingRegions().count(); ++i)
@@ -243,35 +268,81 @@ void GenePanel::mouseMoveEvent(QMouseEvent* event)
 	event->ignore();
 }
 
-bool GenePanel::event(QEvent* event)
+void GenePanel::mousePressEvent(QMouseEvent* event)
 {
-	if (event->type()==QEvent::ToolTip)
+	if (event->button() == Qt::LeftButton) mouse_press_pos_ = event->pos();
+	QWidget::mousePressEvent(event);
+}
+
+void GenePanel::mouseReleaseEvent(QMouseEvent* event)
+{
+	if (event->button() == Qt::LeftButton && (event->pos() - mouse_press_pos_).manhattanLength() < QApplication::startDragDistance() && pixels_per_base_ > 0)
 	{
-		QHelpEvent* helpEvent = static_cast<QHelpEvent*>(event);
-		QPoint pos = helpEvent->pos();
-		bool tooltip_shown = false;
-		foreach(const TranscriptPosition& trans_pos, trans_positions_)
+		const int x0 = SharedData::settings().label_width + 2;
+		if (event->pos().x() >= x0 && event->pos().x() < width() - 2)
 		{
-			if (trans_pos.rect.contains(pos))
+			for (const TranscriptPosition& position : trans_positions_)
 			{
-                QString text = "<nobr><b>"+trans_pos.trans.gene()+" ("+trans_pos.trans.name()+")</b></nobr>";
-                QString tags = trans_pos.trans.flags(false).join(", ").trimmed();
-                if (!tags.isEmpty()) text += "<br><nobr>Tags: "+tags+"</nobr>";
-                QToolTip::showText(helpEvent->globalPos(), text);
-				tooltip_shown = true;
+				if (!position.rect.contains(event->pos())) continue;
+				const int genome_pos = SharedData::region().start() + (int)((event->pos().x() - x0) / pixels_per_base_);
+				auto* popup = new QDialog(this, Qt::Popup);
+				popup->setAttribute(Qt::WA_DeleteOnClose);
+				auto* label = new QLabel(transcriptText(position.trans, genome_pos), popup);
+				label->setTextInteractionFlags(Qt::TextSelectableByMouse);
+				auto* layout = new QVBoxLayout(popup);
+				layout->setContentsMargins(4, 4, 4, 4);
+				layout->addWidget(label);
+				popup->move(event->globalPosition().toPoint());
+				popup->show();
 				break;
 			}
 		}
-		if (!tooltip_shown)
-		{
-			QToolTip::hideText();
-			event->ignore();
-		}
-
-		return true;
 	}
+	QWidget::mouseReleaseEvent(event);
+}
 
-	return QWidget::event(event);
+QString GenePanel::transcriptText(const Transcript& trans, int genome_pos) const
+{
+	const int transcript_pos = splicedPosition(trans.regions(), genome_pos, trans.isPlusStrand());
+	const int coding_pos = splicedPosition(trans.codingRegions(), genome_pos, trans.isPlusStrand());
+	QString cdna = "N/A (intron)";
+	QString aa_position = "N/A";
+	QString aa_one = "N/A";
+	QString aa_three = "N/A";
+	if (transcript_pos > 0)
+	{
+		if (!trans.isCoding()) cdna = "n." + QString::number(transcript_pos);
+		else if (coding_pos > 0) cdna = "c." + QString::number(coding_pos);
+		else
+		{
+			const int coding_start = splicedPosition(trans.regions(), trans.codingStart(), trans.isPlusStrand());
+			const int coding_end = splicedPosition(trans.regions(), trans.codingEnd(), trans.isPlusStrand());
+			cdna = transcript_pos < coding_start ? "c.-" + QString::number(coding_start - transcript_pos) : "c.*" + QString::number(transcript_pos - coding_end);
+		}
+	}
+	if (coding_pos > 0)
+	{
+		const int codon_index = (coding_pos - 1) / 3;
+		aa_position = QString::number(codon_index + 1);
+		const QByteArray triplet = codingSequence(trans).mid(codon_index * 3, 3);
+		if (triplet.size() == 3 && std::all_of(triplet.begin(), triplet.end(), [](char base) { return base == 'A' || base == 'C' || base == 'G' || base == 'T'; }))
+		{
+			const char aa = NGSHelper::translateCodon(triplet, trans.chr().isM());
+			aa_one = QString(QChar(aa));
+			aa_three = QString::fromUtf8(NGSHelper::threeLetterCode(aa));
+		}
+	}
+	QString text = "<b>Gene:</b> " + QString::fromUtf8(trans.gene()).toHtmlEscaped()
+		+ "<br><b>Transcript:</b> " + QString::fromUtf8(trans.name()).toHtmlEscaped();
+	const QString tags = trans.flags(false).join(", ");
+	if (!tags.isEmpty()) text += "<br><b>Tags:</b> " + tags.toHtmlEscaped();
+	QStringList details;
+	if (!cdna.startsWith("N/A")) details.append("<b>cDNA position:</b> " + cdna);
+	if (aa_position != "N/A") details.append("<b>AA position:</b> " + aa_position);
+	if (aa_one != "N/A") details.append("<b>AA (one-letter):</b> " + aa_one);
+	if (aa_three != "N/A") details.append("<b>AA (three-letter):</b> " + aa_three);
+	if (!details.isEmpty()) text += "<br><br>" + details.join("<br>");
+	return text;
 }
 
 QSize GenePanel::characterSize(QFont font)

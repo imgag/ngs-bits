@@ -32,6 +32,7 @@ private:
 	//with of a character
 	QSize char_size_;
 	int amino_acid_width_ = 0;
+	QPoint mouse_press_pos_;
 	struct AminoAcidPosition
 	{
 		QRectF rect;
@@ -55,7 +56,9 @@ private:
 	void updateTranscriptLayout();
 	void updateCodingAminoAcids(TranscriptPosition& position);
 	void mouseMoveEvent(QMouseEvent* event) override;
-	bool event(QEvent *event) override; //tooltip
+	void mousePressEvent(QMouseEvent* event) override;
+	void mouseReleaseEvent(QMouseEvent* event) override;
+	QString transcriptText(const Transcript& trans, int genome_pos) const;
 
 	//Returns the character size.
 	static QSize characterSize(QFont font);
