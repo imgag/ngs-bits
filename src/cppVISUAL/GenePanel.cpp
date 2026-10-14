@@ -295,21 +295,26 @@ void GenePanel::drawTranscript(QPainter& painter, const Transcript& trans, int y
 	double y_center = y+2+6;
 	painter.drawLine(QLineF(x_start+1.0, y_center, x_end-1.0, y_center));
 
-	//Repeated strand chevrons on the intron line; exon boxes cover them below.
-	if (trans.isPlusStrand() || trans.isMinusStrand())
+	//Function to draw strand chevrons in the given visible interval.
+	auto draw_strand_arrows = [&](double start, double end, const QColor& arrow_color)
 	{
+		if ((!trans.isPlusStrand() && !trans.isMinusStrand()) || end - start < 4.0) return;
+		painter.setPen(arrow_color);
 		const double direction = trans.isPlusStrand() ? 1.0 : -1.0;
-		constexpr double arrow_spacing = 30.0;
+		constexpr double arrow_spacing = 45.0;
 		constexpr double arrow_width = 3.0;
 		constexpr double arrow_height = 2.5;
-		for (double x = x_start + arrow_spacing / 2; x + arrow_width / 2 < x_end; x += arrow_spacing)
+		for (double x = start + std::min(arrow_spacing / 2, (end - start) / 2); x + arrow_width / 2 < end; x += arrow_spacing)
 		{
 			const double tail_x = x - direction * arrow_width / 2;
 			const double tip_x = x + direction * arrow_width / 2;
 			painter.drawLine(QLineF(tail_x, y_center - arrow_height, tip_x, y_center));
 			painter.drawLine(QLineF(tail_x, y_center + arrow_height, tip_x, y_center));
 		}
-	}
+	};
+
+	//Exon boxes cover the intron chevrons below.
+	draw_strand_arrows(x_start, x_end, color);
 
 	//draw all exons (8px heigh)
 	painter.setPen(Qt::transparent);
@@ -333,6 +338,12 @@ void GenePanel::drawTranscript(QPainter& painter, const Transcript& trans, int y
 		painter.drawRect(rect);
 	}
 
+	//Single-exon transcripts have no intron line on which to show the strand.
+	if (trans.regions().count() == 1)
+	{
+		const BedLine& exon = trans.regions()[0];
+		draw_strand_arrows(baseStartX(exon.start(), true), baseEndX(exon.end(), true), Qt::white);
+	}
 }
 
 int GenePanel::transcriptY(double x_start, double x_end, int y_content_start, int trans_height, const Transcript& trans)
