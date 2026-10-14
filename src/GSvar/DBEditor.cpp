@@ -781,7 +781,7 @@ void DBEditor::store()
 			try
 			{
 				LoginManager::checkRoleIn(QStringList{"admin"});
-				if (QMessageBox::question(this, "Project was changed", "You have changed the project for the current processed sample, but the folder is not empty. It will cauase access problems. Are you sure you want to save the changes?", QMessageBox::Yes|QMessageBox::No)==QMessageBox::No) return;
+				if (QMessageBox::question(this, "Project was changed", "You have changed the project for the current processed sample, it may cauase problems with the access. Are you sure you want to save the changes?", QMessageBox::Yes|QMessageBox::No)==QMessageBox::No) return;
 			}
 			catch (Exception& e)
 			{
