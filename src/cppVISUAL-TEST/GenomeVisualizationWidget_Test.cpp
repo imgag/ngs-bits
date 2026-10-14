@@ -358,6 +358,60 @@ private slots:
 		checkRead(7, 35, "conflict");
 	}
 
+	void bamMateChromosomeGroupingAndHitTesting()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		writeFile("mate-groups.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n@SQ\tSN:chr23\tLN:100\n"
+			"different\t65\tchr22\t10\t60\t10M\tchr23\t10\t0\tAAAAAAAAAA\tIIIIIIIIII\n"
+			"same\t65\tchr22\t10\t60\t10M\t=\t30\t30\tAAAAAAAAAA\tIIIIIIIIII\n"
+			"different-secondary\t321\tchr22\t10\t60\t10M\tchr23\t10\t0\tAAAAAAAAAA\tIIIIIIIIII\n"
+			"same\t129\tchr22\t30\t60\t10M\t=\t10\t-30\tAAAAAAAAAA\tIIIIIIIIII\n"
+			"unpaired\t0\tchr22\t50\t60\t10M\t*\t0\t0\tAAAAAAAAAA\tIIIIIIIIII\n");
+		const QString bam_path = data_.filePath("mate-groups.bam");
+		{
+			BamReader reader(data_.filePath("mate-groups.sam"));
+			BamWriter writer(bam_path);
+			writer.writeHeader(reader);
+			BamAlignment al;
+			while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+		}
+		QCOMPARE(sam_index_build(bam_path.toUtf8().constData(), 0), 0);
+		QScopedPointer<BamAlignmentTrack> track(BamAlignmentTrack::createTrack(nullptr, bam_path, ""));
+		QVERIFY(track);
+		track->parameters().setString("color by", "none");
+		track->parameters().setString("group by", "mate chromosome");
+		track->resize(SharedData::settings().label_width + 4 + 320, 200);
+		track->show();
+		const int x0 = SharedData::settings().label_width + 2;
+		for (bool pairs : {false, true})
+		{
+			track->parameters().setBool("view as pairs", pairs);
+			for (bool secondary : {true, false})
+			{
+				track->parameters().setBool("show secondary alignments", secondary);
+				QImage image(track->size(), QImage::Format_ARGB32);
+				track->render(&image);
+				QCOMPARE(image.pixelColor(x0 + 58, 2 * 14 + 6) != QColor(Qt::white), secondary);
+				const int same_row = secondary ? 5 : 4;
+				for (int row : {1, same_row})
+				{
+					const QPoint point(x0 + 58, row * 14 + 6);
+					QVERIFY(image.pixelColor(point) != QColor(Qt::white));
+					QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, point);
+					auto* popup = track->findChild<QDialog*>();
+					QVERIFY(popup);
+					QVERIFY(popup->findChild<QLabel*>()->text().contains(row == 1 ? "<b>different</b>" : "<b>same</b>"));
+					delete popup;
+				}
+				QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 218, same_row * 14 + 6));
+				auto* popup = track->findChild<QDialog*>();
+				QVERIFY(popup);
+				QVERIFY(popup->findChild<QLabel*>()->text().contains("<b>unpaired</b>"));
+				delete popup;
+			}
+		}
+	}
+
 	void bamSecondaryAlignmentVisibility()
 	{
 		SharedData::setRegion(Chromosome("chr22"), 1, 80);

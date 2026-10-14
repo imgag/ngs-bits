@@ -71,14 +71,14 @@ private:
 	void calculateRowsNormalMode(const DisplaySettings& options);
 	// assigns rows to pairs for pair mode
 	void calculateRowsPairMode();
-	// Packs haplotypes 1, 2, and unassigned into separate groups.
-	void calculateRowsByPhase(const DisplaySettings& options);
+	// Packs reads into groups according to the selected grouping mode.
+	void calculateGroupedRows(const DisplaySettings& options);
 	// iterates through the alignments and stores pairs as ReadPair in read_pairs_
 	void makePairs(const DisplaySettings& options);
 
 	void drawNormalMode(QPainter& painter, const DisplaySettings& options);
 	void drawPairMode(QPainter& painter, const BedLine& region, const DisplaySettings& options);
-	void drawPhaseGroups(QPainter& painter);
+	void drawGroups(QPainter& painter);
 
 	void drawAlignmentAndMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y, const DisplaySettings& options);
 
@@ -127,12 +127,12 @@ private:
 
 	RowPacker row_packer_;
 	QVector<ReadPair> read_pairs_; // vector of pairs
-	struct PhaseGroup
+	struct ReadGroup
 	{
-		int phase;
+		QString label;
 		int first_row;
 	};
-	QVector<PhaseGroup> phase_groups_;
+	QVector<ReadGroup> read_groups_;
 
 	int num_rows_ = 1;
 	QPoint mouse_press_pos_;

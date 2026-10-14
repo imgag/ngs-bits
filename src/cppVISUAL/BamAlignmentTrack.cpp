@@ -48,7 +48,7 @@ QList<Parameter> BamAlignmentTrack::getParameters() const
 		Parameter("show all bases", "Display all bases, not only ones that are different from the reference base.", ParameterType::BOOL, {}),
 		Parameter("show soft-clipped bases", "Display soft-clipped bases.", ParameterType::BOOL, {}),
 		Parameter("show secondary alignments", "Display secondary alignments.", ParameterType::BOOL, {}),
-		Parameter("group by", "Group reads by haplotype (1, 2, unassigned).", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("none\tphase")}}),
+		Parameter("group by", "Group reads by haplotype or mate chromosome.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("none\tphase\tmate chromosome")}}),
 		Parameter("color by", "Alignment coloring scheme.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("none\tinsert size\tread strand")}}),
 		Parameter("visibility range", "Maximum genomic region for which content is displayed (in bases).", ParameterType::INT, {{ConstraintType::MIN, 1}})
 	};
@@ -124,10 +124,10 @@ BamAlignmentTrack::DisplaySettings BamAlignmentTrack::displaySettings() const
 
 void BamAlignmentTrack::calculateRows(const DisplaySettings& options)
 {
-	phase_groups_.clear();
-	if (options.group_by == "phase")
+	read_groups_.clear();
+	if (options.group_by != "none")
 	{
-		calculateRowsByPhase(options);
+		calculateGroupedRows(options);
 		return;
 	}
 	const bool view_as_pairs = options.view_as_pairs;
@@ -240,7 +240,7 @@ void BamAlignmentTrack::calculateRowsPairMode()
 	num_rows_ = std::max(1, row_packer_.rowCount());
 }
 
-void BamAlignmentTrack::calculateRowsByPhase(const DisplaySettings& options)
+void BamAlignmentTrack::calculateGroupedRows(const DisplaySettings& options)
 {
 	const auto& alns = track_data_->getAlignments();
 	const bool pairs = options.view_as_pairs;
@@ -249,7 +249,15 @@ void BamAlignmentTrack::calculateRowsByPhase(const DisplaySettings& options)
 	pair_row_idxes_.clear();
 	row_stored_with_pair_.clear();
 
-	for (int phase : {1, 2, 0})
+	const bool by_phase = options.group_by == "phase";
+	const QStringList labels = by_phase ? QStringList{"phase 1", "phase 2", "unphased"} : QStringList{"differing", "same"};
+	const Chromosome& chromosome = SharedData::region().chr();
+	const auto differing_mate = [&chromosome](const BamAlignmentWrapper& alignment)
+	{
+		// Reads without a mate chromosome stay in the default (same) group.
+		return alignment.mate_chr.isValid() && alignment.mate_chr != chromosome;
+	};
+	for (int group_index = 0; group_index < labels.count(); ++group_index)
 	{
 		RowPacker group;
 		// Reserve a label row, plus a separator row between non-empty groups.
@@ -259,15 +267,26 @@ void BamAlignmentTrack::calculateRowsByPhase(const DisplaySettings& options)
 		{
 			const auto& al = alns[pairs ? read_pairs_[i].first : i];
 			if (!isAlignmentVisible(al, options.show_secondary_alignments)) continue;
-			int read_phase = al.phase();
-			if (pairs && read_pairs_[i].second != -1)
+			int read_group;
+			if (by_phase)
 			{
-				const int mate_phase = alns[read_pairs_[i].second].phase();
-				// Use the assigned mate when the other is unassigned; conflicting mates are unassigned.
-				if (read_phase == 0) read_phase = mate_phase;
-				else if (mate_phase != 0 && mate_phase != read_phase) read_phase = 0;
+				int read_phase = al.phase();
+				if (pairs && read_pairs_[i].second != -1)
+				{
+					const int mate_phase = alns[read_pairs_[i].second].phase();
+					// Use the assigned mate when the other is unassigned; conflicting mates are unassigned.
+					if (read_phase == 0) read_phase = mate_phase;
+					else if (mate_phase != 0 && mate_phase != read_phase) read_phase = 0;
+				}
+				read_group = read_phase == 1 ? 0 : read_phase == 2 ? 1 : 2;
 			}
-			if (read_phase != phase) continue;
+			else
+			{
+				bool differing = differing_mate(al);
+				if (pairs && read_pairs_[i].second != -1) differing |= differing_mate(alns[read_pairs_[i].second]);
+				read_group = differing ? 0 : 1;
+			}
+			if (read_group != group_index) continue;
 			const int start = pairs ? read_pairs_[i].start : getAlignmentStart(al, options.show_soft_clip_bases);
 			const int end = pairs ? read_pairs_[i].end : getAlignmentEnd(al, options.show_soft_clip_bases);
 			const int row = offset + group.insert(start, end, i);
@@ -279,7 +298,7 @@ void BamAlignmentTrack::calculateRowsByPhase(const DisplaySettings& options)
 			}
 			else row_idxes_[al.id] = row;
 		}
-		if (group.rowCount() > 0) phase_groups_.append({phase, offset});
+		if (group.rowCount() > 0) read_groups_.append({labels[group_index], offset});
 	}
 	num_rows_ = std::max(1, row_packer_.rowCount());
 }
@@ -313,11 +332,11 @@ void BamAlignmentTrack::paintEvent(QPaintEvent*)
 	{
 		if (options.view_as_pairs) drawPairMode(painter, region, options);
 		else drawNormalMode(painter, options);
-		if (options.group_by == "phase") drawPhaseGroups(painter);
+		if (options.group_by != "none") drawGroups(painter);
 	}
 }
 
-void BamAlignmentTrack::drawPhaseGroups(QPainter& painter)
+void BamAlignmentTrack::drawGroups(QPainter& painter)
 {
 	painter.save();
 	const Viewport viewport = getViewport();
@@ -328,9 +347,9 @@ void BamAlignmentTrack::drawPhaseGroups(QPainter& painter)
 	painter.setFont(label_font);
 	const QFontMetrics metrics(label_font);
 	const QPen separator(Qt::gray, 1, Qt::DashLine);
-	for (int i = 0; i < phase_groups_.count(); ++i)
+	for (int i = 0; i < read_groups_.count(); ++i)
 	{
-		const PhaseGroup& group = phase_groups_[i];
+		const ReadGroup& group = read_groups_[i];
 		const int y = (group.first_row - 1) * (ROW_HEIGHT + ROW_PADDING);
 		if (i > 0)
 		{
@@ -338,7 +357,7 @@ void BamAlignmentTrack::drawPhaseGroups(QPainter& painter)
 			painter.drawLine(QPointF(plot.left(), y - (ROW_HEIGHT + ROW_PADDING) / 2),
 				QPointF(plot.right(), y - (ROW_HEIGHT + ROW_PADDING) / 2));
 		}
-		const QString label = group.phase == 0 ? "unphased" : QString("phase %1").arg(group.phase);
+		const QString& label = group.label;
 		const QRectF box(plot.left(), y, metrics.horizontalAdvance(label) + 8, ROW_HEIGHT + ROW_PADDING - 1);
 		painter.setPen(Qt::gray);
 		painter.setBrush(Qt::white);
