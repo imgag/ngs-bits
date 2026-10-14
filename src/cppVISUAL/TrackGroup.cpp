@@ -134,14 +134,12 @@ void TrackGroup::contextMenu(QPoint pos)
 {
 	QMenu menu(this);
 
-	//add track sub-menu (if not empty TrackGroup)
+	//Track-specific element submenus precede the shared Track submenu.
 	TrackWidget* track = getTrackUnderMouse(pos);
 	if (track)
 	{
 		emit trackSelected(track);
-		QMenu* track_menu = new QMenu("Track", this);
-		track->populateContextMenu(*track_menu, track->mapFrom(viewport(), pos));
-		menu.addMenu(track_menu);
+		track->populateContextMenu(menu, track->mapFrom(viewport(), pos));
 	}
 
 	//add TrackGroup sub-menu

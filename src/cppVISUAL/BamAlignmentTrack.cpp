@@ -762,13 +762,14 @@ void BamAlignmentTrack::makePairs(const DisplaySettings& options)
 	}
 }
 
-void BamAlignmentTrack::addAlignmentOptionsToCtxtMenu(QMenu& menu, const QPoint& local_pos)
+void BamAlignmentTrack::addAlignmentOptionsToCtxtMenu(QMenu& context_menu, const QPoint& local_pos)
 {
 	const bool view_as_pairs = settings_.getBool("view as pairs");
 	int aln_idx = getAlnIndexFromLocalPos(local_pos);
 	// add go_to_mate action, select/deselect action
 	if (aln_idx != -1)
 	{
+		QMenu& menu = *context_menu.addMenu("Read");
 		QAction* go_to_mate_action = menu.addAction("Go to mate");
 		const auto& alns = track_data_->getAlignments();
 

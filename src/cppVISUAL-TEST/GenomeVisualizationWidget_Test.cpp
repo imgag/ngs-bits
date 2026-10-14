@@ -666,6 +666,27 @@ private slots:
 			track->render(&colored);
 			QCOMPARE(colored.pixelColor(point), paired_end ? QColor(Qt::black) : neutral.pixelColor(point));
 			QVERIFY(colored.pixelColor(point) != QColor(Qt::white));
+			TrackWidget* widget = track.get();
+			QMenu menu;
+			widget->populateContextMenu(menu, point);
+			QCOMPARE(menu.actions().count(), 2);
+			QCOMPARE(menu.actions()[0]->text(), QString("Read"));
+			QCOMPARE(menu.actions()[1]->text(), QString("Track"));
+			QMenu* read_menu = menu.actions()[0]->menu();
+			QVERIFY(read_menu);
+			QCOMPARE(read_menu->actions()[0]->text(), QString("Go to mate"));
+			QVERIFY(!read_menu->actions()[0]->isEnabled()); // Unpaired read.
+			QCOMPARE(read_menu->actions()[1]->text(), QString("Select"));
+			read_menu->actions()[1]->trigger();
+			QMenu selected_menu;
+			widget->populateContextMenu(selected_menu, point);
+			QMenu* selected_read_menu = selected_menu.actions()[0]->menu();
+			QCOMPARE(selected_read_menu->actions()[1]->text(), QString("Deselect"));
+			selected_read_menu->actions()[1]->trigger();
+			QMenu blank_menu;
+			widget->populateContextMenu(blank_menu, QPoint(2, 2));
+			QCOMPARE(blank_menu.actions().count(), 1);
+			QCOMPARE(blank_menu.actions()[0]->text(), QString("Track"));
 			data->reload();
 			QCOMPARE(data->isPairedEnd(), paired_end);
 		}
@@ -1229,9 +1250,12 @@ private slots:
 		second->parameters().setString("color", "red");
 		QMenu menu;
 		first->populateContextMenu(menu, QPoint(2, 2));
-		QCOMPARE(menu.actions().first()->text(), QString("Open settings"));
-		QVERIFY(menu.actions()[1]->isSeparator());
-		menu.actions().first()->trigger();
+		QCOMPARE(menu.actions().first()->text(), QString("Track"));
+		QMenu* track_menu = menu.actions().first()->menu();
+		QVERIFY(track_menu);
+		QCOMPARE(track_menu->actions().first()->text(), QString("Open settings"));
+		QVERIFY(track_menu->actions()[1]->isSeparator());
+		track_menu->actions().first()->trigger();
 		QVERIFY(!dock->isHidden());
 		QCOMPARE(dock->windowTitle(), QString("Track settings"));
 		auto* editor = dock->findChild<ParameterEditor*>();
@@ -1252,7 +1276,7 @@ private slots:
 		QCOMPARE(first->parameters().getString("color"), QByteArray("green"));
 		dock->close();
 		QVERIFY(dock->isHidden());
-		menu.actions().first()->trigger();
+		track_menu->actions().first()->trigger();
 		QVERIFY(!dock->isHidden());
 		viewer.findChild<QToolButton*>("settings_btn")->click();
 		QVERIFY(dock->isHidden());

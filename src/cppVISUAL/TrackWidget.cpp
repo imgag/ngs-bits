@@ -44,18 +44,15 @@ void TrackWidget::regionChanged()
 	update();
 }
 
-void TrackWidget::populateContextMenu(QMenu& menu, const QPoint&)
+void TrackWidget::populateContextMenu(QMenu& context_menu, const QPoint&)
 {
-	QAction* first_action = menu.actions().isEmpty() ? nullptr : menu.actions().first();
-	auto* settings = new QAction("Open settings", &menu);
+	QMenu& menu = *context_menu.addMenu("Track");
+	QAction* settings = menu.addAction("Open settings");
 	connect(settings, &QAction::triggered, this, [this]() { emit settingsRequested(this); });
-	menu.insertAction(first_action, settings);
-	menu.insertSeparator(first_action);
-	auto* reload = new QAction("Reload Track", &menu);
+	menu.addSeparator();
+	QAction* reload = menu.addAction("Reload Track");
 	connect(reload, &QAction::triggered, this, &TrackWidget::reloadTrack);
-	menu.insertAction(first_action, reload);
-	menu.insertSeparator(first_action);
-	if (first_action) menu.addSeparator();
+	menu.addSeparator();
 
 	QAction* remove = menu.addAction("Remove Track");
 	connect(remove, &QAction::triggered, this, &TrackWidget::trackDeleted);

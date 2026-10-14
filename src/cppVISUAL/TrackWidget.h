@@ -36,7 +36,7 @@ public:
 
 	//re-loads a the track from file/URL
 	virtual void reloadTrack() = 0;
-	//adds general track context menu entries
+	//Adds the Track submenu to the root context menu. Derived classes add element submenus first.
 	virtual void populateContextMenu(QMenu&, const QPoint&);
 
 	//writes properties in XML
