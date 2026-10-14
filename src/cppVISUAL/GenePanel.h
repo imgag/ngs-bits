@@ -41,6 +41,9 @@ private:
 	QList<TranscriptPosition> trans_positions_;
 
 	void paintEvent(QPaintEvent* event) override;
+	void resizeEvent(QResizeEvent* event) override;
+	void changeEvent(QEvent* event) override;
+	void updateTranscriptLayout();
 	void mouseMoveEvent(QMouseEvent* event) override;
 	bool event(QEvent *event) override; //tooltip
 
@@ -51,7 +54,7 @@ private:
 	//Returns the colos to draw the given amino acid.
 	static QColor aaColor(int start_index, QChar aa);
 	//Draws a transcript at the topmost free position
-	void drawTranscript(QPainter& painter, const Transcript& trans, int y_content_start, QColor color);
+	void drawTranscript(QPainter& painter, const TranscriptPosition& position, QColor color);
 	//Calculates the y position where there is space for the transcript with the given start/end x coordinate
 	int transcriptY(double x_start, double x_end, int y_content_start, int trans_height, const Transcript& trans);
 	//Returns the start x coordinate of the given chromosomal coordinate.

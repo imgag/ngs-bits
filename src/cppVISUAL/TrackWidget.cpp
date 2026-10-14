@@ -159,12 +159,15 @@ void TrackWidget::drawLabel(QPainter& painter)
 {
 
 	int label_width = SharedData::settings().label_width;
+	painter.save();
+	painter.setPen(Qt::black);
+	painter.drawLine(QPoint(label_width, 0), QPoint(label_width, height()));
 
 	// draw text
 	QRectF text_rect(0, 0, label_width-2, height());
 
-	painter.setPen(Qt::black);
 	painter.drawText(text_rect, Qt::AlignLeft, display_name_);
+	painter.restore();
 }
 
 float Viewport::genomePosToScreen(int genome_pos) const

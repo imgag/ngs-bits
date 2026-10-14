@@ -6,6 +6,10 @@
 #include "ParameterEditor.h"
 #include "Settings.h"
 #include "SharedData.h"
+#include "GenePanel.h"
+#include <QScrollArea>
+#include <QScrollBar>
+#include <QHBoxLayout>
 #include "BedTrack.h"
 #include "FileLoader.h"
 #include "IgvTrack.h"
@@ -562,6 +566,59 @@ private slots:
 		QVERIFY(deleted);
 		QCOMPARE(Settings::stringList(key).count(), 1);
 		QVERIFY(Settings::stringList(key).first().contains("A second bookmark"));
+	}
+
+	void genePanelScrollsToAllTranscripts()
+	{
+		const TranscriptList original_transcripts = SharedData::transcripts();
+		const BedLine original_region = SharedData::region();
+		const auto restore = qScopeGuard([&]()
+		{
+			SharedData::setTranscripts(original_transcripts);
+			SharedData::setRegion(original_region.chr(), original_region.start(), original_region.end());
+		});
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		QScrollArea scroll;
+		scroll.setWidgetResizable(true);
+		scroll.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		auto* contents = new QWidget();
+		auto* layout = new QHBoxLayout(contents);
+		layout->setContentsMargins(0, 0, 0, 0);
+		auto* panel = new GenePanel(contents);
+		layout->addWidget(panel);
+		scroll.setWidget(contents);
+		scroll.resize(600, 90);
+		scroll.show();
+		TranscriptList transcripts;
+		for (int i = 0; i < 8; ++i)
+		{
+			Transcript trans;
+			trans.setName("ENST" + QByteArray::number(i));
+			trans.setGene("GENE" + QByteArray::number(i));
+			trans.setSource(Transcript::ENSEMBL);
+			trans.setStrand(Transcript::PLUS);
+			trans.setGencodePrimaryTranscript(true);
+			BedFile exons;
+			exons.append(BedLine(Chromosome("chr22"), 10, 20));
+			trans.setRegions(exons);
+			transcripts.append(trans);
+		}
+		SharedData::setTranscripts(transcripts);
+		QTRY_VERIFY(scroll.verticalScrollBar()->maximum() > 0);
+		QVERIFY(panel->minimumHeight() > scroll.viewport()->height());
+		scroll.verticalScrollBar()->setValue(scroll.verticalScrollBar()->maximum());
+		QCOMPARE(scroll.verticalScrollBar()->value(), scroll.verticalScrollBar()->maximum());
+		const int initial_height = panel->minimumHeight();
+		QFont larger = panel->font();
+		larger.setPointSize(18);
+		panel->setFont(larger);
+		QTRY_VERIFY(panel->minimumHeight() > initial_height);
+		SharedData::setRegion(Chromosome("chr22"), 50, 100);
+		QTRY_COMPARE(scroll.verticalScrollBar()->maximum(), 0);
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		QTRY_VERIFY(scroll.verticalScrollBar()->maximum() > 0);
+		SharedData::setTranscripts(TranscriptList());
+		QTRY_COMPARE(scroll.verticalScrollBar()->maximum(), 0);
 	}
 
 	void startupEmbeddedInMainWindow()

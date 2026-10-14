@@ -12,6 +12,9 @@ GenePanel::GenePanel(QWidget *parent)
 	setMouseTracking(true);
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenu(QPoint)));
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
+	connect(SharedData::instance(), &SharedData::transcriptsChanged, this, &GenePanel::updateRegion);
+	connect(SharedData::instance(), &SharedData::settingsChanged, this, &GenePanel::updateRegion);
+	updateTranscriptLayout();
 }
 
 void GenePanel::contextMenu(QPoint pos)
@@ -38,18 +41,65 @@ void GenePanel::contextMenu(QPoint pos)
 	else if (action==a_show_translation)
 	{
 		show_translation_ = !show_translation_;
-		update();
+		updateRegion();
 	}
 	else if (action==a_show_ensebl_only)
 	{
 		show_only_gencode_primary = !show_only_gencode_primary;
-		repaint();
+		updateRegion();
 	}
 }
 
 void GenePanel::updateRegion()
 {
+	updateTranscriptLayout();
 	update();
+}
+
+void GenePanel::resizeEvent(QResizeEvent* event)
+{
+	QWidget::resizeEvent(event);
+	updateTranscriptLayout();
+}
+
+void GenePanel::changeEvent(QEvent* event)
+{
+	QWidget::changeEvent(event);
+	if (event->type() == QEvent::FontChange) updateRegion();
+}
+
+void GenePanel::updateTranscriptLayout()
+{
+	const BedLine& region = SharedData::region();
+	char_size_ = characterSize(font());
+	pixels_per_base_ = (double)(width() - SharedData::settings().label_width - 4) / region.length();
+	int y_content_start = 4;
+	if (pixels_per_base_ >= 1 && region.chr() != "")
+	{
+		y_content_start += char_size_.height() * (show_translation_ ? 4 : 1);
+	}
+	const int trans_height = 2+12+2+char_size_.height()+2;
+	trans_positions_.clear();
+	QVector<int> indices = SharedData::transcriptsInRegion(region.chr(), region.start(), region.end());
+	QVector<int> rest;
+	auto place_transcript = [&](const Transcript& trans)
+	{
+		transcriptY(baseStartX(trans.start(), true), baseEndX(trans.end(), true), y_content_start, trans_height, trans);
+	};
+	for (int i : indices)
+	{
+		const Transcript& trans = SharedData::transcripts().at(i);
+		if (show_only_gencode_primary && !trans.isGencodePrimaryTranscript()) continue;
+		if (trans.isPreferredTranscript() || trans.isManePlusClinicalTranscript() || trans.isManeSelectTranscript() || trans.isEnsemblCanonicalTranscript()) place_transcript(trans);
+		else rest.append(i);
+	}
+	for (int i : rest) place_transcript(SharedData::transcripts().at(i));
+	int content_height = y_content_start;
+	for (const TranscriptPosition& position : trans_positions_)
+	{
+		content_height = std::max(content_height, (int)position.rect.bottom() + 2);
+	}
+	setMinimumHeight(content_height);
 }
 
 void GenePanel::paintEvent(QPaintEvent* /*event*/)
@@ -61,8 +111,6 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 	const BedLine& region = SharedData::region();
 	QPainter painter(this);
 	painter.setRenderHint(QPainter::Antialiasing, true);
-	char_size_ = characterSize(painter.font());
-	pixels_per_base_ = (double)(w-label_width-4) / (double)region.length();
 	int y_content_start = 2;
 
 	//backgroud
@@ -130,35 +178,12 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 		}
 	}
 
-	//init for painting transcripts
-	y_content_start += 2;
-	trans_positions_.clear();
-
-    //paint important transcripts on top
-	QVector<int> trans_indices = SharedData::transcriptsInRegion(region.chr(), region.start(), region.end());
-    QSet<int> rest;
-	foreach(int i, trans_indices)
+	//Paint the layout used to determine the scrollable content height.
+	for (const TranscriptPosition& position : trans_positions_)
 	{
-		const Transcript& trans = SharedData::transcripts().at(i);
-
-        //only GENCODE primary
-		if (show_only_gencode_primary && !trans.isGencodePrimaryTranscript()) continue;
-
-        if (trans.isPreferredTranscript() || trans.isManePlusClinicalTranscript() || trans.isManeSelectTranscript() || trans.isEnsemblCanonicalTranscript())
-        {
-            drawTranscript(painter, trans, y_content_start, QColor(130, 0, 50));
-        }
-        else
-        {
-            rest << i;
-        }
-	}
-
-    //paint other transcripts
-    foreach(int i, rest)
-	{
-		const Transcript& trans = SharedData::transcripts().at(i);
-		drawTranscript(painter, trans, y_content_start, QColor(0, 0, 178));
+		const Transcript& trans = position.trans;
+		const bool important = trans.isPreferredTranscript() || trans.isManePlusClinicalTranscript() || trans.isManeSelectTranscript() || trans.isEnsemblCanonicalTranscript();
+		drawTranscript(painter, position, important ? QColor(130, 0, 50) : QColor(0, 0, 178));
 	}
 }
 
@@ -272,15 +297,12 @@ double GenePanel::baseEndX(int pos, bool restrict_to_content_area) const
 	return x;
 }
 
-void GenePanel::drawTranscript(QPainter& painter, const Transcript& trans, int y_content_start, QColor color)
+void GenePanel::drawTranscript(QPainter& painter, const TranscriptPosition& position, QColor color)
 {
-	//determine x start/end
-	double x_start = baseStartX(trans.start(), true);
-	double x_end = baseEndX(trans.end(), true);
-
-	//determine where to paint in y-axis
-	int trans_height = 2+12+2+char_size_.height()+2; //margin, transcript, margin, label, margin
-	int y = transcriptY(x_start, x_end, y_content_start, trans_height, trans);
+	const Transcript& trans = position.trans;
+	const double x_start = position.rect.left();
+	const double x_end = position.rect.right();
+	const int y = position.rect.top();
 
 	//draw gene name (at the horizontal center of the visual part of the transcript, only if not larger than transcript itself)
 	painter.setPen(Qt::black);
