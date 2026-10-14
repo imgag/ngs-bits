@@ -228,7 +228,20 @@ int main(int argc, char **argv)
 						AuthType::USER_TOKEN,
 						"Temporary URL leading to a specific project file (based on the processed sample id)",
                         &ServerController::getProcessedSamplePath
-					});	
+					});
+
+	EndpointManager::appendEndpoint(Endpoint{
+						"processed_sample_files",
+						QMap<QString, ParamProps> {
+							{"ps_id", ParamProps{ParamProps::ParamCategory::GET_URL_PARAM, false, "Processed sample id"}},
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::GET,
+						ContentType::APPLICATION_JSON,
+						AuthType::USER_TOKEN,
+						"List of files inside a specific processed sample folder",
+						&ServerController::getProcessedSampleFiles
+					});
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"project_folder",

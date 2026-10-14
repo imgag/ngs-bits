@@ -637,6 +637,47 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
+HttpResponse ServerController::getProcessedSampleFiles(const HttpRequest &request)
+{
+	int id = request.getUrlParams()["ps_id"].toInt();
+
+	QString ps_name;
+	QString sample_folder_path;
+
+	try
+	{
+		ps_name = NGSD().processedSampleName(request.getUrlParams()["ps_id"]);
+		sample_folder_path = getProcessedSampleFile(id, PathType::SAMPLE_FOLDER, EndpointManager::getTokenIfAvailable(request));
+	}
+	catch (DatabaseException& e)
+	{
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
+	}
+	catch (HttpException& e)
+	{
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
+	}
+	catch (Exception& e)
+	{
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
+	}
+
+	QStringList folder_file_list = QDir(sample_folder_path).entryList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot, QDir::Name);
+
+	QJsonDocument json_doc_output;
+	QJsonArray file_list_as_json;
+	for (QString item: folder_file_list) file_list_as_json.append(item);
+	json_doc_output.setArray(file_list_as_json);
+
+	BasicResponseData response_data;
+	response_data.byte_ranges = QList<ByteRange>{};
+	response_data.length = json_doc_output.toJson().length();
+	response_data.content_type = request.getContentType();
+	response_data.is_downloadable = false;
+
+	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
 HttpResponse ServerController::checkProjectFolder(const HttpRequest &request)
 {
 	int id = request.getUrlParams()["id"].toInt();
