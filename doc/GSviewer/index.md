@@ -14,6 +14,7 @@ GSviewer displays sequencing alignments, coverage, genomic intervals, and numeri
 - [Inspecting reads and features](#inspecting-reads-and-features)
 - [Reference and gene panels](#reference-and-gene-panels)
 - [Sessions](#sessions)
+- [N regions](#n-regions)
 - [Troubleshooting](#troubleshooting)
 
 ## Setup through the INI file
@@ -49,7 +50,7 @@ Restart GSviewer after changing the reference or GFF configuration. At startup, 
 2. Choose **File > Load file** and select an indexed BAM or CRAM file.
 3. Enter a gene name such as `BRCA1`, a transcript identifier, or a region such as `chr1:998754-998774` in the search field, then press **Return**.
 4. Zoom in until reads and coverage are visible. By default, BAM/CRAM tracks display content for regions of at most 50,000 bases.
-5. Click a track and open **Track settings** to adjust its display.
+5. Right-click a track and choose **Track > Open settings** to adjust its display.
 6. Save your work with **Session > Store session**.
 
 ## Loading files and URLs
@@ -75,7 +76,7 @@ A **track** displays one kind of data. A **track group** holds several tracks in
 - Drag a track by its label on the left to reorder it or move it to another group.
 - Drag the horizontal divider between groups to change their heights. The reference/gene panel can also be resized this way.
 - Scroll within a group to reach tracks or reads outside its visible area.
-- Right-click a track and open the **Track** submenu to **Reload Track**, **Remove Track**, or **Rename Track...**.
+- Right-click a track and open the **Track** submenu to **Open settings**, **Reload Track**, **Remove Track**, or **Rename Track...**.
 - Right-click within a group and open **TrackGroup** to **Add track(s) from file**, **Add track(s) from URL**, **Clear TrackGroup**, or **Remove TrackGroup**.
 - Use **Add TrackGroup Above** or **Add TrackGroup Below** in that submenu to create an empty group.
 
@@ -115,15 +116,16 @@ The minimum displayed window is 41 bases. Navigation is limited to the reference
 
 Open the toolbar's **Region bookmarks** button to:
 
-1. Choose **Store current region** and enter a name to save the displayed interval.
+1. Choose **Store current region** and enter a name to save the displayed interval. The default name is `chr:start-end`, selected for replacement. Bookmarks appear in the order they were stored.
 2. Choose a stored bookmark to return to its interval.
-3. Choose **Manage**, check unwanted bookmarks, and click the delete button to remove them.
+3. Choose **Manage** to rename bookmarks through the table's right-click **Rename** action, or check unwanted names and click the delete button to remove them together and close the dialog.
+4. Check **Show in chromosome view** to mark a bookmark with a purple line below the chromosome bands. This option is off by default; hovering over a marker shows `Bookmark: <name>`.
 
-Bookmarks persist in user-specific settings across restarts. They store a name and coordinates, and are separate from session files. They do not store a genome assembly, so use them with the reference assembly for which they were created.
+Bookmarks persist in user-specific settings across restarts. They store a name, coordinates, and the **Show in chromosome view** option, and are separate from session files. Renaming and marker changes are saved immediately. They do not store a genome assembly, so use them with the reference assembly for which they were created.
 
 ## Track settings
 
-Click a track to select it, then use the toolbar's settings button to show **Track settings**. The panel title identifies the selected track. Hover over a setting to see its description.
+Right-click a track and choose **Track > Open settings** to select it and show **Track settings**. You can also click a track and use the toolbar's settings button. The panel title identifies the selected track. Hover over a setting to see its description.
 
 With **Auto-apply** enabled, valid changes take effect immediately. Disable it to edit several values before clicking **Apply**. Invalid values are marked in the panel. **Reset** restores the values present when that track was loaded into the settings editor; it is not a factory-default reset.
 
@@ -135,9 +137,19 @@ With **Auto-apply** enabled, valid changes take effect immediately. Disable it t
 | `show all bases` | Show all read bases instead of only differences from the reference. |
 | `show soft-clipped bases` | Include soft-clipped bases in the display. |
 | `show secondary alignments` | Include secondary mappings. |
-| `group by` | Choose `none` or `phase` to group by haplotype, including unassigned reads. |
+| `group by` | Choose `none`, `phase`, `mate chromosome`, or `pair orientation`; see below. |
 | `color by` | Choose `none`, `insert size`, or `read strand`. |
 | `visibility range` | Maximum displayed genomic span, in bases. |
+
+Grouping adds boxed labels and dashed separators between non-empty groups. It works both with individual reads and with **view as pairs** enabled:
+
+| Grouping | Groups, from top to bottom |
+| --- | --- |
+| `phase` | **phase 1**, **phase 2**, **unphased**, based on the HP tag. Only diploid phases 1 and 2 are supported. In paired view, an assigned mate supplies the phase for an unassigned mate; conflicting phases are unphased. |
+| `mate chromosome` | **differing**, then **same**. Reads whose mate chromosome is unavailable stay in **same**. |
+| `pair orientation` | **RF**, **FF**, **RR**, **FR**, describing forward/reverse strands from left to right along the chromosome. Files without paired-end data remain ungrouped. |
+
+With `color by` set to `insert size`, unpaired reads or reads without a mate chromosome are black in files detected as paired-end and neutral gray in single-end/long-read files. The reference cache covers entire loaded alignments, so long reads retain mismatch information beyond the initial viewport.
 
 ### Coverage tracks
 
@@ -158,9 +170,9 @@ Track settings are stored in sessions. Editing them does not change the source d
 
 ## Inspecting reads and features
 
-Click a read, coverage position, BED interval, or numerical feature to open a detail popup. Popup text can be selected and copied. Read details include coordinates, strand, mate information, insert size, and information about the clicked base or alignment event when available.
+Click a read, coverage position, BED interval, or numerical feature to open a detail popup. Popup text can be selected and copied. Read details include coordinates, strand, and information about the clicked base or alignment event when available. Mate information and insert size are shown only for paired reads. Clicking a transcript opens a popup with its gene name, transcript name, and tags, followed by cDNA position, amino-acid position, and the amino acid in one-letter and three-letter codes when available. Unavailable fields are omitted.
 
-Right-click a read and open **Track** for additional actions:
+Right-click a read and open **Read** for additional actions. This submenu appears above **Track** only when a read is under the pointer:
 
 - **Go to mate** navigates to the mate's position when its chromosome is available.
 - **Select** highlights the read by name; **Deselect** removes the highlight.
@@ -168,6 +180,12 @@ Right-click a read and open **Track** for additional actions:
 ## Reference and gene panels
 
 The panels below the track groups show chromosome context, genomic coordinates, and loaded transcripts. Zoom in to see individual reference bases and translation.
+
+On chromosome X, dark-gray lines above the chromosome bands mark pseudoautosomal regions (PAR); hover over them to see their genomic coordinates. Purple bookmark markers appear below the bands when enabled in the bookmark manager.
+
+Transcripts show strand arrows in introns. Exons at least 40 pixels wide also show white strand arrows when the transcript has no amino-acid letters displayed. The gene panel scrolls vertically when transcripts exceed the available height.
+
+Coding exons display amino acids in the transcript's reading frame when enough horizontal space is available for the widest letter plus a one-pixel margin on each side. Codons split across exon boundaries display a letter in each fragment only if that fragment has enough room. Alternating background shades reveal codon boundaries; the first methionine at the translation start is green, and stop codons are red. The reference **Show translation** display uses the same letter-width threshold.
 
 Right-click the gene panel to access:
 
@@ -179,11 +197,17 @@ Right-click the gene panel to access:
 
 Use **Session > Store session** to save an XML file with an `.xml` extension. Use **Session > Load session** to restore it. Loading a session replaces the current track groups.
 
-A session stores the displayed region, track groups and their order, track source paths or URLs, display names, and per-track settings. It references source files rather than embedding their contents, so those files and any indexes must remain accessible. Remote URLs must still be valid when reopening the session.
+A session stores the displayed region, track groups and their order, track source paths or URLs, display names, per-track settings, and the heights of all tracks, track groups, and the reference/gene panel. It references source files rather than embedding their contents, so those files and any indexes must remain accessible. Remote URLs must still be valid when reopening the session.
 
-Reference/GFF configuration, bookmarks, read selections, group heights, and gene-panel display options are not saved in the session. Configure the same reference and annotations before opening a session on another computer.
+Saved heights are restored when loading a session. If the available space differs, BAM alignment tracks scale to absorb the difference while other track heights are preserved. Height fields are mandatory; older session XML files without them are not supported.
+
+Reference/GFF configuration, bookmarks, read selections, and gene-panel display options are not saved in the session. Configure the same reference and annotations before opening a session on another computer.
 
 **Session > Clear session** removes loaded tracks and groups and creates an empty group. It leaves the current genomic region, reference/gene panels, and stored bookmarks available.
+
+## N regions
+
+Choose **Tools > Add N regions BED track** to scan the configured reference genome for contiguous runs of `N` or `n` bases. GSviewer adds the resulting intervals as a BED track named **N regions**. The generated BED file is stored in the application's local data directory under `generated_tracks`, so sessions can reference it.
 
 ## Troubleshooting
 
@@ -195,7 +219,7 @@ Reference/GFF configuration, bookmarks, read selections, group heights, and gene
 | BAM/CRAM region loading fails | Check the index, reference chromosome, and file access. For remote files, also check index access and range-request support. |
 | HTTPS alignment access fails | Check the URL, credentials or expiry, network access, and certificate configuration. If needed, configure `curl_ca_bundle` and restart GSviewer. |
 | CRAM reading fails | Check that the local reference and its `.fai` are available and match the CRAM reference. |
-| A reopened session reports errors | Check that its files, indexes, and URLs remain accessible. A session does not copy the data. |
+| A reopened session reports errors | Check that its files, indexes, and URLs remain accessible. Older session XML files without the required height fields are not supported. A session does not copy the data. |
 | Data looks displaced or mismatches the reference | Check that every file and annotation uses the same genome assembly. |
 
 Use **Help > About** to find GSviewer and library version information when reporting a problem.

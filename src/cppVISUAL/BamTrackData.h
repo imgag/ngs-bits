@@ -89,6 +89,9 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 	int endWithSoftClip() const { return en_with_soft_clip_; }
 
 	bool isReverseStrand() const { return is_reverse_; }
+	bool isPaired() const { return is_paired_; }
+	// Orientation of the left and right mates: FR, RF, FF, RR.
+	int pairOrientation() const { return pair_orientation_; }
 
 	int mateStart() const { return mate_start_; }
 
@@ -109,6 +112,8 @@ private:
 	int st_with_soft_clip_;
 	int en_with_soft_clip_;
 	bool is_reverse_;
+	bool is_paired_;
+	int pair_orientation_;
 	bool mate_is_mapped_;
 	int mate_start_;
 	int insert_size_ = -1;
@@ -123,8 +128,13 @@ private:
 		st_with_soft_clip_ = st_;
 		en_with_soft_clip_ = en_;
 		is_reverse_ = al.isReverseStrand();
-		mate_is_mapped_ = !al.isMateUnmapped();
+		is_paired_ = al.isPaired();
+		mate_is_mapped_ = is_paired_ && !al.isMateUnmapped();
 		mate_start_ = al.mateStart();
+		bool left_reverse = is_reverse_;
+		bool right_reverse = al.isMateReverseStrand();
+		if (mate_start_ < st_ || (mate_start_ == st_ && al.isRead2())) std::swap(left_reverse, right_reverse);
+		pair_orientation_ = left_reverse == right_reverse ? (left_reverse ? 3 : 2) : (left_reverse ? 1 : 0);
 		name_ = al.name();
 		insert_size_ = al.insertSize();
 		const int hp = al.tagi("HP");
@@ -175,7 +185,9 @@ public:
 
 	void setBamReader(QSharedPointer<BamReader> reader)
 	{
+		const bool paired_end = reader->checkIfPairedEnd();
 		bam_reader_ = reader;
+		paired_end_ = paired_end;
 		loaded_region_.setEnd(-1); // invalidate loaded_region
 		alignments_.clear();
 		loaded_ids_.clear();
@@ -187,6 +199,7 @@ public:
 	}
 
 	void computeInsertSizeStats();
+	bool isPairedEnd() const { return paired_end_; }
 
 	InsertSizeStats getInsertSizeStats() { return insert_size_stats_; };
 
@@ -208,6 +221,7 @@ private:
 	QString file_path_;
 	int visibility_range_;
 	QSharedPointer<BamReader> bam_reader_;
+	bool paired_end_ = false;
 	QVector<BamAlignmentWrapper> alignments_;
 	QVector<BamAlignmentWrapper> dummy_alignments_;
 	Sequence ref_seq_;

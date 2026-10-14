@@ -44,14 +44,15 @@ void TrackWidget::regionChanged()
 	update();
 }
 
-void TrackWidget::populateContextMenu(QMenu& menu, const QPoint&)
+void TrackWidget::populateContextMenu(QMenu& context_menu, const QPoint&)
 {
-	QAction* first_action = menu.actions().isEmpty() ? nullptr : menu.actions().first();
-	auto* reload = new QAction("Reload Track", &menu);
+	QMenu& menu = *context_menu.addMenu("Track");
+	QAction* settings = menu.addAction("Open settings");
+	connect(settings, &QAction::triggered, this, [this]() { emit settingsRequested(this); });
+	menu.addSeparator();
+	QAction* reload = menu.addAction("Reload Track");
 	connect(reload, &QAction::triggered, this, &TrackWidget::reloadTrack);
-	menu.insertAction(first_action, reload);
-	menu.insertSeparator(first_action);
-	if (first_action) menu.addSeparator();
+	menu.addSeparator();
 
 	QAction* remove = menu.addAction("Remove Track");
 	connect(remove, &QAction::triggered, this, &TrackWidget::trackDeleted);
@@ -159,12 +160,15 @@ void TrackWidget::drawLabel(QPainter& painter)
 {
 
 	int label_width = SharedData::settings().label_width;
+	painter.save();
+	painter.setPen(Qt::black);
+	painter.drawLine(QPoint(label_width, 0), QPoint(label_width, height()));
 
 	// draw text
 	QRectF text_rect(0, 0, label_width-2, height());
 
-	painter.setPen(Qt::black);
 	painter.drawText(text_rect, Qt::AlignLeft, display_name_);
+	painter.restore();
 }
 
 float Viewport::genomePosToScreen(int genome_pos) const
@@ -242,6 +246,7 @@ void TrackWidget::writeToXml(QXmlStreamWriter& writer)
 	writer.writeAttribute("type", type_);
 	writer.writeAttribute("file_name", file_path_);
 	writer.writeAttribute("display_name", display_name_);
+	writer.writeAttribute("height", QString::number(height()));
 	for(const Parameter& param: settings_.parameters())
 	{
 		writer.writeStartElement("Settings");
@@ -349,5 +354,13 @@ TrackWidget* TrackWidget::fromXml(const QDomElement& track_element, QWidget* par
 		}
 	}
 
+	bool ok = false;
+	const int height = track_element.attribute("height").toInt(&ok);
+	if (ok && height > 0)
+	{
+		track->session_height_ = height;
+		track->setFixedHeight(height);
+	}
+	else errors << "Missing or invalid track height for " + file_path;
 	return track;
 }

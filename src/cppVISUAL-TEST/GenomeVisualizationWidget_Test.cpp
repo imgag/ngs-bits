@@ -6,6 +6,15 @@
 #include "ParameterEditor.h"
 #include "Settings.h"
 #include "SharedData.h"
+#include "GenePanel.h"
+#include "ChromosomePanel.h"
+#include "NGSHelper.h"
+#include <QJsonDocument>
+#include <QJsonObject>
+#include "XmlHelper.h"
+#include <QScrollArea>
+#include <QScrollBar>
+#include <QHBoxLayout>
 #include "BedTrack.h"
 #include "FileLoader.h"
 #include "IgvTrack.h"
@@ -17,6 +26,7 @@
 #include <QDialog>
 #include <QFontMetrics>
 #include <QImage>
+#include <QPainter>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDockWidget>
@@ -33,6 +43,8 @@
 #include <QMenu>
 #include <QStandardPaths>
 #include <QTimer>
+#include <QHelpEvent>
+#include <QToolTip>
 
 class GenomeVisualizationWidget_Test : public QObject
 {
@@ -69,8 +81,8 @@ private slots:
 	void initTestCase()
 	{
 		QVERIFY(QDir().mkpath(data_.path()));
-		writeFile("reference.fa", ">chr22\n" + QByteArray(100, 'A') + "\n");
-		writeFile("reference.fa.fai", "chr22\t100\t7\t100\t101\n");
+		writeFile("reference.fa", ">chr22\n" + QByteArray(100, 'A') + "\n>chr23\nATGATGTAA" + QByteArray(91, 'A') + "\n>chrX\n" + QByteArray(100, 'A') + "\n>chrLong\n" + QByteArray(10000, 'A') + "\n");
+		writeFile("reference.fa.fai", "chr22\t100\t7\t100\t101\nchr23\t100\t115\t100\t101\nchrX\t100\t222\t100\t101\nchrLong\t10000\t332\t10000\t10001\n");
 		writeFile("settings.ini", "reference_genome=" + data_.filePath("reference.fa").toUtf8() + "\n");
 		Settings::setSettingsOverride(data_.filePath("settings.ini"));
 		SharedData::setRegion(Chromosome("chr22"), 1, 80);
@@ -291,13 +303,29 @@ private slots:
 		{
 			track->parameters().setBool("view as pairs", pairs);
 			track->parameters().setString("group by", "phase");
-			checkRead(0, 15, "phase1");
-			checkRead(2, 15, "phase2");
-			checkRead(4, 15, "unassigned");
-			checkRead(4, 45, "unsupported");
-			QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 58, 20));
+			checkRead(1, 15, "phase1");
+			checkRead(4, 15, "phase2");
+			checkRead(7, 15, "unassigned");
+			checkRead(7, 45, "unsupported");
+			QImage grouped(track->size(), QImage::Format_ARGB32);
+			track->render(&grouped);
+			for (int y : {0, 42, 84}) QCOMPARE(grouped.pixelColor(x0 + 1, y), QColor(Qt::gray)); // Label boxes.
+			for (int y : {35, 77})
+			{
+				int gray = 0, white = 0;
+				for (int x = x0 + 90; x < x0 + 310; ++x)
+				{
+					gray += grouped.pixelColor(x, y) == QColor(Qt::gray);
+					white += grouped.pixelColor(x, y) == QColor(Qt::white);
+				}
+				QVERIFY(gray > 0 && white > 0); // Dashed separators.
+			}
+			QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 58, 35));
 			QVERIFY(!track->findChild<QDialog*>());
 			track->parameters().setString("group by", "none");
+			QImage ungrouped(track->size(), QImage::Format_ARGB32);
+			track->render(&ungrouped);
+			QCOMPARE(ungrouped.pixelColor(x0 + 1, 0), QColor(Qt::white));
 			checkRead(0, 15, "unassigned");
 			checkRead(1, 15, "phase2");
 			checkRead(2, 15, "phase1");
@@ -323,11 +351,128 @@ private slots:
 		track->parameters().setString("group by", "phase");
 		track->resize(SharedData::settings().label_width + 4 + 320, 200);
 		track->show();
-		checkRead(0, 15, "assigned-mate");
-		checkRead(0, 35, "assigned-mate");
-		checkRead(2, 15, "phase2");
-		checkRead(4, 15, "conflict");
-		checkRead(4, 35, "conflict");
+		checkRead(1, 15, "assigned-mate");
+		checkRead(1, 35, "assigned-mate");
+		checkRead(4, 15, "phase2");
+		checkRead(7, 15, "conflict");
+		checkRead(7, 35, "conflict");
+	}
+
+	void bamMateChromosomeGroupingAndHitTesting()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		writeFile("mate-groups.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n@SQ\tSN:chr23\tLN:100\n"
+			"different\t65\tchr22\t10\t60\t10M\tchr23\t10\t0\tAAAAAAAAAA\tIIIIIIIIII\n"
+			"same\t65\tchr22\t10\t60\t10M\t=\t30\t30\tAAAAAAAAAA\tIIIIIIIIII\n"
+			"different-secondary\t321\tchr22\t10\t60\t10M\tchr23\t10\t0\tAAAAAAAAAA\tIIIIIIIIII\n"
+			"same\t129\tchr22\t30\t60\t10M\t=\t10\t-30\tAAAAAAAAAA\tIIIIIIIIII\n"
+			"unpaired\t0\tchr22\t50\t60\t10M\t*\t0\t0\tAAAAAAAAAA\tIIIIIIIIII\n");
+		const QString bam_path = data_.filePath("mate-groups.bam");
+		{
+			BamReader reader(data_.filePath("mate-groups.sam"));
+			BamWriter writer(bam_path);
+			writer.writeHeader(reader);
+			BamAlignment al;
+			while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+		}
+		QCOMPARE(sam_index_build(bam_path.toUtf8().constData(), 0), 0);
+		QScopedPointer<BamAlignmentTrack> track(BamAlignmentTrack::createTrack(nullptr, bam_path, ""));
+		QVERIFY(track);
+		track->parameters().setString("color by", "none");
+		track->parameters().setString("group by", "mate chromosome");
+		track->resize(SharedData::settings().label_width + 4 + 320, 200);
+		track->show();
+		const int x0 = SharedData::settings().label_width + 2;
+		for (bool pairs : {false, true})
+		{
+			track->parameters().setBool("view as pairs", pairs);
+			for (bool secondary : {true, false})
+			{
+				track->parameters().setBool("show secondary alignments", secondary);
+				QImage image(track->size(), QImage::Format_ARGB32);
+				track->render(&image);
+				QCOMPARE(image.pixelColor(x0 + 58, 2 * 14 + 6) != QColor(Qt::white), secondary);
+				const int same_row = secondary ? 5 : 4;
+				for (int row : {1, same_row})
+				{
+					const QPoint point(x0 + 58, row * 14 + 6);
+					QVERIFY(image.pixelColor(point) != QColor(Qt::white));
+					QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, point);
+					auto* popup = track->findChild<QDialog*>();
+					QVERIFY(popup);
+					QVERIFY(popup->findChild<QLabel*>()->text().contains(row == 1 ? "<b>different</b>" : "<b>same</b>"));
+					delete popup;
+				}
+				QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 218, same_row * 14 + 6));
+				auto* popup = track->findChild<QDialog*>();
+				QVERIFY(popup);
+				QVERIFY(popup->findChild<QLabel*>()->text().contains("<b>unpaired</b>"));
+				delete popup;
+			}
+		}
+	}
+
+	void bamPairOrientationGroupingAndHitTesting()
+	{
+		const GlobalSettings original = SharedData::settings();
+		const auto restore = qScopeGuard([&]() { SharedData::setSettings(original); });
+		GlobalSettings settings = original;
+		settings.min_window_size = 20;
+		SharedData::setSettings(settings);
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		const QStringList labels{"FR", "RF", "FF", "RR"};
+		const QList<int> first_flags{99, 83, 67, 115};
+		const QList<int> second_flags{147, 163, 131, 179};
+		QByteArray sam = "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n";
+		for (int mate = 0; mate < 2; ++mate)
+		{
+			for (int group = 0; group < 4; ++group)
+			{
+				sam += labels[group].toUtf8() + "\t" + QByteArray::number(mate == 0 ? first_flags[group] : second_flags[group])
+					+ "\tchr22\t" + (mate == 0 ? "10" : "30") + "\t60\t10M\t=\t" + (mate == 0 ? "30" : "10")
+					+ "\t" + (mate == 0 ? "30" : "-30") + "\tAAAAAAAAAA\tIIIIIIIIII\n";
+			}
+		}
+		writeFile("orientation.sam", sam);
+		const QString bam_path = data_.filePath("orientation.bam");
+		{
+			BamReader reader(data_.filePath("orientation.sam"));
+			BamWriter writer(bam_path);
+			writer.writeHeader(reader);
+			BamAlignment al;
+			while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+		}
+		QCOMPARE(sam_index_build(bam_path.toUtf8().constData(), 0), 0);
+		QScopedPointer<BamAlignmentTrack> track(BamAlignmentTrack::createTrack(nullptr, bam_path, ""));
+		QVERIFY(track);
+		track->parameters().setString("color by", "none");
+		track->parameters().setString("group by", "pair orientation");
+		track->resize(SharedData::settings().label_width + 4 + 320, 240);
+		track->show();
+		const int x0 = SharedData::settings().label_width + 2;
+		for (bool pairs : {false, true})
+		{
+			track->parameters().setBool("view as pairs", pairs);
+			for (int group = 0; group < 4; ++group)
+			{
+				for (int position : {15, 35})
+				{
+					const int displayed_group = group == 0 ? 3 : group - 1;
+					const QPoint point(x0 + (position - 1) * 4 + 2, (1 + displayed_group * 3) * 14 + 6);
+					QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, point);
+					auto* popup = track->findChild<QDialog*>();
+					QVERIFY(popup);
+					QVERIFY(popup->findChild<QLabel*>()->text().contains("<b>" + labels[group] + "</b>"));
+					delete popup;
+				}
+			}
+		}
+		// The mate outside the loaded region still determines the orientation.
+		SharedData::setRegion(Chromosome("chr22"), 1, 20);
+		auto data = BamTrackDataManager::getOrCreate(bam_path);
+		data->reload(); // Discard the larger previously cached region.
+		QCOMPARE(data->getAlignments().count(), 4);
+		for (int group = 0; group < 4; ++group) QCOMPARE(data->getAlignments()[group].pairOrientation(), group);
 	}
 
 	void bamSecondaryAlignmentVisibility()
@@ -361,15 +506,16 @@ private slots:
 			for (const QByteArray& group : QByteArrayList{"none", "phase"})
 			{
 				track->parameters().setString("group by", group);
-				const QPoint secondary(x0 + 58, (group == "phase" ? 2 : 1) * 14 + 6);
+				const QPoint secondary(x0 + 58, (group == "phase" ? 4 : 1) * 14 + 6);
 				for (bool visible : {true, false, true})
 				{
 					track->parameters().setBool("show secondary alignments", visible);
 					QImage image(track->size(), QImage::Format_ARGB32);
 					track->render(&image);
 					QCOMPARE(image.pixelColor(secondary) != QColor(Qt::white), visible);
-					QVERIFY(image.pixelColor(x0 + 58, 6) != QColor(Qt::white));
-					QVERIFY(image.pixelColor(x0 + 178, 6) != QColor(Qt::white));
+					const int primary_y = (group == "phase" ? 14 : 0) + 6;
+					QVERIFY(image.pixelColor(x0 + 58, primary_y) != QColor(Qt::white));
+					QVERIFY(image.pixelColor(x0 + 178, primary_y) != QColor(Qt::white));
 					QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, secondary);
 					auto* popup = track->findChild<QDialog*>();
 					QCOMPARE(popup != nullptr, visible);
@@ -413,20 +559,136 @@ private slots:
 			const int sparse_height = track->sizeHint().height();
 			QVERIFY(sparse_height < dense_height);
 			QCOMPARE(data->getAlignments().count(), 2);
-			for (const auto& alignment : data->getAlignments()) QVERIFY(!alignment.mate_chr.isValid());
+			for (const auto& alignment : data->getAlignments())
+			{
+				QVERIFY(!alignment.mate_chr.isValid());
+				QVERIFY(!alignment.isMateMapped());
+			}
 			for (int position : {62, 77})
 			{
 				const BedLine& region = SharedData::region();
 				const int x = SharedData::settings().label_width + 2 + (position - region.start()) * (track->width() - SharedData::settings().label_width - 4) / region.length();
+				track->parameters().setString("color by", "none");
+				QImage neutral(track->size(), QImage::Format_ARGB32);
+				track->render(&neutral);
+				track->parameters().setString("color by", "insert size");
+				QImage insert_size(track->size(), QImage::Format_ARGB32);
+				track->render(&insert_size);
+				QCOMPARE(insert_size.pixelColor(x, 6), neutral.pixelColor(x, 6));
+				QVERIFY(insert_size.pixelColor(x, 6) != QColor(Qt::white));
 				QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, QPoint(x, 6));
 				auto* popup = track->findChild<QDialog*>();
 				QVERIFY2(popup, qPrintable(QString("No popup for position %1, repeat %2, width %3").arg(position).arg(repeat).arg(track->width()))); // Both non-overlapping reads must occupy row zero.
 				delete popup;
 			}
+			track->parameters().setString("group by", "none");
+			QImage ungrouped(track->size(), QImage::Format_ARGB32);
+			track->render(&ungrouped);
+			track->parameters().setString("group by", "pair orientation");
+			QImage orientation(track->size(), QImage::Format_ARGB32);
+			track->render(&orientation);
+			QCOMPARE(orientation, ungrouped); // No grouping for single-end files.
 			track->parameters().setBool("show secondary alignments", false);
 			QCOMPARE(track->sizeHint().height(), sparse_height);
 			track->parameters().setBool("show secondary alignments", true);
 			QCOMPARE(track->sizeHint().height(), sparse_height);
+		}
+	}
+
+	void bamLongReadsCacheEntireReference()
+	{
+		QTest::failOnWarning(QRegularExpression("Reference sequence too short for alignment.*"));
+		SharedData::setRegion(Chromosome("chrLong"), 3000, 3020);
+		QByteArray bases(5000, 'A');
+		bases[0] = 'C';
+		bases[4900] = 'C';
+		writeFile("long-read.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chrLong\tLN:10000\n"
+			"long-read\t0\tchrLong\t1000\t60\t5000M\t*\t0\t0\t" + bases + "\t" + QByteArray(5000, 'I') + "\n");
+		const QString bam_path = data_.filePath("long-read.bam");
+		{
+			BamReader reader(data_.filePath("long-read.sam"));
+			BamWriter writer(bam_path);
+			writer.writeHeader(reader);
+			BamAlignment al;
+			while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+		}
+		QCOMPARE(sam_index_build(bam_path.toUtf8().constData(), 0), 0);
+		auto data = BamTrackDataManager::getOrCreate(bam_path);
+		QVERIFY(data);
+		QCOMPARE(data->getAlignments().count(), 1);
+		QCOMPARE(data->getRefSeqStart(), 1000);
+		QCOMPARE(data->getReferenceSeq().length(), 5000);
+		const auto& mismatches = data->getAlignments().first().getMismatches();
+		QCOMPARE(mismatches.count(), 2);
+		QCOMPARE(mismatches[0].genomic_pos, 1000);
+		QCOMPARE(mismatches[1].genomic_pos, 5900);
+		SharedData::setRegion(Chromosome("chrLong"), 3010, 3030); // Incremental load.
+		QCOMPARE(data->getAlignments().count(), 1);
+		QCOMPARE(data->getAlignments().first().getMismatches().count(), 2);
+		SharedData::setRegion(Chromosome("chrLong"), 5880, 5920); // Pan to the distant mismatch.
+		QCOMPARE(data->getAlignments().first().getMismatches().last().genomic_pos, 5900);
+	}
+
+	void bamFilePairingControlsUnpairedReadColor()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 20, 40);
+		for (bool paired_end : {false, true})
+		{
+			const QString base = paired_end ? "paired-color" : "unpaired-color";
+			QByteArray sam = "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n"
+				"unpaired\t0\tchr22\t30\t60\t5M\t*\t0\t0\tAAAAA\tIIIII\n";
+			// Detect pairing from a read outside the displayed region.
+			if (paired_end) sam += "paired\t65\tchr22\t80\t60\t5M\t=\t90\t15\tAAAAA\tIIIII\n";
+			writeFile(base + ".sam", sam);
+			const QString bam_path = data_.filePath(base + ".bam");
+			{
+				BamReader reader(data_.filePath(base + ".sam"));
+				BamWriter writer(bam_path);
+				writer.writeHeader(reader);
+				BamAlignment al;
+				while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+			}
+			QCOMPARE(sam_index_build(bam_path.toUtf8().constData(), 0), 0);
+			QScopedPointer<BamAlignmentTrack> track(BamAlignmentTrack::createTrack(nullptr, bam_path, ""));
+			QVERIFY(track);
+			auto data = BamTrackDataManager::getOrCreate(bam_path);
+			QCOMPARE(data->isPairedEnd(), paired_end);
+			QCOMPARE(data->getAlignments().count(), 1);
+			QVERIFY(!data->getAlignments().first().isPaired());
+			track->resize(SharedData::settings().label_width + 4 + 420, 100);
+			track->show();
+			const QPoint point(SharedData::settings().label_width + 2 + 12 * 20, 6);
+			track->parameters().setString("color by", "none");
+			QImage neutral(track->size(), QImage::Format_ARGB32);
+			track->render(&neutral);
+			track->parameters().setString("color by", "insert size");
+			QImage colored(track->size(), QImage::Format_ARGB32);
+			track->render(&colored);
+			QCOMPARE(colored.pixelColor(point), paired_end ? QColor(Qt::black) : neutral.pixelColor(point));
+			QVERIFY(colored.pixelColor(point) != QColor(Qt::white));
+			TrackWidget* widget = track.get();
+			QMenu menu;
+			widget->populateContextMenu(menu, point);
+			QCOMPARE(menu.actions().count(), 2);
+			QCOMPARE(menu.actions()[0]->text(), QString("Read"));
+			QCOMPARE(menu.actions()[1]->text(), QString("Track"));
+			QMenu* read_menu = menu.actions()[0]->menu();
+			QVERIFY(read_menu);
+			QCOMPARE(read_menu->actions()[0]->text(), QString("Go to mate"));
+			QVERIFY(!read_menu->actions()[0]->isEnabled()); // Unpaired read.
+			QCOMPARE(read_menu->actions()[1]->text(), QString("Select"));
+			read_menu->actions()[1]->trigger();
+			QMenu selected_menu;
+			widget->populateContextMenu(selected_menu, point);
+			QMenu* selected_read_menu = selected_menu.actions()[0]->menu();
+			QCOMPARE(selected_read_menu->actions()[1]->text(), QString("Deselect"));
+			selected_read_menu->actions()[1]->trigger();
+			QMenu blank_menu;
+			widget->populateContextMenu(blank_menu, QPoint(2, 2));
+			QCOMPARE(blank_menu.actions().count(), 1);
+			QCOMPARE(blank_menu.actions()[0]->text(), QString("Track"));
+			data->reload();
+			QCOMPARE(data->isPairedEnd(), paired_end);
 		}
 	}
 
@@ -549,19 +811,392 @@ private slots:
 				auto* table = manager->findChild<QTableWidget*>("bookmarks_table");
 				auto* delete_button = manager->findChild<QPushButton*>("delete_btn");
 				if (!table || table->rowCount() != 3 || !delete_button) { manager->reject(); return; }
-				const bool initial_state = !delete_button->isEnabled() && table->columnCount() == 2 && table->item(0, 0)->text() == "Z first & bookmark" && table->item(0, 1)->text() == coordinates;
+				const bool initial_state = !delete_button->isEnabled() && table->columnCount() == 3 && table->item(0, 0)->text() == "Z first & bookmark" && table->item(0, 1)->text() == coordinates && table->item(1, 2)->checkState() == Qt::Unchecked;
+				ChromosomePanel chromosome(nullptr);
+				chromosome.resize(SharedData::settings().label_width + 4 + 480, 80);
+				chromosome.show();
+				auto has_purple_line = [&]()
+				{
+					QImage image(chromosome.size(), QImage::Format_ARGB32);
+					chromosome.render(&image);
+					for (int x = SharedData::settings().label_width + 2; x < chromosome.width() - 2; ++x)
+					{
+						for (int y = 23; y < 27; ++y) if (image.pixelColor(x, y) == QColor(128, 0, 128)) return true;
+					}
+					return false;
+				};
+				const bool initially_hidden = !has_purple_line();
+				QSignalSpy bookmark_changes(SharedData::instance(), &SharedData::bookmarksChanged);
+				table->item(1, 2)->setCheckState(Qt::Checked);
+				const bool shown = has_purple_line() && QJsonDocument::fromJson(Settings::stringList(key)[1].toUtf8()).object().value("show_in_chromosome_view").toBool() && bookmark_changes.count() == 1;
+				const QPoint marker(SharedData::settings().label_width + 2, 23);
+				QHelpEvent tooltip(QEvent::ToolTip, marker, chromosome.mapToGlobal(marker));
+				QApplication::sendEvent(&chromosome, &tooltip);
+				const bool tooltip_shown = QToolTip::text().contains("Bookmark: A second bookmark");
+				QToolTip::hideText();
+				table->item(1, 2)->setCheckState(Qt::Unchecked);
+				const bool hidden_again = !has_purple_line();
+				table->item(1, 2)->setCheckState(Qt::Checked);
+				table->item(1, 0)->setCheckState(Qt::Checked);
+				bool rename_selected = false;
+				QTimer::singleShot(0, manager, [&]()
+				{
+					auto* menu = manager->findChild<QMenu*>("bookmark_context_menu");
+					if (!menu) return;
+					menu->close();
+					QTimer::singleShot(0, manager, [&]()
+					{
+						auto* dialog = manager->findChild<QInputDialog*>();
+						if (!dialog) return;
+						rename_selected = dialog->findChild<QLineEdit*>()->selectedText() == "A second bookmark";
+						dialog->setTextValue("Renamed bookmark");
+						dialog->accept();
+					});
+					menu->actions().first()->trigger();
+				});
+				emit table->customContextMenuRequested(table->visualItemRect(table->item(1, 0)).center());
+				const bool renamed = rename_selected && table->item(1, 0)->text() == "Renamed bookmark" && table->item(1, 0)->checkState() == Qt::Checked && table->item(1, 1)->text() == coordinates && Settings::stringList(key)[1].contains("Renamed bookmark");
+				table->item(1, 0)->setCheckState(Qt::Unchecked);
 				table->item(0, 0)->setCheckState(Qt::Checked);
 				table->item(2, 0)->setCheckState(Qt::Checked);
 				const bool enabled = delete_button->isEnabled();
 				delete_button->click();
-				deleted = initial_state && enabled && table->rowCount() == 1 && table->item(0, 0)->text() == "A second bookmark" && manager->result() == QDialog::Accepted && !manager->isVisible();
+				deleted = initial_state && initially_hidden && shown && tooltip_shown && hidden_again && renamed && enabled && table->rowCount() == 1 && table->item(0, 0)->text() == "Renamed bookmark" && manager->result() == QDialog::Accepted && !manager->isVisible();
 			});
 			menu->actions()[1]->trigger();
 		});
 		reopened.findChild<QToolButton*>("bookmarks_btn")->showMenu();
 		QVERIFY(deleted);
 		QCOMPARE(Settings::stringList(key).count(), 1);
-		QVERIFY(Settings::stringList(key).first().contains("A second bookmark"));
+		QVERIFY(Settings::stringList(key).first().contains("Renamed bookmark"));
+		QVERIFY(QJsonDocument::fromJson(Settings::stringList(key).first().toUtf8()).object().value("show_in_chromosome_view").toBool());
+	}
+
+	void chromosomePanelShowsParOnlyOnX()
+	{
+		const BedLine original_region = SharedData::region();
+		const auto restore = qScopeGuard([&]() { SharedData::setRegion(original_region.chr(), original_region.start(), original_region.end()); });
+		SharedData::setRegion(Chromosome("chrX"), 1, 80);
+		ChromosomePanel panel(nullptr);
+		panel.resize(SharedData::settings().label_width + 4 + 480, 80);
+		panel.show();
+		QImage image(panel.size(), QImage::Format_ARGB32);
+		panel.render(&image);
+		int chromosome_end = 0;
+		const BedFile& bands = NGSHelper::cytoBands();
+		for (int i = 0; i < bands.count(); ++i) if (bands[i].chr().isX()) chromosome_end = std::max(chromosome_end, bands[i].end());
+		const int x0 = SharedData::settings().label_width + 2;
+		const double scale = 480.0 / chromosome_end;
+		const BedFile& par = NGSHelper::pseudoAutosomalRegion();
+		for (int i = 0; i < par.count(); ++i)
+		{
+			if (!par[i].chr().isX()) continue;
+			const double x = x0 + (par[i].start() - 1) * scale;
+			const double width = std::max(1.0, par[i].length() * scale);
+			bool found = false;
+			for (int pixel = std::max(x0, (int)std::floor(x)); pixel <= std::min(panel.width() - 3, (int)std::ceil(x + width)); ++pixel)
+			{
+				if (image.pixelColor(pixel, 3) == QColor(Qt::darkGray)) found = true;
+			}
+			QVERIFY(found);
+			const QPoint marker((int)std::ceil(x), 3);
+			QHelpEvent tooltip(QEvent::ToolTip, marker, panel.mapToGlobal(marker));
+			QApplication::sendEvent(&panel, &tooltip);
+			QVERIFY(QToolTip::text().contains("Pseudoautosomal region:"));
+			QVERIFY(QToolTip::text().contains(par[i].toString(true)));
+			QToolTip::hideText();
+		}
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		panel.render(&image);
+		const QPoint marker(x0 + 1, 3);
+		QHelpEvent no_par_tooltip(QEvent::ToolTip, marker, panel.mapToGlobal(marker));
+		QApplication::sendEvent(&panel, &no_par_tooltip);
+		QVERIFY(!no_par_tooltip.isAccepted());
+	}
+
+	void genePanelCodingAminoAcids()
+	{
+		const TranscriptList original_transcripts = SharedData::transcripts();
+		const BedLine original_region = SharedData::region();
+		const auto restore = qScopeGuard([&]()
+		{
+			SharedData::setTranscripts(original_transcripts);
+			SharedData::setRegion(original_region.chr(), original_region.start(), original_region.end());
+		});
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		GenePanel panel(nullptr);
+		QFont font = panel.font();
+		font.setPixelSize(10);
+		panel.setFont(font);
+		panel.resize(SharedData::settings().label_width + 4 + 480, 100); //6 pixels per base.
+		panel.show();
+		const int y = 6 + QFontMetrics(font).height();
+		const int x0 = SharedData::settings().label_width + 2;
+		for (bool plus : {true, false})
+		{
+			Transcript transcript;
+			transcript.setName("ENSTcoding");
+			transcript.setGene("GENE");
+			transcript.setSource(Transcript::ENSEMBL);
+			transcript.setStrand(plus ? Transcript::PLUS : Transcript::MINUS);
+			transcript.setGencodePrimaryTranscript(true);
+			BedFile exons;
+			exons.append(BedLine(Chromosome("chr22"), 10, 15));
+			exons.append(BedLine(Chromosome("chr22"), 30, 36));
+			transcript.setRegions(exons, plus ? 11 : 36, plus ? 36 : 11);
+			TranscriptList transcripts;
+			transcripts.append(transcript);
+			SharedData::setTranscripts(transcripts);
+			QImage actual(panel.size(), QImage::Format_ARGB32);
+			panel.render(&actual);
+			//AAA translates to K; its reverse complement TTT translates to F.
+			for (const QPair<int, int>& fragment : {qMakePair(11, 13), qMakePair(14, 15), qMakePair(31, 33), qMakePair(34, 36)})
+			{
+				const int width = (fragment.second - fragment.first + 1) * 6;
+				QImage expected(width, 12, QImage::Format_ARGB32);
+				const bool darker = plus ? (fragment.first == 14 || fragment.first == 34) : (fragment.first == 11 || fragment.first == 31);
+				expected.fill(darker ? QColor("#0C0C78") : QColor("#5C5CA4"));
+				QPainter painter(&expected);
+				painter.setFont(font);
+				painter.setRenderHint(QPainter::Antialiasing, true);
+				painter.setPen(Qt::white);
+				painter.drawText(QRectF(1, 0, width - 2, 12), Qt::AlignCenter, plus ? "K" : "F");
+				painter.end();
+				QCOMPARE(actual.copy(x0 + (fragment.first - 1) * 6 + 1, y + 1, width - 2, 10), expected.copy(1, 1, width - 2, 10));
+			}
+			//The one-base fragment at position 30 is too narrow for either letter.
+			for (int x = x0 + 29 * 6 + 1; x < x0 + 30 * 6 - 1; ++x)
+			{
+				for (int row = y + 1; row < y + 11; ++row) QCOMPARE(actual.pixelColor(x, row).rgba(), (plus ? QColor("#0C0C78") : QColor("#5C5CA4")).rgba());
+			}
+		}
+		panel.resize(SharedData::settings().label_width + 4 + 160, 100); //Even full codons are too narrow.
+		QImage zoomed_out(panel.size(), QImage::Format_ARGB32);
+		panel.render(&zoomed_out);
+		for (int x = x0 + 10 * 2 + 1; x < x0 + 15 * 2 - 1; ++x)
+		{
+			for (int row = y + 1; row < y + 11; ++row) QCOMPARE(zoomed_out.pixelColor(x, row), QColor("#0000B2"));
+		}
+		SharedData::setRegion(Chromosome("chr23"), 1, 80);
+		panel.resize(SharedData::settings().label_width + 4 + 480, 100);
+		Transcript transcript;
+		transcript.setName("ENSTstartstop");
+		transcript.setGene("STARTSTOP");
+		transcript.setSource(Transcript::ENSEMBL);
+		transcript.setStrand(Transcript::PLUS);
+		transcript.setGencodePrimaryTranscript(true);
+		BedFile exon;
+		exon.append(BedLine(Chromosome("chr23"), 1, 9));
+		transcript.setRegions(exon, 1, 9);
+		TranscriptList transcripts;
+		transcripts.append(transcript);
+		SharedData::setTranscripts(transcripts);
+		QImage colors(panel.size(), QImage::Format_ARGB32);
+		panel.render(&colors);
+		QCOMPARE(colors.pixelColor(x0 + 1, y + 1), QColor(0, 255, 0));
+		QCOMPARE(colors.pixelColor(x0 + 19, y + 1).rgba(), QColor("#0C0C78").rgba());
+		QCOMPARE(colors.pixelColor(x0 + 37, y + 1), QColor(255, 0, 0));
+	}
+
+	void genePanelTranscriptPopups()
+	{
+		const TranscriptList original_transcripts = SharedData::transcripts();
+		const BedLine original_region = SharedData::region();
+		const auto restore = qScopeGuard([&]()
+		{
+			SharedData::setTranscripts(original_transcripts);
+			SharedData::setRegion(original_region.chr(), original_region.start(), original_region.end());
+		});
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		GenePanel panel(nullptr);
+		QFont font = panel.font();
+		font.setPixelSize(10);
+		panel.setFont(font);
+		panel.resize(SharedData::settings().label_width + 4 + 160, 100); //AAs do not fit, but click information must work.
+		panel.show();
+		const int x0 = SharedData::settings().label_width + 2;
+		const int y = 12 + QFontMetrics(font).height();
+		auto click_text = [&](int genome_pos)
+		{
+			QTest::mouseClick(&panel, Qt::LeftButton, Qt::NoModifier, QPoint(x0 + (genome_pos - 1) * 2 + 1, y));
+			auto* popup = panel.findChild<QDialog*>();
+			if (!popup) return QString();
+			const QString text = popup->findChild<QLabel*>()->text();
+			delete popup;
+			return text;
+		};
+		BedFile exons;
+		exons.append(BedLine(Chromosome("chr22"), 10, 15));
+		exons.append(BedLine(Chromosome("chr22"), 30, 36));
+		for (bool plus : {true, false})
+		{
+			Transcript trans;
+			trans.setName("ENSTpopup");
+			trans.setGene("GENE");
+			trans.setSource(Transcript::ENSEMBL);
+			trans.setGencodePrimaryTranscript(true);
+			trans.setStrand(plus ? Transcript::PLUS : Transcript::MINUS);
+			trans.setRegions(exons, plus ? 11 : 36, plus ? 36 : 11);
+			TranscriptList transcripts;
+			transcripts.append(trans);
+			SharedData::setTranscripts(transcripts);
+			const QString coding = click_text(30); //Codon is split across the two exons.
+			QVERIFY(coding.contains("Gene:</b> GENE"));
+			QVERIFY(coding.contains("Transcript:</b> ENSTpopup"));
+			QVERIFY(coding.contains("<b>Tags:</b> GENCODE primary<br><br><b>cDNA position:</b>"));
+			QVERIFY(coding.contains(plus ? "cDNA position:</b> c.6" : "cDNA position:</b> c.7"));
+			QVERIFY(coding.contains(plus ? "AA position:</b> 2" : "AA position:</b> 3"));
+			QVERIFY(coding.contains(plus ? "AA (one-letter):</b> K" : "AA (one-letter):</b> F"));
+			QVERIFY(coding.contains(plus ? "AA (three-letter):</b> Lys" : "AA (three-letter):</b> Phe"));
+			const QString utr = click_text(10);
+			QVERIFY(utr.contains(plus ? "cDNA position:</b> c.-1" : "cDNA position:</b> c.*1"));
+			QVERIFY(!utr.contains("AA position:"));
+			const QString intron = click_text(20);
+			QVERIFY(!intron.contains("cDNA position:"));
+			QVERIFY(!intron.contains("AA position:"));
+			QTest::mousePress(&panel, Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 59, y));
+			QTest::mouseRelease(&panel, Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 109, y));
+			QVERIFY(!panel.findChild<QDialog*>());
+			trans.setRegions(exons);
+			transcripts.clear();
+			transcripts.append(trans);
+			SharedData::setTranscripts(transcripts);
+			const QString noncoding = click_text(14);
+			QVERIFY(noncoding.contains(plus ? "cDNA position:</b> n.5" : "cDNA position:</b> n.9"));
+			QVERIFY(!noncoding.contains("AA position:"));
+		}
+	}
+
+	void genePanelScrollsToAllTranscripts()
+	{
+		const TranscriptList original_transcripts = SharedData::transcripts();
+		const BedLine original_region = SharedData::region();
+		const auto restore = qScopeGuard([&]()
+		{
+			SharedData::setTranscripts(original_transcripts);
+			SharedData::setRegion(original_region.chr(), original_region.start(), original_region.end());
+		});
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		QScrollArea scroll;
+		scroll.setWidgetResizable(true);
+		scroll.setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+		auto* contents = new QWidget();
+		auto* layout = new QHBoxLayout(contents);
+		layout->setContentsMargins(0, 0, 0, 0);
+		auto* panel = new GenePanel(contents);
+		layout->addWidget(panel);
+		scroll.setWidget(contents);
+		scroll.resize(600, 90);
+		scroll.show();
+		TranscriptList transcripts;
+		for (int i = 0; i < 8; ++i)
+		{
+			Transcript trans;
+			trans.setName("ENST" + QByteArray::number(i));
+			trans.setGene("GENE" + QByteArray::number(i));
+			trans.setSource(Transcript::ENSEMBL);
+			trans.setStrand(Transcript::PLUS);
+			trans.setGencodePrimaryTranscript(true);
+			BedFile exons;
+			exons.append(BedLine(Chromosome("chr22"), 10, 20));
+			trans.setRegions(exons);
+			transcripts.append(trans);
+		}
+		SharedData::setTranscripts(transcripts);
+		QTRY_VERIFY(scroll.verticalScrollBar()->maximum() > 0);
+		QVERIFY(panel->minimumHeight() > scroll.viewport()->height());
+		scroll.verticalScrollBar()->setValue(scroll.verticalScrollBar()->maximum());
+		QCOMPARE(scroll.verticalScrollBar()->value(), scroll.verticalScrollBar()->maximum());
+		const int initial_height = panel->minimumHeight();
+		QFont larger = panel->font();
+		larger.setPointSize(18);
+		panel->setFont(larger);
+		QTRY_VERIFY(panel->minimumHeight() > initial_height);
+		SharedData::setRegion(Chromosome("chr22"), 50, 100);
+		QTRY_COMPARE(scroll.verticalScrollBar()->maximum(), 0);
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		QTRY_VERIFY(scroll.verticalScrollBar()->maximum() > 0);
+		SharedData::setTranscripts(TranscriptList());
+		QTRY_COMPARE(scroll.verticalScrollBar()->maximum(), 0);
+	}
+
+	void sessionRestoresAndScalesTrackHeights()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		writeFile("heights.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\nread\t0\tchr22\t10\t60\t10M\t*\t0\t0\tAAAAAAAAAA\tIIIIIIIIII\n");
+		{
+			BamReader reader(data_.filePath("heights.sam"));
+			BamWriter writer(data_.filePath("heights.bam"));
+			writer.writeHeader(reader);
+			BamAlignment al;
+			while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+		}
+		QCOMPARE(sam_index_build(data_.filePath("heights.bam").toUtf8().constData(), 0), 0);
+		GenomeVisualizationWidget source(nullptr);
+		source.resize(1100, 800);
+		source.show();
+		source.loadFile(data_.filePath("heights.bam"));
+		source.loadFile(data_.filePath("first.bed"));
+		auto* source_manager = source.findChild<TrackGroupManager*>();
+		source.findChild<BamAlignmentTrack*>()->setFixedHeight(160);
+		source.findChild<BamCoverageTrack*>()->setFixedHeight(60);
+		source.findChild<BedTrack*>()->setFixedHeight(70);
+		QTest::qWait(60); //Finish delayed initialization before arranging the splitter.
+		source_manager->setSizes({100, 320, 110});
+		QCoreApplication::processEvents();
+		const QList<int> saved_sizes = source_manager->sizes();
+		QByteArray xml;
+		QXmlStreamWriter writer(&xml);
+		writer.writeStartElement("GSviewerSession");
+		writer.writeAttribute("version", "1");
+		writer.writeStartElement("General");
+		writer.writeAttribute("gene_panel_height", QString::number(saved_sizes.last()));
+		writer.writeStartElement("DisplayedRegion");
+		writer.writeAttribute("chr", "chr22");
+		writer.writeAttribute("start", "1");
+		writer.writeAttribute("end", "80");
+		writer.writeEndElement();
+		writer.writeEndElement();
+		source_manager->writeToXml(writer);
+		writer.writeEndElement();
+		writeFile("heights.xml", xml);
+		QCOMPARE(XmlHelper::isValidXml(data_.filePath("heights.xml"), ":Resources/GSviewerSession.xsd"), QString());
+		QDomDocument doc;
+		QVERIFY(doc.setContent(xml));
+		GenomeVisualizationWidget restored(nullptr);
+		restored.resize(source.size());
+		restored.show();
+		auto* manager = restored.findChild<TrackGroupManager*>();
+		manager->removeAll();
+		QStringList errors;
+		manager->loadFromXml(doc.documentElement(), errors);
+		QVERIFY2(errors.isEmpty(), qPrintable(errors.join("\n")));
+		QTest::qWait(60);
+		QTRY_COMPARE(manager->sizes(), saved_sizes);
+		auto* alignment = restored.findChild<BamAlignmentTrack*>();
+		auto* coverage = restored.findChild<BamCoverageTrack*>();
+		auto* bed = restored.findChild<BedTrack*>();
+		QVERIFY(alignment && coverage && bed);
+		QCOMPARE(alignment->height(), 160);
+		QCOMPARE(coverage->height(), 60);
+		QCOMPARE(bed->height(), 70);
+		for (int difference : {100, -80, 0})
+		{
+			restored.resize(source.width(), source.height() + difference);
+			QTRY_COMPARE(alignment->height(), 160 + difference);
+			QCOMPARE(coverage->height(), 60);
+			QCOMPARE(bed->height(), 70);
+			QCOMPARE(manager->sizes().last(), saved_sizes.last());
+		}
+		//Sessions without required height attributes are rejected.
+		QDomElement general = doc.documentElement().firstChildElement("General");
+		general.removeAttribute("gene_panel_height");
+		const QDomNodeList groups = doc.elementsByTagName("TrackGroup");
+		for (int i = 0; i < groups.count(); ++i) groups.at(i).toElement().removeAttribute("height");
+		const QDomNodeList tracks = doc.elementsByTagName("Track");
+		for (int i = 0; i < tracks.count(); ++i) tracks.at(i).toElement().removeAttribute("height");
+		writeFile("legacy-heights.xml", doc.toByteArray());
+		QVERIFY(!XmlHelper::isValidXml(data_.filePath("legacy-heights.xml"), ":Resources/GSviewerSession.xsd").isEmpty());
 	}
 
 	void startupEmbeddedInMainWindow()
@@ -613,7 +1248,14 @@ private slots:
 		auto* first = tracks[0];
 		auto* second = tracks[1];
 		second->parameters().setString("color", "red");
-		openEditor(first);
+		QMenu menu;
+		first->populateContextMenu(menu, QPoint(2, 2));
+		QCOMPARE(menu.actions().first()->text(), QString("Track"));
+		QMenu* track_menu = menu.actions().first()->menu();
+		QVERIFY(track_menu);
+		QCOMPARE(track_menu->actions().first()->text(), QString("Open settings"));
+		QVERIFY(track_menu->actions()[1]->isSeparator());
+		track_menu->actions().first()->trigger();
 		QVERIFY(!dock->isHidden());
 		QCOMPARE(dock->windowTitle(), QString("Track settings"));
 		auto* editor = dock->findChild<ParameterEditor*>();
@@ -634,7 +1276,7 @@ private slots:
 		QCOMPARE(first->parameters().getString("color"), QByteArray("green"));
 		dock->close();
 		QVERIFY(dock->isHidden());
-		openEditor(first);
+		track_menu->actions().first()->trigger();
 		QVERIFY(!dock->isHidden());
 		viewer.findChild<QToolButton*>("settings_btn")->click();
 		QVERIFY(dock->isHidden());

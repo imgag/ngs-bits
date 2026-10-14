@@ -32,10 +32,11 @@ public:
 	QSize minimumSizeHint() const override;
 	ParameterList& parameters() { return settings_; }
 	QString displayName() const { return display_name_; }
+	int sessionHeight() const { return session_height_; }
 
 	//re-loads a the track from file/URL
 	virtual void reloadTrack() = 0;
-	//adds general track context menu entries
+	//Adds the Track submenu to the root context menu. Derived classes add element submenus first.
 	virtual void populateContextMenu(QMenu&, const QPoint&);
 
 	//writes properties in XML
@@ -50,6 +51,7 @@ signals:
 	void trackDeleted();
 	void trackMoved();
 	void trackSelected(TrackWidget* track);
+	void settingsRequested(TrackWidget* track);
 
 public slots:
 	void regionChanged();
@@ -79,6 +81,7 @@ private:
 	bool is_dragging_ = false;
 	QString display_name_; //display name
 	QString type_; //track type - used to serialize the track to XML
+	int session_height_ = 0;
 
 private slots:
 	void handleTrackRename();

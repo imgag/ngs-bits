@@ -93,10 +93,9 @@ void BamTrackData::updateRegion()
 
 		pruneAlignments(p_start, p_end); // remove out of bound alignments
 
-		// an alignment read can extend past (or before) the padded region
-		// an alignment read is roughly ~101bp (at most) so a overhang of 500 bp should be sufficient
+		// Start with a viewport-sized cache; fetchRegion extends it for longer alignments.
 		int ref_fetch_start = std::max(1, p_start - REF_OVERHANG);
-		int ref_fetch_end   = p_end + REF_OVERHANG;
+		int ref_fetch_end   = std::min(p_end + REF_OVERHANG, SharedData::genome().lengthOf(region.chr()));
 		ref_seq_ = SharedData::genome().seq(
 			region.chr(),
 			ref_fetch_start,
@@ -142,7 +141,7 @@ void BamTrackData::fullLoad(const BedLine& region)
 	loaded_ids_.squeeze();
 
 	int ref_fetch_start = std::max(1, p_start - REF_OVERHANG);
-	int ref_fetch_end   = p_end + REF_OVERHANG;
+	int ref_fetch_end   = std::min(p_end + REF_OVERHANG, SharedData::genome().lengthOf(region.chr()));
 
 	ref_seq_ = SharedData::genome().seq(
 		region.chr(),
@@ -168,6 +167,8 @@ void BamTrackData::fullLoad(const BedLine& region)
 void BamTrackData::fetchRegion(const BedLine& region, QVector<BamAlignmentWrapper>* dest)
 {
 	bam_reader_->setRegion(region.chr(), region.start(), region.end());
+	const auto& genome = SharedData::genome();
+	const int chromosome_end = genome.lengthOf(region.chr());
 
 	BamAlignment al;
 	while (bam_reader_->getNextAlignment(al))
@@ -194,6 +195,18 @@ void BamTrackData::fetchRegion(const BedLine& region, QVector<BamAlignmentWrappe
 		}
 		loaded_ids_.insert(wrapped_alignment.id);
 
+		// Cache reference bases for the entire alignment, including long reads outside the viewport.
+		if (al.start() < ref_start_)
+		{
+			ref_seq_.prepend(genome.seq(region.chr(), al.start(), ref_start_ - al.start()));
+			ref_start_ = al.start();
+		}
+		const int ref_end = ref_start_ + ref_seq_.length() - 1;
+		const int alignment_end = std::min(al.end(), chromosome_end);
+		if (alignment_end > ref_end)
+		{
+			ref_seq_.append(genome.seq(region.chr(), ref_end + 1, alignment_end - ref_end));
+		}
 		wrapped_alignment.storeCigarData(al, ref_seq_, ref_start_);
 
 		if (!wrapped_alignment.isValid()) continue; // has st/en < -1
@@ -314,12 +327,7 @@ void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Se
 				}
 				else
 				{
-					qWarning()
-					<< "Reference sequence too short for alignment"
-					<< alignment.name()
-					<< genome_pos
-					<< ref_start
-					<< ref_seq.length();
+					qWarning() << "Reference sequence too short for alignment" << alignment.name() << genome_pos << ref_start << ref_seq.length();
 				}
 				++genome_pos;
 				++read_pos;

@@ -24,6 +24,7 @@ public:
 	bool isEmptySession() const;
 	//adds an empty TrackGroup
 	void addEmptyTrackGroup();
+	void addTrack(TrackWidget* track);
 	//resizes the gene panel to the given height. All TrackGroups maintain their relative heights.
 	void resizeGenePanel(int height=80);
 
@@ -43,6 +44,7 @@ public:
 
 signals:
 	void trackSelected(TrackWidget* track);
+	void settingsRequested(TrackWidget* track);
 
 public slots:
 	//creates a TrackGroup from a file
@@ -53,9 +55,13 @@ public slots:
 	void addTrackGroupBelow();
 
 private:
+	void resizeEvent(QResizeEvent* event) override;
+	QList<int> session_group_heights_;
+	int session_gene_height_ = 0;
 	// connects addTrackGroupAbove and addTrackGroupBelow signals and slots to the TrackGroup
 	void connectSignals(TrackGroup*);
 	void updateDragRegion(int x);
+	void restoreSessionHeights();
 };
 
 

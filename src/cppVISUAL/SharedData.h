@@ -78,6 +78,7 @@ signals:
 	void transcriptsChanged();
 	void settingsChanged();
 	void regionChanged();
+	void bookmarksChanged();
 	void updateGenomicCoordinate(QString);
 
 protected:
