@@ -1,6 +1,7 @@
 #include "TrackWidget.h"
 #include "SharedData.h"
 #include "IgvTrack.h"
+#include "SegTrack.h"
 #include "BedTrack.h"
 #include "BamAlignmentTrack.h"
 #include "BamCoverageTrack.h"
@@ -286,6 +287,7 @@ TrackWidget* TrackWidget::fromXml(const QDomElement& track_element, QWidget* par
 	else if (type == BamAlignmentTrack::type()) track = BamAlignmentTrack::createTrack(parent, file_path, display_name);
 	else if (type == BamCoverageTrack::type()) track = BamCoverageTrack::createTrack(parent, file_path, display_name);
 	else if (type == IgvTrack::type()) track = IgvTrack::createTrack(parent, file_path, display_name);
+	else if (type == SegTrack::type()) track = SegTrack::createTrack(parent, file_path, display_name);
 	else errors << ("Unsupported track type '"+type+"' for " + file_path);
 	if (!track) return nullptr;
 

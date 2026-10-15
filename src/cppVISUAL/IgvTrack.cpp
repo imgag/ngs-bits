@@ -13,13 +13,13 @@ QList<Parameter> IgvTrack::getParameters() const
 	config.append(Parameter("draw mode", "Type of graph.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("heatmap\tbar chart\tpoints\tline plot")}}));
 	config.append(Parameter("min", "Y axis minimum of plot.", ParameterType::DOUBLE, {{ConstraintType::DISPLAY_DIGITS, 2}}));
 	config.append(Parameter("max", "Y axis maximum of plot.", ParameterType::DOUBLE, {{ConstraintType::DISPLAY_DIGITS, 2}}));
-	config.append(Parameter("track_height", "Track height in pixels.", ParameterType::INT, {{ConstraintType::MIN, 1}}));
+	config.append(Parameter("track height", "Track height in pixels.", ParameterType::INT, {{ConstraintType::MIN, 1}}));
 	return config;
 }
 
 QHash<QByteArray, QVariant> IgvTrack::getParameterDefaults() const
 {
-	QHash<QByteArray, QVariant> defaults{{"draw mode", QByteArray("points")}, {"track_height", 100}, {"min", 0.0}, {"max", 1.0}};
+	QHash<QByteArray, QVariant> defaults{{"draw mode", QByteArray("points")}, {"track height", 100}, {"min", 0.0}, {"max", 1.0}};
 	if (igv_file_)
 	{
 		for (const QByteArray& header : igv_file_->headers())
@@ -55,7 +55,7 @@ QHash<QByteArray, QVariant> IgvTrack::getParameterDefaults() const
 				{
 					bool ok = false;
 					int height = value.split(':').first().toInt(&ok);
-					if (ok) defaults["track_height"] = height;
+					if (ok) defaults["track height"] = height;
 				}
 			}
 			break;

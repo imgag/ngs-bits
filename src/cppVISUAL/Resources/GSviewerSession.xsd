@@ -84,6 +84,7 @@
 												<xs:enumeration value="BamAlignmentTrack"/>
 												<xs:enumeration value="BamCoverageTrack"/>
 												<xs:enumeration value="IgvTrack"/>
+												<xs:enumeration value="SegTrack"/>
 											</xs:restriction>
 										</xs:simpleType>
 									</xs:attribute>

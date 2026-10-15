@@ -19,6 +19,7 @@
 #include "BedTrack.h"
 #include "FileLoader.h"
 #include "IgvTrack.h"
+#include "SegTrack.h"
 #include "BamAlignmentTrack.h"
 #include "BamCoverageTrack.h"
 #include "BamTrackDataManager.h"
@@ -235,6 +236,162 @@ private slots:
 		group.addTrackWidgets({new BedTrack(nullptr, "", "BED again")});
 		QCOMPARE(group.trackCount(), 1);
 		QVERIFY(message->isHidden());
+	}
+
+	void segRecordsMetadataRenderingAndSession()
+	{
+		writeFile("coverage.seg", "#type=GENE_EXPRESSION\n"
+			"#track graphtype=segment draw_mode=segment name=\"NA12878_58 CNV coverage\" color=0,0,255 altColor=255,0,0 maxHeightPixels=80:80:80 viewLimits=0:2:6 yLineMark=2 yLineOnOff=on\n"
+			"ID\tchr\tstart\tend\tvariance\tvalue\n"
+			"ignored\tchr22\t50\t60\tannotation text\t4.0\n"
+			"ignored\tchr22\t10\t20\t0.1338\t1.0\n");
+		const auto file = FileLoader::loadSegFile(data_.filePath("coverage.seg"));
+		QVERIFY(file);
+		QCOMPARE(file->count(), 2);
+		QCOMPARE((*file)[0].start(), 10);
+		QCOMPARE((*file)[0].end(), 20);
+		QCOMPARE((*file)[0].value(), 1.0);
+		QCOMPARE((*file)[0].annotation(), QByteArray("0.1338"));
+		QCOMPARE((*file)[1].annotation(), QByteArray("annotation text"));
+		ChromosomalIndex<SegFile> index(*file);
+		QCOMPARE(index.matchingIndices(Chromosome("chr22"), 10, 10), QVector<int>({0}));
+		QVERIFY(index.matchingIndices(Chromosome("chr22"), 21, 49).isEmpty());
+
+		auto tracks = FileLoader::loadTracks(data_.filePath("coverage.seg"));
+		QCOMPARE(tracks.size(), 1);
+		QScopedPointer<SegTrack> track(qobject_cast<SegTrack*>(tracks[0]));
+		QVERIFY(track);
+		QCOMPARE(track->displayName(), QString("NA12878_58 CNV coverage"));
+		QCOMPARE(track->parameters().getString("draw mode"), QByteArray("ClinCNV"));
+		QCOMPARE(track->parameters().getDouble("min"), 0.0);
+		QCOMPARE(track->parameters().getDouble("max"), 6.0);
+		QCOMPARE(track->parameters().getDouble("reference"), 2.0);
+		QCOMPARE(track->sizeHint().height(), 80);
+		track->parameters().setString("draw mode", "segment");
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		track->resize(SharedData::settings().label_width + 4 + 160, 80);
+		track->show();
+		const int x0 = SharedData::settings().label_width + 2;
+		const QPoint low(x0 + 20, 64);
+		const QPoint high(x0 + 100, 28);
+		QImage image(track->size(), QImage::Format_ARGB32);
+		track->render(&image);
+		QCOMPARE(image.pixelColor(low), QColor(Qt::red));
+		QCOMPARE(image.pixelColor(high), QColor(Qt::blue));
+		QTest::mouseClick(track.data(), Qt::LeftButton, Qt::NoModifier, low);
+		auto* popup = track->findChild<QDialog*>();
+		QVERIFY(popup);
+		const QString popup_text = popup->findChild<QLabel*>()->text();
+		QVERIFY(popup_text.contains("Region: chr22:10-20"));
+		QVERIFY(popup_text.contains("variance: 0.1338"));
+		QVERIFY(popup_text.contains("Value: 1"));
+		QVERIFY(!popup_text.contains("ignored"));
+		delete popup;
+		QTest::mouseClick(track.data(), Qt::LeftButton, Qt::NoModifier, low + QPoint(0, -20));
+		QVERIFY(!track->findChild<QDialog*>());
+
+		track->parameters().setString("draw mode", "segment");
+		QString xml;
+		QXmlStreamWriter writer(&xml);
+		track->writeToXml(writer);
+		QDomDocument document;
+		QVERIFY(document.setContent(xml));
+		QStringList errors;
+		QScopedPointer<TrackWidget> restored(TrackWidget::fromXml(document.documentElement(), nullptr, errors));
+		QVERIFY(errors.isEmpty());
+		QVERIFY(qobject_cast<SegTrack*>(restored.data()));
+		QCOMPARE(restored->parameters().getString("draw mode"), QByteArray("segment"));
+		QCOMPARE(restored->displayName(), track->displayName());
+		QSignalSpy deleted(track.data(), &TrackWidget::trackDeleted);
+		track->reloadTrack();
+		QCOMPARE(deleted.count(), 0);
+	}
+
+	void segClinCnvColorsAndNegativePopup()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		SegTrack track(nullptr, "", "ClinCNV");
+		track.resize(SharedData::settings().label_width + 4 + 800, 128);
+		const QVector<double> values{1.8, 2.0, 2.2, 1.4, 2.6, 1.0, 3.0, -1.0};
+		QVector<SegFileLine> lines;
+		for (int i = 0; i < values.size(); ++i)
+		{
+			lines.append(SegFileLine(Chromosome("chr22"), 5 + i * 10, 8 + i * 10, "annotation", values[i]));
+		}
+		track.setSegFile(QSharedPointer<SegFile>::create(lines, QByteArrayList{}, "variance"));
+		track.show();
+		QImage image(track.size(), QImage::Format_ARGB32);
+		track.render(&image);
+		const int x0 = SharedData::settings().label_width + 2;
+		const QColor gray(192, 192, 192);
+		const QVector<QColor> colors{gray, gray, gray, QColor(224, 96, 96), QColor(96, 96, 224), Qt::red, Qt::blue, Qt::black};
+		for (int i = 0; i < values.size(); ++i)
+		{
+			const QPoint position(x0 + 55 + i * 100, qRound(124 - std::max(0.0, values[i]) * 20));
+			QCOMPARE(image.pixelColor(position), colors[i]);
+		}
+		QTest::mouseClick(&track, Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 755, 124));
+		auto* popup = track.findChild<QDialog*>();
+		QVERIFY(popup);
+		QVERIFY(popup->findChild<QLabel*>()->text().contains("Value: -1"));
+		delete popup;
+
+		track.parameters().setString("draw mode", "segment");
+		track.render(&image);
+		QCOMPARE(image.pixelColor(x0 + 355, 96), QColor(Qt::red));
+		QCOMPARE(image.pixelColor(x0 + 455, 72), QColor(Qt::blue));
+		QCOMPARE(image.pixelColor(x0 + 755, 124), QColor(Qt::white));
+		QTest::mouseClick(&track, Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 755, 124));
+		QVERIFY(!track.findChild<QDialog*>());
+	}
+
+	void segVarianceStatisticsAndAlpha()
+	{
+		QByteArray contents = "ID\tchr\tstart\tend\tvariance\tvalue\n";
+		QVector<double> variances;
+		for (int i = 0; i < 5; ++i) variances << 9.0 << 10.0 << 11.0;
+		for (double z : {2.5, 3.25, 4.0, 5.0}) variances.append(10.0 + z * 1.482);
+		for (int i = 0; i < variances.size(); ++i)
+		{
+			contents += "ignored\tchr22\t" + QByteArray::number(1 + i * 4) + "\t" + QByteArray::number(3 + i * 4)
+				+ "\t" + QByteArray::number(variances[i], 'g', 15) + "\t3\n";
+		}
+		writeFile("variance.seg", contents);
+		const auto file = FileLoader::loadSegFile(data_.filePath("variance.seg"));
+		QVERIFY(file);
+		QCOMPARE(file->varianceMedian(), 10.0);
+		QCOMPARE(file->varianceMad(), 1.0);
+		QCOMPARE(file->varianceStdev(), 1.482);
+		QCOMPARE(file->varianceAlpha(0), 1.0);
+		QCOMPARE(file->varianceAlpha(10 + 2.5 * 1.482), 1.0);
+		QVERIFY(std::abs(file->varianceAlpha(10 + 3.25 * 1.482) - 0.65) < 1e-10);
+		QVERIFY(std::abs(file->varianceAlpha(10 + 4.0 * 1.482) - 0.3) < 1e-10);
+		QVERIFY(std::abs(file->varianceAlpha(10 + 5.0 * 1.482) - 0.3) < 1e-10);
+
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		SegTrack track(nullptr, "", "Variance");
+		track.setSegFile(file);
+		track.resize(SharedData::settings().label_width + 4 + 800, 128);
+		QImage image(track.size(), QImage::Format_ARGB32);
+		track.render(&image);
+		const int x0 = SharedData::settings().label_width + 2;
+		const QVector<int> expected{0, 89, 178, 178};
+		for (int i = 0; i < expected.size(); ++i)
+		{
+			const QColor color = image.pixelColor(x0 + (15 + i) * 40 + 15, 64);
+			QVERIFY(std::abs(color.red() - expected[i]) <= 1);
+			QCOMPARE(color.red(), color.green());
+			QCOMPARE(color.blue(), 255);
+		}
+		track.parameters().setString("draw mode", "segment");
+		track.render(&image);
+		QCOMPARE(image.pixelColor(x0 + 18 * 40 + 15, 64), QColor(Qt::blue));
+
+		SegFile constant({SegFileLine(Chromosome("chr22"), 1, 2, "1", 3)}, {}, "variance");
+		QCOMPARE(constant.varianceAlpha(1), 1.0);
+		QCOMPARE(constant.varianceAlpha(2), 0.3);
+		SegFile missing({SegFileLine(Chromosome("chr22"), 1, 2, "text", 3)}, {}, "variance");
+		QCOMPARE(missing.varianceAlpha(missing[0].variance()), 1.0);
 	}
 
 	void igvNumericRecordsAndMetadata()
