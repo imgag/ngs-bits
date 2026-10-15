@@ -8,6 +8,7 @@
 #include "SharedData.h"
 #include "GenePanel.h"
 #include "ChromosomePanel.h"
+#include "ChromosomeContextPanel.h"
 #include "NGSHelper.h"
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -53,6 +54,13 @@ class GenomeVisualizationWidget_Test : public QObject
 private:
 	QDir data_{QDir::currentPath() + "/test-data-" + QUuid::createUuid().toString(QUuid::WithoutBraces)};
 
+	static void restoreGlobalSettings(const QList<Parameter>& parameters)
+	{
+		QHash<QByteArray, QVariant> values;
+		for (const Parameter& parameter : parameters) values.insert(parameter.name(), parameter.value());
+		SharedData::parameters().reset(parameters, values);
+	}
+
 	void writeFile(const QString& name, const QByteArray& contents)
 	{
 		QFile file(data_.filePath(name));
@@ -88,6 +96,145 @@ private slots:
 		SharedData::setRegion(Chromosome("chr22"), 1, 80);
 		writeFile("first.bed", "chr22\t10\t20\n");
 		writeFile("second.bed", "chr22\t30\t40\n");
+	}
+
+	void globalSettingsParameters()
+	{
+		const QList<Parameter> original = SharedData::parameters().parameters();
+		const auto restore = qScopeGuard([&]() { restoreGlobalSettings(original); });
+		ParameterList& parameters = SharedData::parameters();
+		const GlobalSettings& fast = SharedData::settings();
+		QCOMPARE(parameters.parameters().size(), 6);
+		QCOMPARE(fast.label_width, 165);
+		QCOMPARE(fast.min_window_size, 41);
+		QCOMPARE(fast.transcript_padding, 2000);
+		QCOMPARE(fast.bam_max_visibility_region, 50000);
+		QCOMPARE(fast.bam_insert_size_lower_percentile, 0.005);
+		QCOMPARE(fast.bam_insert_size_upper_percentile, 0.995);
+		QSignalSpy changes(SharedData::instance(), &SharedData::settingsChanged);
+		const auto connection = connect(SharedData::instance(), &SharedData::settingsChanged, this, [&]()
+		{
+			QCOMPARE(fast.label_width, parameters.getInt("label width"));
+			QCOMPARE(fast.min_window_size, parameters.getInt("min window size"));
+			QCOMPARE(fast.transcript_padding, parameters.getInt("transcript padding"));
+			QCOMPARE(fast.bam_max_visibility_region, parameters.getInt("BAM max visibility region"));
+			QCOMPARE(fast.bam_insert_size_lower_percentile, parameters.getDouble("BAM insert size lower percentile"));
+			QCOMPARE(fast.bam_insert_size_upper_percentile, parameters.getDouble("BAM insert size upper percentile"));
+		});
+		const auto disconnect = qScopeGuard([&]() { QObject::disconnect(connection); });
+		parameters.setInt("label width", 180);
+		parameters.setInt("min window size", 21);
+		parameters.setInt("transcript padding", 0);
+		parameters.setInt("BAM max visibility region", 1000);
+		parameters.setDouble("BAM insert size lower percentile", 0.2);
+		parameters.setDouble("BAM insert size upper percentile", 0.8);
+		QCOMPARE(changes.count(), 6);
+		parameters.setInt("label width", 180);
+		QCOMPARE(changes.count(), 6);
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, parameters.setInt("label width", -1));
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, parameters.setInt("min window size", 0));
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, parameters.setInt("transcript padding", -1));
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, parameters.setInt("BAM max visibility region", 0));
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, parameters.setDouble("BAM insert size lower percentile", -0.1));
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, parameters.setDouble("BAM insert size upper percentile", 1.1));
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, parameters.setDouble("BAM insert size lower percentile", 0.9));
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, parameters.setDouble("BAM insert size upper percentile", 0.1));
+		QCOMPARE(changes.count(), 6);
+		QCOMPARE(fast.bam_insert_size_lower_percentile, 0.2);
+		QCOMPARE(fast.bam_insert_size_upper_percentile, 0.8);
+		parameters.setDouble("BAM insert size lower percentile", 0.0);
+		parameters.setDouble("BAM insert size upper percentile", 1.0);
+		QCOMPARE(fast.bam_insert_size_lower_percentile, 0.0);
+		QCOMPARE(fast.bam_insert_size_upper_percentile, 1.0);
+	}
+
+	void globalSettingsEditor()
+	{
+		const QList<Parameter> original = SharedData::parameters().parameters();
+		const auto restore = qScopeGuard([&]() { restoreGlobalSettings(original); });
+		ParameterEditor editor(SharedData::parameters());
+		editor.show();
+		QSignalSpy changes(SharedData::instance(), &SharedData::settingsChanged);
+		editor.findChild<QLineEdit*>("label width")->setText("180");
+		QCOMPARE(SharedData::settings().label_width, 180);
+		editor.findChild<QLineEdit*>("label width")->setText("-1");
+		QCOMPARE(SharedData::settings().label_width, 180);
+		QVERIFY(!editor.store());
+		editor.findChild<QLineEdit*>("label width")->setText("180");
+		QPointer<QLineEdit> minimum = editor.findChild<QLineEdit*>("BAM insert size lower percentile");
+		minimum->selectAll();
+		QTest::keyClick(minimum, Qt::Key_0);
+		QVERIFY2(minimum, "Changing a bound must not destroy the active input while typing");
+		QTest::keyClicks(minimum, ".2");
+		QCOMPARE(SharedData::settings().bam_insert_size_lower_percentile, 0.2);
+		editor.findChild<QLineEdit*>("BAM insert size upper percentile")->setText("0.1");
+		QCOMPARE(SharedData::settings().bam_insert_size_upper_percentile, 0.995);
+		QVERIFY(!editor.store());
+		editor.findChild<QLineEdit*>("BAM insert size upper percentile")->setText("0.8");
+		QVERIFY(editor.store());
+		QCOMPARE(SharedData::settings().bam_insert_size_upper_percentile, 0.8);
+		QVERIFY(changes.count() >= 3);
+	}
+
+	void globalLabelWidthRepaintsWidgets()
+	{
+		const QList<Parameter> original = SharedData::parameters().parameters();
+		const auto restore = qScopeGuard([&]() { restoreGlobalSettings(original); });
+		class PaintCounter : public QObject
+		{
+		public:
+			QHash<QObject*, int> paints;
+			bool eventFilter(QObject* watched, QEvent* event) override
+			{
+				if (event->type() == QEvent::Paint) ++paints[watched];
+				return false;
+			}
+		} counter;
+		BedTrack bed(nullptr, "", "BED");
+		IgvTrack igv(nullptr, "", "IGV");
+		ChromosomePanel chromosome(nullptr);
+		ChromosomeContextPanel context(nullptr);
+		const QList<QWidget*> widgets{&bed, &igv, &chromosome, &context};
+		for (QWidget* widget : widgets)
+		{
+			widget->installEventFilter(&counter);
+			widget->resize(600, 100);
+			widget->show();
+		}
+		QCoreApplication::processEvents();
+		for (QWidget* widget : widgets) QVERIFY(counter.paints.value(widget) > 0);
+		counter.paints.clear();
+		const int label_width = SharedData::settings().label_width + 50;
+		SharedData::parameters().setInt("label width", label_width);
+		for (QWidget* widget : widgets)
+		{
+			QTRY_VERIFY_WITH_TIMEOUT(counter.paints.value(widget) > 0, 1000);
+			QCOMPARE(widget->size(), QSize(600, 100)); //No resize or region change is needed.
+		}
+		QCOMPARE(bed.minimumSizeHint().width(), label_width + 5);
+		QCOMPARE(igv.minimumSizeHint().width(), label_width + 5);
+	}
+
+	void emptyTrackGroupMessage()
+	{
+		TrackGroup group;
+		group.resize(600, 200);
+		group.show();
+		auto* message = group.findChild<QLabel*>("empty_track_group_message");
+		QVERIFY(message);
+		QVERIFY(message->isVisible());
+		QCOMPARE(message->text(), QString("Empty track group. Drag/drop a track or load a track using the context menu."));
+		QVERIFY(message->testAttribute(Qt::WA_TransparentForMouseEvents));
+		group.addTrackWidgets({new BedTrack(nullptr, "", "BED")});
+		QCOMPARE(group.trackCount(), 1);
+		QVERIFY(message->isHidden());
+		QVERIFY(QMetaObject::invokeMethod(&group, "clearLayout", Qt::DirectConnection));
+		QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+		QCOMPARE(group.trackCount(), 0);
+		QVERIFY(message->isVisible());
+		group.addTrackWidgets({new BedTrack(nullptr, "", "BED again")});
+		QCOMPARE(group.trackCount(), 1);
+		QVERIFY(message->isHidden());
 	}
 
 	void igvNumericRecordsAndMetadata()
@@ -200,11 +347,11 @@ private slots:
 
 	void bamVisibilityRangeIsSharedAndControlsLoading()
 	{
-		const GlobalSettings original_settings = SharedData::settings();
-		const auto restore_settings = qScopeGuard([&]() { SharedData::setSettings(original_settings); });
-		GlobalSettings settings = original_settings;
-		settings.bam_max_region_len = 40;
-		SharedData::setSettings(settings);
+		const QList<Parameter> original_settings = SharedData::parameters().parameters();
+		const auto restore_settings = qScopeGuard([&]() { restoreGlobalSettings(original_settings); });
+		//This fixture uses a 100-base reference, so allow smaller visibility ranges.
+		SharedData::parameters().overrideConstraint("BAM max visibility region", ConstraintType::MIN, 1);
+		SharedData::parameters().setInt("BAM max visibility region", 40);
 		SharedData::setRegion(Chromosome("chr22"), 1, 80);
 		writeFile("visibility.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\nread\t0\tchr22\t10\t60\t10M\t=\t10\t0\tAAAAAAAAAA\tIIIIIIIIII\n");
 		{
@@ -254,8 +401,7 @@ private slots:
 		QCOMPARE(restored->parameters().getInt("visibility range"), 100);
 		QCOMPARE(coverage->parameters().getInt("visibility range"), 100);
 
-		settings.bam_max_region_len = 200;
-		SharedData::setSettings(settings);
+		SharedData::parameters().setInt("BAM max visibility region", 200);
 		QCOMPARE(alignment->parameters().getInt("visibility range"), 100);
 		BamCoverageTrack other(nullptr, "", "other");
 		QCOMPARE(other.parameters().getInt("visibility range"), 200);
@@ -296,7 +442,7 @@ private slots:
 			QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, point);
 			auto* popup = track->findChild<QDialog*>();
 			QVERIFY(popup);
-			QVERIFY(popup->findChild<QLabel*>()->text().contains("<b>" + name + "</b>"));
+			QVERIFY(popup->findChild<QLabel*>()->text().contains("Name: " + name + "<br/>"));
 			delete popup;
 		};
 		for (bool pairs : {false, true})
@@ -400,13 +546,13 @@ private slots:
 					QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, point);
 					auto* popup = track->findChild<QDialog*>();
 					QVERIFY(popup);
-					QVERIFY(popup->findChild<QLabel*>()->text().contains(row == 1 ? "<b>different</b>" : "<b>same</b>"));
+					QVERIFY(popup->findChild<QLabel*>()->text().contains(row == 1 ? "Name: different<br/>" : "Name: same<br/>"));
 					delete popup;
 				}
 				QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 218, same_row * 14 + 6));
 				auto* popup = track->findChild<QDialog*>();
 				QVERIFY(popup);
-				QVERIFY(popup->findChild<QLabel*>()->text().contains("<b>unpaired</b>"));
+				QVERIFY(popup->findChild<QLabel*>()->text().contains("Name: unpaired<br/>"));
 				delete popup;
 			}
 		}
@@ -414,11 +560,9 @@ private slots:
 
 	void bamPairOrientationGroupingAndHitTesting()
 	{
-		const GlobalSettings original = SharedData::settings();
-		const auto restore = qScopeGuard([&]() { SharedData::setSettings(original); });
-		GlobalSettings settings = original;
-		settings.min_window_size = 20;
-		SharedData::setSettings(settings);
+		const QList<Parameter> original = SharedData::parameters().parameters();
+		const auto restore = qScopeGuard([&]() { restoreGlobalSettings(original); });
+		SharedData::parameters().setInt("min window size", 21);
 		SharedData::setRegion(Chromosome("chr22"), 1, 80);
 		const QStringList labels{"FR", "RF", "FF", "RR"};
 		const QList<int> first_flags{99, 83, 67, 115};
@@ -462,7 +606,7 @@ private slots:
 					QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, point);
 					auto* popup = track->findChild<QDialog*>();
 					QVERIFY(popup);
-					QVERIFY(popup->findChild<QLabel*>()->text().contains("<b>" + labels[group] + "</b>"));
+					QVERIFY(popup->findChild<QLabel*>()->text().contains("Name: " + labels[group] + "<br/>"));
 					delete popup;
 				}
 			}
@@ -473,6 +617,98 @@ private slots:
 		data->reload(); // Discard the larger previously cached region.
 		QCOMPARE(data->getAlignments().count(), 4);
 		for (int group = 0; group < 4; ++group) QCOMPARE(data->getAlignments()[group].pairOrientation(), group);
+	}
+
+	void bamAlignmentPopupMetadataCache()
+	{
+		const QByteArray cigar("2H2S3M1I2M1D4M1S1H");
+		QByteArray sam("@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n");
+		const QList<int> flags{0, 256, 2048};
+		for (int i = 0; i < flags.size(); ++i)
+		{
+			sam += "read" + QByteArray::number(i) + "\t" + QByteArray::number(flags[i])
+				+ "\tchr22\t" + QByteArray::number(10 + 20 * i) + "\t60\t" + cigar
+				+ "\t*\t0\t0\t" + QByteArray(13, 'A') + "\t" + QByteArray(13, 'I') + "\n";
+		}
+		writeFile("popup-metadata.sam", sam);
+		BamReader reader(data_.filePath("popup-metadata.sam"));
+		BamAlignment alignment;
+		for (int i = 0; i < flags.size(); ++i)
+		{
+			QVERIFY(reader.getNextAlignment(alignment));
+			BamAlignmentWrapper cached(alignment);
+			QCOMPARE(cached.cigar(), cigar);
+			QCOMPARE(cached.isSecondaryAlignment(), i == 1);
+			QCOMPARE(cached.isSupplementaryAlignment(), i == 2);
+		}
+	}
+
+	void bamSupplementaryAlignmentsAreLoadedAndDisplayed()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		writeFile("supplementary.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n"
+			"read\t65\tchr22\t10\t60\t10M\t=\t40\t40\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:1\n"
+			"read\t2113\tchr22\t10\t60\t10M\t=\t40\t40\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:2\n"
+			"read\t129\tchr22\t40\t60\t10M\t=\t10\t-40\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:1\n");
+		{
+			BamReader reader(data_.filePath("supplementary.sam"));
+			BamWriter writer(data_.filePath("supplementary.bam"));
+			writer.writeHeader(reader);
+			BamAlignment alignment;
+			while (reader.getNextAlignment(alignment)) writer.writeAlignment(alignment);
+		}
+		QCOMPARE(sam_index_build(data_.filePath("supplementary.bam").toUtf8().constData(), 0), 0);
+		QScopedPointer<BamAlignmentTrack> track(BamAlignmentTrack::createTrack(nullptr, data_.filePath("supplementary.bam"), ""));
+		QVERIFY(track);
+		auto data = BamTrackDataManager::getOrCreate(data_.filePath("supplementary.bam"));
+		QCOMPARE(data->getAlignments().count(), 3); //Identical primary/supplementary records remain distinct.
+		QVERIFY(!data->getAlignments()[0].isSupplementaryAlignment());
+		QVERIFY(data->getAlignments()[1].isSupplementaryAlignment());
+		track->parameters().setString("color by", "none");
+		track->resize(SharedData::settings().label_width + 4 + 320, 200);
+		track->show();
+		const int x0 = SharedData::settings().label_width + 2;
+		for (bool pairs : {false, true})
+		{
+			track->parameters().setBool("view as pairs", pairs);
+			for (const QByteArray& group : QByteArrayList{"none", "phase"})
+			{
+				track->parameters().setString("group by", group);
+				for (bool secondary : {false, true})
+				{
+					track->parameters().setBool("show secondary alignments", secondary);
+					const int supplementary_y = (group == "phase" ? 4 : 1) * 14 + 6;
+					QImage image(track->size(), QImage::Format_ARGB32);
+					track->render(&image);
+					QVERIFY(image.pixelColor(x0 + 58, supplementary_y) != QColor(Qt::white));
+					QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 58, supplementary_y));
+					auto* popup = track->findChild<QDialog*>();
+					QVERIFY(popup);
+					const QString supplementary = popup->findChild<QLabel*>()->text();
+					QVERIFY(supplementary.contains("Alignment type: supplementary<br/>"));
+					QVERIFY(supplementary.contains("CIGAR: 10M<br/>"));
+					QVERIFY(!supplementary.contains("<hr>"));
+					delete popup;
+					const int primary_y = (group == "phase" ? 1 : 0) * 14 + 6;
+					QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 178, primary_y));
+					popup = track->findChild<QDialog*>();
+					QVERIFY(popup);
+					const QString primary = popup->findChild<QLabel*>()->text();
+					QVERIFY(!primary.contains("Alignment type:"));
+					QCOMPARE(primary.contains("<hr>"), pairs);
+					delete popup;
+				}
+			}
+		}
+		QScopedPointer<BamCoverageTrack> coverage(BamCoverageTrack::createTrack(nullptr, data_.filePath("supplementary.bam"), ""));
+		QVERIFY(coverage);
+		coverage->resize(SharedData::settings().label_width + 4 + 320, 100);
+		coverage->show();
+		QTest::mouseClick(coverage.get(), Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 58, 5));
+		auto* popup = coverage->findChild<QDialog*>();
+		QVERIFY(popup);
+		QVERIFY(popup->findChild<QLabel*>()->text().contains("Depth: 2"));
+		delete popup;
 	}
 
 	void bamSecondaryAlignmentVisibility()
@@ -519,8 +755,58 @@ private slots:
 					QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, secondary);
 					auto* popup = track->findChild<QDialog*>();
 					QCOMPARE(popup != nullptr, visible);
+					if (popup)
+					{
+						const QString info = popup->findChild<QLabel*>()->text();
+						QVERIFY(info.contains("CIGAR: 10M<br/>"));
+						QVERIFY(info.contains("Alignment type: secondary<br/>"));
+					}
 					delete popup;
 				}
+			}
+		}
+	}
+
+	void bamPairedPopupShowsClickedReadFirst()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		const QByteArray sequence(25, 'A');
+		const QByteArray qualities(25, 'I');
+		writeFile("popup-order.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n"
+			+ QByteArray("pair\t65\tchr22\t10\t60\t20M5S\t=\t20\t30\t") + sequence + "\t" + qualities + "\n"
+			+ "pair\t129\tchr22\t20\t60\t5S20M\t=\t10\t-30\t" + sequence + "\t" + qualities + "\n");
+		{
+			BamReader reader(data_.filePath("popup-order.sam"));
+			BamWriter writer(data_.filePath("popup-order.bam"));
+			writer.writeHeader(reader);
+			BamAlignment alignment;
+			while (reader.getNextAlignment(alignment)) writer.writeAlignment(alignment);
+		}
+		QCOMPARE(sam_index_build(data_.filePath("popup-order.bam").toUtf8().constData(), 0), 0);
+		QScopedPointer<BamAlignmentTrack> track(BamAlignmentTrack::createTrack(nullptr, data_.filePath("popup-order.bam"), ""));
+		QVERIFY(track);
+		track->parameters().setBool("view as pairs", true);
+		track->resize(SharedData::settings().label_width + 4 + 800, 100);
+		track->show();
+		for (bool show_soft_clips : {false, true})
+		{
+			track->parameters().setBool("show soft-clipped bases", show_soft_clips);
+			for (int position : {15, 25, 32, 35})
+			{
+				const int x = SharedData::settings().label_width + 2 + (position - 1) * 10 + 5;
+				QTest::mouseClick(track.get(), Qt::LeftButton, Qt::NoModifier, QPoint(x, 6));
+				auto* popup = track->findChild<QDialog*>();
+				QVERIFY(popup);
+				const QString info = popup->findChild<QLabel*>()->text();
+				const int first = info.indexOf("Region: chr22:10-29 @ MQ 60<br/>");
+				const int second = info.indexOf("Region: chr22:20-39 @ MQ 60<br/>");
+				QVERIFY(first >= 0 && second >= 0);
+				QVERIFY(info.contains("CIGAR: 20M5S<br/>"));
+				QVERIFY(info.contains("CIGAR: 5S20M<br/>"));
+				QVERIFY(!info.contains("Alignment type:"));
+				const bool only_second = position == 35 || (position == 32 && !show_soft_clips);
+				QCOMPARE(second < first, only_second);
+				delete popup;
 			}
 		}
 	}
@@ -572,8 +858,10 @@ private slots:
 					if (popup)
 					{
 						const QString info = popup->findChild<QLabel*>()->text();
-						QVERIFY(info.contains("<b>Mapping quality:</b> 30<br/>"));
-						QCOMPARE(info.contains("<b>Mapping quality:</b> 0<br/>"), pairs && min_mq == 0);
+						QVERIFY(info.contains("Region: chr22:40-49 @ MQ 30<br/>"));
+						QVERIFY(info.contains("Strand: Forward<br/>"));
+						QVERIFY(info.contains("@ MQ 30<br/>"));
+						QCOMPARE(info.contains("@ MQ 0<br/>"), pairs && min_mq == 0);
 					}
 					delete popup;
 				}
@@ -848,24 +1136,19 @@ private slots:
 		QVERIFY(data);
 		QCOMPARE(data->getInsertSizeStats().insert_size_min, 100);
 		QCOMPARE(data->getInsertSizeStats().insert_size_max, 1000);
-		const GlobalSettings original = SharedData::settings();
-		const auto restore = qScopeGuard([&]() { SharedData::setSettings(original); });
-		GlobalSettings settings = original;
-		settings.bam_insert_size_min_percentile = 0.2;
-		settings.bam_insert_size_max_percentile = 0.8;
-		SharedData::setSettings(settings);
+		const QList<Parameter> original = SharedData::parameters().parameters();
+		const auto restore = qScopeGuard([&]() { restoreGlobalSettings(original); });
+		SharedData::parameters().setDouble("BAM insert size lower percentile", 0.2);
+		SharedData::parameters().setDouble("BAM insert size upper percentile", 0.8);
 		QCOMPARE(data->getInsertSizeStats().insert_size_min, 300);
 		QCOMPARE(data->getInsertSizeStats().insert_size_max, 900);
-		settings.bam_insert_size_min_percentile = 0.0;
-		settings.bam_insert_size_max_percentile = 1.0;
-		SharedData::setSettings(settings);
+		SharedData::parameters().setDouble("BAM insert size lower percentile", 0.0);
+		SharedData::parameters().setDouble("BAM insert size upper percentile", 1.0);
 		QCOMPARE(data->getInsertSizeStats().insert_size_min, 100);
 		QCOMPARE(data->getInsertSizeStats().insert_size_max, 1000);
-		settings.bam_insert_size_min_percentile = -0.1;
-		QVERIFY_THROWS_EXCEPTION(ArgumentException, SharedData::setSettings(settings));
-		settings.bam_insert_size_min_percentile = 0.9;
-		settings.bam_insert_size_max_percentile = 0.8;
-		QVERIFY_THROWS_EXCEPTION(ArgumentException, SharedData::setSettings(settings));
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, SharedData::parameters().setDouble("BAM insert size lower percentile", -0.1));
+		SharedData::parameters().setDouble("BAM insert size lower percentile", 0.9);
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, SharedData::parameters().setDouble("BAM insert size upper percentile", 0.8));
 	}
 
 	void regionBookmarks()
@@ -1255,6 +1538,91 @@ private slots:
 		QTRY_COMPARE(scroll.verticalScrollBar()->maximum(), 0);
 	}
 
+	void globalSettingsSessionXml()
+	{
+		const QList<Parameter> original = SharedData::parameters().parameters();
+		const auto restore = qScopeGuard([&]() { restoreGlobalSettings(original); });
+		ParameterList& parameters = SharedData::parameters();
+		parameters.setInt("label width", 225);
+		parameters.setInt("min window size", 61);
+		parameters.setInt("transcript padding", 1234);
+		parameters.setInt("BAM max visibility region", 12000);
+		parameters.setDouble("BAM insert size lower percentile", 0.123456789012345);
+		parameters.setDouble("BAM insert size upper percentile", 0.8);
+		QByteArray xml;
+		QXmlStreamWriter writer(&xml);
+		writer.writeStartElement("GSviewerSession");
+		writer.writeAttribute("version", "1");
+		writer.writeStartElement("General");
+		writer.writeAttribute("gene_panel_height", "100");
+		writer.writeStartElement("DisplayedRegion");
+		writer.writeAttribute("chr", "chr22");
+		writer.writeAttribute("start", "1");
+		writer.writeAttribute("end", "80");
+		writer.writeEndElement();
+		SharedData::writeSettingsToXml(writer);
+		writer.writeEndElement();
+		writer.writeStartElement("TrackGroup");
+		writer.writeAttribute("height", "100");
+		writer.writeEndElement();
+		writer.writeEndElement();
+		writeFile("global-settings.xml", xml);
+		QCOMPARE(XmlHelper::isValidXml(data_.filePath("global-settings.xml"), ":Resources/GSviewerSession.xsd"), QString());
+		QDomDocument doc;
+		QVERIFY(doc.setContent(xml));
+		const auto general = doc.documentElement().firstChildElement("General");
+		QCOMPARE(general.elementsByTagName("Settings").count(), 6);
+		parameters.setInt("label width", 165);
+		parameters.setInt("min window size", 41);
+		parameters.setInt("transcript padding", 2000);
+		parameters.setInt("BAM max visibility region", 50000);
+		parameters.setDouble("BAM insert size upper percentile", 0.95);
+		parameters.setDouble("BAM insert size lower percentile", 0.9);
+		QSignalSpy changes(SharedData::instance(), &SharedData::settingsChanged);
+		SharedData::loadSettingsFromXml(general);
+		QCOMPARE(changes.count(), 1);
+		const QList<Parameter> applied = parameters.parameters();
+		QCOMPARE(SharedData::settings().label_width, 225);
+		QCOMPARE(SharedData::settings().min_window_size, 61);
+		QCOMPARE(SharedData::settings().transcript_padding, 1234);
+		QCOMPARE(SharedData::settings().bam_max_visibility_region, 12000);
+		QCOMPARE(SharedData::settings().bam_insert_size_lower_percentile, 0.123456789012345);
+		QCOMPARE(SharedData::settings().bam_insert_size_upper_percentile, 0.8);
+		for (int invalid_case = 0; invalid_case < 9; ++invalid_case)
+		{
+			auto invalid = doc.cloneNode(true).toDocument();
+			auto settings = invalid.documentElement().firstChildElement("General");
+			auto first = settings.firstChildElement("Settings");
+			if (invalid_case == 0) settings.removeChild(first);
+			if (invalid_case == 1) settings.appendChild(first.cloneNode(true));
+			if (invalid_case == 2) first.setAttribute("name", "unknown");
+			if (invalid_case == 3) first.setAttribute("type", "DOUBLE");
+			if (invalid_case == 4) first.firstChildElement("Value").firstChild().setNodeValue("invalid");
+			if (invalid_case == 5) first.firstChildElement("Value").firstChild().setNodeValue("-1");
+			if (invalid_case == 6) first.removeChild(first.firstChildElement("Value"));
+			if (invalid_case == 7) first.appendChild(first.firstChildElement("Value").cloneNode(true));
+			if (invalid_case == 8)
+			{
+				for (auto item = first; !item.isNull(); item = item.nextSiblingElement("Settings"))
+				{
+					if (item.attribute("name") == "BAM insert size lower percentile") item.firstChildElement("Value").firstChild().setNodeValue("0.9");
+				}
+			}
+			QVERIFY_THROWS_EXCEPTION(ArgumentException, SharedData::loadSettingsFromXml(settings));
+			QCOMPARE(changes.count(), 1);
+			for (const Parameter& parameter : applied) QCOMPARE(parameters.parameter(parameter.name()).value(), parameter.value());
+			QCOMPARE(SharedData::settings().label_width, 225);
+			QCOMPARE(SharedData::settings().bam_insert_size_lower_percentile, 0.123456789012345);
+			QCOMPARE(SharedData::settings().bam_insert_size_upper_percentile, 0.8);
+		}
+		auto legacy = doc.cloneNode(true).toDocument();
+		auto legacy_general = legacy.documentElement().firstChildElement("General");
+		while (!legacy_general.firstChildElement("Settings").isNull()) legacy_general.removeChild(legacy_general.firstChildElement("Settings"));
+		writeFile("missing-global-settings.xml", legacy.toByteArray());
+		QVERIFY(!XmlHelper::isValidXml(data_.filePath("missing-global-settings.xml"), ":Resources/GSviewerSession.xsd").isEmpty());
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, SharedData::loadSettingsFromXml(legacy_general));
+	}
+
 	void sessionRestoresAndScalesTrackHeights()
 	{
 		SharedData::setRegion(Chromosome("chr22"), 1, 80);
@@ -1291,6 +1659,7 @@ private slots:
 		writer.writeAttribute("start", "1");
 		writer.writeAttribute("end", "80");
 		writer.writeEndElement();
+		SharedData::writeSettingsToXml(writer);
 		writer.writeEndElement();
 		source_manager->writeToXml(writer);
 		writer.writeEndElement();
@@ -1395,7 +1764,8 @@ private slots:
 		QCOMPARE(dock->windowTitle(), QString("Track settings"));
 		auto* editor = dock->findChild<ParameterEditor*>();
 		QVERIFY(editor);
-		QCOMPARE(editor->findChild<QLabel*>("title")->text(), "Track: " + first->displayName());
+		QVERIFY(editor->findChild<QLabel*>("name"));
+		QCOMPARE(editor->findChild<QLabel*>("name")->text(), first->displayName());
 		editor->findChild<QComboBox*>("color")->setCurrentText("green");
 		QVERIFY(editor->store());
 		QCOMPARE(first->parameters().getString("color"), QByteArray("green"));
@@ -1403,7 +1773,7 @@ private slots:
 		editor->findChild<QCheckBox*>("auto_apply")->setChecked(true);
 		QTest::mouseClick(second, Qt::LeftButton, Qt::NoModifier, QPoint(2, 2));
 		QCOMPARE(dock->findChild<ParameterEditor*>(), editor);
-		QCOMPARE(editor->findChild<QLabel*>("title")->text(), "Track: " + second->displayName());
+		QCOMPARE(editor->findChild<QLabel*>("name")->text(), second->displayName());
 		QCOMPARE(editor->findChild<QComboBox*>("color")->currentText(), QString("red"));
 		QVERIFY(editor->findChild<QCheckBox*>("auto_apply")->isChecked());
 		editor->findChild<QComboBox*>("color")->setCurrentText("yellow");

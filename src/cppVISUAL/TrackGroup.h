@@ -11,6 +11,8 @@
 #include <QPoint>
 #include <QXmlStreamWriter>
 
+class QLabel;
+
 // A TrackGroup containing TrackWidgets.
 class CPPVISUALSHARED_EXPORT TrackGroup
 	: public QScrollArea
@@ -59,8 +61,10 @@ protected:
 private:
 	QVBoxLayout* layout_;
 	QWidget* content_widget_;
+	QLabel* empty_message_;
 	int session_height_ = 0;
 	void restoreAlignmentHeights();
+	void updateEmptyState();
 
 	void connectTrackSignals(TrackWidget* track);
 	// gives the index of the track on top of which the drop happend

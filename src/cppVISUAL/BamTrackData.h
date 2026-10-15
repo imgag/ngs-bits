@@ -60,6 +60,7 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 	// BamAlignment alignment; // not stored currently because of data duplication
 	QVector<MismatchInfo> mismatches; // cached mismatches
 	QVector<EventData> events;
+	Chromosome chr; //Read chromosome resolved from the BAM header.
 	Chromosome mate_chr; //needs to be set on creation, cannot be taken as argument because bam_reader_->chromosome might fail
 
 	BamAlignmentWrapper(const BamAlignment& aln)
@@ -105,6 +106,8 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 	// Diploid haplotype from HP: 1, 2, or 0 for unassigned.
 	int phase() const { return phase_; }
 	bool isSecondaryAlignment() const { return is_secondary_; }
+	bool isSupplementaryAlignment() const { return is_supplementary_; }
+	const QByteArray& cigar() const { return cigar_; }
 	int mappingQuality() const { return mapping_quality_; }
 
 private:
@@ -120,6 +123,8 @@ private:
 	int insert_size_ = -1;
 	int phase_ = 0;
 	bool is_secondary_ = false;
+	bool is_supplementary_ = false;
+	QByteArray cigar_;
 	int mapping_quality_ = 0;
 	QString name_;
 
@@ -142,6 +147,8 @@ private:
 		const int hp = al.tagi("HP");
 		phase_ = hp == 1 || hp == 2 ? hp : 0;
 		is_secondary_ = al.isSecondaryAlignment();
+		is_supplementary_ = al.isSupplementaryAlignment();
+		cigar_ = al.cigarDataAsString();
 		mapping_quality_ = al.mappingQuality();
 	}
 };
@@ -159,7 +166,7 @@ class CPPVISUALSHARED_EXPORT BamTrackData : public QObject
 public:
 	BamTrackData(QString file_path)
 		: file_path_(file_path)
-		, visibility_range_(SharedData::settings().bam_max_region_len)
+		, visibility_range_(SharedData::settings().bam_max_visibility_region)
 	{
 		connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
 		connect(SharedData::instance(), &SharedData::settingsChanged, this, [this]()

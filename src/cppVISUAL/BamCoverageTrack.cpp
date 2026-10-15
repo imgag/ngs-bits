@@ -10,14 +10,15 @@ static constexpr int SPACING_BELOW = 4;
 BamCoverageTrack::BamCoverageTrack(QWidget* parent, QString file_path, QString name)
 	: TrackWidget(parent, file_path, name, type())
 {
+	initializeSettings(&fast_settings_);
+	storeCoverage();
 	connect(&settings_, &ParameterList::parameterChanged, this, [this]()
 	{
-		if (track_data_) track_data_->setVisibilityRange(settings_.getInt("visibility range"));
+		if (track_data_) track_data_->setVisibilityRange(fast_settings_.visibility_range);
 		storeCoverage();
 		updateGeometry();
 		update();
 	});
-	initializeSettings();
 	connect(SharedData::instance(), &SharedData::settingsChanged, this, [this]()
 	{
 		//Attached BAM data refreshes coverage through onDataUpdate after reloading.
@@ -42,7 +43,7 @@ QList<Parameter> BamCoverageTrack::getParameters() const
 
 QHash<QByteArray, QVariant> BamCoverageTrack::getParameterDefaults() const
 {
-	return {{"visibility range", SharedData::settings().bam_max_region_len}, {"show soft-clipped bases", false}, {"show secondary alignments", true}, {"min MQ", 0}, {"min display AF for SNP", 0.2}, {"track height", 50}};
+	return {{"visibility range", SharedData::settings().bam_max_visibility_region}, {"show soft-clipped bases", false}, {"show secondary alignments", true}, {"min MQ", 0}, {"min display AF for SNP", 0.2}, {"track height", 50}};
 }
 
 BamCoverageTrack::~BamCoverageTrack()
@@ -64,7 +65,7 @@ BamCoverageTrack* BamCoverageTrack::createTrack(QWidget* parent, QString file_pa
 QSize BamCoverageTrack::sizeHint() const
 {
 	return QSize(parentWidget() ? parentWidget()->width() : 200,
-				 settings_.getInt("track height") + SPACING_BELOW);
+				 fast_settings_.track_height + SPACING_BELOW);
 }
 
 void BamCoverageTrack::setTrackData(QSharedPointer<BamTrackData> track_data)
@@ -93,15 +94,10 @@ void BamCoverageTrack::dataReady()
 void BamCoverageTrack::storeCoverage()
 {
 	max_coverage_ = 10;
-	const int max_region_len = settings_.getInt("visibility range");
-	const double snp_min_af = settings_.getDouble("min display AF for SNP");
-	const bool show_soft_clipped_bases = settings_.getBool("show soft-clipped bases");
-	const bool show_secondary_alignments = settings_.getBool("show secondary alignments");
-	const int min_mq = settings_.getInt("min MQ");
 	coverage_.clear();
 
 	const BedLine& region = SharedData::region();
-	if (region.length() > max_region_len) return;
+	if (region.length() > fast_settings_.visibility_range) return;
 	coverage_.fill(BaseCoverage(), region.length());
 	if (!track_data_) return;
 
@@ -112,16 +108,16 @@ void BamCoverageTrack::storeCoverage()
 	//store coverage
 	for (const auto& al : aligns)
 	{
-		if (!show_secondary_alignments && al.isSecondaryAlignment()) continue;
-		if (al.mappingQuality() < min_mq) continue;
+		if (!fast_settings_.show_secondary_alignments && al.isSecondaryAlignment()) continue;
+		if (al.mappingQuality() < fast_settings_.min_mq) continue;
 
-		if ((show_soft_clipped_bases ? al.endWithSoftClip() : al.end()) < region.start()) continue;
-		if ((show_soft_clipped_bases ? al.startWithSoftClip() : al.start()) > region.end()) continue;
+		if ((fast_settings_.show_soft_clipped_bases ? al.endWithSoftClip() : al.end()) < region.start()) continue;
+		if ((fast_settings_.show_soft_clipped_bases ? al.startWithSoftClip() : al.start()) > region.end()) continue;
 
 		foreach (const auto& data, al.getEvents())
 		{
 			int base_idx = data.genome_pos - region.start();
-			if (data.event == BamAlignmentWrapper::MATCH || (show_soft_clipped_bases && data.event == BamAlignmentWrapper::SOFT_CLIP))
+			if (data.event == BamAlignmentWrapper::MATCH || (fast_settings_.show_soft_clipped_bases && data.event == BamAlignmentWrapper::SOFT_CLIP))
 			{
 				for (int i =0; i < data.length; ++i)
 				{
@@ -187,7 +183,7 @@ void BamCoverageTrack::storeCoverage()
 			case 'T': case 't': base_count = cov.t(); break;
 		}
 		if (total_count == 0) cov.is_variant = false;
-		else cov.is_variant = (((double)base_count / total_count) < (1.0 - snp_min_af));
+		else cov.is_variant = (((double)base_count / total_count) < (1.0 - fast_settings_.min_display_af_for_snp));
 	}
 }
 
@@ -197,8 +193,7 @@ void BamCoverageTrack::paintEvent(QPaintEvent*)
 	painter.fillRect(rect(), Qt::white);
 	const BedLine& region = SharedData::region();
 	drawLabel(painter);
-	int max_region_length = settings_.getInt("visibility range");
-	if (region.length() > max_region_length) drawZoomInText(painter);
+	if (region.length() > fast_settings_.visibility_range) drawZoomInText(painter);
 	else
 	{
 		drawCoverage(painter);
@@ -312,7 +307,7 @@ QString BamCoverageTrack::getCoverageText(const BaseCoverage& cov, int coverage_
 
 	// Helper struct
 	struct BaseInfo {
-		char symbol;
+		char base;
 		int count;
 		int fwd;
 		int rev;
@@ -326,11 +321,12 @@ QString BamCoverageTrack::getCoverageText(const BaseCoverage& cov, int coverage_
 		{'N', cov.n(), cov.forward_n, cov.reverse_n}
 	};
 
-	for (const auto& b : bases) {
+	for (const auto& b : bases)
+	{
 		int total = cov.total();
 		int percent = (total > 0) ? static_cast<int>(100.0 * b.count / total) : 0;
 		info += QString("%1: %2 (%3%, %4+, %5-)\n")
-					.arg(b.symbol)
+					.arg(b.base)
 					.arg(b.count)
 					.arg(percent)
 					.arg(b.fwd)
@@ -369,8 +365,7 @@ void BamCoverageTrack::mousePressEvent(QMouseEvent* event)
 bool BamCoverageTrack::isCurrentRegionValid()
 {
 	const BedLine& region = SharedData::region();
-	int max_region_len = settings_.getInt("visibility range");
-	return (region.length() <= max_region_len);
+	return (region.length() <= fast_settings_.visibility_range);
 }
 
 void BamCoverageTrack::mouseReleaseEvent(QMouseEvent* event)

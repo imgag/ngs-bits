@@ -17,6 +17,8 @@ public:
 
 private slots:
 	void delayedInitialization();
+	void showSettings();
+	void openDocumentation();
 	void showAboutDialog();
 	void addNRegions();
 

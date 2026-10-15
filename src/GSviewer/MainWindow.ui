@@ -67,6 +67,9 @@
     <property name="title">
      <string>Help</string>
     </property>
+    <addaction name="actionSettings"/>
+    <addaction name="separator"/>
+    <addaction name="actionOpen_documentation"/>
     <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuSession">
@@ -134,6 +137,16 @@
   <action name="actionAddNRegions">
    <property name="text">
     <string>Add N regions BED track</string>
+   </property>
+  </action>
+  <action name="actionOpen_documentation">
+   <property name="text">
+    <string>Open documentation</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
    </property>
   </action>
  </widget>

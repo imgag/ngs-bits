@@ -3,6 +3,7 @@
 #include "GffData.h"
 #include "SharedData.h"
 #include "AboutDialog.h"
+#include "ParameterEditor.h"
 #include "htslib/hts.h"
 #include "GenomeVisualizationWidget.h"
 #include "FileLoader.h"
@@ -13,6 +14,11 @@
 #include <QStandardPaths>
 #include <QApplication>
 #include <QProgressDialog>
+#include <QDesktopServices>
+#include <QUrl>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QVBoxLayout>
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -28,6 +34,8 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.actionClearSession, &QAction::triggered, ui_.gvw, &GenomeVisualizationWidget::clearSession);
 	connect(ui_.actionStore_session, &QAction::triggered, ui_.gvw, &GenomeVisualizationWidget::saveSession);
 	connect(ui_.actionLoadSession, &QAction::triggered, ui_.gvw, &GenomeVisualizationWidget::loadSession);
+	connect(ui_.actionOpen_documentation, &QAction::triggered, this, &MainWindow::openDocumentation);
+	connect(ui_.actionSettings, &QAction::triggered, this, &MainWindow::showSettings);
 	connect(ui_.actionAbout, &QAction::triggered, this, &MainWindow::showAboutDialog);
 	connect(ui_.actionExit, &QAction::triggered, this, &MainWindow::close);
 	connect(ui_.actionAddNRegions, &QAction::triggered, this, &MainWindow::addNRegions);
@@ -127,6 +135,25 @@ void MainWindow::addNRegions()
 	{
 		QMessageBox::warning(this, "Add N regions", e.message());
 	}
+}
+
+void MainWindow::showSettings()
+{
+	QDialog dialog(this);
+	dialog.setWindowTitle("Global settings");
+	dialog.setMinimumSize(300, 330);
+	QVBoxLayout* layout = new QVBoxLayout(&dialog);
+	layout->setContentsMargins(QMargins(3,3,3,3));
+	layout->setSpacing(3);
+	ParameterEditor* editor = new ParameterEditor(SharedData::parameters(), &dialog);
+	editor->disableAutoApply();
+	layout->addWidget(editor);
+	dialog.exec();
+}
+
+void MainWindow::openDocumentation()
+{
+	QDesktopServices::openUrl(QUrl("https://github.com/imgag/ngs-bits/blob/master/doc/GSviewer/index.md"));
 }
 
 void MainWindow::showAboutDialog()

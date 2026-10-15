@@ -15,6 +15,7 @@ AlignmentKey AlignmentKey::makeKey(const BamAlignment& al)
 	h1 ^= ((uint64_t)al.start() << 1);
 	h1 ^= ((uint64_t)al.isReverseStrand() << 32);
 	h1 ^= ((uint64_t)al.isSecondaryAlignment() << 33);
+	h1 ^= ((uint64_t)al.isSupplementaryAlignment() << 34);
 
 	uint64_t h2 = qHashBits(cigar.data(), cigar.size());
 
@@ -197,10 +198,11 @@ void BamTrackData::fetchRegion(const BedLine& region, QVector<BamAlignmentWrappe
 	BamAlignment al;
 	while (bam_reader_->getNextAlignment(al))
 	{
-		if (al.isUnmapped() || al.isDuplicate() || al.isSupplementaryAlignment()) continue;
+		if (al.isUnmapped() || al.isDuplicate()) continue;
 
 		BamAlignmentWrapper wrapped_alignment(al);
 		if (loaded_ids_.contains(wrapped_alignment.id)) continue;
+		wrapped_alignment.chr = bam_reader_->chromosome(al.chromosomeID());
 		// A negative mate chromosome ID means that no mate location is available.
 		if (al.mateChrosomeID() >= 0)
 		{
@@ -282,8 +284,8 @@ void BamTrackData::computeInsertSizeStats()
 	std::sort(sizes.begin(), sizes.end());
 	int n = sizes.size();
 	const GlobalSettings& settings = SharedData::settings();
-	insert_size_stats_.insert_size_min = sizes[std::min(n - 1, (int)(n * settings.bam_insert_size_min_percentile))];
-	insert_size_stats_.insert_size_max = sizes[std::min(n - 1, (int)(n * settings.bam_insert_size_max_percentile))];
+	insert_size_stats_.insert_size_min = sizes[std::min(n - 1, (int)(n * settings.bam_insert_size_lower_percentile))];
+	insert_size_stats_.insert_size_max = sizes[std::min(n - 1, (int)(n * settings.bam_insert_size_upper_percentile))];
 }
 
 void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Sequence& ref_seq, int ref_start)

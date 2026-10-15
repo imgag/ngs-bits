@@ -6,24 +6,29 @@
 #include "FastaFileIndex.h"
 #include "ChromosomalIndex.h"
 #include "BedFile.h"
+#include "ParameterList.h"
 
 #include <QXmlStreamWriter>
 #include <QDomDocument>
 
-//Helper struct for globally used settings
-struct CPPVISUALSHARED_EXPORT GlobalSettings
+//Fast read-only parameters access; populated and maintained by ParameterList::link().
+struct CPPVISUALSHARED_EXPORT GlobalSettings : public QObject
 {
-	//Width of the label area on the left of tracks and genomic overview widgets
-	int label_width  = 165;
-	//Minimum number of bases to show
-	int min_window_size = 41;
-	//How many bases genes/transcripts are padded with, e.g. after search
-	int transcript_padding = 2000;
-	//Initial visibility range for new BAM alignment and coverage tracks.
-	int bam_max_region_len = 50000;
-	//Insert-size percentile fractions used for alignment coloring (0..1).
-	double bam_insert_size_min_percentile = 0.005;
-	double bam_insert_size_max_percentile = 0.995;
+	Q_OBJECT
+	Q_PROPERTY(int label_width MEMBER label_width)
+	Q_PROPERTY(int min_window_size MEMBER min_window_size)
+	Q_PROPERTY(int transcript_padding MEMBER transcript_padding)
+	Q_PROPERTY(int bam_max_visibility_region MEMBER bam_max_visibility_region)
+	Q_PROPERTY(double bam_insert_size_lower_percentile MEMBER bam_insert_size_lower_percentile)
+	Q_PROPERTY(double bam_insert_size_upper_percentile MEMBER bam_insert_size_upper_percentile)
+
+public:
+	int label_width{};
+	int min_window_size{};
+	int transcript_padding{};
+	int bam_max_visibility_region{};
+	double bam_insert_size_lower_percentile{};
+	double bam_insert_size_upper_percentile{};
 };
 
 //Singleton for data shared by all widgets for visualization.
@@ -54,12 +59,19 @@ public:
 		return  instance()->transcripts_index_.matchingIndices(chr, start, end);
 	}
 
-	//Return the global settings
+	//Returns editable global parameters. Changes synchronize the fast settings and emit settingsChanged.
+	static ParameterList& parameters() { return instance()->settings_; }
+
+	//Returns fast read-only access to global settings
 	static const GlobalSettings& settings()
 	{
-		return  instance()->settings_;
+		return instance()->fast_settings_;
 	}
-	static void setSettings(const GlobalSettings& settings);
+
+	//Writes one Settings element per global parameter, inside the General element.
+	static void writeSettingsToXml(QXmlStreamWriter& writer);
+	//Requires all global settings and applies them atomically after validation.
+	static void loadSettingsFromXml(const QDomElement& general);
 
 	//Return the currently displayed region
 	static const BedLine& region()
@@ -88,8 +100,14 @@ protected:
 	FastaFileIndex genome_index_;
 	TranscriptList transcripts_;
 	ChromosomalIndex<TranscriptList> transcripts_index_;
-	GlobalSettings settings_;
+	ParameterList settings_;
+	GlobalSettings fast_settings_;
 	BedLine region_;
+
+private:
+	static QList<Parameter> getParameters();
+	static QHash<QByteArray, QVariant> getParameterDefaults();
+	void updateSettingsConstraints();
 };
 
 

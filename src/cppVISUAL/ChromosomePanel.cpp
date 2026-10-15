@@ -14,6 +14,7 @@ ChromosomePanel::ChromosomePanel(QWidget* parent)
 	: QWidget(parent)
 {
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
+	connect(SharedData::instance(), &SharedData::settingsChanged, this, &ChromosomePanel::updateRegion);
 	connect(SharedData::instance(), &SharedData::bookmarksChanged, this, &ChromosomePanel::updateRegion);
 }
 

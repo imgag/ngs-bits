@@ -1,6 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Mit XMLSpy v2022 rel. 2 (x64) (http://www.altova.com) von Marc Sturm (Universitätsklinikum Tübingen) bearbeitet -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning" elementFormDefault="qualified" attributeFormDefault="unqualified" vc:minVersion="1.1">
+	<xs:complexType name="SettingsType">
+		<xs:sequence>
+			<xs:element name="Value" type="xs:string" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Exactly one value for scalar types; zero or more values for STRINGLIST. Scalar cardinality is checked when loading.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+		<xs:attribute name="name" use="required">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:minLength value="1"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+		<xs:attribute name="type" use="required">
+			<xs:simpleType>
+				<xs:restriction base="xs:string">
+					<xs:enumeration value="INT"/>
+					<xs:enumeration value="DOUBLE"/>
+					<xs:enumeration value="BOOL"/>
+					<xs:enumeration value="STRING"/>
+					<xs:enumeration value="STRINGLIST"/>
+				</xs:restriction>
+			</xs:simpleType>
+		</xs:attribute>
+	</xs:complexType>
 	<xs:element name="GSviewerSession">
 		<xs:annotation>
 			<xs:documentation>A session of GSviewer</xs:documentation>
@@ -27,6 +54,7 @@
 									<xs:attribute name="end" type="xs:int" use="required"/>
 								</xs:complexType>
 							</xs:element>
+							<xs:element name="Settings" type="SettingsType" maxOccurs="unbounded"/>
 						</xs:sequence>
 						<xs:attribute name="gene_panel_height" type="xs:positiveInteger" use="required"/>
 					</xs:complexType>
@@ -43,38 +71,7 @@
 								</xs:annotation>
 								<xs:complexType>
 									<xs:sequence>
-										<xs:element name="Settings" minOccurs="0" maxOccurs="unbounded">
-											<xs:annotation>
-												<xs:documentation>Track settings</xs:documentation>
-											</xs:annotation>
-											<xs:complexType>
-												<xs:sequence>
-													<xs:element name="Value" type="xs:string" minOccurs="0" maxOccurs="unbounded">
-														<xs:annotation>
-															<xs:documentation>Exactly one value for scalar types; zero or more values for STRINGLIST. Scalar cardinality is checked when loading.</xs:documentation>
-														</xs:annotation>
-													</xs:element>
-												</xs:sequence>
-												<xs:attribute name="name" use="required">
-													<xs:simpleType>
-														<xs:restriction base="xs:string">
-															<xs:minLength value="1"/>
-														</xs:restriction>
-													</xs:simpleType>
-												</xs:attribute>
-												<xs:attribute name="type" use="required">
-													<xs:simpleType>
-														<xs:restriction base="xs:string">
-															<xs:enumeration value="INT"/>
-															<xs:enumeration value="DOUBLE"/>
-															<xs:enumeration value="BOOL"/>
-															<xs:enumeration value="STRING"/>
-															<xs:enumeration value="STRINGLIST"/>
-														</xs:restriction>
-													</xs:simpleType>
-												</xs:attribute>
-											</xs:complexType>
-										</xs:element>
+										<xs:element name="Settings" type="SettingsType" minOccurs="0" maxOccurs="unbounded"/>
 									</xs:sequence>
 									<xs:attribute name="height" type="xs:positiveInteger" use="required"/>
 									<xs:attribute name="type" use="required">

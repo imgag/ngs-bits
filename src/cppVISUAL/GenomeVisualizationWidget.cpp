@@ -163,7 +163,7 @@ void GenomeVisualizationWidget::selectTrack(TrackWidget* track)
 		ui_->settings_layout->addWidget(parameter_editor_);
 	}
 	ui_->settings_placeholder->hide();
-	parameter_editor_->setTitle("Track: " + track->displayName());
+	parameter_editor_->setName(track->displayName());
 	selected_track_destroyed_ = connect(track, &QObject::destroyed, this, &GenomeVisualizationWidget::clearParameterEditor);
 }
 
@@ -447,6 +447,7 @@ void GenomeVisualizationWidget::saveSession()
 	writer.writeAttribute("end", QString::number(region.end()));
 	writer.writeEndElement();  // DisplayRegion
 
+	SharedData::writeSettingsToXml(writer);
 	writer.writeEndElement(); // General
 	ui_->track_group_manager->writeToXml(writer);
 	writer.writeEndElement(); // GSViewerSession
@@ -478,14 +479,23 @@ void GenomeVisualizationWidget::loadSession()
 		return;
 	}
 
-	//clear TrackGroups
-	clearParameterEditor();
-	ui_->track_group_manager->removeAll();
-
 	//load session
 	QDomDocument doc = XmlHelper::load(file_path);
 	QDomElement root = doc.documentElement(); //GSviewerSession
 	QDomElement general = root.elementsByTagName("General").at(0).toElement();
+	try
+	{
+		SharedData::loadSettingsFromXml(general);
+	}
+	catch (const Exception& e)
+	{
+		QMessageBox::warning(this, title, "Invalid global settings: " + e.message());
+		return;
+	}
+
+	//Apply global settings before restoring the region and creating tracks.
+	clearParameterEditor();
+	ui_->track_group_manager->removeAll();
 	QDomElement region_info = general.elementsByTagName("DisplayedRegion").at(0).toElement();
 	QString chr = region_info.attribute("chr");
 	int start = region_info.attribute("start").toInt();

@@ -60,7 +60,7 @@ protected:
 	virtual QList<Parameter> getParameters() const { return {}; }
 	virtual QHash<QByteArray, QVariant> getParameterDefaults() const { return {}; }
 	//Call in the derived constructor body, where virtual dispatch reaches its overrides.
-	void initializeSettings();
+	void initializeSettings(QObject* fast_access_struct);
 
 	bool event(QEvent* event) override;
 	void mousePressEvent(QMouseEvent* event) override;

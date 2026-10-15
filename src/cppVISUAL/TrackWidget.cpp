@@ -25,11 +25,13 @@ TrackWidget::TrackWidget(QWidget* parent, QString file_path, QString display_nam
 	, display_name_(display_name)
 	, type_(type)
 {
+	connect(SharedData::instance(), &SharedData::settingsChanged, this, &TrackWidget::regionChanged);
 }
 
-void TrackWidget::initializeSettings()
+void TrackWidget::initializeSettings(QObject* fast_access_struct)
 {
 	settings_.reset(getParameters(), getParameterDefaults());
+	settings_.link(fast_access_struct);
 }
 
 QSize TrackWidget::minimumSizeHint() const

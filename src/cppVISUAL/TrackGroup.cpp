@@ -11,12 +11,14 @@
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QInputDialog>
+#include <QLabel>
 
 
 TrackGroup::TrackGroup(QWidget* parent)
 	: QScrollArea(parent)
 	, layout_(new QVBoxLayout(this))
 	, content_widget_(new QWidget(this))
+	, empty_message_(new QLabel(viewport()))
 {
 	//Override QScrollArea's default minimum height for splitter resizing.
 	setMinimumHeight(25);
@@ -39,6 +41,19 @@ TrackGroup::TrackGroup(QWidget* parent)
 
 	layout_->addStretch(1);
 	layout_->setContentsMargins(0, 0, 0, 0);
+	empty_message_->setObjectName("empty_track_group_message");
+	empty_message_->setText("Empty track group. Drag/drop a track or load a track using the context menu.");
+	empty_message_->setAlignment(Qt::AlignCenter);
+	empty_message_->setWordWrap(true);
+	empty_message_->setAttribute(Qt::WA_TransparentForMouseEvents);
+	updateEmptyState();
+}
+
+void TrackGroup::updateEmptyState()
+{
+	empty_message_->setGeometry(viewport()->rect().adjusted(12, 8, -12, -8));
+	empty_message_->setVisible(layout_->count() == 1);
+	empty_message_->raise();
 }
 
 void TrackGroup::trackDeleted()
@@ -50,6 +65,7 @@ void TrackGroup::trackDeleted()
 		layout_->update();
 	}
 
+	updateEmptyState();
 	if (layout_->count() == 1) deleteLater();
 }
 
@@ -64,6 +80,7 @@ void TrackGroup::trackMoved()
 		layout_->removeWidget(senderWidget);
 		layout_->update();
 
+		updateEmptyState();
 		if (layout_->count() == 1) deleteLater();
 	}
 }
@@ -84,6 +101,7 @@ void TrackGroup::addTrackWidgets(QVector<TrackWidget*> widgets)
 		layout_->insertWidget(layout_->count() - 1, widget);
 		layout_->update();
 	}
+	updateEmptyState();
 }
 
 void TrackGroup::loadTracksFromFile()
@@ -165,11 +183,14 @@ void TrackGroup::contextMenu(QPoint pos)
 
 void TrackGroup::clearLayout()
 {
-	while (QLayoutItem* item = layout_->takeAt(0))
+	//Keep the trailing stretch so tracks can be added again after clearing.
+	while (layout_->count() > 1)
 	{
+		QLayoutItem* item = layout_->takeAt(0);
 		if (QWidget* widget = item->widget()) widget->deleteLater();
 		delete item;
 	}
+	updateEmptyState();
 }
 
 void TrackGroup::clearLayoutAndDelete()
@@ -241,6 +262,7 @@ void TrackGroup::dropEvent(QDropEvent* event)
 	// this changes the parent of the source track
 	layout_->insertWidget(drop_index, track);
 	layout_->update();
+	updateEmptyState();
 
 	event->acceptProposedAction();
 }
@@ -291,6 +313,7 @@ int TrackGroup::alignmentSessionHeight() const
 void TrackGroup::resizeEvent(QResizeEvent* event)
 {
 	QScrollArea::resizeEvent(event);
+	updateEmptyState();
 	restoreAlignmentHeights();
 }
 
