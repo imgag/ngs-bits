@@ -32,6 +32,8 @@ public:
 	static HttpResponse prolongUrl(const HttpRequest& request);
 	/// Returns the location of the processed sample
     static HttpResponse getProcessedSamplePath(const HttpRequest& request);
+	/// Returns a JSON list of files inside a specific processed sample folder
+	static HttpResponse getProcessedSampleFiles(const HttpRequest& request);
 	/// Checks every processed sample folder inside the given project folder: if a processed sample has any files (needed to handle project folder change)
 	static HttpResponse checkProjectFolder(const HttpRequest& request);
 	/// Reads the server configuration and returns a list of locations for all exisitng project types (diagnostic, test, external, research)
