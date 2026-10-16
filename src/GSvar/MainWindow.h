@@ -174,6 +174,7 @@ public slots:
 	void on_actionMaintenance_triggered();
 	void on_actionNotifyUsers_triggered();
 	void on_actionDetermineProxy_triggered();
+	void on_actionCheckBamAccess_triggered();
 	void on_actionAnalysisTimePlot_triggered();
 
     ///Gender determination

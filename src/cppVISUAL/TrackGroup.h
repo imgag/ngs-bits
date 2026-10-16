@@ -11,6 +11,8 @@
 #include <QPoint>
 #include <QXmlStreamWriter>
 
+class QLabel;
+
 // A TrackGroup containing TrackWidgets.
 class CPPVISUALSHARED_EXPORT TrackGroup
 	: public QScrollArea
@@ -30,11 +32,16 @@ public:
 	static TrackGroup* fromFile(QString filename);
 	//returns the number of tracks
 	int trackCount();
+	//Saved alignment heights determine how additional viewport space is shared.
+	int alignmentSessionHeight() const;
+	//Adds tracks and connects their signals to this group.
+	void addTrackWidgets(QVector<TrackWidget*> widgets);
 
 signals:
 	void addTrackGroupAbove();
 	void addTrackGroupBelow();
 	void trackSelected(TrackWidget* track);
+	void settingsRequested(TrackWidget* track);
 
 public slots:
 	// sent by the track that was deleted, deletes TrackGroup if there are no tracks remaining inside
@@ -44,6 +51,7 @@ public slots:
 	void contextMenu(QPoint);
 
 protected:
+	void resizeEvent(QResizeEvent* event) override;
 	void dragEnterEvent(QDragEnterEvent*) override;
 	// check which TrackWidget sent the event, moves that TrackWidget into this TrackGroup
 	void dropEvent(QDropEvent*) override;
@@ -53,9 +61,11 @@ protected:
 private:
 	QVBoxLayout* layout_;
 	QWidget* content_widget_;
+	QLabel* empty_message_;
+	int session_height_ = 0;
+	void restoreAlignmentHeights();
+	void updateEmptyState();
 
-	// adds track widgets to TrackGroup, called by loadTracksFromFile or the static function fromFile
-	void addTrackWidgets(QVector<TrackWidget*> widgets);
 	void connectTrackSignals(TrackWidget* track);
 	// gives the index of the track on top of which the drop happend
 	inline int getDropIndex(int y);

@@ -5064,6 +5064,31 @@ void MainWindow::on_actionDetermineProxy_triggered()
 	QMessageBox::information(this, "Determine proxy for URL", "For the URL '" + url + "' the follwing proxies are used:\n" + proxies.join('\n'));
 }
 
+void MainWindow::on_actionCheckBamAccess_triggered()
+{
+	QString bam_file_url = ClientHelper::serverApiUrl()+"/assets/rna.bam";
+	try
+	{
+		BamReader reader(bam_file_url);
+		reader.setRegion("chr1", 998754, 998774);
+		BamAlignment alignment;
+		if (reader.chromosomeSize("chr1")!=248956422) THROW(Exception, "Wrong chromosome size in the header");
+		if (!reader.getNextAlignment(alignment)) THROW(FileAccessException, "Could not read the next alignment");
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::critical(this, "Failed BAM check", "Could not access the BAM file '"+bam_file_url+"': " + e.message());
+		return;
+	}
+	catch (...)
+	{
+		QMessageBox::critical(this, "Failed BAM check", "Could not access the BAM file '"+bam_file_url+"'!");
+		return;
+	}
+
+	QMessageBox::information(this, "Successful BAM check", "BAM file '"+bam_file_url+"' has been accessed and is readable!");
+}
+
 void MainWindow::on_actionAnalysisTimePlot_triggered()
 {
 	AnalysisTimePlot* widget = new AnalysisTimePlot(this);

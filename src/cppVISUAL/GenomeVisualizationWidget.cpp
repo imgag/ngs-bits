@@ -7,6 +7,7 @@
 #include "Settings.h"
 #include "ParameterEditor.h"
 #include "BookmarkManager.h"
+#include "BedTrack.h"
 #include <QToolTip>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -16,6 +17,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLineEdit>
+#include <QScopedPointer>
 
 GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	: QWidget(parent)
@@ -27,6 +29,11 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 	ui_->dock_window->setWindowFlags(Qt::Widget);
 	ui_->settings_dock->hide();
 	connect(ui_->track_group_manager, &TrackGroupManager::trackSelected, this, &GenomeVisualizationWidget::selectTrack);
+	connect(ui_->track_group_manager, &TrackGroupManager::settingsRequested, this, [this](TrackWidget* track)
+	{
+		selectTrack(track);
+		ui_->settings_dock->show();
+	});
 	connect(ui_->settings_btn, &QToolButton::clicked, this, &GenomeVisualizationWidget::toggleSettingsVisibility);
 	connect(ui_->settings_dock, &QDockWidget::visibilityChanged, this, [this](bool visible)
 	{
@@ -61,7 +68,7 @@ void GenomeVisualizationWidget::setupDebugButton()
 	QMenu* debug_menu = new QMenu(ui_->debug_btn);
 
 	//add goto entries
-	for (const QString& query : QStringList{"CHEK2", "BRCA1", "BRCA2"})
+	for (const QString& query : QStringList{"CHEK2", "BRCA1", "BRCA2", "FOXG1", "PMS2"})
 	{
 		QAction* action = debug_menu->addAction("goto " + query);
 		connect(action, &QAction::triggered, this, [this, query]()
@@ -122,10 +129,11 @@ void GenomeVisualizationWidget::storeBookmark()
 	dialog.setTextValue(region.toString(true));
 	dialog.findChild<QLineEdit*>()->selectAll();
 	if (dialog.exec() != QDialog::Accepted || dialog.textValue().trimmed().isEmpty()) return;
-	const QJsonObject bookmark{{"name", dialog.textValue().trimmed()}, {"chr", QString::fromUtf8(region.chr().strNormalized(true))}, {"start", region.start()}, {"end", region.end()}};
+	const QJsonObject bookmark{{"name", dialog.textValue().trimmed()}, {"chr", QString::fromUtf8(region.chr().strNormalized(true))}, {"start", region.start()}, {"end", region.end()}, {"show_in_chromosome_view", false}};
 	QStringList bookmarks = Settings::stringList("bookmark_regions", true);
 	bookmarks.append(QString::fromUtf8(QJsonDocument(bookmark).toJson(QJsonDocument::Compact)));
 	Settings::setStringList("bookmark_regions", bookmarks);
+	emit SharedData::instance()->bookmarksChanged();
 }
 
 GenomeVisualizationWidget::~GenomeVisualizationWidget()
@@ -155,7 +163,7 @@ void GenomeVisualizationWidget::selectTrack(TrackWidget* track)
 		ui_->settings_layout->addWidget(parameter_editor_);
 	}
 	ui_->settings_placeholder->hide();
-	parameter_editor_->setTitle("Track: " + track->displayName());
+	parameter_editor_->setName(track->displayName());
 	selected_track_destroyed_ = connect(track, &QObject::destroyed, this, &GenomeVisualizationWidget::clearParameterEditor);
 }
 
@@ -168,7 +176,7 @@ void GenomeVisualizationWidget::delayedInitialization()
 void GenomeVisualizationWidget::openFileDialog()
 {
 	QString open_folder = Settings::path("load_store_file_folder", true);
-	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", open_folder, "NGS files(*.bam *.cram *.bed *.igv);;All files(*.*)");
+	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", open_folder, "NGS files(*.bam *.cram *.bed *.igv *.seg);;All files(*.*)");
 	if (!files.isEmpty())
 	{
 		foreach(QString file, files)
@@ -199,6 +207,13 @@ void GenomeVisualizationWidget::openUrlDialog()
 void GenomeVisualizationWidget::loadFile(QString filename)
 {
 	ui_->track_group_manager->loadFile(filename);
+}
+
+void GenomeVisualizationWidget::addBedTrack(QSharedPointer<BedFile> regions, QString file_path, QString name)
+{
+	QScopedPointer<BedTrack> track(new BedTrack(this, file_path, name));
+	track->setBedFile(regions);
+	ui_->track_group_manager->addTrack(track.take());
 }
 
 void GenomeVisualizationWidget::reloadTracks()
@@ -422,6 +437,7 @@ void GenomeVisualizationWidget::saveSession()
 	writer.writeStartElement("GSviewerSession");
 	writer.writeAttribute("version", "1");
 	writer.writeStartElement("General");
+	writer.writeAttribute("gene_panel_height", QString::number(ui_->scrollArea->height()));
 
 	//store displayed region
 	const BedLine& region = SharedData::region();
@@ -431,6 +447,7 @@ void GenomeVisualizationWidget::saveSession()
 	writer.writeAttribute("end", QString::number(region.end()));
 	writer.writeEndElement();  // DisplayRegion
 
+	SharedData::writeSettingsToXml(writer);
 	writer.writeEndElement(); // General
 	ui_->track_group_manager->writeToXml(writer);
 	writer.writeEndElement(); // GSViewerSession
@@ -462,14 +479,23 @@ void GenomeVisualizationWidget::loadSession()
 		return;
 	}
 
-	//clear TrackGroups
-	clearParameterEditor();
-	ui_->track_group_manager->removeAll();
-
 	//load session
 	QDomDocument doc = XmlHelper::load(file_path);
 	QDomElement root = doc.documentElement(); //GSviewerSession
 	QDomElement general = root.elementsByTagName("General").at(0).toElement();
+	try
+	{
+		SharedData::loadSettingsFromXml(general);
+	}
+	catch (const Exception& e)
+	{
+		QMessageBox::warning(this, title, "Invalid global settings: " + e.message());
+		return;
+	}
+
+	//Apply global settings before restoring the region and creating tracks.
+	clearParameterEditor();
+	ui_->track_group_manager->removeAll();
 	QDomElement region_info = general.elementsByTagName("DisplayedRegion").at(0).toElement();
 	QString chr = region_info.attribute("chr");
 	int start = region_info.attribute("start").toInt();
@@ -485,4 +511,3 @@ void GenomeVisualizationWidget::loadSession()
 	//store path
 	Settings::setPath("load_store_session_folder", QFileInfo(file_path).absolutePath());
 }
-

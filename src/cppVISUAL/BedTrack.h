@@ -10,6 +10,20 @@
 #include <QMouseEvent>
 #include <QWidget>
 
+//Fast read-only parameters access; populated and maintained by ParameterList::link().
+struct CPPVISUALSHARED_EXPORT BedTrackSettings : public QObject
+{
+	Q_OBJECT
+	Q_PROPERTY(QByteArray color MEMBER color)
+	Q_PROPERTY(QByteArray draw_mode MEMBER draw_mode)
+	Q_PROPERTY(bool show_region_names MEMBER show_region_names)
+
+public:
+	QByteArray color{};
+	QByteArray draw_mode{};
+	bool show_region_names{};
+};
+
 //Track that displays a BED file
 class CPPVISUALSHARED_EXPORT BedTrack
 	: public TrackWidget
@@ -42,6 +56,7 @@ protected:
 	void mouseReleaseEvent(QMouseEvent* event) override;
 
 private:
+	BedTrackSettings fast_settings_;
 	QSharedPointer<BedFile> bedfile_;
 	std::unique_ptr<ChromosomalIndex<BedFile>> chr_index_;
 
@@ -56,10 +71,6 @@ private:
 	int rowHeight() const;
 	QFont regionFont() const;
 
-	// calls the appropriate function depending on the current draw mode
-	QString getRegionText(const BedLine& region, int row, int x);
-	// returns the location plus annonations for the bedline as a string
-	QString regionTooltip(const BedLine&region);
 	// handles pop up request and displays the correct information at global pos
 	void handlePopupRequest(QPointF local_pos, QPointF global_pos);
 

@@ -69,6 +69,9 @@
     </property>
     <addaction name="actionEnable_Remote_Application_Control"/>
     <addaction name="separator"/>
+    <addaction name="actionSettings"/>
+    <addaction name="separator"/>
+    <addaction name="actionOpen_documentation"/>
     <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuSession">
@@ -82,8 +85,15 @@
     <addaction name="actionLoadSession"/>
     <addaction name="actionStore_session"/>
    </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionAddNRegions"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuSession"/>
+   <addaction name="menuTools"/>
    <addaction name="menuHelp"/>
   </widget>
   <action name="actionLoadFile">
@@ -132,6 +142,21 @@
    </property>
    <property name="text">
     <string>Enable Remote Application Control</string>
+   </property>
+  </action>
+  <action name="actionAddNRegions">
+   <property name="text">
+    <string>Add N regions BED track</string>
+   </property>
+  </action>
+  <action name="actionOpen_documentation">
+   <property name="text">
+    <string>Open documentation</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
    </property>
   </action>
  </widget>

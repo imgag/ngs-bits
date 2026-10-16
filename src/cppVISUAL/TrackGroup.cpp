@@ -1,4 +1,5 @@
 #include "FileLoader.h"
+#include "BamAlignmentTrack.h"
 #include "QtXml/qdom.h"
 #include "TrackGroup.h"
 #include "Helper.h"
@@ -10,12 +11,14 @@
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QInputDialog>
+#include <QLabel>
 
 
 TrackGroup::TrackGroup(QWidget* parent)
 	: QScrollArea(parent)
 	, layout_(new QVBoxLayout(this))
 	, content_widget_(new QWidget(this))
+	, empty_message_(new QLabel(viewport()))
 {
 	//Override QScrollArea's default minimum height for splitter resizing.
 	setMinimumHeight(25);
@@ -38,6 +41,19 @@ TrackGroup::TrackGroup(QWidget* parent)
 
 	layout_->addStretch(1);
 	layout_->setContentsMargins(0, 0, 0, 0);
+	empty_message_->setObjectName("empty_track_group_message");
+	empty_message_->setText("Empty track group. Drag/drop a track or load a track using the context menu.");
+	empty_message_->setAlignment(Qt::AlignCenter);
+	empty_message_->setWordWrap(true);
+	empty_message_->setAttribute(Qt::WA_TransparentForMouseEvents);
+	updateEmptyState();
+}
+
+void TrackGroup::updateEmptyState()
+{
+	empty_message_->setGeometry(viewport()->rect().adjusted(12, 8, -12, -8));
+	empty_message_->setVisible(layout_->count() == 1);
+	empty_message_->raise();
 }
 
 void TrackGroup::trackDeleted()
@@ -49,6 +65,7 @@ void TrackGroup::trackDeleted()
 		layout_->update();
 	}
 
+	updateEmptyState();
 	if (layout_->count() == 1) deleteLater();
 }
 
@@ -59,9 +76,11 @@ void TrackGroup::trackMoved()
 		disconnect(senderWidget, SIGNAL(trackDeleted()), this, SLOT(trackDeleted()));
 		disconnect(senderWidget, SIGNAL(trackMoved()), this, SLOT(trackMoved()));
 		disconnect(senderWidget, &TrackWidget::trackSelected, this, &TrackGroup::trackSelected);
+		disconnect(senderWidget, &TrackWidget::settingsRequested, this, &TrackGroup::settingsRequested);
 		layout_->removeWidget(senderWidget);
 		layout_->update();
 
+		updateEmptyState();
 		if (layout_->count() == 1) deleteLater();
 	}
 }
@@ -71,6 +90,7 @@ void TrackGroup::connectTrackSignals(TrackWidget* track)
 	connect(track, &TrackWidget::trackDeleted, this, &TrackGroup::trackDeleted);
 	connect(track, &TrackWidget::trackMoved, this, &TrackGroup::trackMoved);
 	connect(track, &TrackWidget::trackSelected, this, &TrackGroup::trackSelected);
+	connect(track, &TrackWidget::settingsRequested, this, &TrackGroup::settingsRequested);
 }
 
 void TrackGroup::addTrackWidgets(QVector<TrackWidget*> widgets)
@@ -81,6 +101,7 @@ void TrackGroup::addTrackWidgets(QVector<TrackWidget*> widgets)
 		layout_->insertWidget(layout_->count() - 1, widget);
 		layout_->update();
 	}
+	updateEmptyState();
 }
 
 void TrackGroup::loadTracksFromFile()
@@ -131,14 +152,12 @@ void TrackGroup::contextMenu(QPoint pos)
 {
 	QMenu menu(this);
 
-	//add track sub-menu (if not empty TrackGroup)
+	//Track-specific element submenus precede the shared Track submenu.
 	TrackWidget* track = getTrackUnderMouse(pos);
 	if (track)
 	{
 		emit trackSelected(track);
-		QMenu* track_menu = new QMenu("Track", this);
-		track->populateContextMenu(*track_menu, track->mapFrom(viewport(), pos));
-		menu.addMenu(track_menu);
+		track->populateContextMenu(menu, track->mapFrom(viewport(), pos));
 	}
 
 	//add TrackGroup sub-menu
@@ -164,11 +183,14 @@ void TrackGroup::contextMenu(QPoint pos)
 
 void TrackGroup::clearLayout()
 {
-	while (QLayoutItem* item = layout_->takeAt(0))
+	//Keep the trailing stretch so tracks can be added again after clearing.
+	while (layout_->count() > 1)
 	{
+		QLayoutItem* item = layout_->takeAt(0);
 		if (QWidget* widget = item->widget()) widget->deleteLater();
 		delete item;
 	}
+	updateEmptyState();
 }
 
 void TrackGroup::clearLayoutAndDelete()
@@ -240,6 +262,7 @@ void TrackGroup::dropEvent(QDropEvent* event)
 	// this changes the parent of the source track
 	layout_->insertWidget(drop_index, track);
 	layout_->update();
+	updateEmptyState();
 
 	event->acceptProposedAction();
 }
@@ -256,15 +279,17 @@ void TrackGroup::wheelEvent(QWheelEvent* event)
 void TrackGroup::writeToXml(QXmlStreamWriter& writer)
 {
 	writer.writeStartElement("TrackGroup");
-	foreach (TrackWidget* track, findChildren<TrackWidget*>())
+	writer.writeAttribute("height", QString::number(height()));
+	for (int i = 0; i < layout_->count(); ++i)
 	{
-		track->writeToXml(writer);
+		if (auto* track = qobject_cast<TrackWidget*>(layout_->itemAt(i)->widget())) track->writeToXml(writer);
 	}
 	writer.writeEndElement(); // TrackGroup
 }
 
 void TrackGroup::loadFromXml(const QDomElement& dom_element, QStringList& errors)
 {
+	session_height_ = dom_element.attribute("height").toInt();
 	QDomNodeList elements = dom_element.elementsByTagName("Track");
 	for (int i =0; i < elements.count(); ++i)
 	{
@@ -274,6 +299,38 @@ void TrackGroup::loadFromXml(const QDomElement& dom_element, QStringList& errors
 		{
 			addTrackWidgets({track});
 		}
+	}
+	restoreAlignmentHeights();
+}
+
+int TrackGroup::alignmentSessionHeight() const
+{
+	int height = 0;
+	for (BamAlignmentTrack* track : findChildren<BamAlignmentTrack*>()) height += track->sessionHeight();
+	return height;
+}
+
+void TrackGroup::resizeEvent(QResizeEvent* event)
+{
+	QScrollArea::resizeEvent(event);
+	updateEmptyState();
+	restoreAlignmentHeights();
+}
+
+void TrackGroup::restoreAlignmentHeights()
+{
+	const int total = alignmentSessionHeight();
+	if (session_height_ <= 0 || total <= 0) return;
+	const int difference = height() - session_height_;
+	int assigned = 0;
+	int cumulative = 0;
+	for (BamAlignmentTrack* track : findChildren<BamAlignmentTrack*>())
+	{
+		if (track->sessionHeight() <= 0) continue;
+		cumulative += track->sessionHeight();
+		const int share = qRound((double)difference * cumulative / total);
+		track->setFixedHeight(std::max(1, track->sessionHeight() + share - assigned));
+		assigned = share;
 	}
 }
 

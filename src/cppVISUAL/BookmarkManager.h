@@ -20,6 +20,7 @@ private:
 	QStringList bookmarks_;
 	void updateDeleteButton();
 	void deleteCheckedBookmarks();
+	void renameBookmark(int row);
 };
 
 #endif // BOOKMARKMANAGER_H

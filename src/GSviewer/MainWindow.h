@@ -17,8 +17,11 @@ public:
 	MainWindow(QWidget* parent = 0);
 
 private slots:
-    void delayedInitialization();
-    void showAboutDialog();
+	void delayedInitialization();
+	void showSettings();
+	void openDocumentation();
+	void showAboutDialog();
+	void addNRegions();
 
     ///Enables/Disables the remote application control API
     void on_actionEnable_Remote_Application_Control_changed();

@@ -60,6 +60,7 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 	// BamAlignment alignment; // not stored currently because of data duplication
 	QVector<MismatchInfo> mismatches; // cached mismatches
 	QVector<EventData> events;
+	Chromosome chr; //Read chromosome resolved from the BAM header.
 	Chromosome mate_chr; //needs to be set on creation, cannot be taken as argument because bam_reader_->chromosome might fail
 
 	BamAlignmentWrapper(const BamAlignment& aln)
@@ -89,6 +90,9 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 	int endWithSoftClip() const { return en_with_soft_clip_; }
 
 	bool isReverseStrand() const { return is_reverse_; }
+	bool isPaired() const { return is_paired_; }
+	// Orientation of the left and right mates: FR, RF, FF, RR.
+	int pairOrientation() const { return pair_orientation_; }
 
 	int mateStart() const { return mate_start_; }
 
@@ -102,6 +106,9 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 	// Diploid haplotype from HP: 1, 2, or 0 for unassigned.
 	int phase() const { return phase_; }
 	bool isSecondaryAlignment() const { return is_secondary_; }
+	bool isSupplementaryAlignment() const { return is_supplementary_; }
+	const QByteArray& cigar() const { return cigar_; }
+	int mappingQuality() const { return mapping_quality_; }
 
 private:
 	int st_ = -1;
@@ -109,11 +116,16 @@ private:
 	int st_with_soft_clip_;
 	int en_with_soft_clip_;
 	bool is_reverse_;
+	bool is_paired_;
+	int pair_orientation_;
 	bool mate_is_mapped_;
 	int mate_start_;
 	int insert_size_ = -1;
 	int phase_ = 0;
 	bool is_secondary_ = false;
+	bool is_supplementary_ = false;
+	QByteArray cigar_;
+	int mapping_quality_ = 0;
 	QString name_;
 
 	void storeAlignmentInfo(const BamAlignment& al)
@@ -123,13 +135,21 @@ private:
 		st_with_soft_clip_ = st_;
 		en_with_soft_clip_ = en_;
 		is_reverse_ = al.isReverseStrand();
-		mate_is_mapped_ = !al.isMateUnmapped();
+		is_paired_ = al.isPaired();
+		mate_is_mapped_ = is_paired_ && !al.isMateUnmapped();
 		mate_start_ = al.mateStart();
+		bool left_reverse = is_reverse_;
+		bool right_reverse = al.isMateReverseStrand();
+		if (mate_start_ < st_ || (mate_start_ == st_ && al.isRead2())) std::swap(left_reverse, right_reverse);
+		pair_orientation_ = left_reverse == right_reverse ? (left_reverse ? 3 : 2) : (left_reverse ? 1 : 0);
 		name_ = al.name();
 		insert_size_ = al.insertSize();
 		const int hp = al.tagi("HP");
 		phase_ = hp == 1 || hp == 2 ? hp : 0;
 		is_secondary_ = al.isSecondaryAlignment();
+		is_supplementary_ = al.isSupplementaryAlignment();
+		cigar_ = al.cigarDataAsString();
+		mapping_quality_ = al.mappingQuality();
 	}
 };
 
@@ -146,7 +166,7 @@ class CPPVISUALSHARED_EXPORT BamTrackData : public QObject
 public:
 	BamTrackData(QString file_path)
 		: file_path_(file_path)
-		, visibility_range_(SharedData::settings().bam_max_region_len)
+		, visibility_range_(SharedData::settings().bam_max_visibility_region)
 	{
 		connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
 		connect(SharedData::instance(), &SharedData::settingsChanged, this, [this]()
@@ -175,7 +195,9 @@ public:
 
 	void setBamReader(QSharedPointer<BamReader> reader)
 	{
+		const bool paired_end = reader->checkIfPairedEnd();
 		bam_reader_ = reader;
+		paired_end_ = paired_end;
 		loaded_region_.setEnd(-1); // invalidate loaded_region
 		alignments_.clear();
 		loaded_ids_.clear();
@@ -187,6 +209,7 @@ public:
 	}
 
 	void computeInsertSizeStats();
+	bool isPairedEnd() const { return paired_end_; }
 
 	InsertSizeStats getInsertSizeStats() { return insert_size_stats_; };
 
@@ -194,12 +217,15 @@ public:
 	// Keeps visibility parameters of all tracks using this data in sync.
 	void bindVisibilityRange(ParameterList& parameters);
 	void setVisibilityRange(int range);
+	// Synchronizes read filters between alignment and coverage tracks for this file.
+	void bindReadFilters(ParameterList& parameters);
 
 signals:
 	// void onDataChange();
 	void onDataUpdate();
 	void onFullLoad();
 	void visibilityRangeChanged(int range);
+	void readFilterChanged(const QByteArray& name, const QVariant& value);
 
 public slots:
 	void updateRegion();
@@ -207,7 +233,10 @@ public slots:
 private:
 	QString file_path_;
 	int visibility_range_;
+	QHash<QByteArray, QVariant> read_filters_{{"show soft-clipped bases", false}, {"show secondary alignments", true}, {"min MQ", 0}};
+	bool syncing_read_filters_ = false;
 	QSharedPointer<BamReader> bam_reader_;
+	bool paired_end_ = false;
 	QVector<BamAlignmentWrapper> alignments_;
 	QVector<BamAlignmentWrapper> dummy_alignments_;
 	Sequence ref_seq_;

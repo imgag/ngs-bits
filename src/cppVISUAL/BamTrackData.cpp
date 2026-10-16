@@ -1,4 +1,5 @@
 #include "BamTrackData.h"
+#include <QScopedValueRollback>
 #include "FileLoader.h"
 
 #include <GenomeVisualizationWidget.h>
@@ -14,6 +15,7 @@ AlignmentKey AlignmentKey::makeKey(const BamAlignment& al)
 	h1 ^= ((uint64_t)al.start() << 1);
 	h1 ^= ((uint64_t)al.isReverseStrand() << 32);
 	h1 ^= ((uint64_t)al.isSecondaryAlignment() << 33);
+	h1 ^= ((uint64_t)al.isSupplementaryAlignment() << 34);
 
 	uint64_t h2 = qHashBits(cigar.data(), cigar.size());
 
@@ -37,6 +39,29 @@ void BamTrackData::setVisibilityRange(int range)
 	// Refresh data before the other tracks recalculate using the new range.
 	if (bam_reader_) updateRegion();
 	emit visibilityRangeChanged(range);
+}
+
+void BamTrackData::bindReadFilters(ParameterList& parameters)
+{
+	const auto apply_filter = [&parameters](const QByteArray& name, const QVariant& value)
+	{
+		if (name == "min MQ") parameters.setInt(name, value.toInt());
+		else parameters.setBool(name, value.toBool());
+	};
+	for (auto it = read_filters_.cbegin(); it != read_filters_.cend(); ++it) apply_filter(it.key(), it.value());
+	connect(this, &BamTrackData::readFilterChanged, &parameters, apply_filter);
+	connect(&parameters, &ParameterList::parameterChanged, this, [this, &parameters]()
+	{
+		if (syncing_read_filters_) return;
+		QScopedValueRollback<bool> guard(syncing_read_filters_, true);
+		for (auto it = read_filters_.begin(); it != read_filters_.end(); ++it)
+		{
+			const QVariant value = parameters.parameter(it.key()).value();
+			if (value == it.value()) continue;
+			it.value() = value;
+			emit readFilterChanged(it.key(), value);
+		}
+	});
 }
 
 void BamTrackData::updateRegion()
@@ -93,10 +118,9 @@ void BamTrackData::updateRegion()
 
 		pruneAlignments(p_start, p_end); // remove out of bound alignments
 
-		// an alignment read can extend past (or before) the padded region
-		// an alignment read is roughly ~101bp (at most) so a overhang of 500 bp should be sufficient
+		// Start with a viewport-sized cache; fetchRegion extends it for longer alignments.
 		int ref_fetch_start = std::max(1, p_start - REF_OVERHANG);
-		int ref_fetch_end   = p_end + REF_OVERHANG;
+		int ref_fetch_end   = std::min(p_end + REF_OVERHANG, SharedData::genome().lengthOf(region.chr()));
 		ref_seq_ = SharedData::genome().seq(
 			region.chr(),
 			ref_fetch_start,
@@ -142,7 +166,7 @@ void BamTrackData::fullLoad(const BedLine& region)
 	loaded_ids_.squeeze();
 
 	int ref_fetch_start = std::max(1, p_start - REF_OVERHANG);
-	int ref_fetch_end   = p_end + REF_OVERHANG;
+	int ref_fetch_end   = std::min(p_end + REF_OVERHANG, SharedData::genome().lengthOf(region.chr()));
 
 	ref_seq_ = SharedData::genome().seq(
 		region.chr(),
@@ -168,14 +192,17 @@ void BamTrackData::fullLoad(const BedLine& region)
 void BamTrackData::fetchRegion(const BedLine& region, QVector<BamAlignmentWrapper>* dest)
 {
 	bam_reader_->setRegion(region.chr(), region.start(), region.end());
+	const auto& genome = SharedData::genome();
+	const int chromosome_end = genome.lengthOf(region.chr());
 
 	BamAlignment al;
 	while (bam_reader_->getNextAlignment(al))
 	{
-		if (al.isUnmapped() || al.isDuplicate() || al.isSupplementaryAlignment()) continue;
+		if (al.isUnmapped() || al.isDuplicate()) continue;
 
 		BamAlignmentWrapper wrapped_alignment(al);
 		if (loaded_ids_.contains(wrapped_alignment.id)) continue;
+		wrapped_alignment.chr = bam_reader_->chromosome(al.chromosomeID());
 		// A negative mate chromosome ID means that no mate location is available.
 		if (al.mateChrosomeID() >= 0)
 		{
@@ -194,6 +221,18 @@ void BamTrackData::fetchRegion(const BedLine& region, QVector<BamAlignmentWrappe
 		}
 		loaded_ids_.insert(wrapped_alignment.id);
 
+		// Cache reference bases for the entire alignment, including long reads outside the viewport.
+		if (al.start() < ref_start_)
+		{
+			ref_seq_.prepend(genome.seq(region.chr(), al.start(), ref_start_ - al.start()));
+			ref_start_ = al.start();
+		}
+		const int ref_end = ref_start_ + ref_seq_.length() - 1;
+		const int alignment_end = std::min(al.end(), chromosome_end);
+		if (alignment_end > ref_end)
+		{
+			ref_seq_.append(genome.seq(region.chr(), ref_end + 1, alignment_end - ref_end));
+		}
 		wrapped_alignment.storeCigarData(al, ref_seq_, ref_start_);
 
 		if (!wrapped_alignment.isValid()) continue; // has st/en < -1
@@ -245,8 +284,8 @@ void BamTrackData::computeInsertSizeStats()
 	std::sort(sizes.begin(), sizes.end());
 	int n = sizes.size();
 	const GlobalSettings& settings = SharedData::settings();
-	insert_size_stats_.insert_size_min = sizes[std::min(n - 1, (int)(n * settings.bam_insert_size_min_percentile))];
-	insert_size_stats_.insert_size_max = sizes[std::min(n - 1, (int)(n * settings.bam_insert_size_max_percentile))];
+	insert_size_stats_.insert_size_min = sizes[std::min(n - 1, (int)(n * settings.bam_insert_size_lower_percentile))];
+	insert_size_stats_.insert_size_max = sizes[std::min(n - 1, (int)(n * settings.bam_insert_size_upper_percentile))];
 }
 
 void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Sequence& ref_seq, int ref_start)
@@ -314,12 +353,7 @@ void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Se
 				}
 				else
 				{
-					qWarning()
-					<< "Reference sequence too short for alignment"
-					<< alignment.name()
-					<< genome_pos
-					<< ref_start
-					<< ref_seq.length();
+					qWarning() << "Reference sequence too short for alignment" << alignment.name() << genome_pos << ref_start << ref_seq.length();
 				}
 				++genome_pos;
 				++read_pos;
