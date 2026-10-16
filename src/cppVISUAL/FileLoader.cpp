@@ -21,7 +21,7 @@ QVector<TrackWidget*> FileLoader::loadTracks(QString file_path, QWidget* parent)
 		output << SegTrack::createTrack(parent, file_path);
 		return output;
 	}
-	if (filename.endsWith(".bed"))
+	if (filename.endsWith(".bed", Qt::CaseInsensitive) || filename.endsWith(".bed.gz", Qt::CaseInsensitive))
 	{
 		output << BedTrack::createTrack(parent, file_path, filename);
 		return output;

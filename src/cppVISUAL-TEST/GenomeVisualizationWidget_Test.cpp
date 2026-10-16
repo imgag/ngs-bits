@@ -27,6 +27,8 @@
 #include "BamCoverageTrack.h"
 #include "BamTrackDataManager.h"
 #include "BamWriter.h"
+#include <htslib/bgzf.h>
+#include <QMessageBox>
 #include <QScopeGuard>
 #include <QDialog>
 #include <QFontMetrics>
@@ -2182,6 +2184,122 @@ private slots:
 		viewer.clearSession();
 		QVERIFY(!dock->findChild<ParameterEditor*>());
 		QCOMPARE(dock->windowTitle(), QString("Track settings"));
+	}
+
+	void bedTrackTabixIndexed()
+	{
+		const QByteArray visible = "chr22\t0\t1\tfirst_base\nchr22\t9\t20\tleft\nchr22\t19\t30\toverlap\t123\t-\nchr22\t40\t41\tedge\nchr22\t80\t100\tfar\n";
+		//This zero-length record is not accepted by BedFile. Loading chr22 must never parse it.
+		const QByteArray records = visible + "chr23\t50\t50\tunused_invalid\nchrLong\t4999\t5010\tdistant\n";
+		auto reference_data = QSharedPointer<BedFile>::create(BedFile::fromText(visible + "chrLong\t4999\t5010\tdistant\n"));
+		reference_data->sort();
+		int errors = 0;
+		QTimer dismiss_errors;
+		connect(&dismiss_errors, &QTimer::timeout, this, [&]()
+		{
+			if (auto* dialog = qobject_cast<QMessageBox*>(QApplication::activeModalWidget()))
+			{
+				++errors;
+				dialog->accept();
+			}
+		});
+		dismiss_errors.start(10);
+		for (int min_shift : {0, 14}) //TBI and CSI.
+		{
+			const QString path = data_.filePath(QString("indexed-%1.BED.GZ").arg(min_shift));
+			BGZF* stream = bgzf_open(path.toUtf8().constData(), "w");
+			QVERIFY(stream);
+			const auto written = bgzf_write(stream, records.constData(), records.size());
+			const int closed = bgzf_close(stream);
+			QCOMPARE(written, records.size());
+			QCOMPARE(closed, 0);
+			QCOMPARE(tbx_index_build(path.toUtf8().constData(), min_shift, &tbx_conf_bed), 0);
+			SharedData::setRegion(Chromosome("chr22"), 1, 41);
+			auto tracks = FileLoader::loadTracks(path, nullptr);
+			QCOMPARE(tracks.count(), 1);
+			std::unique_ptr<TrackWidget> owner(tracks.first());
+			auto* track = qobject_cast<BedTrack*>(owner.get());
+			QVERIFY(track);
+			QCOMPARE(errors, 0);
+			BedTrack reference(nullptr, "", track->displayName());
+			reference.setBedFile(reference_data);
+			auto compare_drawing = [&]()
+			{
+				QCOMPARE(track->sizeHint().height(), reference.sizeHint().height());
+				track->resize(600, reference.sizeHint().height());
+				reference.resize(track->size());
+				QImage actual(track->size(), QImage::Format_ARGB32);
+				QImage expected(reference.size(), QImage::Format_ARGB32);
+				track->render(&actual);
+				reference.render(&expected);
+				QCOMPARE(actual, expected);
+			};
+			for (const BedLine& region : {BedLine(Chromosome("chr22"), 1, 41), BedLine(Chromosome("chr22"), 42, 82),
+				BedLine(Chromosome("chr22"), 41, 81), BedLine(Chromosome("chrLong"), 4990, 5030),
+				BedLine(Chromosome("chrX"), 1, 41), BedLine(Chromosome("chr22"), 1, 41)})
+			{
+				SharedData::setRegion(region.chr(), region.start(), region.end());
+				compare_drawing();
+			}
+			track->show();
+			QFont font = track->font();
+			font.setPointSize(8);
+			const int row_height = 10 + QFontMetrics(font).height() + 2;
+			const int x = SharedData::settings().label_width + 2 + int(24.5 * (600 - SharedData::settings().label_width - 4) / 41);
+			QTest::mouseClick(track, Qt::LeftButton, Qt::NoModifier, QPoint(x, row_height + 5));
+			auto* popup = track->findChild<QDialog*>();
+			QVERIFY(popup);
+			const QString text = popup->findChild<QLabel*>()->text();
+			QVERIFY(text.contains("chr22:20-30"));
+			QVERIFY(text.contains("overlap"));
+			QVERIFY(text.contains("column 5: 123"));
+			QVERIFY(text.contains("column 6: -"));
+			delete popup;
+			track->parameters().setString("draw mode", "collapsed");
+			reference.parameters().setString("draw mode", "collapsed");
+			compare_drawing();
+			QSignalSpy deleted(track, &TrackWidget::trackDeleted);
+			track->reloadTrack();
+			QCOMPARE(deleted.count(), 0);
+			compare_drawing();
+
+			//Errors while panning clear old data and recover when returning to a valid region.
+			SharedData::setRegion(Chromosome("chr23"), 30, 70);
+			QCOMPARE(track->sizeHint().height(), 25);
+			SharedData::setRegion(Chromosome("chr22"), 1, 41);
+			compare_drawing();
+			QString xml;
+			QXmlStreamWriter writer(&xml);
+			track->writeToXml(writer);
+			QDomDocument document;
+			QVERIFY(document.setContent(xml));
+			QStringList session_errors;
+			std::unique_ptr<TrackWidget> restored(TrackWidget::fromXml(document.documentElement(), nullptr, session_errors));
+			QVERIFY(restored);
+			QVERIFY(session_errors.isEmpty());
+			QCOMPARE(restored->parameters().getString("draw mode"), QByteArray("collapsed"));
+			//Explicitly replacing the BED data disables subsequent tabix queries.
+			track->setBedFile(QSharedPointer<BedFile>::create(BedFile::fromText("chr22\t4\t6\tgenerated\n")));
+			SharedData::setRegion(Chromosome("chr23"), 30, 70);
+			auto generated = QSharedPointer<BedFile>::create();
+			generated->append(BedLine(Chromosome("chr23"), 40, 50));
+			track->setBedFile(generated);
+			reference.setBedFile(generated);
+			SharedData::setRegion(Chromosome("chr23"), 31, 71);
+			compare_drawing();
+		}
+		QCOMPARE(errors, 0);
+		//A compressed track without a tabix index reports an error instead of loading the whole file.
+		const QString no_index = data_.filePath("missing-index.bed.gz");
+		BGZF* stream = bgzf_open(no_index.toUtf8().constData(), "w");
+		QVERIFY(stream);
+		const auto written = bgzf_write(stream, visible.constData(), visible.size());
+		const int closed = bgzf_close(stream);
+		QCOMPARE(written, visible.size());
+		QCOMPARE(closed, 0);
+		std::unique_ptr<BedTrack> missing(BedTrack::createTrack(nullptr, no_index, "Missing index"));
+		QVERIFY(!missing);
+		QCOMPARE(errors, 1);
 	}
 
 	void bedTrackVisibleRowsAndHitTesting()
