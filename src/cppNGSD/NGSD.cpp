@@ -96,6 +96,11 @@ bool NGSD::isAvailable(bool test_db)
 	return Settings::contains(prefix+"_host") && Settings::contains(prefix+"_port") && Settings::contains(prefix+"_name") && Settings::contains(prefix+"_user") && Settings::contains(prefix+"_pass");
 }
 
+QString NGSD::databaseName() const
+{
+	return db_->databaseName();
+}
+
 int NGSD::userId(QString user_name, bool only_active, bool throw_if_fails)
 {
 	// don't fail if user name is empty
@@ -141,6 +146,11 @@ QString NGSD::userLogin(int user_id)
 QString NGSD::userEmail(int user_id)
 {
 	return getValue("SELECT email FROM user WHERE id=:0", false,  QString::number(user_id)).toString();
+}
+
+QDateTime NGSD::userLastLogin(QString user_login)
+{
+	return getValue("SELECT last_login FROM user WHERE user_id=:0", false,  user_login).toDateTime();
 }
 
 const QString& NGSD::passwordReplacement()

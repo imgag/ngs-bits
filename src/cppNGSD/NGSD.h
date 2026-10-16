@@ -118,6 +118,7 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 
 	//index+key info
 	bool is_primary_key = false;
+	bool has_auto_increment = false;
 	bool is_unique = false;
 	QString fk_table; //target table of FK
 	QString fk_field; //target field of FK
@@ -729,6 +730,9 @@ public:
 	///Returns if the database is available (i.e. the credentials are in the settings file or the application is in client-server mode)
 	static bool isAvailable(bool test_db=false);
 
+	///Returns the database name
+	QString databaseName() const;
+
 	///Returns the table list.
 	QStringList tables() const;
 	///Returns information about all fields of a table.
@@ -1018,12 +1022,16 @@ public:
 	QString userName(int user_id);
 	///Returns the user email corresponding the given ID.
 	QString userEmail(int user_id);
+	///Returns the user last login date and time
+	QDateTime userLastLogin(QString user_login);
+
 	///Replacement for passwords when they are shown in the GUI.
 	static const QString& passwordReplacement();
 	///Checks if the given user/password tuple is correct. If ok, returns an empty string. If not, returns an error message.
 	QString checkPassword(QString user_name, QString password, bool only_active=true);
 	///Sets the password for a NGSD user using a new random salt.
-	void setPassword(int user_id, QString password);
+	void setPassword(int user_id, QString password);	
+
 	///Return a role for a given user.
 	QByteArray getUserRole(int user_id);
 
