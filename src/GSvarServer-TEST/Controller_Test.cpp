@@ -1,9 +1,15 @@
 #include "TestFramework.h"
 #include "ServerController.h"
-#include "ServerController.cpp"
 #include "XmlImportValidator.h"
-#include "XmlImportValidator.cpp"
+#include "ServerHelper.h"
+#include "ServerDB.h"
+#include "ClientHelper.h"
+#include "UrlManager.h"
+#include "SessionManager.h"
 #include "ToolBase.h"
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 
 TEST_CLASS(Controller_Test)
 {

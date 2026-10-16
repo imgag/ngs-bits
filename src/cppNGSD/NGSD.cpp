@@ -25,7 +25,6 @@
 #include <QCoreApplication>
 #include <QSqlError> //Comment to prevent removal by fix_includes.php
 #include <QJsonArray>
-#include <QRandomGenerator>
 
 NGSD::NGSD(bool test_db, QString test_name_override, bool open)
 	: test_db_(test_db)
