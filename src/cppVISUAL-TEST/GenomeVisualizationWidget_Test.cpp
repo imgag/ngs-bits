@@ -1,4 +1,7 @@
 #include "GenomeVisualizationWidget.h"
+#include "../GSviewer/TranscriptCache.h"
+#include "GffData.h"
+#include <QDateTime>
 #include "BookmarkManager.h"
 #include <QTableWidget>
 #include <QPushButton>
@@ -97,6 +100,127 @@ private slots:
 		SharedData::setRegion(Chromosome("chr22"), 1, 80);
 		writeFile("first.bed", "chr22\t10\t20\n");
 		writeFile("second.bed", "chr22\t30\t40\n");
+	}
+
+	void transcriptCache()
+	{
+		QDir temporary(QDir::current().filePath("transcript-cache-test-" + QUuid::createUuid().toString(QUuid::WithoutBraces)));
+		QVERIFY(QDir().mkpath(temporary.absolutePath()));
+		const auto cleanup = qScopeGuard([&]() { temporary.removeRecursively(); });
+		const QString source = temporary.filePath("genes.gff3");
+		const QString cache_directory = temporary.filePath("cache");
+		QFile fixture(QFINDTESTDATA("../cppNGS-TEST/data_in/GffData_loadGffFile_in1.gff3"));
+		QVERIFY2(fixture.open(QIODevice::ReadOnly), qPrintable(fixture.errorString()));
+		const QByteArray fixture_contents = fixture.readAll();
+		auto read = [](const QString& path)
+		{
+			QFile file(path);
+			if (!file.open(QIODevice::ReadOnly)) return QByteArray();
+			return file.readAll();
+		};
+		auto write = [](const QString& path, const QByteArray& contents)
+		{
+			QFile file(path);
+			QVERIFY(file.open(QIODevice::WriteOnly | QIODevice::Truncate));
+			QCOMPARE(file.write(contents), qint64(contents.size()));
+		};
+		auto compare = [](TranscriptList actual, TranscriptList expected)
+		{
+			actual.sortByPosition();
+			expected.sortByPosition();
+			QCOMPARE(actual.count(), expected.count());
+			for (int i = 0; i < actual.count(); ++i)
+			{
+				const Transcript& a = actual[i];
+				const Transcript& e = expected[i];
+				QCOMPARE(a.name(), e.name());
+				QCOMPARE(a.gene(), e.gene());
+				QCOMPARE(a.geneId(), e.geneId());
+				QCOMPARE(a.hgncId(), e.hgncId());
+				QCOMPARE(a.version(), e.version());
+				QCOMPARE(a.nameCcds(), e.nameCcds());
+				QCOMPARE(a.source(), e.source());
+				QCOMPARE(a.strand(), e.strand());
+				QCOMPARE(a.biotype(), e.biotype());
+				QCOMPARE(a.chr().str(), e.chr().str());
+				QCOMPARE(a.start(), e.start());
+				QCOMPARE(a.end(), e.end());
+				QCOMPARE(a.codingStart(), e.codingStart());
+				QCOMPARE(a.codingEnd(), e.codingEnd());
+				QCOMPARE(a.flags(false), e.flags(false));
+				QCOMPARE(a.isGencodeBasicTranscript(), e.isGencodeBasicTranscript());
+				QCOMPARE(a.regions().toText(), e.regions().toText());
+				QCOMPARE(a.codingRegions().toText(), e.codingRegions().toText());
+				QCOMPARE(a.utr5prime().toText(), e.utr5prime().toText());
+				QCOMPARE(a.utr3prime().toText(), e.utr3prime().toText());
+			}
+		};
+		GffSettings settings;
+		settings.print_to_stdout = false;
+		write(source, fixture_contents);
+		const TranscriptList expected = GffData::load(source, settings).transcripts;
+		compare(TranscriptCache::load(source, cache_directory), expected);
+		const QStringList files = QDir(cache_directory).entryList({"*.tsv"}, QDir::Files);
+		QCOMPARE(files.count(), 1);
+		const QString cache = QDir(cache_directory).filePath(files.first());
+		const QByteArray cached = read(cache);
+		QVERIFY(cached.startsWith("#GSviewer transcript cache\t"));
+		const QByteArray original = read(source);
+		const QDateTime modified = QFileInfo(source).lastModified();
+
+		//A hit must avoid parsing the GFF: replace it with invalid data but retain its metadata.
+		write(source, QByteArray(original.size(), 'x'));
+		{
+			QFile file(source);
+			QVERIFY(file.open(QIODevice::ReadWrite));
+			QVERIFY(file.setFileTime(modified, QFileDevice::FileModificationTime));
+		}
+		compare(TranscriptCache::load(source, cache_directory), expected);
+		QCOMPARE(read(cache), cached);
+
+		//A size change invalidates the cache, even with the original modification time.
+		write(source, original + "\n#changed\n");
+		{
+			QFile file(source);
+			QVERIFY(file.open(QIODevice::ReadWrite));
+			QVERIFY(file.setFileTime(modified, QFileDevice::FileModificationTime));
+		}
+		compare(TranscriptCache::load(source, cache_directory), expected);
+		QVERIFY(read(cache) != cached);
+
+		//A timestamp change invalidates an otherwise equally sized source.
+		write(source, original);
+		compare(TranscriptCache::load(source, cache_directory), expected);
+		QByteArray changed = original;
+		changed.replace("SEC22B", "TEC22B");
+		QCOMPARE(changed.size(), original.size());
+		write(source, changed);
+		{
+			QFile file(source);
+			QVERIFY(file.open(QIODevice::ReadWrite));
+			QVERIFY(file.setFileTime(modified.addSecs(5), QFileDevice::FileModificationTime));
+		}
+		compare(TranscriptCache::load(source, cache_directory), GffData::load(source, settings).transcripts);
+		QCOMPARE(TranscriptCache::load(source, cache_directory).getTranscript("ENST00000578049").gene(), QByteArray("TEC22B"));
+
+		//Corrupt and incompatible caches are rebuilt rather than preventing startup.
+		const QByteArray valid_cache = read(cache);
+		write(cache, valid_cache.left(valid_cache.size() / 2));
+		compare(TranscriptCache::load(source, cache_directory), GffData::load(source, settings).transcripts);
+		QByteArray old_schema = read(cache);
+		old_schema.replace("\"version\":1", "\"version\":999");
+		write(cache, old_schema);
+		compare(TranscriptCache::load(source, cache_directory), GffData::load(source, settings).transcripts);
+		QVERIFY(read(cache).contains("\"version\":1"));
+
+		QVERIFY(QDir().mkpath(temporary.filePath("other")));
+		const QString other_source = temporary.filePath("other/genes.gff3");
+		write(other_source, read(source));
+		compare(TranscriptCache::load(other_source, cache_directory), GffData::load(source, settings).transcripts);
+		QCOMPARE(QDir(cache_directory).entryList({"*.tsv"}, QDir::Files).count(), 2);
+		const QString blocked_directory = temporary.filePath("not_a_directory");
+		write(blocked_directory, "file");
+		compare(TranscriptCache::load(source, blocked_directory), GffData::load(source, settings).transcripts);
 	}
 
 	void globalSettingsParameters()
