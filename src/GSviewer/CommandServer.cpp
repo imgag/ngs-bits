@@ -9,62 +9,57 @@
 
 using namespace Qt::StringLiterals;
 
-const QString tmp_path = QString::fromUtf8("\\\\.\\gsvar\\cmd.sock");
-
-CommandServer::CommandServer(QObject *parent)
+CommandServer::CommandServer(QString socket_path, QObject *parent)
     : QObject{parent}
 {
-    sock.removeServer(tmp_path);
+    // sock.removeServer(socket_path);
+    // this->socket_path = socket_path;
 
-    connect(&sock, SIGNAL(newConnection()), this, SLOT(newConnection()));
+    this->sock = CommandListener::fromString(socket_path, this);
+
+    // connect(&sock, SIGNAL(newConnection()), this, SLOT(newConnection()));
+    connect(sock.get(), &CommandListener::newConnection, this, &CommandServer::newConnection);
 }
 
 void CommandServer::bind() {
-    sock.listen(tmp_path);
+    sock->bind();
 }
 
 void CommandServer::terminate() {
-    sock.close();
+    sock->terminate();
 }
 
-void CommandServer::newConnection() {
-    while (QLocalSocket* client = sock.nextPendingConnection()) {
-        auto pending = std::make_shared<std::deque<quint32>>();
+void CommandServer::newConnection(QIODevice* socket) {
+    auto pending = std::make_shared<std::deque<quint32>>();
 
-        connect(client, &QLocalSocket::disconnected, client, &QObject::deleteLater);
-        connect(client, &QLocalSocket::readyRead, client, [this, client, pending]() {
-            while (client->canReadLine()) {
-                auto line = client->readLine(0xff);
+    connect(socket, &QIODevice::readyRead, socket, [this, socket, pending] {
+        while (socket->canReadLine()) {
+            auto line = socket->readLine(0xff);
 
-                if (!line.isValidUtf8()) return;
+            if (!line.isValidUtf8()) return;
 
-                GSVCommand cmd = parseCommand(QString::fromUtf8(line));
+            ApiCommand cmd = parseCommand(QString::fromUtf8(line));
 
-                qDebug() << "Received a new command: " << line.trimmed();
+            pending->push_back(cmd.id);
 
-                pending->push_back(cmd.id);
+            emit commandReceived(cmd);
+        }
+    });
+    connect(this, &CommandServer::responseReady, socket, [socket, pending](const CommandResult &res){
+        if (pending->empty() || pending->front() != res.id)
+            return;   // not ours, or out of order
 
-                emit commandReceived(cmd);
-            }
-        });
+        pending->pop_front();
 
-        connect(this, &CommandServer::responseReady, client, [client, pending](const CommandResult &res) {
-            if (pending->empty() || pending->front() != res.id)
-                return;   // not ours, or out of order
+        QString out = res.output.trimmed();
 
-            pending->pop_front();
+        if (out.isEmpty()) out = "OK";
 
-            QString out = res.output.trimmed();
-
-            if (out.isEmpty()) out = "OK";
-
-            client->write((out + "\n").toUtf8());
-            client->flush();
-        });
-    }
+        socket->write((out + "\n").toUtf8());
+    });
 }
 
-GSVCommand CommandServer::parseCommand(QString cmd) {
+ApiCommand CommandServer::parseCommand(QString cmd) {
     QRegularExpression split("\\s+");
 
     auto verbStart = cmd.indexOf(split);
@@ -88,7 +83,7 @@ GSVCommand CommandServer::parseCommand(QString cmd) {
 
     QDateTime now;
 
-    return GSVCommand {
+    return ApiCommand {
         now,
         cmd_id++,
         verb,
@@ -96,7 +91,7 @@ GSVCommand CommandServer::parseCommand(QString cmd) {
     };
 }
 
-void CommandServer::dispatchResponse(GSVCommand cmd) {
+void CommandServer::dispatchResponse(ApiCommand cmd) {
     emit responseReady(CommandResult {
         cmd.id,
         true,
@@ -104,7 +99,7 @@ void CommandServer::dispatchResponse(GSVCommand cmd) {
     });
 }
 
-void CommandServer::dispatchResponse(GSVCommand cmd, QString data) {
+void CommandServer::dispatchResponse(ApiCommand cmd, QString data) {
     emit responseReady(CommandResult {
         cmd.id,
         true,
@@ -112,7 +107,7 @@ void CommandServer::dispatchResponse(GSVCommand cmd, QString data) {
     });
 }
 
-void CommandServer::dispatchFailure(GSVCommand cmd, QString failure) {
+void CommandServer::dispatchFailure(ApiCommand cmd, QString failure) {
     emit responseReady(CommandResult {
         cmd.id,
         false,

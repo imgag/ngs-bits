@@ -12,6 +12,7 @@
 #include <QLocalServer>
 #include <QElapsedTimer>
 #include <QPointer>
+#include <CommandListener.h>
 
 struct CommandResult {
     quint32 id;
@@ -19,7 +20,7 @@ struct CommandResult {
     QString output;
 };
 
-struct GSVCommand {
+struct ApiCommand {
     /// Timestamp of when the command was parsed (not when it was dispatched or handled)
     QDateTime received;
 
@@ -38,26 +39,27 @@ class CommandServer : public QObject
     Q_OBJECT
 
 private:
-    QLocalServer sock;
+    std::unique_ptr<CommandListener> sock;
     quint32 cmd_id = 0;
 
-    GSVCommand parseCommand(QString cmd);
+    ApiCommand parseCommand(QString cmd);
 
 public:
-    explicit CommandServer(QObject *parent = nullptr);
+    explicit CommandServer(QString socket_path = "", QObject *parent = nullptr);
 
     void bind();
     void terminate();
-    void dispatchResponse(GSVCommand cmd);
-    void dispatchResponse(GSVCommand cmd, QString data);
-    void dispatchFailure(GSVCommand cmd, QString failure);
+
+    void dispatchResponse(ApiCommand cmd);
+    void dispatchResponse(ApiCommand cmd, QString data);
+    void dispatchFailure(ApiCommand cmd, QString failure);
 
 signals:
-    void commandReceived(GSVCommand cmd);
+    void commandReceived(ApiCommand cmd);
     void responseReady(CommandResult res);
 
 protected slots:
-    void newConnection();
+    void newConnection(QIODevice* sock);
 };
 
 #endif // COMMANDSERVER_H

@@ -14,10 +14,12 @@ LIBS += -L$$PWD/../../bin -lcppVISUAL
 RESOURCES += GSviewer.qrc
 
 SOURCES += main.cpp \
+    CommandListener.cpp \
     CommandServer.cpp \
     MainWindow.cpp
 
 HEADERS += MainWindow.h \
+    CommandListener.h \
     CommandServer.h
 
 FORMS += MainWindow.ui

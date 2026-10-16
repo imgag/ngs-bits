@@ -14,7 +14,7 @@ class MainWindow
 	
 public:
 	///Constructor
-	MainWindow(QWidget* parent = 0);
+    MainWindow(QString bind, QWidget* parent = 0);
 
 private slots:
 	void delayedInitialization();
@@ -27,7 +27,7 @@ private slots:
     void on_actionEnable_Remote_Application_Control_changed();
 
     //APICommands
-    void executeApiCommand(GSVCommand cmd);
+    void executeApiCommand(ApiCommand cmd);
 
 private:
 	Ui::MainWindow ui_;

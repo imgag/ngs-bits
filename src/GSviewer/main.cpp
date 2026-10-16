@@ -1,6 +1,7 @@
 #include "MainWindow.h"
 #include "Application.h"
 #include <QStyleFactory>
+#include <QCommandLineParser>
 #include "Exceptions.h"
 
 int main(int argc, char *argv[])
@@ -10,7 +11,17 @@ int main(int argc, char *argv[])
 		Application a(argc, argv);
 		a.setStyle(QStyleFactory::create("windowsvista"));
 
-		MainWindow w;
+        QCommandLineParser args;
+
+        args.addHelpOption();
+        args.addVersionOption();
+
+        QCommandLineOption port("port", "The port or socket path GSviewer should receive commands on.", "<PORT | PATH>");
+        args.addOption(port);
+
+        args.process(a);
+
+        MainWindow w(args.value("port"));
 		w.showMaximized();
 
 		return a.exec();

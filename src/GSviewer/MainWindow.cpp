@@ -14,7 +14,6 @@
 #include "ParameterEditor.h"
 #include "htslib/hts.h"
 #include "GenomeVisualizationWidget.h"
-#include "FileLoader.h"
 #include <QCryptographicHash>
 #include <QDir>
 #include <QFileInfo>
@@ -28,10 +27,11 @@
 #include <QDialogButtonBox>
 #include <QVBoxLayout>
 
-MainWindow::MainWindow(QWidget *parent)
-	: QMainWindow(parent)
-	, ui_()
-	, init_timer_(this, true)
+MainWindow::MainWindow(QString bind, QWidget *parent)
+    : QMainWindow(parent),
+    ui_(),
+    init_timer_(this, true),
+    api(bind, this)
 {
 	ui_.setupUi(this);
 
@@ -59,7 +59,9 @@ MainWindow::MainWindow(QWidget *parent)
 	}
 
     // API
-    connect(&api, &CommandServer::commandReceived, this, &MainWindow::executeApiCommand);
+
+    if (!bind.isEmpty())
+        connect(&api, &CommandServer::commandReceived, this, &MainWindow::executeApiCommand);
 }
 
 void MainWindow::delayedInitialization()
@@ -185,7 +187,7 @@ void MainWindow::on_actionEnable_Remote_Application_Control_changed()
         api.terminate();
 }
 
-void MainWindow::executeApiCommand(GSVCommand cmd) {
+void MainWindow::executeApiCommand(ApiCommand cmd) {
     try {
         if (cmd.verb == "new")
             ui_.gvw->clearSession();
