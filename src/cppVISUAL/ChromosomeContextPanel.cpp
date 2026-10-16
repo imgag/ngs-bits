@@ -197,8 +197,8 @@ QString ChromosomeContextPanel::formatCoordinateLabel(int coord, int size)
 {
 	QLocale locale;
 	if (size >= 10'000'000) return locale.toString(coord / 1'000'000) + " Mb";
-	if (size >= 1000) return locale.toString(coord / 1000) + " kb";
-	return locale.toString(coord) + " bp";
+	if (size >= 10000) return locale.toString(coord / 1000) + " kb";
+	return locale.toString(coord);
 }
 
 int ChromosomeContextPanel::tickInterval(int range, int max_ticks)

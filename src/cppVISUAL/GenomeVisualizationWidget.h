@@ -44,6 +44,7 @@ public slots:
 	void loadSession();
 
 protected:
+	bool eventFilter(QObject* watched, QEvent* event) override;
 	//set up debug button
 	void setupDebugButton();
 	// handles zoom in/out

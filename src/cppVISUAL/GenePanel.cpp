@@ -40,7 +40,6 @@ GenePanel::GenePanel(QWidget *parent)
 	: QWidget(parent)
 {
 	setContextMenuPolicy(Qt::CustomContextMenu);
-	setMouseTracking(true);
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenu(QPoint)));
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
 	connect(SharedData::instance(), &SharedData::transcriptsChanged, this, &GenePanel::updateRegion);
@@ -259,13 +258,6 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 		const bool important = trans.isPreferredTranscript() || trans.isManePlusClinicalTranscript() || trans.isManeSelectTranscript() || trans.isEnsemblCanonicalTranscript();
 		drawTranscript(painter, position, important ? QColor(130, 0, 50) : QColor("#0000B2"));
 	}
-}
-
-void GenePanel::mouseMoveEvent(QMouseEvent* event)
-{
-	SharedData::mouseMoved(event->pos().x(), width());
-
-	event->ignore();
 }
 
 void GenePanel::mousePressEvent(QMouseEvent* event)

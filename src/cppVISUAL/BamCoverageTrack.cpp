@@ -26,7 +26,6 @@ BamCoverageTrack::BamCoverageTrack(QWidget* parent, QString file_path, QString n
 		updateGeometry();
 		update();
 	});
-	setMouseTracking(true);
 }
 
 QList<Parameter> BamCoverageTrack::getParameters() const
@@ -383,11 +382,4 @@ void BamCoverageTrack::mouseReleaseEvent(QMouseEvent* event)
 	}
 
 	TrackWidget::mouseReleaseEvent(event);
-}
-
-void BamCoverageTrack::mouseMoveEvent(QMouseEvent *event)
-{
-	SharedData::mouseMoved(event->pos().x(), width());
-
-	TrackWidget::mouseMoveEvent(event);
 }

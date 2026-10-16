@@ -36,7 +36,6 @@ BamAlignmentTrack::BamAlignmentTrack(QWidget* parent, QString file_path, QString
 		updateGeometry();
 		update();
 	});
-	setMouseTracking(true);
 	updateFontCache();
 }
 
@@ -984,11 +983,4 @@ void BamAlignmentTrack::mouseReleaseEvent(QMouseEvent* event)
 	}
 
 	TrackWidget::mouseReleaseEvent(event);
-}
-
-void BamAlignmentTrack::mouseMoveEvent(QMouseEvent *event)
-{
-	SharedData::mouseMoved(event->pos().x(), width());
-
-	TrackWidget::mouseMoveEvent(event);
 }

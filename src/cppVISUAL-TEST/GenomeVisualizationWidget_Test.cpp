@@ -1915,6 +1915,51 @@ private slots:
 		QVERIFY(viewer->findChild<TrackGroupManager*>()->isVisibleTo(viewer));
 	}
 
+	void mouseCoordinatesAcrossTracksAndEmptyGroups()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		GenomeVisualizationWidget viewer(nullptr);
+		viewer.resize(1000, 700);
+		viewer.show();
+		viewer.loadFile(data_.filePath("first.bed"));
+		auto* manager = viewer.findChild<TrackGroupManager*>();
+		auto* label = viewer.findChild<QLabel*>("label_coordinate");
+		QVERIFY(manager && label);
+		manager->addEmptyTrackGroup(); // Added after the viewer installed its event filter.
+		QCoreApplication::processEvents();
+
+		auto check_coordinate = [&](QWidget* widget)
+		{
+			QVERIFY(widget);
+			QVERIFY(widget->hasMouseTracking());
+			const int x0 = SharedData::settings().label_width + 2;
+			const int x = x0 + (widget->width() - x0 - 2) / 2;
+			const QPoint pos(x, widget->height() / 2);
+			QMouseEvent move(QEvent::MouseMove, pos, widget->mapToGlobal(pos), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+			QApplication::sendEvent(widget, &move);
+			const int coordinate = SharedData::region().start() + int(double(x - x0) * SharedData::region().length() / (widget->width() - x0 - 2));
+			QCOMPARE(label->text(), QString("chr22:%1").arg(coordinate));
+
+			const QPoint header(2, pos.y());
+			QMouseEvent header_move(QEvent::MouseMove, header, widget->mapToGlobal(header), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+			QApplication::sendEvent(widget, &header_move);
+			QVERIFY(label->text().isEmpty());
+		};
+		check_coordinate(viewer.findChild<BedTrack*>());
+		check_coordinate(viewer.findChild<GenePanel*>());
+		bool checked_empty = false;
+		for (TrackGroup* group : manager->findChildren<TrackGroup*>())
+		{
+			if (group->trackCount() != 0) continue;
+			check_coordinate(group->viewport());
+			checked_empty = true;
+		}
+		QVERIFY(checked_empty);
+		QEvent leave(QEvent::Leave);
+		QApplication::sendEvent(manager, &leave);
+		QVERIFY(label->text().isEmpty());
+	}
+
 	void trackSelectionAndCollapse()
 	{
 		GenomeVisualizationWidget viewer(nullptr);

@@ -9,6 +9,9 @@
 #include "BookmarkManager.h"
 #include "AddBookmarkDialog.h"
 #include "BedTrack.h"
+#include "GenePanel.h"
+#include <QApplication>
+#include <QAbstractScrollArea>
 #include <QToolTip>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -56,6 +59,10 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 
 	//clean session
 	clearSession();
+
+	//Observe child events even when a track consumes them, including newly shown tracks.
+	for (QWidget* child : ui_->track_group_manager->findChildren<QWidget*>()) child->setMouseTracking(true);
+	qApp->installEventFilter(this);
 
 	//show the current coordinates before the first region change
 	updateRegion();
@@ -135,8 +142,52 @@ void GenomeVisualizationWidget::storeBookmark()
 
 GenomeVisualizationWidget::~GenomeVisualizationWidget()
 {
+	qApp->removeEventFilter(this);
 	disconnect(selected_track_destroyed_);
 	delete ui_;
+}
+
+bool GenomeVisualizationWidget::eventFilter(QObject* watched, QEvent* event)
+{
+	auto* widget = qobject_cast<QWidget*>(watched);
+	if (!widget) return QWidget::eventFilter(watched, event);
+	QWidget* manager = ui_->track_group_manager;
+	if (widget != manager && !manager->isAncestorOf(widget)) return QWidget::eventFilter(watched, event);
+	if (widget->window() != window()) return QWidget::eventFilter(watched, event);
+
+	if (event->type() == QEvent::Show)
+	{
+		widget->setMouseTracking(true);
+	}
+	else if (event->type() == QEvent::MouseMove)
+	{
+		const auto* mouse = static_cast<QMouseEvent*>(event);
+		const QPoint global_pos = mouse->globalPosition().toPoint();
+		//Use the widget under the cursor also for events propagated to its parents.
+		QWidget* hovered = manager->childAt(manager->mapFromGlobal(global_pos));
+		QWidget* coordinate_widget = manager;
+		for (QWidget* ancestor = hovered; ancestor && ancestor != manager; ancestor = ancestor->parentWidget())
+		{
+			if (qobject_cast<TrackWidget*>(ancestor) || qobject_cast<GenePanel*>(ancestor))
+			{
+				coordinate_widget = ancestor;
+				break;
+			}
+			if (auto* scroll_area = qobject_cast<QAbstractScrollArea*>(ancestor))
+			{
+				coordinate_widget = scroll_area->viewport();
+				break;
+			}
+		}
+		const QPoint pos = coordinate_widget->mapFromGlobal(global_pos);
+		if (coordinate_widget->rect().contains(pos)) SharedData::mouseMoved(pos.x(), coordinate_widget->width());
+		else updateCoordinateLabel("");
+	}
+	else if (event->type() == QEvent::Leave && widget == manager)
+	{
+		updateCoordinateLabel("");
+	}
+	return QWidget::eventFilter(watched, event);
 }
 
 void GenomeVisualizationWidget::clearParameterEditor()
