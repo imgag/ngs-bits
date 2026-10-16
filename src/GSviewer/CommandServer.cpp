@@ -40,7 +40,7 @@ void CommandServer::newConnection() {
 
                 GSVCommand cmd = parseCommand(QString::fromUtf8(line));
 
-                qDebug() << "Received a new command: " << cmd.text.trimmed();
+                qDebug() << "Received a new command: " << line.trimmed();
 
                 pending->push_back(cmd.id);
 
@@ -72,28 +72,16 @@ GSVCommand CommandServer::parseCommand(QString cmd) {
     if (verbStart <= -1)
         verbStart = cmd.length();
 
+    auto verb = cmd.sliced(0, verbStart).trimmed();
     auto arguments = cmd.sliced(verbStart).trimmed();
 
-    static const QHash<QString, CmdVerb> verbs = {
-        { u"new"_s, CmdVerb::New },
-        { u"echo"_s, CmdVerb::Echo },
-        { u"load"_s, CmdVerb::Load },
-        { u"goto"_s, CmdVerb::Goto },
-        { u"genome"_s, CmdVerb::Genome },
-        { u"answer"_s, CmdVerb::Answer },
-        { u"debug"_s, CmdVerb::Debug },
-    };
-
-    auto verb = verbs.value(cmd.sliced(0, verbStart).trimmed());
-
-    if (verb == CmdVerb::Debug) {
+    if (verb == "debug") {
         QElapsedTimer duration;
         duration.start();
 
         qDebug() << "Received DEBUG command";
 
         auto cmd = parseCommand(arguments);
-        cmd.debug = true;
 
         return cmd;
     }
@@ -103,10 +91,8 @@ GSVCommand CommandServer::parseCommand(QString cmd) {
     return GSVCommand {
         now,
         cmd_id++,
-        cmd,
         verb,
         arguments,
-        false
     };
 }
 

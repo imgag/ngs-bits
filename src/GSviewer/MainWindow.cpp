@@ -187,33 +187,27 @@ void MainWindow::on_actionEnable_Remote_Application_Control_changed()
 
 void MainWindow::executeApiCommand(GSVCommand cmd) {
     try {
-        switch (cmd.verb) {
-            case CmdVerb::New:
-                ui_.gvw->clearSession();
-                break;
+        if (cmd.verb == "new")
+            ui_.gvw->clearSession();
 
-            case CmdVerb::Echo:
-                api.dispatchResponse(cmd, cmd.arguments);
-                return;
+        else if (cmd.verb == "echo")
+            return api.dispatchResponse(cmd, cmd.arguments);
 
-            case CmdVerb::Goto:
-                handleGoto(cmd.arguments);
-                break;
+        else if (cmd.verb == "goto")
+            handleGoto(cmd.arguments);
 
-            case CmdVerb::Load:
-                handleLoad(cmd.arguments);
-                break;
+        else if (cmd.verb == "load")
+            handleLoad(cmd.arguments);
 
-            case CmdVerb::Genome:
-                handleGenome(cmd.arguments);
-                break;
+        else if (cmd.verb == "genome")
+            handleGenome(cmd.arguments);
 
-            default:
-                QString msg = QString("UNKOWN COMMAND: %1").arg(toString(cmd.verb));  // Absichtlicher Tippfehler. Das kommmt aus IGV so
-                qDebug() << "Executing" << cmd.verb;
+        else {
+            QString msg = QString("UNKOWN COMMAND: %1").arg(cmd.verb);  // Absichtlicher Tippfehler. Das kommmt aus IGV so
+            qDebug() << "Executing" << cmd.verb;
 
-                api.dispatchFailure(cmd, msg);
-                return;
+            api.dispatchFailure(cmd, msg);
+            return;
         }
     } catch (Exception e) {
         err("An invalid command was received", e.message());
@@ -221,7 +215,7 @@ void MainWindow::executeApiCommand(GSVCommand cmd) {
         QString msg = QString("ERR: %1").arg(e.message());
         qDebug() << "Executing" << cmd.verb;
 
-        api.dispatchFailure(cmd, msg); // Absichtlicher Tippfehler. Das kommmt aus IGV so
+        api.dispatchFailure(cmd, msg);
         return;
     }
 
@@ -241,7 +235,7 @@ void MainWindow::handleGoto(QString args)
 
     auto tracks = args.split(re);
 
-    for (QString locus : tracks)
+    for (QString &locus : tracks)
     {
         BedLine region = BedLine::fromString(locus);
         if (region.isValid())
@@ -265,7 +259,7 @@ void MainWindow::handleLoad(QString args)
     {
         const QRegularExpression re("[,;]");
 
-        for (QString file : args.split(re))
+        for (QString &file : args.split(re))
             ui_.gvw->loadFile(file);
     }
 }
