@@ -1344,10 +1344,13 @@ private slots:
 				menu->close();
 				QTimer::singleShot(0, &viewer, [&]()
 				{
-					auto* dialog = viewer.findChild<QInputDialog*>();
+					auto* dialog = viewer.findChild<QDialog*>("AddBookmarkDialog");
 					if (!dialog) return;
-					default_selected = dialog->findChild<QLineEdit*>()->selectedText() == coordinates;
-					dialog->setTextValue(name);
+					auto* name_edit = dialog->findChild<QLineEdit*>("name");
+					auto* show_in_track = dialog->findChild<QCheckBox*>("show_in_chromosome_track");
+					default_selected = name_edit->selectedText() == coordinates && !show_in_track->isChecked();
+					name_edit->setText(name);
+					show_in_track->setChecked(name == "M third bookmark");
 					dialog->accept();
 					stored = true;
 				});
@@ -1358,6 +1361,8 @@ private slots:
 			QVERIFY(default_selected);
 		}
 		QCOMPARE(Settings::stringList(key).count(), 3);
+		QVERIFY(!QJsonDocument::fromJson(Settings::stringList(key)[0].toUtf8()).object().value("show_in_chromosome_view").toBool());
+		QVERIFY(QJsonDocument::fromJson(Settings::stringList(key)[2].toUtf8()).object().value("show_in_chromosome_view").toBool());
 		SharedData::setRegion(Chromosome("chr22"), 40, 100);
 		GenomeVisualizationWidget reopened(nullptr); // Bookmarks must survive viewer recreation.
 		reopened.show();
@@ -1390,6 +1395,15 @@ private slots:
 				ChromosomePanel chromosome(nullptr);
 				chromosome.resize(SharedData::settings().label_width + 4 + 480, 80);
 				chromosome.show();
+				ChromosomeContextPanel context(nullptr);
+				context.resize(chromosome.width(), 60);
+				context.show();
+				auto context_has_bookmark = [&]()
+				{
+					QImage image(context.size(), QImage::Format_ARGB32);
+					context.render(&image);
+					return image.pixelColor(SharedData::settings().label_width + 2, context.height() - 2) == QColor(128, 0, 128);
+				};
 				auto has_purple_line = [&]()
 				{
 					QImage image(chromosome.size(), QImage::Format_ARGB32);
@@ -1400,17 +1414,24 @@ private slots:
 					}
 					return false;
 				};
-				const bool initially_hidden = !has_purple_line();
+				const bool initially_shown = table->item(2, 2)->checkState() == Qt::Checked && has_purple_line() && context_has_bookmark();
+				table->item(2, 2)->setCheckState(Qt::Unchecked);
+				const bool initially_hidden = initially_shown && !has_purple_line() && !context_has_bookmark();
 				QSignalSpy bookmark_changes(SharedData::instance(), &SharedData::bookmarksChanged);
 				table->item(1, 2)->setCheckState(Qt::Checked);
-				const bool shown = has_purple_line() && QJsonDocument::fromJson(Settings::stringList(key)[1].toUtf8()).object().value("show_in_chromosome_view").toBool() && bookmark_changes.count() == 1;
+				const bool shown = has_purple_line() && context_has_bookmark() && QJsonDocument::fromJson(Settings::stringList(key)[1].toUtf8()).object().value("show_in_chromosome_view").toBool() && bookmark_changes.count() == 1;
 				const QPoint marker(SharedData::settings().label_width + 2, 23);
 				QHelpEvent tooltip(QEvent::ToolTip, marker, chromosome.mapToGlobal(marker));
 				QApplication::sendEvent(&chromosome, &tooltip);
 				const bool tooltip_shown = QToolTip::text().contains("Bookmark: A second bookmark");
 				QToolTip::hideText();
+				const QPoint context_marker(SharedData::settings().label_width + 2, context.height() - 2);
+				QHelpEvent context_tooltip(QEvent::ToolTip, context_marker, context.mapToGlobal(context_marker));
+				QApplication::sendEvent(&context, &context_tooltip);
+				const bool context_tooltip_shown = QToolTip::text().contains("Bookmark: A second bookmark");
+				QToolTip::hideText();
 				table->item(1, 2)->setCheckState(Qt::Unchecked);
-				const bool hidden_again = !has_purple_line();
+				const bool hidden_again = !has_purple_line() && !context_has_bookmark();
 				table->item(1, 2)->setCheckState(Qt::Checked);
 				table->item(1, 0)->setCheckState(Qt::Checked);
 				bool rename_selected = false;
@@ -1436,7 +1457,7 @@ private slots:
 				table->item(2, 0)->setCheckState(Qt::Checked);
 				const bool enabled = delete_button->isEnabled();
 				delete_button->click();
-				deleted = initial_state && initially_hidden && shown && tooltip_shown && hidden_again && renamed && enabled && table->rowCount() == 1 && table->item(0, 0)->text() == "Renamed bookmark" && manager->result() == QDialog::Accepted && !manager->isVisible();
+				deleted = initial_state && initially_hidden && shown && tooltip_shown && context_tooltip_shown && hidden_again && renamed && enabled && table->rowCount() == 1 && table->item(0, 0)->text() == "Renamed bookmark" && manager->result() == QDialog::Accepted && !manager->isVisible();
 			});
 			menu->actions()[1]->trigger();
 		});

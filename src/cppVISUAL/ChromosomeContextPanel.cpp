@@ -1,8 +1,13 @@
 #include "ChromosomeContextPanel.h"
 #include "SharedData.h"
+#include "Settings.h"
 
 #include <QMouseEvent>
 #include <QLocale>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QHelpEvent>
+#include <QToolTip>
 
 
 constexpr unsigned int ARROW_AREA_HEIGHT = 10;
@@ -12,15 +17,18 @@ ChromosomeContextPanel::ChromosomeContextPanel(QWidget* parent)
 {
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
 	connect(SharedData::instance(), &SharedData::settingsChanged, this, &ChromosomeContextPanel::updateRegion);
+	connect(SharedData::instance(), &SharedData::bookmarksChanged, this, &ChromosomeContextPanel::updateRegion);
 }
 
 void ChromosomeContextPanel::updateRegion()
 {
+	bookmark_regions_.clear();
 	update();
 }
 
 void ChromosomeContextPanel::paintEvent(QPaintEvent*)
 {
+	bookmark_regions_.clear();
 	int label_width = SharedData::settings().label_width;
 	int total_width = width() - label_width - 4;
 
@@ -28,7 +36,60 @@ void ChromosomeContextPanel::paintEvent(QPaintEvent*)
 
 	drawArrowsAndSize(&painter, label_width, total_width);
 	drawTicks(&painter, label_width, total_width);
+	drawBookmarks(&painter, label_width, total_width);
 	drawDragRegion(&painter);
+}
+
+void ChromosomeContextPanel::drawBookmarks(QPainter* painter, int label_width, int total_width)
+{
+	const BedLine& region = SharedData::region();
+	if (!region.isValid() || region.length() <= 0 || total_width <= 0) return;
+	const double pixels_per_base = double(total_width) / region.length();
+	const QRectF bounds(label_width + 2, height() - 4, total_width, 4);
+	painter->save();
+	painter->setRenderHint(QPainter::Antialiasing, false);
+	painter->setClipRect(bounds);
+	for (const QString& entry : Settings::stringList("bookmark_regions", true))
+	{
+		const QJsonObject bookmark = QJsonDocument::fromJson(entry.toUtf8()).object();
+		if (!bookmark.value("show_in_chromosome_view").toBool(false)) continue;
+		if (Chromosome(bookmark.value("chr").toString()) != region.chr()) continue;
+		const int start = bookmark.value("start").toInt();
+		const int end = bookmark.value("end").toInt();
+		if (start < 1 || end < start || end < region.start() || start > region.end()) continue;
+		const int visible_start = std::max(start, region.start());
+		const int visible_end = std::min(end, region.end());
+		const double x = bounds.left() + (visible_start - region.start()) * pixels_per_base;
+		const double length = (visible_end - visible_start + 1) * pixels_per_base;
+		const QRectF rect = QRectF(x, bounds.top(), std::max(1.0, length), bounds.height()).intersected(bounds);
+		painter->fillRect(rect, QColor(128, 0, 128));
+		bookmark_regions_.append({rect, bookmark.value("name").toString()});
+	}
+	painter->restore();
+}
+
+bool ChromosomeContextPanel::event(QEvent* event)
+{
+	if (event->type() == QEvent::ToolTip)
+	{
+		const auto* help = static_cast<QHelpEvent*>(event);
+		QStringList names;
+		QRectF tooltip_rect;
+		for (const auto& bookmark : bookmark_regions_)
+		{
+			if (!bookmark.first.contains(help->pos())) continue;
+			names.append("Bookmark: " + bookmark.second.toHtmlEscaped());
+			tooltip_rect = tooltip_rect.united(bookmark.first);
+		}
+		if (!names.isEmpty()) QToolTip::showText(help->globalPos(), "<qt>" + names.join("<br>") + "</qt>", this, tooltip_rect.toAlignedRect());
+		else
+		{
+			QToolTip::hideText();
+			event->ignore();
+		}
+		return true;
+	}
+	return QWidget::event(event);
 }
 
 void ChromosomeContextPanel::drawArrowsAndSize(QPainter* painter, int label_width, int total_width)
@@ -102,7 +163,7 @@ void ChromosomeContextPanel::drawTicks(QPainter* painter, int label_width, int t
 	int last_text_end = -1;
 	for (int coord = first; coord < region.end(); coord += interval)
 	{
-		float frac = float(coord - region.start())/range;
+		double frac = (coord - region.start() + 0.5) / range;
 		int x = x_start + total_width * frac;
 		painter->drawLine(x, y_bottom, x, y_tick);
 
@@ -222,4 +283,3 @@ void ChromosomeContextPanel::drawDragRegion(QPainter* painter)
 		painter->drawRect(drag_rect);
 	}
 }
-

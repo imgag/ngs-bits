@@ -7,6 +7,7 @@
 #include "Settings.h"
 #include "ParameterEditor.h"
 #include "BookmarkManager.h"
+#include "AddBookmarkDialog.h"
 #include "BedTrack.h"
 #include <QToolTip>
 #include <QMessageBox>
@@ -123,13 +124,9 @@ void GenomeVisualizationWidget::setupBookmarkMenu()
 void GenomeVisualizationWidget::storeBookmark()
 {
 	const BedLine region = SharedData::region();
-	QInputDialog dialog(this);
-	dialog.setWindowTitle("Store bookmark");
-	dialog.setLabelText("Bookmark name:");
-	dialog.setTextValue(region.toString(true));
-	dialog.findChild<QLineEdit*>()->selectAll();
-	if (dialog.exec() != QDialog::Accepted || dialog.textValue().trimmed().isEmpty()) return;
-	const QJsonObject bookmark{{"name", dialog.textValue().trimmed()}, {"chr", QString::fromUtf8(region.chr().strNormalized(true))}, {"start", region.start()}, {"end", region.end()}, {"show_in_chromosome_view", false}};
+	AddBookmarkDialog dialog(region.toString(true), this);
+	if (dialog.exec() != QDialog::Accepted || dialog.name().isEmpty()) return;
+	const QJsonObject bookmark{{"name", dialog.name()}, {"chr", QString::fromUtf8(region.chr().strNormalized(true))}, {"start", region.start()}, {"end", region.end()}, {"show_in_chromosome_view", dialog.showInChromosomeTrack()}};
 	QStringList bookmarks = Settings::stringList("bookmark_regions", true);
 	bookmarks.append(QString::fromUtf8(QJsonDocument(bookmark).toJson(QJsonDocument::Compact)));
 	Settings::setStringList("bookmark_regions", bookmarks);

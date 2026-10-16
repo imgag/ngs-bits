@@ -67,9 +67,10 @@
     <property name="title">
      <string>Help</string>
     </property>
+    <addaction name="actionOpen_documentation"/>
+    <addaction name="separator"/>
     <addaction name="actionSettings"/>
     <addaction name="separator"/>
-    <addaction name="actionOpen_documentation"/>
     <addaction name="actionAbout"/>
    </widget>
    <widget class="QMenu" name="menuSession">

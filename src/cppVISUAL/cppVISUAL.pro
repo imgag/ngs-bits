@@ -32,6 +32,7 @@ unix: QMAKE_CXXFLAGS += $$system(pkg-config --cflags libxml-2.0)
 unix: LIBS += -lxml2
 
 SOURCES += \
+    AddBookmarkDialog.cpp \
     BookmarkManager.cpp \
     BamAlignmentTrack.cpp \
     BamCoverageTrack.cpp \
@@ -52,6 +53,7 @@ SOURCES += \
     TrackWidget.cpp
 
 HEADERS += \
+    AddBookmarkDialog.h \
     BookmarkManager.h \
     BamAlignmentTrack.h \
     BamCoverageTrack.h \
@@ -75,6 +77,7 @@ HEADERS += \
     TrackWidget.h
 
 FORMS += \
+    AddBookmarkDialog.ui \
     BookmarkManager.ui \
     GenomeVisualizationWidget.ui
 

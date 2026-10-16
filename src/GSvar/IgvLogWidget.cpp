@@ -42,7 +42,7 @@ void IgvLogWidget::updateTable(QString name, QList<IGVCommand> commands)
 	int row = 0;
 	foreach(const IGVCommand& command, commands)
     {
-		if (command.command.startsWith("SetAccessToken ")) continue;
+		if (command.command.startsWith("SetAccessToken ") && !Helper::runningInQtCreator()) continue;
 
 		ui_.table->setRowCount(row+1);
 
