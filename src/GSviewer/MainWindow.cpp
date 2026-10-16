@@ -2,6 +2,9 @@
 #include "Settings.h"
 #include "GffData.h"
 #include "SharedData.h"
+#include "GenomeVisualizationWidget.h"
+#include "AboutDialog.h"
+#include "htslib/hts.h"
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QRegularExpression>
@@ -187,28 +190,45 @@ void MainWindow::executeApiCommand(GSVCommand cmd) {
 
     try {
         switch (cmd.verb) {
-        case CmdVerb::New:
-            ui_.gvw->newSession();
-            break;
+            case CmdVerb::New:
+                ui_.gvw->clearSession();
+                break;
 
-        case CmdVerb::Goto:
-            handleGoto(cmd.arguments);
-            break;
+            case CmdVerb::Echo:
+                api.dispatchResponse(cmd, cmd.arguments);
+                return;
 
-        case CmdVerb::Load:
-            handleLoad(cmd.arguments);
-            break;
+            case CmdVerb::Goto:
+                handleGoto(cmd.arguments);
+                break;
 
-        case CmdVerb::Genome:
-            handleGenome(cmd.arguments);
-            break;
+            case CmdVerb::Load:
+                handleLoad(cmd.arguments);
+                break;
 
-        default:
-            break;
+            case CmdVerb::Genome:
+                handleGenome(cmd.arguments);
+                break;
+
+            default:
+                QString msg = QString("UNKOWN COMMAND: %1").arg(toString(cmd.verb));  // Absichtlicher Tippfehler. Das kommmt aus IGV so
+                qDebug() << "Executing" << cmd.verb;
+
+                api.dispatchFailure(cmd, msg);
+                return;
         }
     } catch (Exception e) {
         err("An invalid command was received", e.message());
+
+        QString msg = QString("ERR: %1").arg(e.message());
+        qDebug() << "Executing" << cmd.verb;
+
+        api.dispatchFailure(cmd, msg); // Absichtlicher Tippfehler. Das kommmt aus IGV so
+        return;
     }
+
+    qDebug() << "Dispatching default response";
+    api.dispatchResponse(cmd);
 }
 
 void MainWindow::err(QString header, QString text) {
@@ -261,7 +281,7 @@ void MainWindow::handleGenome(QString args) {
         file = QFileDialog::getOpenFileName(this, "Open file(s)", open_folder, "Genome files(*.fa, *.fa.gz);;All files(*.*)");
     }
 
-    ui_.gvw->newSession();
+    ui_.gvw->clearSession();
     RefGenomeService::instance().setReferenceGenome(file);
 }
 void MainWindow::showAboutDialog()
