@@ -1927,6 +1927,12 @@ private slots:
 		QVERIFY(manager && label);
 		manager->addEmptyTrackGroup(); // Added after the viewer installed its event filter.
 		QCoreApplication::processEvents();
+		auto* bed_track = viewer.findChild<BedTrack*>();
+		auto* scale_panel = viewer.findChild<ChromosomeContextPanel*>();
+		QVERIFY(bed_track && scale_panel);
+		QCOMPARE(scale_panel->width(), bed_track->width());
+		QCOMPARE(scale_panel->mapTo(&viewer, QPoint()).x(), bed_track->mapTo(&viewer, QPoint()).x());
+		QCOMPARE(viewer.findChild<ChromosomePanel*>()->width(), bed_track->width());
 
 		auto check_coordinate = [&](QWidget* widget)
 		{
@@ -1947,6 +1953,7 @@ private slots:
 		};
 		check_coordinate(viewer.findChild<BedTrack*>());
 		check_coordinate(viewer.findChild<GenePanel*>());
+		check_coordinate(viewer.findChild<ChromosomeContextPanel*>());
 		bool checked_empty = false;
 		for (TrackGroup* group : manager->findChildren<TrackGroup*>())
 		{
@@ -1955,7 +1962,28 @@ private slots:
 			checked_empty = true;
 		}
 		QVERIFY(checked_empty);
+		auto* chromosome = viewer.findChild<ChromosomePanel*>();
+		QVERIFY(chromosome && chromosome->hasMouseTracking());
+		const int x0 = SharedData::settings().label_width + 2;
+		QCOMPARE(chromosome->genomicCoordinateAt(x0), 1);
+		QCOMPARE(chromosome->genomicCoordinateAt(x0 - 1), 0);
+		QCOMPARE(chromosome->genomicCoordinateAt(chromosome->width() - 2), 0);
+		const QPoint chromosome_pos(x0 + (chromosome->width() - x0 - 2) / 2, chromosome->height() / 2);
+		QMouseEvent chromosome_move(QEvent::MouseMove, chromosome_pos, chromosome->mapToGlobal(chromosome_pos), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+		QApplication::sendEvent(chromosome, &chromosome_move);
+		const QString chromosome_coordinate = label->text();
+		QVERIFY(chromosome_coordinate.startsWith("chr22:"));
+		QVERIFY(chromosome_coordinate.mid(6).toInt() > SharedData::region().end());
+		SharedData::setRegion(Chromosome("chr22"), 20, 60);
+		QApplication::sendEvent(chromosome, &chromosome_move);
+		QCOMPARE(label->text(), chromosome_coordinate); //Overview coordinates do not depend on zoom.
 		QEvent leave(QEvent::Leave);
+		QApplication::sendEvent(chromosome, &leave);
+		QVERIFY(label->text().isEmpty());
+		auto* scale = viewer.findChild<ChromosomeContextPanel*>();
+		check_coordinate(scale); //Scale coordinates follow the zoomed region.
+		QApplication::sendEvent(scale, &leave);
+		QVERIFY(label->text().isEmpty());
 		QApplication::sendEvent(manager, &leave);
 		QVERIFY(label->text().isEmpty());
 	}

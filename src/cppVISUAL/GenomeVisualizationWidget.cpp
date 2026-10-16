@@ -152,7 +152,9 @@ bool GenomeVisualizationWidget::eventFilter(QObject* watched, QEvent* event)
 	auto* widget = qobject_cast<QWidget*>(watched);
 	if (!widget) return QWidget::eventFilter(watched, event);
 	QWidget* manager = ui_->track_group_manager;
-	if (widget != manager && !manager->isAncestorOf(widget)) return QWidget::eventFilter(watched, event);
+	const bool chromosome_panel = widget == ui_->chr_panel;
+	const bool chromosome_scale = widget == ui_->chr_context_panel;
+	if (!chromosome_panel && !chromosome_scale && widget != manager && !manager->isAncestorOf(widget)) return QWidget::eventFilter(watched, event);
 	if (widget->window() != window()) return QWidget::eventFilter(watched, event);
 
 	if (event->type() == QEvent::Show)
@@ -163,6 +165,17 @@ bool GenomeVisualizationWidget::eventFilter(QObject* watched, QEvent* event)
 	{
 		const auto* mouse = static_cast<QMouseEvent*>(event);
 		const QPoint global_pos = mouse->globalPosition().toPoint();
+		if (chromosome_panel)
+		{
+			const int coordinate = ui_->chr_panel->genomicCoordinateAt(mouse->pos().x());
+			updateCoordinateLabel(coordinate > 0 ? QString::fromUtf8(SharedData::region().chr().strNormalized(true)) + ":" + QString::number(coordinate) : QString());
+			return QWidget::eventFilter(watched, event);
+		}
+		if (chromosome_scale)
+		{
+			SharedData::mouseMoved(mouse->pos().x(), widget->width());
+			return QWidget::eventFilter(watched, event);
+		}
 		//Use the widget under the cursor also for events propagated to its parents.
 		QWidget* hovered = manager->childAt(manager->mapFromGlobal(global_pos));
 		QWidget* coordinate_widget = manager;
@@ -183,7 +196,7 @@ bool GenomeVisualizationWidget::eventFilter(QObject* watched, QEvent* event)
 		if (coordinate_widget->rect().contains(pos)) SharedData::mouseMoved(pos.x(), coordinate_widget->width());
 		else updateCoordinateLabel("");
 	}
-	else if (event->type() == QEvent::Leave && widget == manager)
+	else if (event->type() == QEvent::Leave && (widget == manager || chromosome_panel || chromosome_scale))
 	{
 		updateCoordinateLabel("");
 	}

@@ -458,7 +458,8 @@ void GenePanel::drawTranscript(QPainter& painter, const TranscriptPosition& posi
 		const BedLine& exon = trans.regions()[i];
 		double x_start = baseStartX(exon.start(), true);
 		double x_end = baseEndX(exon.end(), true);
-		QRectF rect(x_start, y+2+2, x_end-x_start, 8);
+		if (x_end <= x_start) continue;
+		QRectF rect(x_start, y+2+2, std::max(0.5, x_end-x_start), 8);
 		painter.drawRect(rect);
 	}
 
@@ -468,7 +469,8 @@ void GenePanel::drawTranscript(QPainter& painter, const TranscriptPosition& posi
 		const BedLine& exon = trans.codingRegions()[i];
 		double x_start = baseStartX(exon.start(), true);
 		double x_end = baseEndX(exon.end(), true);
-		QRectF rect(x_start, y+2, x_end-x_start, 12);
+		if (x_end <= x_start) continue;
+		QRectF rect(x_start, y+2, std::max(0.5, x_end-x_start), 12);
 		painter.drawRect(rect);
 	}
 

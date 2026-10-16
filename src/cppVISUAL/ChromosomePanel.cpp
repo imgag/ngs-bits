@@ -25,6 +25,25 @@ void ChromosomePanel::updateRegion()
 	update();
 }
 
+int ChromosomePanel::genomicCoordinateAt(int x) const
+{
+	const int x0 = SharedData::settings().label_width + 2;
+	const int usable_width = width() - x0 - 2;
+	if (usable_width <= 0 || x < x0 || x >= x0 + usable_width) return 0;
+
+	static const BedFile bands = NGSHelper::cytoBands();
+	int start = -1;
+	int end = 0;
+	for (int i = 0; i < bands.count(); ++i)
+	{
+		if (bands[i].chr() != SharedData::region().chr()) continue;
+		if (start < 0 || bands[i].start() < start) start = bands[i].start();
+		end = std::max(end, bands[i].end());
+	}
+	if (start < 0) return 0;
+	return 1 + int(double(x - x0) * (end - start + 1) / usable_width);
+}
+
 
 QColor ChromosomePanel::cytobandColor(QString stain)
 {
