@@ -32,6 +32,7 @@ unix: QMAKE_CXXFLAGS += $$system(pkg-config --cflags libxml-2.0)
 unix: LIBS += -lxml2
 
 SOURCES += \
+    VcfTrack.cpp \
     AddBookmarkDialog.cpp \
     BookmarkManager.cpp \
     BamAlignmentTrack.cpp \
@@ -53,6 +54,7 @@ SOURCES += \
     TrackWidget.cpp
 
 HEADERS += \
+    VcfTrack.h \
     AddBookmarkDialog.h \
     BookmarkManager.h \
     BamAlignmentTrack.h \

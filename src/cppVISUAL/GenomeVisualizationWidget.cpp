@@ -237,7 +237,7 @@ void GenomeVisualizationWidget::delayedInitialization()
 void GenomeVisualizationWidget::openFileDialog()
 {
 	QString open_folder = Settings::path("load_store_file_folder", true);
-	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", open_folder, "NGS files(*.bam *.cram *.bed *.bed.gz *.igv *.seg);;All files(*.*)");
+	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", open_folder, "NGS files(*.bam *.cram *.bed *.bed.gz *.vcf *.vcf.gz *.igv *.seg);;All files(*.*)");
 	if (!files.isEmpty())
 	{
 		foreach(QString file, files)
@@ -342,7 +342,13 @@ void GenomeVisualizationWidget::search()
 	}
 
 	//chromosomal region
-	BedLine region = BedLine::fromString(text);
+	QString region_text = QString::fromUtf8(text).simplified().replace(' ', '\t').replace(':', '\t');
+	const QStringList locus_parts = region_text.split('\t');
+	if (locus_parts.count() == 2 && !locus_parts[1].contains('-'))
+	{
+		region_text += "\t" + locus_parts[1]; //Accept a single coordinate as a one-base range.
+	}
+	BedLine region = BedLine::fromString(region_text);
 	if (region.isValid())
 	{
 		SharedData::setRegion(region.chr(), region.start(), region.end());

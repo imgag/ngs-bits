@@ -4,6 +4,7 @@
 #include "VersatileFile.h"
 #include <cmath>
 #include "BedTrack.h"
+#include "VcfTrack.h"
 #include "BamAlignmentTrack.h"
 #include "BamCoverageTrack.h"
 #include <QApplication>
@@ -16,6 +17,11 @@ QVector<TrackWidget*> FileLoader::loadTracks(QString file_path, QWidget* parent)
 	QString filename = TrackWidget::getDisplayNameFromFilePath(file_path);
 
 	QVector<TrackWidget*> output;
+	if (filename.endsWith(".vcf", Qt::CaseInsensitive) || filename.endsWith(".vcf.gz", Qt::CaseInsensitive))
+	{
+		output << VcfTrack::createTrack(parent, file_path, filename);
+		return output;
+	}
 	if (filename.endsWith(".seg", Qt::CaseInsensitive))
 	{
 		output << SegTrack::createTrack(parent, file_path);

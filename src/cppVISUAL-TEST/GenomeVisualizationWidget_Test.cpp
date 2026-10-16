@@ -20,6 +20,7 @@
 #include <QScrollBar>
 #include <QHBoxLayout>
 #include "BedTrack.h"
+#include "VcfTrack.h"
 #include "FileLoader.h"
 #include "IgvTrack.h"
 #include "SegTrack.h"
@@ -2184,6 +2185,275 @@ private slots:
 		viewer.clearSession();
 		QVERIFY(!dock->findChild<ParameterEditor*>());
 		QCOMPARE(dock->windowTitle(), QString("Track settings"));
+	}
+
+	void vcfTrackRenderingFilteringAndTabix()
+	{
+		int errors_shown = 0;
+		QTimer dismiss_errors;
+		connect(&dismiss_errors, &QTimer::timeout, this, [&]()
+		{
+			if (auto* dialog = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) { ++errors_shown; dialog->accept(); }
+		});
+		dismiss_errors.start(10);
+		const QByteArray multi_header = "##fileformat=VCFv4.2\n##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n##FORMAT=<ID=DP,Number=1,Type=Integer,Description=\"Depth\">\n##INFO=<ID=END,Number=1,Type=Integer,Description=\"End\">\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tS1\tS2\n";
+		const QByteArray multi_chr22 =
+			"chr22\t10\thet\tA\tG\t20\tPASS\t.\tDP:GT\t10:0/1\t20:1/1\n"
+			"chr22\t11\tadjacent\tA\tG\t100\tPASS\t.\tGT\t1/1\t0/1\n"
+			"chr22\t20\thom\tA\tT\t40\tq10\t.\tGT\t1/1\t0/1\n"
+			"chr22\t30\tref\tA\tC\t60\t.\t.\tGT\t0/0\t1/1\n"
+			"chr22\t40\tmulti\tA\tT,G\t80\tPASS\t.\tGT\t1/2\t2/2\n"
+			"chr22\t50\tmissing\tA\tT\t.\tPASS\t.\tGT\t./.\t0/1\n"
+			"chr22\t60\tpartial\tA\tG\t0\tPASS\t.\tGT\t0/.\t./.\n"
+			"chr22\t70\thaploid\tA\tC\t99\tPASS\t.\tGT\t1\t.\n"
+			"chr22\t80\tphased\tA\tT\t30\tPASS\t.\tGT\t1|0\t0|1\n"
+			"chr22\t90\tdel\tAAAAA\tA\t50\tPASS\t.\tGT\t0/1\t1/1\n";
+		const QByteArray multi_structural = "chrLong\t5000\tsv\tN\t<DEL>\t100\tPASS\tEND=5050\tGT\t0/1\t1/1\n"
+			"chrLong\t5120\tdelins-longer\tACG\tATTG\t50\tPASS\t.\tGT\t0/1\t1/1\n"
+			"chrLong\t5140\tdelins-shorter\tACGT\tATT\t50\tPASS\t.\tGT\t0/1\t1/1\n";
+		const QByteArray multi_content = multi_header + multi_chr22 + multi_structural;
+		writeFile("multi.vcf", multi_content);
+		QVERIFY_THROWS_EXCEPTION(NotImplementedException, VcfTrack(nullptr, data_.filePath("multi.vcf"), "Multi"));
+		auto singleSample = [](const QByteArray& content, int sample)
+		{
+			QByteArray result;
+			for (const QByteArray& line : content.split('\n'))
+			{
+				if (line.isEmpty()) continue;
+				if (line.startsWith("##")) { result += line + "\n"; continue; }
+				const auto columns = line.split('\t');
+				result += columns.mid(0, 9).join('\t') + "\t" + columns[9 + sample] + "\n";
+			}
+			return result;
+		};
+		const QByteArray header = singleSample(multi_header, 0);
+		const QByteArray chr22 = singleSample(multi_chr22, 0);
+		const QByteArray structural = singleSample(multi_structural, 0);
+		const QString plain_path = data_.filePath("variants.VCF");
+		writeFile("variants.VCF", header + chr22 + structural);
+		SharedData::setRegion(Chromosome("chr22"), 1, 100);
+		auto plain_tracks = FileLoader::loadTracks(plain_path);
+		QCOMPARE(plain_tracks.size(), 1);
+		std::unique_ptr<TrackWidget> plain_owner(plain_tracks.first());
+		auto* plain = qobject_cast<VcfTrack*>(plain_owner.get());
+		QVERIFY(plain);
+		QCOMPARE(plain->parameters().getString("sample"), QByteArray("S1"));
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, plain->parameters().setDouble("min QUAL", -1));
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, plain->parameters().setString("sample", "unknown"));
+		auto render = [](VcfTrack* track)
+		{
+			track->resize(600, track->sizeHint().height());
+			QImage image(track->size(), QImage::Format_ARGB32);
+			track->render(&image);
+			return image;
+		};
+		auto x_for = [](int position)
+		{
+			return SharedData::settings().label_width + 2 + int((position - SharedData::region().start() + 0.5) * (600 - SharedData::settings().label_width - 4) / SharedData::region().length());
+		};
+		auto popup_text = [&](VcfTrack* track, int position)
+		{
+			QTest::mouseClick(track, Qt::LeftButton, Qt::NoModifier, QPoint(x_for(position), 5));
+			auto* popup = track->findChild<QDialog*>();
+			if (!popup) return QString();
+			const QString text = popup->findChild<QLabel*>()->text();
+			delete popup;
+			return text;
+		};
+		QImage image = render(plain);
+		QCOMPARE(image.pixelColor(x_for(10), 4), QColor(224, 224, 224));
+		QCOMPARE(image.pixelColor(x_for(10), 2), QColor(224, 224, 224)); //No heterozygous SNP outline.
+		QCOMPARE(image.pixelColor(x_for(10), 11), QColor(209, 113, 5));
+		QCOMPARE(image.pixelColor(x_for(20), 4), QColor(Qt::red));
+		QCOMPARE(image.pixelColor(x_for(30), 11), QColor(Qt::white));
+		QCOMPARE(image.pixelColor(x_for(40), 4), QColor(224, 224, 224));
+		QCOMPARE(image.pixelColor(x_for(40), 11), QColor(209, 113, 5));
+		QCOMPARE(image.pixelColor(x_for(70), 4), QColor(Qt::blue));
+		QCOMPARE(image.pixelColor(x_for(80), 4), QColor(224, 224, 224));
+		QCOMPARE(image.pixelColor(x_for(80), 11), QColor(Qt::red)); //1|0 has the same gray upper half as 0/1.
+		for (int x = x_for(20) - 1; x <= x_for(20) + 1; ++x) QCOMPARE(image.pixelColor(x, 2), QColor(Qt::red)); //Homozygous alternate SNP has no outline.
+		QCOMPARE(image.pixelColor(x_for(90), 8), QColor(Qt::white)); //Anchor base is not drawn.
+		QCOMPARE(image.pixelColor(x_for(92), 4), QColor(224, 224, 224));
+		QCOMPARE(image.pixelColor(x_for(92), 8), QColor(Qt::black)); //One centered line for 0/1.
+		QCOMPARE(image.pixelColor(x_for(92), 11), QColor(224, 224, 224));
+		QVERIFY(popup_text(plain, 90).isEmpty());
+		QVERIFY(popup_text(plain, 92).contains("ID: del"));
+		SharedData::setRegion(Chromosome("chr22"), 90, 90);
+		image = render(plain);
+		QCOMPARE(image.pixelColor(x_for(90), 8), QColor(Qt::white)); //View contains only the anchor.
+		SharedData::setRegion(Chromosome("chr22"), 92, 93);
+		image = render(plain);
+		QCOMPARE(image.pixelColor(x_for(92), 8), QColor(Qt::black)); //Deletion clipped to view.
+		SharedData::setRegion(Chromosome("chr22"), 1, 100);
+		QVERIFY(popup_text(plain, 10).contains("GT: 0/1")); //GT is not the first FORMAT field.
+		QVERIFY(popup_text(plain, 50).contains("GT: ./."));
+		QVERIFY(popup_text(plain, 60).contains("GT: 0/."));
+		writeFile("second-sample.vcf", singleSample(multi_content, 1));
+		VcfTrack second_sample(nullptr, data_.filePath("second-sample.vcf"), "Second sample");
+		image = render(&second_sample);
+		QCOMPARE(image.pixelColor(x_for(10), 4), QColor(209, 113, 5));
+		QCOMPARE(image.pixelColor(x_for(40), 4), QColor(209, 113, 5));
+		QCOMPARE(image.pixelColor(x_for(92), 5), QColor(Qt::black)); //Two lines for 1/1.
+		QCOMPARE(image.pixelColor(x_for(92), 10), QColor(Qt::black));
+		QCOMPARE(image.pixelColor(x_for(92), 8), QColor(224, 224, 224));
+		QVERIFY(popup_text(&second_sample, 10).contains("Sample: S2"));
+		SharedData::setRegion(Chromosome("chrLong"), 5110, 5150);
+		image = render(plain);
+		QCOMPARE(image.pixelColor(x_for(5120), 4), QColor(Qt::white)); //Shared anchor is excluded.
+		for (int position : {5121, 5142})
+		{
+			for (int y : {4, 11}) //Both halves have equal-width stripes.
+			{
+				int gray = 0, purple = 0;
+				for (int x = x_for(position) - 3; x <= x_for(position) + 4; ++x)
+				{
+					const QColor color = image.pixelColor(x, y);
+					gray += color == QColor(224, 224, 224);
+					purple += color == QColor(140, 0, 200);
+				}
+				QCOMPARE(gray, 4);
+				QCOMPARE(purple, 4);
+			}
+		}
+		QCOMPARE(image.pixelColor(x_for(5121), 8), QColor(Qt::black));
+		QCOMPARE(image.pixelColor(x_for(5142), 8), QColor(Qt::black));
+		image = render(&second_sample);
+		QCOMPARE(image.pixelColor(x_for(5121), 5), QColor(Qt::black));
+		QCOMPARE(image.pixelColor(x_for(5121), 10), QColor(Qt::black));
+		SharedData::setRegion(Chromosome("chr22"), 1, 100);
+		plain->parameters().setString("sample", "S1");
+		plain->parameters().setDouble("min QUAL", 30);
+		render(plain);
+		QVERIFY(popup_text(plain, 10).isEmpty());
+		QVERIFY(popup_text(plain, 50).isEmpty());
+		QVERIFY(popup_text(plain, 80).contains("ID: phased")); //Inclusive QUAL threshold.
+		plain->parameters().setBool("PASS only", true);
+		render(plain);
+		QVERIFY(popup_text(plain, 20).isEmpty());
+		QVERIFY(popup_text(plain, 30).isEmpty());
+		plain->parameters().setDouble("min QUAL", 0);
+		render(plain);
+		QVERIFY(popup_text(plain, 50).contains("ID: missing"));
+		plain->parameters().setBool("PASS only", false);
+
+		for (int min_shift : {0, 14})
+		{
+			const QString path = data_.filePath(QString("variants-%1.VCF.GZ").arg(min_shift));
+			//Invalid QUAL is legal to index, but must not be parsed outside the viewed chromosome.
+			const QByteArray content = header + chr22 + "chr23\t10\tunused\tA\tG\tinvalid\tPASS\t.\tGT\t0/1\n" + structural;
+			BGZF* file = bgzf_open(path.toUtf8().constData(), "w");
+			QVERIFY(file);
+			const auto written = bgzf_write(file, content.constData(), content.size());
+			const int closed = bgzf_close(file);
+			QCOMPARE(written, content.size());
+			QCOMPARE(closed, 0);
+			QCOMPARE(tbx_index_build(path.toUtf8().constData(), min_shift, &tbx_conf_vcf), 0);
+			const QString multi_path = data_.filePath(QString("multi-%1.vcf.gz").arg(min_shift));
+			BGZF* multi_file = bgzf_open(multi_path.toUtf8().constData(), "w");
+			QVERIFY(multi_file);
+			QCOMPARE(bgzf_write(multi_file, multi_content.constData(), multi_content.size()), multi_content.size());
+			QCOMPARE(bgzf_close(multi_file), 0);
+			QCOMPARE(tbx_index_build(multi_path.toUtf8().constData(), min_shift, &tbx_conf_vcf), 0);
+			QVERIFY_THROWS_EXCEPTION(NotImplementedException, VcfTrack(nullptr, multi_path, "Multi"));
+			auto tracks = FileLoader::loadTracks(path);
+			QCOMPARE(tracks.size(), 1);
+			std::unique_ptr<TrackWidget> owner(tracks.first());
+			auto* track = qobject_cast<VcfTrack*>(owner.get());
+			QVERIFY(track);
+			//Use the same name when comparing the complete rendered widgets.
+			QString xml;
+			QXmlStreamWriter writer(&xml);
+			track->writeToXml(writer);
+			QDomDocument document;
+			QVERIFY(document.setContent(xml));
+			document.documentElement().setAttribute("display_name", plain->displayName());
+			QStringList errors;
+			std::unique_ptr<TrackWidget> restored(TrackWidget::fromXml(document.documentElement(), nullptr, errors));
+			QVERIFY(restored && errors.isEmpty());
+			auto* indexed = qobject_cast<VcfTrack*>(restored.get());
+			QVERIFY(indexed);
+			//The session restored a fixed height; compare automatic row sizing below.
+			indexed->setMinimumHeight(25);
+			indexed->setMaximumHeight(QWIDGETSIZE_MAX);
+			for (const BedLine& region : {BedLine(Chromosome("chr22"), 1, 100), BedLine(Chromosome("chr22"), 40, 80),
+				BedLine(Chromosome("chrLong"), 5010, 5050), BedLine(Chromosome("chrLong"), 5110, 5150), BedLine(Chromosome("chrX"), 1, 41), BedLine(Chromosome("chr22"), 1, 100)})
+			{
+				SharedData::setRegion(region.chr(), region.start(), region.end());
+				QCOMPARE(render(indexed), render(plain));
+			}
+			indexed->parameters().setDouble("min QUAL", 30);
+			indexed->parameters().setBool("PASS only", true);
+			indexed->parameters().setString("sample", "S1");
+			plain->parameters().setDouble("min QUAL", 30);
+			plain->parameters().setBool("PASS only", true);
+			plain->parameters().setString("sample", "S1");
+			QCOMPARE(render(indexed), render(plain));
+			QString filtered_xml;
+			QXmlStreamWriter filtered_writer(&filtered_xml);
+			indexed->writeToXml(filtered_writer);
+			QDomDocument filtered_document;
+			QVERIFY(filtered_document.setContent(filtered_xml));
+			std::unique_ptr<TrackWidget> filtered(TrackWidget::fromXml(filtered_document.documentElement(), nullptr, errors));
+			QVERIFY(filtered && errors.isEmpty());
+			QCOMPARE(filtered->parameters().getDouble("min QUAL"), 30.0);
+			QVERIFY(filtered->parameters().getBool("PASS only"));
+			QCOMPARE(filtered->parameters().getString("sample"), QByteArray("S1"));
+			const QString session_path = data_.filePath("vcf-session.xml");
+			QFile session(session_path);
+			QVERIFY(session.open(QIODevice::WriteOnly | QIODevice::Truncate));
+			QXmlStreamWriter session_writer(&session);
+			session_writer.writeStartElement("GSviewerSession");
+			session_writer.writeAttribute("version", "1");
+			session_writer.writeStartElement("General");
+			session_writer.writeAttribute("gene_panel_height", "80");
+			session_writer.writeStartElement("DisplayedRegion");
+			session_writer.writeAttribute("chr", "chr22");
+			session_writer.writeAttribute("start", "1");
+			session_writer.writeAttribute("end", "100");
+			session_writer.writeEndElement();
+			SharedData::writeSettingsToXml(session_writer);
+			session_writer.writeEndElement();
+			session_writer.writeStartElement("TrackGroup");
+			session_writer.writeAttribute("height", "100");
+			indexed->writeToXml(session_writer);
+			session_writer.writeEndElement();
+			session_writer.writeEndElement();
+			session.close();
+			QCOMPARE(XmlHelper::isValidXml(session_path, QFINDTESTDATA("../cppVISUAL/Resources/GSviewerSession.xsd")), QString());
+			QSignalSpy deleted(indexed, &TrackWidget::trackDeleted);
+			indexed->reloadTrack();
+			QCOMPARE(deleted.count(), 0);
+			QCOMPARE(render(indexed), render(plain));
+			SharedData::setRegion(Chromosome("chr23"), 1, 41); //Query errors recover on the next valid view.
+			QCOMPARE(indexed->sizeHint().height(), 25);
+			SharedData::setRegion(Chromosome("chr22"), 1, 100);
+			QCOMPARE(render(indexed), render(plain));
+			plain->parameters().setDouble("min QUAL", 0);
+			plain->parameters().setBool("PASS only", false);
+			plain->parameters().setString("sample", "S1");
+		}
+		//Reload a changed sample header while preserving quality/filter settings.
+		plain->parameters().setString("sample", "S1");
+		plain->parameters().setDouble("min QUAL", 25);
+		QByteArray renamed = header;
+		renamed.replace("\tS1\n", "\tS3\n");
+		writeFile("variants.VCF", renamed + chr22 + structural);
+		plain->reloadTrack();
+		QCOMPARE(plain->parameters().getString("sample"), QByteArray("S3"));
+		QCOMPARE(plain->parameters().getDouble("min QUAL"), 25.0);
+		writeFile("sites.vcf", "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\nchr22\t10\tsite\tA\tG\t.\t.\t.\n");
+		std::unique_ptr<VcfTrack> sites(VcfTrack::createTrack(nullptr, data_.filePath("sites.vcf"), "Sites"));
+		QVERIFY(sites);
+		render(sites.get());
+		QVERIFY(popup_text(sites.get(), 10).contains("no samples"));
+		sites->parameters().setDouble("min QUAL", 1);
+		render(sites.get());
+		QVERIFY(popup_text(sites.get(), 10).isEmpty());
+		QCOMPARE(errors_shown, 0);
+		writeFile("bad-gt.vcf", header + "chr22\t10\tbad\tA\tG\t20\tPASS\t.\tGT\t0/2\n");
+		std::unique_ptr<VcfTrack> invalid(VcfTrack::createTrack(nullptr, data_.filePath("bad-gt.vcf"), "Bad GT"));
+		QVERIFY(!invalid);
+		QCOMPARE(errors_shown, 1);
 	}
 
 	void bedTrackTabixIndexed()

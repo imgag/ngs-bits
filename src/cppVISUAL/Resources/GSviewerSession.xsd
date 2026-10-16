@@ -81,6 +81,7 @@
 										<xs:simpleType>
 											<xs:restriction base="xs:string">
 												<xs:enumeration value="BedTrack"/>
+												<xs:enumeration value="VcfTrack"/>
 												<xs:enumeration value="BamAlignmentTrack"/>
 												<xs:enumeration value="BamCoverageTrack"/>
 												<xs:enumeration value="IgvTrack"/>

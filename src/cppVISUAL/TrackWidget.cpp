@@ -3,6 +3,7 @@
 #include "IgvTrack.h"
 #include "SegTrack.h"
 #include "BedTrack.h"
+#include "VcfTrack.h"
 #include "BamAlignmentTrack.h"
 #include "BamCoverageTrack.h"
 #include <QInputDialog>
@@ -284,6 +285,7 @@ TrackWidget* TrackWidget::fromXml(const QDomElement& track_element, QWidget* par
 	//create track
 	TrackWidget* track = nullptr;
 	if (type == BedTrack::type()) track = BedTrack::createTrack(parent, file_path, display_name);
+	else if (type == VcfTrack::type()) track = VcfTrack::createTrack(parent, file_path, display_name);
 	else if (type == BamAlignmentTrack::type()) track = BamAlignmentTrack::createTrack(parent, file_path, display_name);
 	else if (type == BamCoverageTrack::type()) track = BamCoverageTrack::createTrack(parent, file_path, display_name);
 	else if (type == IgvTrack::type()) track = IgvTrack::createTrack(parent, file_path, display_name);
