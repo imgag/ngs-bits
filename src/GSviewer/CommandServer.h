@@ -6,6 +6,7 @@
 #include <QObject>
 #include <QQueue>
 #include <QTimer>
+#include <QDateTime>
 #include <QMutex>
 #include <QMutexLocker>
 #include <QLocalServer>
@@ -54,6 +55,9 @@ struct CommandResult {
 
 
 struct GSVCommand {
+    /// Timestamp of when the command was parsed (not when it was dispatched or handled)
+    QDateTime received;
+
     /// A Serial ID representing the command's ordering
     quint32 id;
 
@@ -81,11 +85,6 @@ private:
 
     GSVCommand parseCommand(QString cmd);
 
-    QQueue<GSVCommand> cmdQueueWrite;
-    QQueue<GSVCommand> cmdQueueRead;
-    QMutex cmdQueueLock;
-    QTimer dispatchInterval;
-
 public:
     explicit CommandServer(QObject *parent = nullptr);
 
@@ -101,7 +100,6 @@ signals:
 
 protected slots:
     void newConnection();
-    void dispatchEnqueued();
 };
 
 #endif // COMMANDSERVER_H

@@ -186,8 +186,6 @@ void MainWindow::on_actionEnable_Remote_Application_Control_changed()
 }
 
 void MainWindow::executeApiCommand(GSVCommand cmd) {
-    qDebug() << "Received command:" << cmd.text.trimmed().toStdString();
-
     try {
         switch (cmd.verb) {
             case CmdVerb::New:
