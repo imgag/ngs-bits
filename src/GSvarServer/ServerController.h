@@ -4,8 +4,9 @@
 #include "Log.h"
 #include "HttpResponse.h"
 #include "HttpRequest.h"
+#include "EndpointManager.h"
 #include "FastFileInfo.h"
-#include "FileLocation.h"
+#include "XmlImportValidator.h"
 
 class ServerController
 {
@@ -89,6 +90,26 @@ public:
 	/// Returns information about the latest available version of the desktop client
 	static HttpResponse getCurrentClientInfo(const HttpRequest& request);
 
+	/// --------- Database editing ---------
+	/// Adds a new project to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addProjectToDb(const HttpRequest& request);
+	/// Adds a new processing system to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addProcessingSystemToDb(const HttpRequest& request);
+	/// Adds a new device to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addDeviceToDb(const HttpRequest& request);
+	/// Adds a new sequencing run to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addSequencingRunToDb(const HttpRequest& request);
+	/// Adds a new sample to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addSampleToDb(const HttpRequest& request);
+	/// Adds a new sample relation to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addSampleRelationToDb(const HttpRequest& request);
+	/// Adds a new processed sample to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addProcessedSampleToDb(const HttpRequest& request);
+	/// Adds a new sender to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addSenderToDb(const HttpRequest& request);
+	/// Adds a new user to NGSD database
+	static HttpResponse addUserToDb(const HttpRequest& request);
+	/// ------------------
 	/// Returns BLAT-like search results for the given sequence (performed with BWA-mem2)
     static HttpResponse performBlatSearch(const HttpRequest& request);
 
@@ -101,6 +122,8 @@ public:
 	/// Removes the cache for user permissions
 	static HttpResponse clearPermissionsCache(const HttpRequest& request);
 
+	/// Inserts new data into a specific table in NGSD (needed for the data import / batch import functionality)
+	static void importDataToNGSD(NGSD& db, const QString& table_name, const QHash<QString, QVariant>& values);
 private:
 	/// Find file/folder name corresponding to the id from a temporary URL
 	static QString findPathForTempUrl(QList<QString> path_parts);
@@ -124,6 +147,8 @@ private:
     static HttpResponse createStaticFileResponse(const QString& filename, const HttpRequest& request);
 	static HttpResponse createStaticFolderResponse(const QString path, const HttpRequest& request);
 	static HttpResponse createStaticLocationResponse(const QString path, const HttpRequest& request);
+	/// Handles adding new records to the database tables (data import)
+	static HttpResponse addRecordToDbTable(const QString& table_name, const HttpRequest& request);
 };
 
 #endif // SERVERCONTROLLER_H

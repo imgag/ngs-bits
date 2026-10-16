@@ -227,6 +227,8 @@ public slots:
 	void on_actionCloseMetaDataTabs_triggered();
 	///Import variants
 	void on_actionImportVariants_triggered();
+	///Import users
+	void on_actionImportUsers_triggered();
 	///Clear IGV
 	void on_actionIgvClear_triggered();
 	///Open IGV documentation in browser
@@ -517,6 +519,8 @@ protected:
 	QString getFileSelectionItem(QString window_title, QString label_text, QStringList file_list, bool *ok);
     /// Removes a user's session on the server (in client-server mode)
     void performLogout();
+	//Returns the path to the genome viewer app
+	QString viewerApp();
 
 
 private:

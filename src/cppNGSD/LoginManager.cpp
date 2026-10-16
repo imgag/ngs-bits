@@ -151,6 +151,11 @@ QString LoginManager::userPassword()
 	return password;
 }
 
+void LoginManager::setUserPassword(const QString &password)
+{
+	instance().user_password_ = password;
+}
+
 bool LoginManager::active()
 {
 	return !instance().user_login_.isEmpty();
@@ -168,8 +173,17 @@ void LoginManager::login(QString user, QString password, bool test_db)
 	manager.user_name_ = db.userName(manager.user_id_);
 	manager.user_password_ = password;
 
-	//update last login
-	db.getQuery().exec("UPDATE user SET last_login=NOW() WHERE id='" + QString::number(manager.user_id_) + "'");
+	QDateTime last_login = db.userLastLogin(manager.user_login_);
+	if (last_login.isNull()) return;
+
+	//update last login date and time
+	updateLastLogin(manager.user_id_, test_db);
+}
+
+void LoginManager::updateLastLogin(int id, bool test_db)
+{
+	NGSD db(test_db);
+	db.getQuery().exec("UPDATE user SET last_login=NOW() WHERE id='" + QString::number(id) + "'");
 }
 
 void LoginManager::renewLogin()

@@ -804,6 +804,12 @@ void MainWindow::on_actionImportVariants_triggered()
 	dlg.exec();
 }
 
+void MainWindow::on_actionImportUsers_triggered()
+{
+	ImportDialog dlg(this, ImportDialog::USERS);
+	dlg.exec();
+}
+
 void MainWindow::on_actionIgvClear_triggered()
 {
     IgvSessionManager::get(0).clear();
@@ -1623,31 +1629,31 @@ void MainWindow::delayedInitialization()
 	PingWorker* workter = new PingWorker();
 	startJob(workter, false);
 
-    if (NGSD::isAvailable())
-    {
-			//user login for database
-			LoginDialog dlg(this);
-			dlg.exec();
+	if (NGSD::isAvailable())
+	{
+		//user login for database
+		LoginDialog dlg(this);
+		dlg.exec();
 
-			if (LoginManager::active())
-			{
+		if (LoginManager::active())
+		{
 			try
 			{
-			ui_.filters->loadTargetRegions();
+			        ui_.filters->loadTargetRegions();
 			}
 			catch(Exception& e)
 			{
-			Log::warn("Target region data for filter widget could not be loaded from NGSD: " + e.message());
+			        Log::warn("Target region data for filter widget could not be loaded from NGSD: " + e.message());
 			}
-			}
+		}
 
-			//start initialization of NGSD gene/transcript cache
-			NGSDCacheInitializer* ngsd_initializer = new NGSDCacheInitializer();
-			startJob(ngsd_initializer, false);
-    }
+		//start initialization of NGSD gene/transcript cache
+		NGSDCacheInitializer* ngsd_initializer = new NGSDCacheInitializer();
+		startJob(ngsd_initializer, false);
+	}
 
 	//create default IGV session (variants)
-	IGVSession* igv_default = IgvSessionManager::create(this, "Default IGV", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), Settings::path("igv_genome"));
+	IGVSession* igv_default = IgvSessionManager::create(this, "Default IGV", viewerApp(), Settings::string("igv_host"), Settings::path("igv_genome"));
 	connect(igv_default, SIGNAL(started()), this, SLOT(changeIgvIconToActive()));
 	connect(igv_default, SIGNAL(finished()), this, SLOT(changeIgvIconToNormal()));
 
@@ -1662,7 +1668,7 @@ void MainWindow::delayedInitialization()
 	{
 	   virus_genome = ClientHelper::serverApiUrl() + "genome/somatic_viral.fa";
 	}
-	IGVSession* igv_virus = IgvSessionManager::create(this, "Virus IGV", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), virus_genome);
+	IGVSession* igv_virus = IgvSessionManager::create(this, "Virus IGV", viewerApp(), Settings::string("igv_host"), virus_genome);
 	connect(igv_virus, SIGNAL(started()), this, SLOT(changeIgvIconToActive()));
 	connect(igv_virus, SIGNAL(finished()), this, SLOT(changeIgvIconToNormal()));
 
@@ -4256,13 +4262,28 @@ void MainWindow::openProcessedSampleTabsCurrentAnalysis()
 
 void MainWindow::on_actionOpenProcessedSampleTabByName_triggered()
 {
-	ProcessedSampleSelector dlg(this, false);
-	if (!dlg.exec()) return;
+	bool ctrl_pressed = QGuiApplication::keyboardModifiers().testFlag(Qt::ControlModifier);
+	if (ctrl_pressed) //batch mode
+	{
+		QStringList ps_list = QInputDialog::getMultiLineText(this, "Open processed samples", "Processed samples (one per line)").split("\n");
+		for (QString ps: ps_list)
+		{
+			ps = ps.trimmed();
+			if (ps.isEmpty() || ps[0]=='#') continue;
 
-	QString ps_name = dlg.processedSampleName();
-	if (ps_name.isEmpty()) return;
+			openProcessedSampleTab(ps);
+		}
+	}
+	else
+	{
+		ProcessedSampleSelector dlg(this, false);
+		if (!dlg.exec()) return;
 
-	openProcessedSampleTab(ps_name);
+		QString ps_name = dlg.processedSampleName();
+		if (ps_name.isEmpty()) return;
+
+		openProcessedSampleTab(ps_name);
+	}
 }
 
 void MainWindow::on_actionOpenSequencingRunTabByName_triggered()
@@ -7170,4 +7191,19 @@ void MainWindow::performLogout()
     if (!LoginManager::active()) return;
 
     LoginManager::logout();
+}
+
+QString MainWindow::viewerApp()
+{
+	qDebug() << "viewerApp";
+	if (Settings::boolean("igv_use_gsviewer_instead", true))
+	{
+		qDebug() << "GSviewer";
+		return QCoreApplication::applicationDirPath() + QDir::separator() + "GSviewer.exe";
+	}
+	else
+	{
+		qDebug() << "IGV";
+		return Settings::path("igv_app").trimmed();
+	}
 }
