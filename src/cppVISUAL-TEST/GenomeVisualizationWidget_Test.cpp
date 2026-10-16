@@ -1639,7 +1639,7 @@ private slots:
 			const QString coding = click_text(30); //Codon is split across the two exons.
 			QVERIFY(coding.contains("Gene:</b> GENE"));
 			QVERIFY(coding.contains("Transcript:</b> ENSTpopup"));
-			QVERIFY(coding.contains("<b>Tags:</b> GENCODE primary<br><br><b>cDNA position:</b>"));
+			QVERIFY(coding.contains("<b>Tags:</b> GENCODE primary<br><br><b>Genomic position:</b> chr22:30<br><b>cDNA position:</b>"));
 			QVERIFY(coding.contains(plus ? "cDNA position:</b> c.6" : "cDNA position:</b> c.7"));
 			QVERIFY(coding.contains(plus ? "AA position:</b> 2" : "AA position:</b> 3"));
 			QVERIFY(coding.contains(plus ? "AA (one-letter):</b> K" : "AA (one-letter):</b> F"));
@@ -1648,6 +1648,7 @@ private slots:
 			QVERIFY(utr.contains(plus ? "cDNA position:</b> c.-1" : "cDNA position:</b> c.*1"));
 			QVERIFY(!utr.contains("AA position:"));
 			const QString intron = click_text(20);
+			QVERIFY(intron.contains("Genomic position:</b> chr22:20"));
 			QVERIFY(!intron.contains("cDNA position:"));
 			QVERIFY(!intron.contains("AA position:"));
 			QTest::mousePress(&panel, Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 59, y));

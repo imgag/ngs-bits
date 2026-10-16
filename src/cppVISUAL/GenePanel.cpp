@@ -329,6 +329,7 @@ QString GenePanel::transcriptText(const Transcript& trans, int genome_pos) const
 	const QString tags = trans.flags(false).join(", ");
 	if (!tags.isEmpty()) text += "<br><b>Tags:</b> " + tags.toHtmlEscaped();
 	QStringList details;
+	details.append("<b>Genomic position:</b> " + QString::fromUtf8(trans.chr().strNormalized(true)).toHtmlEscaped() + ":" + QString::number(genome_pos));
 	if (!cdna.startsWith("N/A")) details.append("<b>cDNA position:</b> " + cdna);
 	if (aa_position != "N/A") details.append("<b>AA position:</b> " + aa_position);
 	if (aa_one != "N/A") details.append("<b>AA (one-letter):</b> " + aa_one);
