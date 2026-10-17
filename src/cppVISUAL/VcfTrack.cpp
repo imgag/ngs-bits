@@ -126,22 +126,10 @@ VcfTrack::VcfTrack(QWidget* parent, QString file_path, QString name)
 {
 	loadSource();
 	initializeSettings(&fast_settings_);
-	setMinimumHeight(25);
-	connect(&settings_, &ParameterList::parameterChanged, this, &VcfTrack::updateLayout);
+	setMinimumHeight(70);
+	connect(&settings_, &ParameterList::parameterChanged, this, &VcfTrack::refreshRegion);
 	connect(SharedData::instance(), &SharedData::settingsChanged, this, &VcfTrack::updateLayout);
-	connect(SharedData::instance(), &SharedData::regionChanged, this, [this]()
-	{
-		if (tabix_)
-		{
-			try { setVariants(queryRegion(*tabix_)); }
-			catch (const Exception& e)
-			{
-				setVariants({});
-				load_error_ = e.message();
-			}
-		}
-		updateLayout();
-	});
+	connect(SharedData::instance(), &SharedData::regionChanged, this, &VcfTrack::refreshRegion);
 	updateLayout();
 }
 
@@ -155,13 +143,14 @@ QList<Parameter> VcfTrack::getParameters() const
 	return {
 		Parameter("min QUAL", "Minimum variant QUAL. Missing QUAL is included only when the minimum is zero.", ParameterType::DOUBLE, {{ConstraintType::MIN, 0.0}, {ConstraintType::DISPLAY_DIGITS, 2}}),
 		Parameter("PASS only", "Show only records with FILTER=PASS. Excludes unfiltered records (FILTER=.).", ParameterType::BOOL, {}),
+		Parameter("max visibility", "Maximum visible region length in bases. Zoom in to show variants in larger regions.", ParameterType::INT, {{ConstraintType::MIN, 1}}),
 		Parameter("sample", "Sample used for genotype allele bands: white=REF, BAM base colors=ALT alleles, light gray upper half=heterozygous SNP or insertion, hatched gray=missing.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, sampleChoices().join('\t')}})
 	};
 }
 
 QHash<QByteArray, QVariant> VcfTrack::getParameterDefaults() const
 {
-	return {{"min QUAL", 0.0}, {"PASS only", false}, {"sample", sampleChoices().first()}};
+	return {{"min QUAL", 0.0}, {"PASS only", false}, {"sample", sampleChoices().first()}, {"max visibility", 1000000}};
 }
 
 VcfTrack::Variant VcfTrack::parseVariant(const QByteArray& line) const
@@ -219,7 +208,7 @@ QVector<VcfTrack::Variant> VcfTrack::queryRegion(const TabixIndexedFile& tabix) 
 {
 	QVector<Variant> variants;
 	const BedLine& region = SharedData::region();
-	if (!region.isValid()) return variants;
+	if (!region.isValid() || region.length() > fast_settings_.max_visibility) return variants;
 	for (const QByteArray& line : tabix.getMatchingLines(region.chr(), region.start(), region.end(), true)) variants << parseVariant(line);
 	return variants;
 }
@@ -282,7 +271,36 @@ void VcfTrack::loadSource()
 	if (!header_found) THROW(FileParseException, "Missing VCF column header.");
 	if (tabix) variants = queryRegion(*tabix);
 	setVariants(std::move(variants));
+	loaded_region_ = tabix && SharedData::region().length() <= fast_settings_.max_visibility ? SharedData::region() : BedLine();
 	tabix_ = std::move(tabix);
+}
+
+void VcfTrack::refreshRegion()
+{
+	if (tabix_)
+	{
+		const auto& region = SharedData::region();
+		if (!region.isValid() || region.length() > fast_settings_.max_visibility)
+		{
+			setVariants({});
+			loaded_region_ = BedLine();
+		}
+		else if (!(loaded_region_ == region))
+		{
+			try
+			{
+				setVariants(queryRegion(*tabix_));
+				loaded_region_ = region;
+			}
+			catch (const Exception& e)
+			{
+				setVariants({});
+				loaded_region_ = BedLine();
+				load_error_ = e.message();
+			}
+		}
+	}
+	updateLayout();
 }
 
 void VcfTrack::reloadTrack()
@@ -333,7 +351,7 @@ void VcfTrack::updateLayout()
 	sample_index_ = samples_.indexOf(fast_settings_.sample);
 	const Viewport viewport = getViewport();
 	const BedLine& region = SharedData::region();
-	if (chr_index_ && region.isValid() && viewport.usable_width > 0)
+	if (chr_index_ && region.isValid() && region.length() <= fast_settings_.max_visibility && viewport.usable_width > 0)
 	{
 		QVector<double> row_ends;
 		for (int index : chr_index_->matchingIndices(region.chr(), region.start(), region.end()))
@@ -349,7 +367,7 @@ void VcfTrack::updateLayout()
 			double width = viewport.genomeWidthToScreen(end - start + 1);
 			//Center insertions between the anchor base and the following base.
 			if (isInsertion(variant.columns[3], variant.columns[4].split(','))) x += viewport.genomeWidthToScreen(1) / 2;
-			const double min_width = deletion.first > 0 || isSnp(variant.columns[3], variant.columns[4].split(',')) ? 3 : 5;
+			const double min_width = 3;
 			if (width < min_width) { x -= (min_width - width) / 2; width = min_width; }
 			int row = 0;
 			while (row < row_ends.size() && x <= row_ends[row] + 2) ++row;
@@ -359,13 +377,15 @@ void VcfTrack::updateLayout()
 		}
 		rows_ = row_ends.size();
 	}
+	//Propagate the required row height to the enclosing scroll area's layout.
+	setMinimumHeight(sizeHint().height());
 	updateGeometry();
 	update();
 }
 
 QSize VcfTrack::sizeHint() const
 {
-	return QSize(parentWidget() ? parentWidget()->width() : 200, std::max(25, rows_ * ROW_HEIGHT));
+	return QSize(parentWidget() ? parentWidget()->width() : 200, std::max(70, rows_ * ROW_HEIGHT));
 }
 
 void VcfTrack::resizeEvent(QResizeEvent* event)
@@ -381,6 +401,13 @@ void VcfTrack::paintEvent(QPaintEvent*)
 	drawLabel(painter);
 	const Viewport viewport = getViewport();
 	painter.setClipRect(QRect(viewport.x0, 0, std::max(0, viewport.usable_width), height()));
+	if (SharedData::region().length() > fast_settings_.max_visibility)
+	{
+		painter.setPen(Qt::gray);
+		painter.drawText(QRect(viewport.x0, 0, std::max(0, viewport.usable_width), height()), Qt::AlignCenter,
+			"Zoom in to show variants (max " + QString::number(fast_settings_.max_visibility) + " bases)");
+		return;
+	}
 	if (!load_error_.isEmpty())
 	{
 		painter.setPen(Qt::red);
@@ -468,20 +495,40 @@ const VcfTrack::Placement* VcfTrack::placementAt(const QPoint& pos) const
 
 QString VcfTrack::variantText(const Variant& variant) const
 {
-	QString text = "Variant: " + BedLine(variant.chr, variant.start, variant.end).toString(true);
-	for (const auto& field : {qMakePair("ID", 2), qMakePair("REF", 3), qMakePair("ALT", 4), qMakePair("QUAL", 5), qMakePair("FILTER", 6)})
-	{
-		text += "\n" + QString::fromLatin1(field.first) + ": " + QString::fromUtf8(variant.columns[field.second]);
-	}
+	const auto& columns = variant.columns;
+	QString text = QString::fromUtf8(variant.chr.str()) + ":" + QString::number(variant.start)
+		+ " " + QString::fromUtf8(columns[3]) + ">" + QString::fromUtf8(columns[4]);
+	text += "\nQUAL: " + QString::fromUtf8(columns[5]);
+	text += "\nFILTER: " + QString::fromUtf8(columns[6]);
+	QStringList frequencies;
 	if (sample_index_ >= 0)
 	{
-		text += "\nSample: " + QString::fromUtf8(samples_[sample_index_]);
 		text += "\nGT: " + QString::fromUtf8(variant.genotypes[sample_index_].text);
-		text += "\nFORMAT: " + QString::fromUtf8(variant.columns[8]) + "\nSample values: " + QString::fromUtf8(variant.columns[9 + sample_index_]);
+		const auto keys = columns[8].split(':');
+		const auto values = columns[9 + sample_index_].split(':');
+		const auto af = values.value(keys.indexOf("AF")).split(',');
+		const auto ao = values.value(keys.indexOf("AO")).split(',');
+		bool depth_ok = false;
+		const double depth = values.value(keys.indexOf("DP")).toDouble(&depth_ok);
+		for (int allele = 0; allele < columns[4].split(',').count(); ++allele)
+		{
+			bool ok = false;
+			const double frequency = af.value(allele).toDouble(&ok);
+			if (ok && std::isfinite(frequency) && frequency >= 0 && frequency <= 1)
+			{
+				frequencies << QString::fromUtf8(af[allele]);
+				continue;
+			}
+			const double observations = ao.value(allele).toDouble(&ok);
+			if (ok && std::isfinite(observations) && observations >= 0 && depth_ok && std::isfinite(depth) && depth > 0 && observations <= depth)
+			{
+				frequencies << QString::number(observations / depth, 'g', 6);
+			}
+			else frequencies << ".";
+		}
 	}
 	else text += "\nGT: not available (no samples)";
-	text += "\nINFO: " + QString::fromUtf8(variant.columns[7]);
-	text += "\n\nAllele bands: white = REF; A = green; C = blue; G = orange; T = red; light gray upper half = heterozygous SNP or insertion; insertions = purple; deletions = gray box with one black line per deleted allele; combined insertion/deletion = diagonal gray/purple stripes with deletion lines; hatched gray = missing.";
+	text += "\nAF: " + (frequencies.isEmpty() ? QString(".") : frequencies.join(","));
 	return text;
 }
 

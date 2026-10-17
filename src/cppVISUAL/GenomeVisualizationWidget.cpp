@@ -237,7 +237,7 @@ void GenomeVisualizationWidget::delayedInitialization()
 void GenomeVisualizationWidget::openFileDialog()
 {
 	QString open_folder = Settings::path("load_store_file_folder", true);
-	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", open_folder, "NGS files(*.bam *.cram *.bed *.bed.gz *.vcf *.vcf.gz *.igv *.seg);;All files(*.*)");
+	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", open_folder, "NGS files(*.bam *.cram *.bed *.bed.gz *.bedpe *.bedpe.gz *.vcf *.vcf.gz *.igv *.seg);;All files(*.*)");
 	if (!files.isEmpty())
 	{
 		foreach(QString file, files)

@@ -13,11 +13,13 @@ struct CPPVISUALSHARED_EXPORT VcfTrackSettings : public QObject
 	Q_PROPERTY(double min_qual MEMBER min_qual)
 	Q_PROPERTY(bool pass_only MEMBER pass_only)
 	Q_PROPERTY(QByteArray sample MEMBER sample)
+	Q_PROPERTY(int max_visibility MEMBER max_visibility)
 
 public:
 	double min_qual{};
 	bool pass_only{};
 	QByteArray sample;
+	int max_visibility = 1000000; //Also used when initially querying the source, before settings are linked.
 };
 
 //Displays VCF sites and sample genotypes. Indexed VCF.GZ data is loaded per visible region.
@@ -67,6 +69,7 @@ private:
 	BedFile positions_;
 	std::unique_ptr<ChromosomalIndex<BedFile>> chr_index_;
 	std::unique_ptr<TabixIndexedFile> tabix_;
+	BedLine loaded_region_;
 	QVector<Placement> placements_;
 	int rows_ = 0;
 	int sample_index_ = -1;
@@ -78,6 +81,7 @@ private:
 	void setVariants(QVector<Variant> variants);
 	QVector<Variant> queryRegion(const TabixIndexedFile& tabix) const;
 	void updateLayout();
+	void refreshRegion();
 	//Deleted reference bases, including the replaced part of delins alleles.
 	//Allele -1 returns the combined span if all alternate alleles delete reference bases.
 	QPair<int, int> deletionSpan(const Variant& variant, int allele = -1) const;
