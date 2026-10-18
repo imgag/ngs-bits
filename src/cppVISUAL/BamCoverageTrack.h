@@ -80,7 +80,6 @@ protected:
 	void paintEvent(QPaintEvent*) override;
 	void mousePressEvent(QMouseEvent*) override;
 	void mouseReleaseEvent(QMouseEvent*) override;
-	void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
 	BamCoverageTrackSettings fast_settings_;

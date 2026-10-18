@@ -4,7 +4,9 @@
 
 #include <QApplication>
 #include <QPainter>
+#include <QFontMetricsF>
 #include <QMenu>
+#include <cmath>
 #include <utility>
 #include "ChromosomeColors.h"
 
@@ -36,7 +38,6 @@ BamAlignmentTrack::BamAlignmentTrack(QWidget* parent, QString file_path, QString
 		updateGeometry();
 		update();
 	});
-	setMouseTracking(true);
 	updateFontCache();
 }
 
@@ -385,6 +386,7 @@ void BamAlignmentTrack::drawAlignmentAndMismatches(QPainter& painter, const BamA
 	drawAlignment(painter, al, row_y);
 	if (!fast_settings_.show_all_bases) drawMismatches(painter, al, row_y);
 	drawAllBases(painter, al, row_y);
+	drawInsertions(painter, al, row_y);
 }
 
 void BamAlignmentTrack::drawNormalMode(QPainter& painter)
@@ -542,52 +544,6 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 		}
 	}
 
-	// second pass for insertions so that they are on top
-	foreach (const auto& data, al_w.getEvents())
-	{
-		if (data.event == BamAlignmentWrapper::INSERTION)
-		{
-			int st = std::max(data.genome_pos, region.start());
-			int en = std::min(data.genome_pos + data.length - 1 , region.end() + 1);
-
-			if (en <= region.start()) continue;
-
-			float x_start = viewport.genomePosToScreen(st);
-			float width = viewport.genomeWidthToScreen(en - st + 1);
-
-			if (width < 0) continue;
-
-			float marker_w = std::clamp(
-				(float)(viewport.pixels_per_base * 0.5f),
-				4.0f,   // minimum
-				12.0f   // maximum before expansion mode
-				);
-			QRectF rect(x_start - marker_w / 2.0f, row_y, marker_w, ROW_HEIGHT);
-			painter.setPen(Qt::NoPen);
-			painter.setBrush(QColor(140, 0, 200));
-			painter.drawRect(rect);
-
-			if (viewport.pixels_per_base >= cached_char_size_.width())
-			{
-				painter.setPen(Qt::white);
-				painter.setFont(cached_font_);
-
-				QRectF text_rect(
-					x_start - marker_w/2.0f,
-					row_y,
-					marker_w,
-					ROW_HEIGHT
-					);
-
-				painter.drawText(
-					text_rect,
-					Qt::AlignCenter,
-					QString::number(data.length)
-					);
-			}
-		}
-	}
-
 	//draw the arrows
 	int st = std::max(getAlignmentStart(al_w), region.start());
 	int en = std::min(getAlignmentEnd(al_w), region.end());
@@ -619,6 +575,35 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 		painter.drawPolygon(arrow);
 	}
 
+}
+
+void BamAlignmentTrack::drawInsertions(QPainter& painter, const BamAlignmentWrapper& al, int row_y)
+{
+	const auto& region = SharedData::region();
+	const Viewport viewport = getViewport();
+	const bool show_length = viewport.pixels_per_base >= cached_char_size_.width();
+	const QFontMetricsF metrics(cached_font_);
+	painter.save();
+	painter.setClipRect(QRect(viewport.x0, 0, std::max(0, viewport.usable_width), height()), Qt::IntersectClip);
+	for (const auto& data : al.getEvents())
+	{
+		if (data.event != BamAlignmentWrapper::INSERTION) continue;
+		//Insertions occupy a boundary before the next reference base, not a reference interval.
+		if (data.genome_pos < region.start() || qint64(data.genome_pos) > qint64(region.end()) + 1) continue;
+		const double center = viewport.genomePosToScreen(data.genome_pos);
+		const QString length = QString::number(data.length);
+		double marker_width = std::clamp(double(viewport.pixels_per_base) * 0.5, 4.0, 12.0);
+		if (show_length) marker_width = std::max(marker_width, std::ceil(metrics.horizontalAdvance(length)) + 4);
+		const QRectF marker(center - marker_width / 2, row_y, marker_width, ROW_HEIGHT);
+		painter.fillRect(marker, QColor(140, 0, 200));
+		if (show_length)
+		{
+			painter.setFont(cached_font_);
+			painter.setPen(Qt::white);
+			painter.drawText(marker, Qt::AlignCenter, length);
+		}
+	}
+	painter.restore();
 }
 
 QColor BamAlignmentTrack::baseColor(QChar base)
@@ -984,11 +969,4 @@ void BamAlignmentTrack::mouseReleaseEvent(QMouseEvent* event)
 	}
 
 	TrackWidget::mouseReleaseEvent(event);
-}
-
-void BamAlignmentTrack::mouseMoveEvent(QMouseEvent *event)
-{
-	SharedData::mouseMoved(event->pos().x(), width());
-
-	TrackWidget::mouseMoveEvent(event);
 }

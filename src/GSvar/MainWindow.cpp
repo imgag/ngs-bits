@@ -7195,15 +7195,12 @@ void MainWindow::performLogout()
 
 QString MainWindow::viewerApp()
 {
-	qDebug() << "viewerApp";
 	if (Settings::boolean("igv_use_gsviewer_instead", true))
 	{
-		qDebug() << "GSviewer";
 		return QCoreApplication::applicationDirPath() + QDir::separator() + "GSviewer.exe";
 	}
 	else
 	{
-		qDebug() << "IGV";
 		return Settings::path("igv_app").trimmed();
 	}
 }

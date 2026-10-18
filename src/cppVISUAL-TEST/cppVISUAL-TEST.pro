@@ -8,7 +8,7 @@ INCLUDEPATH += ../cppVISUAL ../cppGUI ../cppCORE ../cppNGS ../cppXML ../../htsli
 LIBS += -L$$PWD/../../bin -lcppGUI -lcppNGS -lcppXML -lcppCORE
 LIBS += -L$$PWD/../../htslib/lib -lhts
 
-SOURCES += GenomeVisualizationWidget_Test.cpp $$files(../cppVISUAL/*.cpp) ../cppGUI/ParameterEditor.cpp ../cppGUI/ColorNames.cpp
+SOURCES += GenomeVisualizationWidget_Test.cpp $$files(../cppVISUAL/*.cpp) ../cppGUI/ParameterEditor.cpp ../cppGUI/ColorNames.cpp ../GSviewer/TranscriptCache.cpp
 HEADERS += $$files(../cppVISUAL/*.h) ../cppGUI/ParameterEditor.h
-FORMS += ../cppVISUAL/GenomeVisualizationWidget.ui ../cppVISUAL/BookmarkManager.ui ../cppGUI/ParameterEditor.ui
+FORMS += ../cppVISUAL/GenomeVisualizationWidget.ui ../cppVISUAL/BookmarkManager.ui ../cppVISUAL/AddBookmarkDialog.ui ../cppGUI/ParameterEditor.ui
 RESOURCES += ../cppVISUAL/cppVISUAL.qrc

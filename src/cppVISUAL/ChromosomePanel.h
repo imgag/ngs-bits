@@ -16,6 +16,8 @@ class CPPVISUALSHARED_EXPORT ChromosomePanel
 
 public:
 	ChromosomePanel(QWidget* parent);
+	//Returns the one-based coordinate under x, or zero outside the chromosome drawing.
+	int genomicCoordinateAt(int x) const;
 
 private slots:
 	//Updates the region displayed by this widget

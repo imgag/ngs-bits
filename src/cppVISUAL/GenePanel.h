@@ -55,7 +55,6 @@ private:
 	void changeEvent(QEvent* event) override;
 	void updateTranscriptLayout();
 	void updateCodingAminoAcids(TranscriptPosition& position);
-	void mouseMoveEvent(QMouseEvent* event) override;
 	void mousePressEvent(QMouseEvent* event) override;
 	void mouseReleaseEvent(QMouseEvent* event) override;
 	QString transcriptText(const Transcript& trans, int genome_pos) const;

@@ -58,7 +58,7 @@ SegTrack::SegTrack(QWidget* parent, QString file_path, QString name, QSharedPoin
 QList<Parameter> SegTrack::getParameters() const
 {
 	return {
-		Parameter("draw mode", "Type of graph.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("segment\tClinCNV")}}),
+		Parameter("draw mode", "Type of graph.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("segments\tClinCNV")}}),
 		Parameter("color", "Color above the reference value (name or R,G,B).", ParameterType::STRING, {}),
 		Parameter("alt color", "Color below the reference value (name or R,G,B).", ParameterType::STRING, {}),
 		Parameter("min", "Y axis minimum.", ParameterType::DOUBLE, {}),

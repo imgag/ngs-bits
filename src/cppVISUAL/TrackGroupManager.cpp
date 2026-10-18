@@ -9,7 +9,6 @@ TrackGroupManager::TrackGroupManager(QWidget* parent)
 {
 	setChildrenCollapsible(false);
 	setHandleWidth(2);
-	setMouseTracking(true);
 	connect(this, &QSplitter::splitterMoved, this, [this]()
 	{
 		if (session_gene_height_ <= 0) return;

@@ -5,6 +5,8 @@
 
 #include <QPainter>
 #include <QWidget>
+#include <QPair>
+#include <QVector>
 
 //Panel that shows the current region of the chromosome
 class CPPVISUALSHARED_EXPORT ChromosomeContextPanel
@@ -19,6 +21,7 @@ private slots:
 	void updateRegion();
 
 protected:
+	bool event(QEvent*) override;
 	void paintEvent(QPaintEvent*) override;
 	void mousePressEvent(QMouseEvent*) override;
 	void mouseMoveEvent(QMouseEvent*) override;
@@ -28,6 +31,7 @@ private:
 	void drawLineWithArrow(QPainter*, QPoint start, QPoint end);
 	void drawArrowsAndSize(QPainter*, int label_width, int total_width);
 	void drawTicks(QPainter*, int label_width, int total_width);
+	void drawBookmarks(QPainter*, int label_width, int total_width);
 	void drawDragRegion(QPainter*);
 
 	QString formatRegionSize(int length);
@@ -38,6 +42,7 @@ private:
 	float drag_start_x_;
 	float drag_current_x_;
 	bool is_dragging_ = false;
+	QVector<QPair<QRectF, QString>> bookmark_regions_;
 };
 
 #endif // CHROMOSOMECONTEXTPANEL_H
