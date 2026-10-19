@@ -17,7 +17,10 @@ public:
 
 private slots:
 	void delayedInitialization();
+	void showSettings();
+	void openDocumentation();
 	void showAboutDialog();
+	void addNRegions();
 
 private:
 	Ui::MainWindow ui_;

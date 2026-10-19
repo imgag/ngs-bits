@@ -20,6 +20,30 @@ struct CPPVISUALSHARED_EXPORT ReadPair
 	int end = INT_MIN; // max of the ends of the two alignments
 };
 
+//Fast read-only parameters access; populated and maintained by ParameterList::link().
+struct CPPVISUALSHARED_EXPORT BamAlignmentTrackSettings : public QObject
+{
+	Q_OBJECT
+	Q_PROPERTY(bool view_as_pairs MEMBER view_as_pairs)
+	Q_PROPERTY(bool show_all_bases MEMBER show_all_bases)
+	Q_PROPERTY(bool show_soft_clipped_bases MEMBER show_soft_clipped_bases)
+	Q_PROPERTY(bool show_secondary_alignments MEMBER show_secondary_alignments)
+	Q_PROPERTY(int min_mq MEMBER min_mq)
+	Q_PROPERTY(QByteArray group_by MEMBER group_by)
+	Q_PROPERTY(QByteArray color_by MEMBER color_by)
+	Q_PROPERTY(int visibility_range MEMBER visibility_range)
+
+public:
+	bool view_as_pairs{};
+	bool show_all_bases{};
+	bool show_soft_clipped_bases{};
+	bool show_secondary_alignments{};
+	int min_mq{};
+	QByteArray group_by{};
+	QByteArray color_by{};
+	int visibility_range{};
+};
+
 //Track that displays alignmnets in a BAM/CRAM file
 class CPPVISUALSHARED_EXPORT BamAlignmentTrack
 	: public TrackWidget
@@ -46,42 +70,34 @@ protected:
 	void populateContextMenu(QMenu&, const QPoint&) override;
 	void mousePressEvent(QMouseEvent*) override;
 	void mouseReleaseEvent(QMouseEvent*) override;
-	void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
-	// Read once before processing or painting alignments.
-	struct DisplaySettings
-	{
-		bool view_as_pairs;
-		bool show_all_bases;
-		bool show_soft_clip_bases;
-		bool show_secondary_alignments;
-		QByteArray group_by;
-		QByteArray coloring_scheme;
-	};
-	DisplaySettings displaySettings() const;
+	BamAlignmentTrackSettings fast_settings_;
+	bool isGroupingEnabled() const;
 	QSharedPointer<BamTrackData> track_data_;
 
 	void drawZoomInText(QPainter&);
 
 	// assigns rows to alignments and calculates number of rows
 	// calls the right method depending on view mode
-	void calculateRows(const DisplaySettings& options);
+	void calculateRows();
 	// assigns rows for normal mode
-	void calculateRowsNormalMode(const DisplaySettings& options);
+	void calculateRowsNormalMode();
 	// assigns rows to pairs for pair mode
 	void calculateRowsPairMode();
-	// Packs haplotypes 1, 2, and unassigned into separate groups.
-	void calculateRowsByPhase(const DisplaySettings& options);
+	// Packs reads into groups according to the selected grouping mode.
+	void calculateGroupedRows();
 	// iterates through the alignments and stores pairs as ReadPair in read_pairs_
-	void makePairs(const DisplaySettings& options);
+	void makePairs();
 
-	void drawNormalMode(QPainter& painter, const DisplaySettings& options);
-	void drawPairMode(QPainter& painter, const BedLine& region, const DisplaySettings& options);
+	void drawNormalMode(QPainter& painter);
+	void drawPairMode(QPainter& painter, const BedLine& region);
+	void drawGroups(QPainter& painter);
 
-	void drawAlignmentAndMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y, const DisplaySettings& options);
+	void drawAlignmentAndMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y);
 
-	void drawAlignment(QPainter&, const BamAlignmentWrapper& al, int row_y, const DisplaySettings& options);
+	void drawAlignment(QPainter&, const BamAlignmentWrapper& al, int row_y);
+	void drawInsertions(QPainter&, const BamAlignmentWrapper& al, int row_y);
 	void drawBase(QPainter&, const Viewport& view_port, int genome_pos,
 				  char base, int qual, int row_y);
 	// draws bases in BamAlignment that do not match the reference base
@@ -89,9 +105,9 @@ private:
 	void drawMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y);
 	// draws all bases if enabled in settings_, including soft clips if enabled
 	// if the corresponding flag is set
-	void drawAllBases(QPainter&, const BamAlignmentWrapper& al, int row_y, const DisplaySettings& options);
+	void drawAllBases(QPainter&, const BamAlignmentWrapper& al, int row_y);
 
-	QString getBamAlignmentText(const BamAlignmentWrapper& al, int genome_pos, bool show_soft_clip_bases);
+	QString getBamAlignmentText(const BamAlignmentWrapper& al, int genome_pos);
 
 	void updateFontCache();
 
@@ -110,11 +126,11 @@ private:
 	bool isCurrentRegionValid();
 	// gives the start and end point of the alignments
 	// if current mode is show_clip_bases_, this gives start and end with that
-	static int getAlignmentStart(const BamAlignmentWrapper&, bool show_soft_clip_bases);
-	static int getAlignmentEnd(const BamAlignmentWrapper&, bool show_soft_clip_bases);
-	static bool isAlignmentVisible(const BamAlignmentWrapper& alignment, bool show_secondary_alignments);
+	int getAlignmentStart(const BamAlignmentWrapper&) const;
+	int getAlignmentEnd(const BamAlignmentWrapper&) const;
+	bool isAlignmentVisible(const BamAlignmentWrapper& alignment) const;
 	// returns color of alignment based on its properties and current coloring scheme
-	QColor getAlignmentColor(const BamAlignmentWrapper&, const QByteArray& coloring_scheme);
+	QColor getAlignmentColor(const BamAlignmentWrapper&);
 	// adds Go To Mate, select/delect options to context menu
 	void addAlignmentOptionsToCtxtMenu(QMenu& menu, const QPoint& local_pos);
 
@@ -126,6 +142,12 @@ private:
 
 	RowPacker row_packer_;
 	QVector<ReadPair> read_pairs_; // vector of pairs
+	struct ReadGroup
+	{
+		QString label;
+		int first_row;
+	};
+	QVector<ReadGroup> read_groups_;
 
 	int num_rows_ = 1;
 	QPoint mouse_press_pos_;

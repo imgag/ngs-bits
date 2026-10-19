@@ -6,6 +6,22 @@
 #include "IgvFile.h"
 #include "ChromosomalIndex.h"
 
+//Fast read-only parameters access; populated and maintained by ParameterList::link().
+struct CPPVISUALSHARED_EXPORT IgvTrackSettings : public QObject
+{
+	Q_OBJECT
+	Q_PROPERTY(QByteArray draw_mode MEMBER draw_mode)
+	Q_PROPERTY(double min MEMBER min)
+	Q_PROPERTY(double max MEMBER max)
+	Q_PROPERTY(int track_height MEMBER track_height)
+
+public:
+	QByteArray draw_mode{};
+	double min{};
+	double max{};
+	int track_height{};
+};
+
 //Track that shows the IGV data file
 class CPPVISUALSHARED_EXPORT IgvTrack
 	: public TrackWidget
@@ -31,6 +47,7 @@ protected:
 	void mouseReleaseEvent(QMouseEvent*) override;
 
 private:
+	IgvTrackSettings fast_settings_;
 	IgvTrack(QWidget* parent, QString file_path, QString name, QSharedPointer<IgvFile> igv_file);
 
 	QSharedPointer<IgvFile> igv_file_;
@@ -38,27 +55,20 @@ private:
 	std::unique_ptr<ChromosomalIndex<IgvFile>> chr_index_;
 
 	// draw functions
-	struct PlotScale
-	{
-		double minimum;
-		double maximum;
-		int height;
-	};
-	PlotScale plotScale() const;
 	void drawPlot(QPainter&);
-	void drawPoints(QPainter&, const QVector<int>& idxes, const PlotScale& scale);
-	void drawLinePlot(QPainter&, const QVector<int>& idxes, const PlotScale& scale);
-	void drawHeatMap(QPainter&, const QVector<int>& idxes, const PlotScale& scale);
-	void drawBarChart(QPainter&, const QVector<int>& idxes, const PlotScale& scale);
-	void drawReferenceLine(QPainter&, double value, const PlotScale& scale);
+	void drawPoints(QPainter&, const QVector<int>& idxes);
+	void drawLinePlot(QPainter&, const QVector<int>& idxes);
+	void drawHeatMap(QPainter&, const QVector<int>& idxes);
+	void drawBarChart(QPainter&, const QVector<int>& idxes);
+	void drawReferenceLine(QPainter&, double value);
 	void drawScaleText(QPainter&);
 
 	// handles right click by user
 	void handlePopupRequest(QPoint local_pos, QPointF global_pos);
 
 	// utility functons
-	static int valueToY(double value, const PlotScale& scale);
-	static QRectF barRect(const IgvFileLine& line, const Viewport& viewport, const PlotScale& scale);
+	int valueToY(double value) const;
+	QRectF barRect(const IgvFileLine& line, const Viewport& viewport) const;
 
 	// file functions
 	static QString getTrackNameFromIgvFile(QSharedPointer<IgvFile> igv_file);

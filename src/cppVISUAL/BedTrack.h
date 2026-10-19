@@ -5,10 +5,26 @@
 #include "BedFile.h"
 #include "ChromosomalIndex.h"
 #include "TrackWidget.h"
+#include "TabixIndexedFile.h"
 
 #include <QHash>
 #include <QMouseEvent>
 #include <QWidget>
+#include <memory>
+
+//Fast read-only parameters access; populated and maintained by ParameterList::link().
+struct CPPVISUALSHARED_EXPORT BedTrackSettings : public QObject
+{
+	Q_OBJECT
+	Q_PROPERTY(QByteArray color MEMBER color)
+	Q_PROPERTY(QByteArray draw_mode MEMBER draw_mode)
+	Q_PROPERTY(bool show_region_names MEMBER show_region_names)
+
+public:
+	QByteArray color{};
+	QByteArray draw_mode{};
+	bool show_region_names{};
+};
 
 //Track that displays a BED file
 class CPPVISUALSHARED_EXPORT BedTrack
@@ -20,9 +36,7 @@ public:
 	BedTrack(QWidget* parent, QString file_path, QString name);
 	static QByteArray type() { return "BedTrack"; }
 
-	// creates a BedTrack, same as the constructor above but
-	// tries to load file_path first into a bed file if that fails
-	// returns nullptr.
+	//Loads a BED or opens a tabix-indexed BED.GZ. Returns nullptr on failure.
 	static BedTrack* createTrack(QWidget* parent, QString file_path, QString name);
 
 	//Sets a non-null, sorted BED file and rebuilds the index and visible rows.
@@ -42,8 +56,13 @@ protected:
 	void mouseReleaseEvent(QMouseEvent* event) override;
 
 private:
+	BedTrackSettings fast_settings_;
 	QSharedPointer<BedFile> bedfile_;
 	std::unique_ptr<ChromosomalIndex<BedFile>> chr_index_;
+	std::unique_ptr<TabixIndexedFile> tabix_;
+	QString load_error_;
+	//Installs either an in-memory BED or the current tabix query result.
+	void setBedData(QSharedPointer<BedFile> bedfile);
 
 	QPointF mouse_press_pos_;
 	//BED indices and packed row numbers for the current view.
@@ -56,10 +75,6 @@ private:
 	int rowHeight() const;
 	QFont regionFont() const;
 
-	// calls the appropriate function depending on the current draw mode
-	QString getRegionText(const BedLine& region, int row, int x);
-	// returns the location plus annonations for the bedline as a string
-	QString regionTooltip(const BedLine&region);
 	// handles pop up request and displays the correct information at global pos
 	void handlePopupRequest(QPointF local_pos, QPointF global_pos);
 

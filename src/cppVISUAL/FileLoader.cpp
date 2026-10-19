@@ -1,6 +1,11 @@
 #include "FileLoader.h"
 #include "IgvTrack.h"
+#include "SegTrack.h"
+#include "VersatileFile.h"
+#include <cmath>
 #include "BedTrack.h"
+#include "VcfTrack.h"
+#include "SvTrack.h"
 #include "BamAlignmentTrack.h"
 #include "BamCoverageTrack.h"
 #include <QApplication>
@@ -13,7 +18,22 @@ QVector<TrackWidget*> FileLoader::loadTracks(QString file_path, QWidget* parent)
 	QString filename = TrackWidget::getDisplayNameFromFilePath(file_path);
 
 	QVector<TrackWidget*> output;
-	if (filename.endsWith(".bed"))
+	if (filename.endsWith(".bedpe", Qt::CaseInsensitive) || filename.endsWith(".bedpe.gz", Qt::CaseInsensitive))
+	{
+		output << SvTrack::createTrack(parent, file_path, filename);
+		return output;
+	}
+	if (filename.endsWith(".vcf", Qt::CaseInsensitive) || filename.endsWith(".vcf.gz", Qt::CaseInsensitive))
+	{
+		output << VcfTrack::createTrack(parent, file_path, filename);
+		return output;
+	}
+	if (filename.endsWith(".seg", Qt::CaseInsensitive))
+	{
+		output << SegTrack::createTrack(parent, file_path);
+		return output;
+	}
+	if (filename.endsWith(".bed", Qt::CaseInsensitive) || filename.endsWith(".bed.gz", Qt::CaseInsensitive))
 	{
 		output << BedTrack::createTrack(parent, file_path, filename);
 		return output;
@@ -74,6 +94,56 @@ QSharedPointer<IgvFile> FileLoader::loadIgvFile(QString file_path)
 			lines.append(IgvFileLine(line.chr(), line.start(), line.end(), value));
 		}
 		return QSharedPointer<IgvFile>::create(std::move(lines), bedfile->headers());
+	}
+	catch (const Exception& e)
+	{
+		QMessageBox::critical(QApplication::activeWindow(), "Error", e.message());
+		return nullptr;
+	}
+}
+
+QSharedPointer<SegFile> FileLoader::loadSegFile(QString file_path)
+{
+	try
+	{
+		VersatileFile file(file_path);
+		file.open(QFile::ReadOnly | QIODevice::Text);
+		QVector<SegFileLine> lines;
+		QByteArrayList headers;
+		QByteArray annotation_name = "Annotation";
+		bool found_header = false;
+		int line_number = 0;
+		while (!file.atEnd())
+		{
+			QByteArray line = file.readLine(true);
+			++line_number;
+			if (line.isEmpty()) continue;
+			if (line.startsWith('#') || line.startsWith("track "))
+			{
+				headers.append(line);
+				continue;
+			}
+			const QByteArrayList columns = line.split('\t');
+			if (columns.size() != 6) THROW(FileParseException, "Expected six SEG columns at line " + QString::number(line_number));
+			if (!found_header)
+			{
+				annotation_name = columns[4];
+				found_header = true;
+				continue;
+			}
+			bool ok_start = false, ok_end = false, ok_value = false;
+			const int start = columns[2].toInt(&ok_start);
+			const int end = columns[3].toInt(&ok_end);
+			const double value = columns[5].toDouble(&ok_value);
+			const Chromosome chr(columns[1]);
+			if (!chr.isValid() || !ok_start || !ok_end || start < 1 || end < start || !ok_value || !std::isfinite(value))
+			{
+				THROW(FileParseException, "Invalid SEG region or value at line " + QString::number(line_number));
+			}
+			lines.append(SegFileLine(chr, start, end, columns[4], value));
+		}
+		if (!found_header) THROW(FileParseException, "Missing SEG column header in " + file_path);
+		return QSharedPointer<SegFile>::create(std::move(lines), std::move(headers), annotation_name);
 	}
 	catch (const Exception& e)
 	{

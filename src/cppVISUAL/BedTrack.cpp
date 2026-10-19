@@ -1,26 +1,66 @@
 #include "BedTrack.h"
 #include "FileLoader.h"
 #include "SharedData.h"
+#include "Helper.h"
 #include "ColorNames.h"
 #include <QApplication>
 #include <QFontMetrics>
 #include <QPainter>
+#include <QMessageBox>
 #include <algorithm>
+#include <limits>
 
 static constexpr int BLOCK_HEIGHT  = 10;
+
+namespace
+{
+QSharedPointer<BedFile> queryBed(const TabixIndexedFile& tabix, const BedLine& region)
+{
+	auto bed = QSharedPointer<BedFile>::create();
+	if (!region.isValid()) return bed;
+	for (const QByteArray& line : tabix.getMatchingLines(region.chr(), region.start(), region.end(), true))
+	{
+		const QByteArrayList fields = line.split('\t');
+		if (fields.count() < 3) THROW(FileParseException, "Indexed BED line has fewer than three columns: " + line);
+		const int start = Helper::toInt(fields[1], "BED start");
+		const int end = Helper::toInt(fields[2], "BED end");
+		if (start < 0 || start == std::numeric_limits<int>::max()) THROW(FileParseException, "Invalid indexed BED start: " + line);
+		//BED is zero-based, half-open; BedLine uses one-based inclusive coordinates.
+		//Keep annotations local to this query instead of retaining them in the global string pool.
+		bed->append(BedLine(Chromosome(fields[0]), start + 1, end, fields.mid(3)));
+	}
+	bed->sort();
+	return bed;
+}
+}
 
 BedTrack::BedTrack(QWidget* parent, QString file_path, QString name)
 	:TrackWidget(parent, file_path, name, type())
 {
+	initializeSettings(&fast_settings_);
 	setMinimumHeight(25);
 	connect(&settings_, &ParameterList::parameterChanged, this, [this]()
 	{
 		updateGeometry();
 		update();
 	});
-	initializeSettings();
 	connect(SharedData::instance(), &SharedData::regionChanged, this, [this]()
 	{
+		if (tabix_)
+		{
+			try
+			{
+				setBedData(queryBed(*tabix_, SharedData::region()));
+				return;
+			}
+			catch (const Exception& e)
+			{
+				//Discard stale intervals, but allow the track to recover on the next region change.
+				chr_index_.reset();
+				bedfile_.clear();
+				load_error_ = e.message();
+			}
+		}
 		calculateRows();
 		regionChanged();
 	});
@@ -51,11 +91,18 @@ void BedTrack::reloadTrack()
 
 void BedTrack::setBedFile(QSharedPointer<BedFile> bedfile)
 {
+	setBedData(bedfile);
+	tabix_.reset();
+}
+
+void BedTrack::setBedData(QSharedPointer<BedFile> bedfile)
+{
 	if (!bedfile) THROW(ArgumentException, "Cannot set a null BED file!");
 	//Build first so invalid input leaves the previous file and index intact.
 	auto index = std::make_unique<ChromosomalIndex<BedFile>>(*bedfile);
 	chr_index_ = std::move(index);
 	bedfile_ = bedfile;
+	load_error_.clear();
 	calculateRows();
 	updateGeometry();
 	update();
@@ -63,6 +110,22 @@ void BedTrack::setBedFile(QSharedPointer<BedFile> bedfile)
 
 bool BedTrack::load()
 {
+	if (getDisplayNameFromFilePath(file_path_).endsWith(".bed.gz", Qt::CaseInsensitive))
+	{
+		try
+		{
+			auto tabix = std::make_unique<TabixIndexedFile>();
+			tabix->load(file_path_.toUtf8());
+			setBedData(queryBed(*tabix, SharedData::region()));
+			tabix_ = std::move(tabix);
+			return true;
+		}
+		catch (const Exception& e)
+		{
+			QMessageBox::critical(QApplication::activeWindow(), "Error loading indexed BED", e.message());
+			return false;
+		}
+	}
 	QSharedPointer<BedFile> bedfile = FileLoader::loadBedFile(file_path_);
 	if (bedfile)
 	{
@@ -74,10 +137,8 @@ bool BedTrack::load()
 
 void BedTrack::paintEvent(QPaintEvent* /*event*/)
 {
-	const QByteArray draw_mode = settings_.getString("draw mode");
-	const bool show_names = settings_.getBool("show region names");
 	const int row_height = rowHeight();
-	const QColor color = ColorNames::color(QString::fromUtf8(settings_.getString("color")));
+	const QColor color = ColorNames::color(QString::fromUtf8(fast_settings_.color));
 	const BedLine& region = SharedData::region();
 	const Viewport& viewport = getViewport();
 
@@ -87,6 +148,12 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 
 	//draw label
 	drawLabel(painter);
+	if (!load_error_.isEmpty())
+	{
+		painter.setPen(Qt::red);
+		painter.drawText(QRect(viewport.x0, 0, std::max(0, viewport.usable_width), height()), Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, load_error_);
+		return;
+	}
 	if (!bedfile_ || viewport.usable_width <= 0 || region.length() <= 0) return;
 	painter.setClipRect(QRect(viewport.x0, 0, viewport.usable_width, height()));
 
@@ -110,7 +177,7 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 			float x_start = viewport.genomePosToScreen(st);
 			float width = viewport.genomeWidthToScreen(en - st + 1);
 
-			const int row = draw_mode == "expanded" ? row_idxes_.value(idx) : 0;
+			const int row = fast_settings_.draw_mode == "expanded" ? row_idxes_.value(idx) : 0;
 			y_start = row * row_height;
 
 			QRectF chr_rect(x_start, y_start, width, BLOCK_HEIGHT);
@@ -119,7 +186,7 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 			painter.drawRect(chr_rect);
 
 			// use 4th column as name
-			if (show_names && !bedline.annotations().isEmpty())
+			if (fast_settings_.show_region_names && !bedline.annotations().isEmpty())
 			{
 				QString name = bedline.annotations().at(0);
 
@@ -150,14 +217,14 @@ QFont BedTrack::regionFont() const
 
 int BedTrack::rowHeight() const
 {
-	return BLOCK_HEIGHT + (settings_.getBool("show region names") ? QFontMetrics(regionFont()).height() : 0) + 2;
+	return BLOCK_HEIGHT + (fast_settings_.show_region_names ? QFontMetrics(regionFont()).height() : 0) + 2;
 }
 
 QSize BedTrack::sizeHint() const
 {
 	int rowCount = 1;
 
-	if (settings_.getString("draw mode") == "expanded")
+	if (fast_settings_.draw_mode == "expanded")
 	{
 		rowCount = num_rows_;
 	}
@@ -221,67 +288,50 @@ void BedTrack::handlePopupRequest(QPointF local_pos, QPointF global_pos)
 {
 	int row = local_pos.y() / rowHeight();
 	const Viewport& viewport = getViewport();
-
 	const BedLine& region = SharedData::region();
 
 	if (!chr_index_ || viewport.usable_width <= 0 || region.length() <= 0 || viewport.isOutOfDrawRegion(local_pos.x())) return;
 	int x = viewport.screenXToGenomePos(local_pos.x());
 
-	QString info = getRegionText(region, row, x);
-
-	if (!info.isEmpty()) showInfoPopup(global_pos, info);
-}
-
-QString BedTrack::getRegionText(const BedLine& region, int row, int x)
-{
 	const int total_width = width() - SharedData::settings().label_width - 4;
-	if (!chr_index_ || total_width <= 0 || region.length() <= 0 || row < 0) return {};
-	const bool expanded = settings_.getString("draw mode") == "expanded";
-	if ((!expanded && row != 0) || (expanded && row >= num_rows_)) return {};
+	if (!chr_index_ || total_width <= 0 || region.length() <= 0 || row < 0) return;
+
+	bool expanded = fast_settings_.draw_mode == "expanded";
+	if ((!expanded && row != 0) || (expanded && row >= num_rows_)) return;
+
 	double bp_per_pixel = (double)region.length() / total_width;
 	int padding = std::max(2, static_cast<int>(bp_per_pixel * 2));
-	QString collected_info;
+
+	QString info;
 	//Keep lookup within the visible region, matching the packed rows.
 	const int start = std::max(region.start(), x - padding);
 	const int end = std::min(region.end(), x + padding);
-	if (start > end) return {};
+	if (start > end) return;
+
 	for (int idx : chr_index_->matchingIndices(region.chr(), start, end))
 	{
 		if (expanded && row_idxes_.value(idx, -1) != row) continue;
 		const BedLine& bd = (*bedfile_)[idx];
-		collected_info += regionTooltip(bd);
-		collected_info += "\n";
-	}
 
-	return collected_info;
-}
-
-QString BedTrack::regionTooltip(const BedLine& region)
-{
-	QString info;
-	info += "Location: " + region.toString(true);
-
-	const auto& annotations = region.annotations();
-	if (!annotations.isEmpty())
-	{
-		info += "\nName: " + annotations[0];
-		for (int i = 1; i < annotations.size(); ++i)
+		info += "Region: " + bd.toString(true);
+		const auto& annotations = bd.annotations();
+		if (!annotations.isEmpty())
 		{
-			info += "\ncolumn " + QString::number(i + 4) + ": " + annotations[i];
+			info += "\nName: " + annotations[0];
+			for (int i = 1; i < annotations.size(); ++i)
+			{
+				info += "\ncolumn " + QString::number(i + 4) + ": " + annotations[i];
+			}
 		}
+		info += "\n";
 	}
 
-	return info;
+	if (!info.isEmpty()) showInfoPopup(global_pos, info);
 }
 
 BedTrack* BedTrack::createTrack(QWidget* parent, QString file_path, QString name)
 {
-	QSharedPointer<BedFile> bedfile = FileLoader::loadBedFile(file_path);
-	if (bedfile)
-	{
-		BedTrack* track = new BedTrack(parent, file_path, name);
-		track->setBedFile(bedfile);
-		return track;
-	}
+	auto track = std::make_unique<BedTrack>(parent, file_path, name);
+	if (track->load()) return track.release();
 	return nullptr;
 }

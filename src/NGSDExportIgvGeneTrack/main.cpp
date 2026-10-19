@@ -47,18 +47,15 @@ public:
 			QByteArray cds_start, cds_end;
 			if (strand == "+")
 			{
-//				phase = (trans.codingStart()-trans.start()) % 3;
 				cds_start = (trans.codingStart() > 0)?QByteArray::number(trans.codingStart()-1):QByteArray::number(trans.end());
 				cds_end = (trans.codingEnd() > 0)?QByteArray::number(trans.codingEnd()):QByteArray::number(trans.end());
 			}
 			else if (strand == "-")
 			{
-//				phase =(trans.end()-trans.codingStart()) % 3;
 				//write in chr order
 				cds_end = (trans.codingStart() > 0)?QByteArray::number(trans.codingStart()):QByteArray::number(trans.end());
 				cds_start = (trans.codingEnd() > 0)?QByteArray::number(trans.codingEnd()-1):QByteArray::number(trans.end());
 			}
-
 
             const BedFile& coding_regions = trans.codingRegions();
 			QByteArray cds_status = "none";
@@ -88,22 +85,8 @@ public:
 					//update cds status
 					cds_status = "cmpl";
 
-//					if (((trans.strand()==Transcript::MINUS && i==0) || (trans.strand()==Transcript::PLUS && i==(coding_regions.count()-1))) && exon_ranges.size()>0)
-//					{
-//						//on first iteration: check if utr and exon are connected
-//						if (exon_ranges.last()[1] == coding_region.start())
-//						{
-//							exon_ranges.last()[1] = coding_region.end();
-//							exon_ranges.last()[2] = phase;
-//							continue;
-//						}
-//					}
-
 					//add (exon) start, end and frame offset
 					exon_ranges.append(QList<int>() << coding_region.start() << coding_region.end() << phase);
-
-
-
 				}
 
                 const BedFile& utr5prime = trans.utr5prime();
@@ -112,19 +95,12 @@ public:
                     // 5prime UTR LINEs
                     const BedLine& reg = utr5prime[i];
 
-//					if (((trans.strand()==Transcript::MINUS && i==0) || (trans.strand()==Transcript::PLUS && i==(coding_regions.count()-1))) && exon_ranges.size()>0)
-//					{
-//						//on first iteration: check if utr and exon are connected
-//						if (exon_ranges.last()[1] == (reg.start()-1))
-//						{
-//							exon_ranges.last()[1] = reg.end();
-//							continue;
-//						}
-//					}
 					//add (exon) start, end and frame offset
 					exon_ranges.append(QList<int>() << reg.start() << reg.end() << -1);
                 }
-            } else {
+			}
+			else
+			{
                 const BedFile& exons = trans.regions();
                 for ( int i=0; i<exons.count(); ++i )
                 {
@@ -155,7 +131,6 @@ public:
 				merged_exon_ranges.append(exon);
 			}
 
-
 			//format for columns
 			QByteArray exon_starts, exon_ends, exon_frames;
 			foreach(const QList<int>& exon, merged_exon_ranges)
@@ -164,7 +139,6 @@ public:
 				exon_ends += QByteArray::number(exon.at(1)) + ",";
 				exon_frames += QByteArray::number(exon.at(2)) + ",";
 			}
-
 
 			//write line
 			QByteArrayList line;

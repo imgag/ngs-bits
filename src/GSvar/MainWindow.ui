@@ -348,7 +348,7 @@
      <x>0</x>
      <y>0</y>
      <width>1100</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -538,6 +538,7 @@
      <addaction name="actionImportStudy"/>
      <addaction name="actionImportMids"/>
      <addaction name="actionImportCfDNAPanels"/>
+     <addaction name="actionImportUsers"/>
     </widget>
     <widget class="QMenu" name="menuVariant_search">
      <property name="title">
@@ -870,7 +871,7 @@
     <string>Processed sample</string>
    </property>
    <property name="toolTip">
-    <string>Open processed sample tab.</string>
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Open processed sample tab.&lt;br/&gt;Press CTRL while clicking the button to open a batch of processed samples.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
    </property>
   </action>
   <action name="actionResizeCustom">
@@ -1524,6 +1525,14 @@
   <action name="actionAnalysisTimePlot">
    <property name="text">
     <string>Analysis time plot</string>
+   </property>
+  </action>
+  <action name="actionImportUsers">
+   <property name="text">
+    <string>Users</string>
+   </property>
+   <property name="toolTip">
+    <string>Import NGSD users</string>
    </property>
   </action>
   <action name="actionPingGSvarServer">

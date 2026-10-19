@@ -37,6 +37,26 @@ struct CPPVISUALSHARED_EXPORT BaseCoverage // stores coverage at a given genome 
 	int total() const {return a() + c() + g() + t() + n();}
 };
 
+//Fast read-only parameters access; populated and maintained by ParameterList::link().
+struct CPPVISUALSHARED_EXPORT BamCoverageTrackSettings : public QObject
+{
+	Q_OBJECT
+	Q_PROPERTY(bool show_soft_clipped_bases MEMBER show_soft_clipped_bases)
+	Q_PROPERTY(bool show_secondary_alignments MEMBER show_secondary_alignments)
+	Q_PROPERTY(int min_mq MEMBER min_mq)
+	Q_PROPERTY(double min_display_af_for_snp MEMBER min_display_af_for_snp)
+	Q_PROPERTY(int track_height MEMBER track_height)
+	Q_PROPERTY(int visibility_range MEMBER visibility_range)
+
+public:
+	bool show_soft_clipped_bases{};
+	bool show_secondary_alignments{};
+	int min_mq{};
+	double min_display_af_for_snp{};
+	int track_height{};
+	int visibility_range{};
+};
+
 //Track that displays the coverage of alignments for every genome pos
 class CPPVISUALSHARED_EXPORT BamCoverageTrack
 	: public TrackWidget
@@ -60,9 +80,9 @@ protected:
 	void paintEvent(QPaintEvent*) override;
 	void mousePressEvent(QMouseEvent*) override;
 	void mouseReleaseEvent(QMouseEvent*) override;
-	void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
+	BamCoverageTrackSettings fast_settings_;
 	// track_data shared b/w coverage/alignment tracks
 	QSharedPointer<BamTrackData> track_data_;
 	// vector for stroing the coverage everytime the region changes

@@ -24,6 +24,8 @@ public:
 	//Default constructor
 	GenomeVisualizationWidget(QWidget* parent);
 	~GenomeVisualizationWidget() override;
+	//Adds a generated BED track with a backing file for reload/session persistence.
+	void addBedTrack(QSharedPointer<BedFile> regions, QString file_path, QString name);
 
 public slots:
 	//Shows 'open file' dialog
@@ -42,6 +44,7 @@ public slots:
 	void loadSession();
 
 protected:
+	bool eventFilter(QObject* watched, QEvent* event) override;
 	//set up debug button
 	void setupDebugButton();
 	// handles zoom in/out
