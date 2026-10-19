@@ -6,6 +6,7 @@
 #include "TabixIndexedFile.h"
 #include "BasicStatistics.h"
 
+#include <NGSHelper.h>
 #include <QFileInfo>
 
 class ConcreteTool
@@ -27,11 +28,14 @@ public:
 		addInfile("in_all", "Input modkit bedmethyl file for combined allele track (in BED.GZ format).", false);
 		addInfile("sites", "Input table containing imprinting sites (in TSV format).", false);
 		addOutfile("out", "Output plot data table in BED format.", false);
+		addEnum("gender", "Gender of index sample.", false, QStringList() << "n/a" << "male" << "female");
 
 		//optional
 		addInfileList("cohort_hp1", "List of bedmethyl cohort files for first allele (in BED.GZ format).", true);
 		addInfileList("cohort_hp2", "List of bedmethyl cohort files for second allele (in BED.GZ format).", true);
 		addInfileList("cohort_all", "List of bedmethyl cohort files for combined allele track (in BED.GZ format).", true);
+		addInfileList("cohort_phasing_tracks", "List of phasing track files for each cohort sample (in BED format).", true);
+
 
 	}
 
@@ -58,12 +62,18 @@ public:
 		QStringList cohort_file_paths_hp1 = getInfileList("cohort_hp1");
 		QStringList cohort_file_paths_hp2 = getInfileList("cohort_hp2");
 		QStringList cohort_file_paths_all = getInfileList("cohort_all");
+		QStringList cohort_file_paths_phasing_tracks = getInfileList("cohort_phasing_tracks");
 
-		if ((cohort_file_paths_hp1.size() != cohort_file_paths_hp2.size()) || (cohort_file_paths_hp1.size() != cohort_file_paths_all.size()))
+		if ((cohort_file_paths_hp1.size() != cohort_file_paths_hp2.size())
+			|| (cohort_file_paths_hp1.size() != cohort_file_paths_all.size())
+			|| (cohort_file_paths_hp1.size() != cohort_file_paths_phasing_tracks.size()))
 		{
 			THROW(ArgumentException, "List of cohort BED files have to have the same length for each allele!");
 		}
-		bool cohort_annotation = (cohort_file_paths_hp1.size() > 0);
+		const bool cohort_annotation = (cohort_file_paths_hp1.size() > 0);
+
+		const QString gender = getEnum("gender");
+
 
 		//parse table
 		TsvFile imprinting_sites;
@@ -150,6 +160,7 @@ public:
 
 
 		QList<QMap<QByteArray, TabixIndexedFile>> cohort_bed_files;
+		QList<BedFile> cohort_phasing_tracks;
 		if (cohort_annotation)
 		{
 			// // add additional columns
@@ -166,12 +177,20 @@ public:
 
 			// open tabix files for cohort samples
 			cohort_bed_files.fill(QMap<QByteArray, TabixIndexedFile>(), cohort_file_paths_hp1.size());
+			cohort_phasing_tracks.fill(BedFile(), cohort_file_paths_phasing_tracks.size());
 			//iterate over cohort
 			for (int s = 0; s < cohort_file_paths_all.size(); ++s)
 			{
 				cohort_bed_files[s]["hp1"].load(cohort_file_paths_hp1[s].toUtf8());
 				cohort_bed_files[s]["hp2"].load(cohort_file_paths_hp2[s].toUtf8());
 				cohort_bed_files[s]["all"].load(cohort_file_paths_all[s].toUtf8());
+				//load cohort phasing track files
+				cohort_phasing_tracks[s].load(cohort_file_paths_phasing_tracks[s]);
+				if (!cohort_phasing_tracks[s].isMergedAndSorted())
+				{
+					cohort_phasing_tracks[s].sort();
+					cohort_phasing_tracks[s].merge(false);
+				}
 			}
 		}
 
@@ -206,7 +225,7 @@ public:
 					if (parts.size() < 13) THROW(FileParseException, "Invalid BedMethyl line: '" + line + "'!");
 					if (parts.at(bedmethyl_idx_mod_type).trimmed() != "m") continue; // skip
 
-					int start =  Helper::toInt(parts.at(bedmethyl_idx_start), "start", line);
+					int start =  Helper::toInt(parts.at(bedmethyl_idx_start), "start", line) + 1; //+1 to convert to 1-based (internal)
 					int end =  Helper::toInt(parts.at(bedmethyl_idx_end), "end", line);
 					BedLine pos = BedLine(chr, start, end);
 					double frac =  Helper::toDouble(parts.at(bedmethyl_idx_frac), "fraction modified", line);
@@ -240,12 +259,20 @@ public:
 				//iterate over cohort
 				for (int s = 0; s < cohort_file_paths_all.size(); ++s)
 				{
-					double avg_hp1 = averageMethylation(cohort_bed_files[s]["hp1"].getMatchingLines(chr, highlight_start, highlight_end));
-					double avg_hp2 = averageMethylation(cohort_bed_files[s]["hp2"].getMatchingLines(chr, highlight_start, highlight_end));
-					bool switch_haplotypes = (!std::isnan(avg_hp2)) && (std::isnan(avg_hp1) || avg_hp1 < avg_hp2);
+					//skip cohort sample where the phasing is off:
+					bool correctly_phased = (checkPhasing(BedLine(chr, highlight_start, highlight_end), cohort_phasing_tracks[s], gender).isEmpty());
+					bool switch_haplotypes = false;
+					if (correctly_phased)
+					{
+						double avg_hp1 = averageMethylation(cohort_bed_files[s]["hp1"].getMatchingLines(chr, highlight_start, highlight_end));
+						double avg_hp2 = averageMethylation(cohort_bed_files[s]["hp2"].getMatchingLines(chr, highlight_start, highlight_end));
+						switch_haplotypes = (!std::isnan(avg_hp2)) && (std::isnan(avg_hp1) || avg_hp1 < avg_hp2);
+					}
+
 
 					for (const QByteArray& prefix : std::as_const(prefixes))
 					{
+						if (!correctly_phased && (prefix != "all")) continue;
 						QByteArrayList lines = cohort_bed_files[s][prefix].getMatchingLines(chr, gene_start, gene_end);
 						for (const QByteArray& line : std::as_const(lines))
 						{
@@ -253,7 +280,7 @@ public:
 							if (parts.size() < 13) THROW(FileParseException, "Invalid BedMethyl line: '" + line + "'!");
 							if (parts.at(bedmethyl_idx_mod_type).trimmed() != "m") continue; // skip
 
-							int start =  Helper::toInt(parts.at(bedmethyl_idx_start), "start", line);
+							int start =  Helper::toInt(parts.at(bedmethyl_idx_start), "start", line) + 1; //+1 to convert to 1-based (internal)
 							int end =  Helper::toInt(parts.at(bedmethyl_idx_end), "end", line);
 							BedLine pos = BedLine(chr, start, end);
 							double frac =  Helper::toDouble(parts.at(bedmethyl_idx_frac), "fraction modified", line);
@@ -313,6 +340,28 @@ private:
 
 		return (frac_all.size() > 0)? BasicStatistics::mean(frac_all): NAN;
 	}
+
+	QByteArray checkPhasing(const BedLine& region, const BedFile& phasing_track, const QString& gender)
+	{
+		//check phasing track
+		if (phasing_track.count() == 0) return "NoPhasingInfo";
+		BedFile intersection;
+		intersection.append(region);
+		intersection.intersect(phasing_track);
+		if (intersection.count() > 1) return "MultiplePhasingBlocks";
+		if (intersection.count() < 1)
+		{
+			if (region.chr().isAutosome() || (region.chr().isX() && gender != "male")) return "UnphasedRegion";
+			else if (region.chr().isGonosome() && NGSHelper::pseudoAutosomalRegion().overlapsWith(region)) return "UnphasedRegion";
+			//else: single haplotype (e.g. chrM, chrY, ...)
+			return "";
+		}
+		//exactly 1 phasing block --> check if it covers whole region
+		if (!(intersection[0] == region)) return "PartlyUnphasedRegion";
+		//whole region is phased
+		return "";
+	}
+
 
 	QByteArrayList assembleBedAnnotation(const PlotDataLine& plot_data)
 	{
