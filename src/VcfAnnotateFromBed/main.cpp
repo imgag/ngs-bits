@@ -88,7 +88,7 @@ public:
 			}
 			if (line.annotations()[0].contains(sep))
 			{
-				THROW(FileParseException, "BED line '" + line.toString(true) + "' name column contains separator: " + line.annotations()[0]);
+				THROW(FileParseException, "BED line '" + line.toString(true) + "' name column contains separator '" + sep + "': " + line.annotations()[0]);
 			}
 		}
 
