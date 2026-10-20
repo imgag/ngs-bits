@@ -1,13 +1,38 @@
 #include "BedTrack.h"
 #include "FileLoader.h"
 #include "SharedData.h"
+#include "Helper.h"
 #include "ColorNames.h"
 #include <QApplication>
 #include <QFontMetrics>
 #include <QPainter>
+#include <QMessageBox>
 #include <algorithm>
+#include <limits>
 
 static constexpr int BLOCK_HEIGHT  = 10;
+
+namespace
+{
+QSharedPointer<BedFile> queryBed(const TabixIndexedFile& tabix, const BedLine& region)
+{
+	auto bed = QSharedPointer<BedFile>::create();
+	if (!region.isValid()) return bed;
+	for (const QByteArray& line : tabix.getMatchingLines(region.chr(), region.start(), region.end(), true))
+	{
+		const QByteArrayList fields = line.split('\t');
+		if (fields.count() < 3) THROW(FileParseException, "Indexed BED line has fewer than three columns: " + line);
+		const int start = Helper::toInt(fields[1], "BED start");
+		const int end = Helper::toInt(fields[2], "BED end");
+		if (start < 0 || start == std::numeric_limits<int>::max()) THROW(FileParseException, "Invalid indexed BED start: " + line);
+		//BED is zero-based, half-open; BedLine uses one-based inclusive coordinates.
+		//Keep annotations local to this query instead of retaining them in the global string pool.
+		bed->append(BedLine(Chromosome(fields[0]), start + 1, end, fields.mid(3)));
+	}
+	bed->sort();
+	return bed;
+}
+}
 
 BedTrack::BedTrack(QWidget* parent, QString file_path, QString name)
 	:TrackWidget(parent, file_path, name, type())
@@ -21,6 +46,21 @@ BedTrack::BedTrack(QWidget* parent, QString file_path, QString name)
 	});
 	connect(SharedData::instance(), &SharedData::regionChanged, this, [this]()
 	{
+		if (tabix_)
+		{
+			try
+			{
+				setBedData(queryBed(*tabix_, SharedData::region()));
+				return;
+			}
+			catch (const Exception& e)
+			{
+				//Discard stale intervals, but allow the track to recover on the next region change.
+				chr_index_.reset();
+				bedfile_.clear();
+				load_error_ = e.message();
+			}
+		}
 		calculateRows();
 		regionChanged();
 	});
@@ -51,11 +91,18 @@ void BedTrack::reloadTrack()
 
 void BedTrack::setBedFile(QSharedPointer<BedFile> bedfile)
 {
+	setBedData(bedfile);
+	tabix_.reset();
+}
+
+void BedTrack::setBedData(QSharedPointer<BedFile> bedfile)
+{
 	if (!bedfile) THROW(ArgumentException, "Cannot set a null BED file!");
 	//Build first so invalid input leaves the previous file and index intact.
 	auto index = std::make_unique<ChromosomalIndex<BedFile>>(*bedfile);
 	chr_index_ = std::move(index);
 	bedfile_ = bedfile;
+	load_error_.clear();
 	calculateRows();
 	updateGeometry();
 	update();
@@ -63,6 +110,22 @@ void BedTrack::setBedFile(QSharedPointer<BedFile> bedfile)
 
 bool BedTrack::load()
 {
+	if (getDisplayNameFromFilePath(file_path_).endsWith(".bed.gz", Qt::CaseInsensitive))
+	{
+		try
+		{
+			auto tabix = std::make_unique<TabixIndexedFile>();
+			tabix->load(file_path_.toUtf8());
+			setBedData(queryBed(*tabix, SharedData::region()));
+			tabix_ = std::move(tabix);
+			return true;
+		}
+		catch (const Exception& e)
+		{
+			QMessageBox::critical(QApplication::activeWindow(), "Error loading indexed BED", e.message());
+			return false;
+		}
+	}
 	QSharedPointer<BedFile> bedfile = FileLoader::loadBedFile(file_path_);
 	if (bedfile)
 	{
@@ -85,6 +148,12 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 
 	//draw label
 	drawLabel(painter);
+	if (!load_error_.isEmpty())
+	{
+		painter.setPen(Qt::red);
+		painter.drawText(QRect(viewport.x0, 0, std::max(0, viewport.usable_width), height()), Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, load_error_);
+		return;
+	}
 	if (!bedfile_ || viewport.usable_width <= 0 || region.length() <= 0) return;
 	painter.setClipRect(QRect(viewport.x0, 0, viewport.usable_width, height()));
 
@@ -262,12 +331,7 @@ void BedTrack::handlePopupRequest(QPointF local_pos, QPointF global_pos)
 
 BedTrack* BedTrack::createTrack(QWidget* parent, QString file_path, QString name)
 {
-	QSharedPointer<BedFile> bedfile = FileLoader::loadBedFile(file_path);
-	if (bedfile)
-	{
-		BedTrack* track = new BedTrack(parent, file_path, name);
-		track->setBedFile(bedfile);
-		return track;
-	}
+	auto track = std::make_unique<BedTrack>(parent, file_path, name);
+	if (track->load()) return track.release();
 	return nullptr;
 }

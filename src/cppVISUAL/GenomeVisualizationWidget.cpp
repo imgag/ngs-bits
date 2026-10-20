@@ -7,7 +7,11 @@
 #include "Settings.h"
 #include "ParameterEditor.h"
 #include "BookmarkManager.h"
+#include "AddBookmarkDialog.h"
 #include "BedTrack.h"
+#include "GenePanel.h"
+#include <QApplication>
+#include <QAbstractScrollArea>
 #include <QToolTip>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -55,6 +59,10 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 
 	//clean session
 	clearSession();
+
+	//Observe child events even when a track consumes them, including newly shown tracks.
+	for (QWidget* child : ui_->track_group_manager->findChildren<QWidget*>()) child->setMouseTracking(true);
+	qApp->installEventFilter(this);
 
 	//show the current coordinates before the first region change
 	updateRegion();
@@ -123,13 +131,9 @@ void GenomeVisualizationWidget::setupBookmarkMenu()
 void GenomeVisualizationWidget::storeBookmark()
 {
 	const BedLine region = SharedData::region();
-	QInputDialog dialog(this);
-	dialog.setWindowTitle("Store bookmark");
-	dialog.setLabelText("Bookmark name:");
-	dialog.setTextValue(region.toString(true));
-	dialog.findChild<QLineEdit*>()->selectAll();
-	if (dialog.exec() != QDialog::Accepted || dialog.textValue().trimmed().isEmpty()) return;
-	const QJsonObject bookmark{{"name", dialog.textValue().trimmed()}, {"chr", QString::fromUtf8(region.chr().strNormalized(true))}, {"start", region.start()}, {"end", region.end()}, {"show_in_chromosome_view", false}};
+	AddBookmarkDialog dialog(region.toString(true), this);
+	if (dialog.exec() != QDialog::Accepted || dialog.name().isEmpty()) return;
+	const QJsonObject bookmark{{"name", dialog.name()}, {"chr", QString::fromUtf8(region.chr().strNormalized(true))}, {"start", region.start()}, {"end", region.end()}, {"show_in_chromosome_view", dialog.showInChromosomeTrack()}};
 	QStringList bookmarks = Settings::stringList("bookmark_regions", true);
 	bookmarks.append(QString::fromUtf8(QJsonDocument(bookmark).toJson(QJsonDocument::Compact)));
 	Settings::setStringList("bookmark_regions", bookmarks);
@@ -138,8 +142,65 @@ void GenomeVisualizationWidget::storeBookmark()
 
 GenomeVisualizationWidget::~GenomeVisualizationWidget()
 {
+	qApp->removeEventFilter(this);
 	disconnect(selected_track_destroyed_);
 	delete ui_;
+}
+
+bool GenomeVisualizationWidget::eventFilter(QObject* watched, QEvent* event)
+{
+	auto* widget = qobject_cast<QWidget*>(watched);
+	if (!widget) return QWidget::eventFilter(watched, event);
+	QWidget* manager = ui_->track_group_manager;
+	const bool chromosome_panel = widget == ui_->chr_panel;
+	const bool chromosome_scale = widget == ui_->chr_context_panel;
+	if (!chromosome_panel && !chromosome_scale && widget != manager && !manager->isAncestorOf(widget)) return QWidget::eventFilter(watched, event);
+	if (widget->window() != window()) return QWidget::eventFilter(watched, event);
+
+	if (event->type() == QEvent::Show)
+	{
+		widget->setMouseTracking(true);
+	}
+	else if (event->type() == QEvent::MouseMove)
+	{
+		const auto* mouse = static_cast<QMouseEvent*>(event);
+		const QPoint global_pos = mouse->globalPosition().toPoint();
+		if (chromosome_panel)
+		{
+			const int coordinate = ui_->chr_panel->genomicCoordinateAt(mouse->pos().x());
+			updateCoordinateLabel(coordinate > 0 ? QString::fromUtf8(SharedData::region().chr().strNormalized(true)) + ":" + QString::number(coordinate) : QString());
+			return QWidget::eventFilter(watched, event);
+		}
+		if (chromosome_scale)
+		{
+			SharedData::mouseMoved(mouse->pos().x(), widget->width());
+			return QWidget::eventFilter(watched, event);
+		}
+		//Use the widget under the cursor also for events propagated to its parents.
+		QWidget* hovered = manager->childAt(manager->mapFromGlobal(global_pos));
+		QWidget* coordinate_widget = manager;
+		for (QWidget* ancestor = hovered; ancestor && ancestor != manager; ancestor = ancestor->parentWidget())
+		{
+			if (qobject_cast<TrackWidget*>(ancestor) || qobject_cast<GenePanel*>(ancestor))
+			{
+				coordinate_widget = ancestor;
+				break;
+			}
+			if (auto* scroll_area = qobject_cast<QAbstractScrollArea*>(ancestor))
+			{
+				coordinate_widget = scroll_area->viewport();
+				break;
+			}
+		}
+		const QPoint pos = coordinate_widget->mapFromGlobal(global_pos);
+		if (coordinate_widget->rect().contains(pos)) SharedData::mouseMoved(pos.x(), coordinate_widget->width());
+		else updateCoordinateLabel("");
+	}
+	else if (event->type() == QEvent::Leave && (widget == manager || chromosome_panel || chromosome_scale))
+	{
+		updateCoordinateLabel("");
+	}
+	return QWidget::eventFilter(watched, event);
 }
 
 void GenomeVisualizationWidget::clearParameterEditor()
@@ -176,7 +237,7 @@ void GenomeVisualizationWidget::delayedInitialization()
 void GenomeVisualizationWidget::openFileDialog()
 {
 	QString open_folder = Settings::path("load_store_file_folder", true);
-	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", open_folder, "NGS files(*.bam *.cram *.bed *.igv *.seg);;All files(*.*)");
+	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", open_folder, "NGS files(*.bam *.cram *.bed *.bed.gz *.bedpe *.bedpe.gz *.vcf *.vcf.gz *.igv *.seg);;All files(*.*)");
 	if (!files.isEmpty())
 	{
 		foreach(QString file, files)
@@ -281,7 +342,13 @@ void GenomeVisualizationWidget::search()
 	}
 
 	//chromosomal region
-	BedLine region = BedLine::fromString(text);
+	QString region_text = QString::fromUtf8(text).simplified().replace(' ', '\t').replace(':', '\t');
+	const QStringList locus_parts = region_text.split('\t');
+	if (locus_parts.count() == 2 && !locus_parts[1].contains('-'))
+	{
+		region_text += "\t" + locus_parts[1]; //Accept a single coordinate as a one-base range.
+	}
+	BedLine region = BedLine::fromString(region_text);
 	if (region.isValid())
 	{
 		SharedData::setRegion(region.chr(), region.start(), region.end());

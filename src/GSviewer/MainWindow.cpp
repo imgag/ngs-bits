@@ -1,6 +1,6 @@
 #include "MainWindow.h"
 #include "Settings.h"
-#include "GffData.h"
+#include "TranscriptCache.h"
 #include "SharedData.h"
 #include "GenomeVisualizationWidget.h"
 #include "AboutDialog.h"
@@ -80,10 +80,7 @@ void MainWindow::delayedInitialization()
 			progress_dialog.show();
 			QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
 
-			GffSettings settings;
-			settings.print_to_stdout = false;
-			GffData data = GffData::load(gff_file, settings);
-			SharedData::setTranscripts(data.transcripts);
+			SharedData::setTranscripts(TranscriptCache::load(gff_file));
 		}
         qDebug() << "Parsing transcripts took: " << Helper::elapsedTime(timer);
 

@@ -3,6 +3,8 @@
 #include "IgvTrack.h"
 #include "SegTrack.h"
 #include "BedTrack.h"
+#include "VcfTrack.h"
+#include "SvTrack.h"
 #include "BamAlignmentTrack.h"
 #include "BamCoverageTrack.h"
 #include <QInputDialog>
@@ -284,6 +286,8 @@ TrackWidget* TrackWidget::fromXml(const QDomElement& track_element, QWidget* par
 	//create track
 	TrackWidget* track = nullptr;
 	if (type == BedTrack::type()) track = BedTrack::createTrack(parent, file_path, display_name);
+	else if (type == VcfTrack::type()) track = VcfTrack::createTrack(parent, file_path, display_name);
+	else if (type == SvTrack::type()) track = SvTrack::createTrack(parent, file_path, display_name);
 	else if (type == BamAlignmentTrack::type()) track = BamAlignmentTrack::createTrack(parent, file_path, display_name);
 	else if (type == BamCoverageTrack::type()) track = BamCoverageTrack::createTrack(parent, file_path, display_name);
 	else if (type == IgvTrack::type()) track = IgvTrack::createTrack(parent, file_path, display_name);
@@ -363,7 +367,8 @@ TrackWidget* TrackWidget::fromXml(const QDomElement& track_element, QWidget* par
 	if (ok && height > 0)
 	{
 		track->session_height_ = height;
-		track->setFixedHeight(height);
+		//Variant tracks grow with the number of overlapping variants at the current zoom level.
+		if (type != VcfTrack::type() && type != SvTrack::type()) track->setFixedHeight(height);
 	}
 	else errors << "Missing or invalid track height for " + file_path;
 	return track;

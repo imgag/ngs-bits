@@ -70,7 +70,6 @@ protected:
 	void populateContextMenu(QMenu&, const QPoint&) override;
 	void mousePressEvent(QMouseEvent*) override;
 	void mouseReleaseEvent(QMouseEvent*) override;
-	void mouseMoveEvent(QMouseEvent* event) override;
 
 private:
 	BamAlignmentTrackSettings fast_settings_;
@@ -98,6 +97,7 @@ private:
 	void drawAlignmentAndMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y);
 
 	void drawAlignment(QPainter&, const BamAlignmentWrapper& al, int row_y);
+	void drawInsertions(QPainter&, const BamAlignmentWrapper& al, int row_y);
 	void drawBase(QPainter&, const Viewport& view_port, int genome_pos,
 				  char base, int qual, int row_y);
 	// draws bases in BamAlignment that do not match the reference base

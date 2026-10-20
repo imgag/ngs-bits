@@ -40,7 +40,6 @@ GenePanel::GenePanel(QWidget *parent)
 	: QWidget(parent)
 {
 	setContextMenuPolicy(Qt::CustomContextMenu);
-	setMouseTracking(true);
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenu(QPoint)));
 	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
 	connect(SharedData::instance(), &SharedData::transcriptsChanged, this, &GenePanel::updateRegion);
@@ -261,13 +260,6 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 	}
 }
 
-void GenePanel::mouseMoveEvent(QMouseEvent* event)
-{
-	SharedData::mouseMoved(event->pos().x(), width());
-
-	event->ignore();
-}
-
 void GenePanel::mousePressEvent(QMouseEvent* event)
 {
 	if (event->button() == Qt::LeftButton) mouse_press_pos_ = event->pos();
@@ -337,6 +329,7 @@ QString GenePanel::transcriptText(const Transcript& trans, int genome_pos) const
 	const QString tags = trans.flags(false).join(", ");
 	if (!tags.isEmpty()) text += "<br><b>Tags:</b> " + tags.toHtmlEscaped();
 	QStringList details;
+	details.append("<b>Genomic position:</b> " + QString::fromUtf8(trans.chr().strNormalized(true)).toHtmlEscaped() + ":" + QString::number(genome_pos));
 	if (!cdna.startsWith("N/A")) details.append("<b>cDNA position:</b> " + cdna);
 	if (aa_position != "N/A") details.append("<b>AA position:</b> " + aa_position);
 	if (aa_one != "N/A") details.append("<b>AA (one-letter):</b> " + aa_one);
@@ -466,7 +459,8 @@ void GenePanel::drawTranscript(QPainter& painter, const TranscriptPosition& posi
 		const BedLine& exon = trans.regions()[i];
 		double x_start = baseStartX(exon.start(), true);
 		double x_end = baseEndX(exon.end(), true);
-		QRectF rect(x_start, y+2+2, x_end-x_start, 8);
+		if (x_end <= x_start) continue;
+		QRectF rect(x_start, y+2+2, std::max(0.5, x_end-x_start), 8);
 		painter.drawRect(rect);
 	}
 
@@ -476,7 +470,8 @@ void GenePanel::drawTranscript(QPainter& painter, const TranscriptPosition& posi
 		const BedLine& exon = trans.codingRegions()[i];
 		double x_start = baseStartX(exon.start(), true);
 		double x_end = baseEndX(exon.end(), true);
-		QRectF rect(x_start, y+2, x_end-x_start, 12);
+		if (x_end <= x_start) continue;
+		QRectF rect(x_start, y+2, std::max(0.5, x_end-x_start), 12);
 		painter.drawRect(rect);
 	}
 

@@ -1,4 +1,7 @@
 #include "GenomeVisualizationWidget.h"
+#include "../GSviewer/TranscriptCache.h"
+#include "GffData.h"
+#include <QDateTime>
 #include "BookmarkManager.h"
 #include <QTableWidget>
 #include <QPushButton>
@@ -17,6 +20,8 @@
 #include <QScrollBar>
 #include <QHBoxLayout>
 #include "BedTrack.h"
+#include "VcfTrack.h"
+#include "SvTrack.h"
 #include "FileLoader.h"
 #include "IgvTrack.h"
 #include "SegTrack.h"
@@ -24,6 +29,8 @@
 #include "BamCoverageTrack.h"
 #include "BamTrackDataManager.h"
 #include "BamWriter.h"
+#include <htslib/bgzf.h>
+#include <QMessageBox>
 #include <QScopeGuard>
 #include <QDialog>
 #include <QFontMetrics>
@@ -97,6 +104,127 @@ private slots:
 		SharedData::setRegion(Chromosome("chr22"), 1, 80);
 		writeFile("first.bed", "chr22\t10\t20\n");
 		writeFile("second.bed", "chr22\t30\t40\n");
+	}
+
+	void transcriptCache()
+	{
+		QDir temporary(QDir::current().filePath("transcript-cache-test-" + QUuid::createUuid().toString(QUuid::WithoutBraces)));
+		QVERIFY(QDir().mkpath(temporary.absolutePath()));
+		const auto cleanup = qScopeGuard([&]() { temporary.removeRecursively(); });
+		const QString source = temporary.filePath("genes.gff3");
+		const QString cache_directory = temporary.filePath("cache");
+		QFile fixture(QFINDTESTDATA("../cppNGS-TEST/data_in/GffData_loadGffFile_in1.gff3"));
+		QVERIFY2(fixture.open(QIODevice::ReadOnly), qPrintable(fixture.errorString()));
+		const QByteArray fixture_contents = fixture.readAll();
+		auto read = [](const QString& path)
+		{
+			QFile file(path);
+			if (!file.open(QIODevice::ReadOnly)) return QByteArray();
+			return file.readAll();
+		};
+		auto write = [](const QString& path, const QByteArray& contents)
+		{
+			QFile file(path);
+			QVERIFY(file.open(QIODevice::WriteOnly | QIODevice::Truncate));
+			QCOMPARE(file.write(contents), qint64(contents.size()));
+		};
+		auto compare = [](TranscriptList actual, TranscriptList expected)
+		{
+			actual.sortByPosition();
+			expected.sortByPosition();
+			QCOMPARE(actual.count(), expected.count());
+			for (int i = 0; i < actual.count(); ++i)
+			{
+				const Transcript& a = actual[i];
+				const Transcript& e = expected[i];
+				QCOMPARE(a.name(), e.name());
+				QCOMPARE(a.gene(), e.gene());
+				QCOMPARE(a.geneId(), e.geneId());
+				QCOMPARE(a.hgncId(), e.hgncId());
+				QCOMPARE(a.version(), e.version());
+				QCOMPARE(a.nameCcds(), e.nameCcds());
+				QCOMPARE(a.source(), e.source());
+				QCOMPARE(a.strand(), e.strand());
+				QCOMPARE(a.biotype(), e.biotype());
+				QCOMPARE(a.chr().str(), e.chr().str());
+				QCOMPARE(a.start(), e.start());
+				QCOMPARE(a.end(), e.end());
+				QCOMPARE(a.codingStart(), e.codingStart());
+				QCOMPARE(a.codingEnd(), e.codingEnd());
+				QCOMPARE(a.flags(false), e.flags(false));
+				QCOMPARE(a.isGencodeBasicTranscript(), e.isGencodeBasicTranscript());
+				QCOMPARE(a.regions().toText(), e.regions().toText());
+				QCOMPARE(a.codingRegions().toText(), e.codingRegions().toText());
+				QCOMPARE(a.utr5prime().toText(), e.utr5prime().toText());
+				QCOMPARE(a.utr3prime().toText(), e.utr3prime().toText());
+			}
+		};
+		GffSettings settings;
+		settings.print_to_stdout = false;
+		write(source, fixture_contents);
+		const TranscriptList expected = GffData::load(source, settings).transcripts;
+		compare(TranscriptCache::load(source, cache_directory), expected);
+		const QStringList files = QDir(cache_directory).entryList({"*.tsv"}, QDir::Files);
+		QCOMPARE(files.count(), 1);
+		const QString cache = QDir(cache_directory).filePath(files.first());
+		const QByteArray cached = read(cache);
+		QVERIFY(cached.startsWith("#GSviewer transcript cache\t"));
+		const QByteArray original = read(source);
+		const QDateTime modified = QFileInfo(source).lastModified();
+
+		//A hit must avoid parsing the GFF: replace it with invalid data but retain its metadata.
+		write(source, QByteArray(original.size(), 'x'));
+		{
+			QFile file(source);
+			QVERIFY(file.open(QIODevice::ReadWrite));
+			QVERIFY(file.setFileTime(modified, QFileDevice::FileModificationTime));
+		}
+		compare(TranscriptCache::load(source, cache_directory), expected);
+		QCOMPARE(read(cache), cached);
+
+		//A size change invalidates the cache, even with the original modification time.
+		write(source, original + "\n#changed\n");
+		{
+			QFile file(source);
+			QVERIFY(file.open(QIODevice::ReadWrite));
+			QVERIFY(file.setFileTime(modified, QFileDevice::FileModificationTime));
+		}
+		compare(TranscriptCache::load(source, cache_directory), expected);
+		QVERIFY(read(cache) != cached);
+
+		//A timestamp change invalidates an otherwise equally sized source.
+		write(source, original);
+		compare(TranscriptCache::load(source, cache_directory), expected);
+		QByteArray changed = original;
+		changed.replace("SEC22B", "TEC22B");
+		QCOMPARE(changed.size(), original.size());
+		write(source, changed);
+		{
+			QFile file(source);
+			QVERIFY(file.open(QIODevice::ReadWrite));
+			QVERIFY(file.setFileTime(modified.addSecs(5), QFileDevice::FileModificationTime));
+		}
+		compare(TranscriptCache::load(source, cache_directory), GffData::load(source, settings).transcripts);
+		QCOMPARE(TranscriptCache::load(source, cache_directory).getTranscript("ENST00000578049").gene(), QByteArray("TEC22B"));
+
+		//Corrupt and incompatible caches are rebuilt rather than preventing startup.
+		const QByteArray valid_cache = read(cache);
+		write(cache, valid_cache.left(valid_cache.size() / 2));
+		compare(TranscriptCache::load(source, cache_directory), GffData::load(source, settings).transcripts);
+		QByteArray old_schema = read(cache);
+		old_schema.replace("\"version\":1", "\"version\":999");
+		write(cache, old_schema);
+		compare(TranscriptCache::load(source, cache_directory), GffData::load(source, settings).transcripts);
+		QVERIFY(read(cache).contains("\"version\":1"));
+
+		QVERIFY(QDir().mkpath(temporary.filePath("other")));
+		const QString other_source = temporary.filePath("other/genes.gff3");
+		write(other_source, read(source));
+		compare(TranscriptCache::load(other_source, cache_directory), GffData::load(source, settings).transcripts);
+		QCOMPARE(QDir(cache_directory).entryList({"*.tsv"}, QDir::Files).count(), 2);
+		const QString blocked_directory = temporary.filePath("not_a_directory");
+		write(blocked_directory, "file");
+		compare(TranscriptCache::load(source, blocked_directory), GffData::load(source, settings).transcripts);
 	}
 
 	void globalSettingsParameters()
@@ -968,6 +1096,81 @@ private slots:
 		}
 	}
 
+	void bamInsertionMarkersFitLengthsAndStayCentered()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 41);
+		QByteArray sam = "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n";
+		const QList<int> lengths{9, 123, 12345};
+		for (int length : lengths)
+		{
+			sam += "ins-" + QByteArray::number(length) + "\t0\tchr22\t10\t60\t10M" + QByteArray::number(length) + "I10M\t*\t0\t0\t"
+				+ QByteArray(length + 20, 'C') + "\t" + QByteArray(length + 20, 'I') + "\n";
+		}
+		writeFile("insertions.sam", sam);
+		{
+			BamReader reader(data_.filePath("insertions.sam"));
+			BamWriter writer(data_.filePath("insertions.bam"));
+			writer.writeHeader(reader);
+			BamAlignment alignment;
+			while (reader.getNextAlignment(alignment)) writer.writeAlignment(alignment);
+		}
+		QCOMPARE(sam_index_build(data_.filePath("insertions.bam").toUtf8().constData(), 0), 0);
+		std::unique_ptr<BamAlignmentTrack> track(BamAlignmentTrack::createTrack(nullptr, data_.filePath("insertions.bam"), "Insertions"));
+		QVERIFY(track);
+		QFont length_font;
+		length_font.setPixelSize(12);
+		length_font.setBold(true);
+		const QFontMetricsF metrics(length_font);
+		const QColor purple(140, 0, 200);
+		for (bool pairs : {false, true}) for (bool all_bases : {false, true}) for (int usable_width : {820, 777})
+		{
+			track->parameters().setBool("view as pairs", pairs);
+			track->parameters().setBool("show all bases", all_bases);
+			track->resize(SharedData::settings().label_width + 4 + usable_width, 200);
+			QImage image(track->size(), QImage::Format_ARGB32);
+			track->render(&image);
+			//10M at POS=10 puts the insertion between reference bases 19 and 20.
+			const double center = SharedData::settings().label_width + 2 + 19 * (float(usable_width) / 41);
+			for (int row = 0; row < lengths.size(); ++row)
+			{
+				const int y = row * 14;
+				int left = image.width(), right = -1;
+				for (int x = SharedData::settings().label_width + 2; x < image.width() - 2; ++x)
+				{
+					for (int dy = 0; dy < 12; ++dy) if (image.pixelColor(x, y + dy) == purple)
+					{
+						left = std::min(left, x);
+						right = std::max(right, x);
+					}
+				}
+				QVERIFY(right >= left);
+				QVERIFY(right - left + 1 >= metrics.horizontalAdvance(QString::number(lengths[row])) + 3);
+				QVERIFY(std::abs((left + right + 1) / 2.0 - center) <= 1.0);
+				//Check the complete length remains visible over mismatches and the all-bases display.
+				QImage expected(image.size(), QImage::Format_ARGB32);
+				expected.fill(Qt::white);
+				QPainter painter(&expected);
+				const double width = std::ceil(metrics.horizontalAdvance(QString::number(lengths[row]))) + 4;
+				const QRectF marker(center - width / 2, y, width, 12);
+				painter.fillRect(marker, purple);
+				painter.setFont(length_font);
+				painter.setPen(Qt::white);
+				painter.drawText(marker, Qt::AlignCenter, QString::number(lengths[row]));
+				painter.end();
+				const QRect interior = marker.toAlignedRect().adjusted(1, 0, -1, 0);
+				QCOMPARE(image.copy(interior), expected.copy(interior));
+			}
+		}
+		//An insertion outside the view must not be shifted to the left viewport edge.
+		SharedData::setRegion(Chromosome("chr22"), 21, 61);
+		QImage image(track->size(), QImage::Format_ARGB32);
+		track->render(&image);
+		for (int y = 0; y < 40; ++y) for (int x = SharedData::settings().label_width + 2; x < image.width() - 2; ++x)
+		{
+			QVERIFY(image.pixelColor(x, y) != purple);
+		}
+	}
+
 	void bamMappingQualityFilter()
 	{
 		SharedData::setRegion(Chromosome("chr22"), 1, 80);
@@ -1344,10 +1547,13 @@ private slots:
 				menu->close();
 				QTimer::singleShot(0, &viewer, [&]()
 				{
-					auto* dialog = viewer.findChild<QInputDialog*>();
+					auto* dialog = viewer.findChild<QDialog*>("AddBookmarkDialog");
 					if (!dialog) return;
-					default_selected = dialog->findChild<QLineEdit*>()->selectedText() == coordinates;
-					dialog->setTextValue(name);
+					auto* name_edit = dialog->findChild<QLineEdit*>("name");
+					auto* show_in_track = dialog->findChild<QCheckBox*>("show_in_chromosome_track");
+					default_selected = name_edit->selectedText() == coordinates && !show_in_track->isChecked();
+					name_edit->setText(name);
+					show_in_track->setChecked(name == "M third bookmark");
 					dialog->accept();
 					stored = true;
 				});
@@ -1358,6 +1564,8 @@ private slots:
 			QVERIFY(default_selected);
 		}
 		QCOMPARE(Settings::stringList(key).count(), 3);
+		QVERIFY(!QJsonDocument::fromJson(Settings::stringList(key)[0].toUtf8()).object().value("show_in_chromosome_view").toBool());
+		QVERIFY(QJsonDocument::fromJson(Settings::stringList(key)[2].toUtf8()).object().value("show_in_chromosome_view").toBool());
 		SharedData::setRegion(Chromosome("chr22"), 40, 100);
 		GenomeVisualizationWidget reopened(nullptr); // Bookmarks must survive viewer recreation.
 		reopened.show();
@@ -1390,6 +1598,15 @@ private slots:
 				ChromosomePanel chromosome(nullptr);
 				chromosome.resize(SharedData::settings().label_width + 4 + 480, 80);
 				chromosome.show();
+				ChromosomeContextPanel context(nullptr);
+				context.resize(chromosome.width(), 60);
+				context.show();
+				auto context_has_bookmark = [&]()
+				{
+					QImage image(context.size(), QImage::Format_ARGB32);
+					context.render(&image);
+					return image.pixelColor(SharedData::settings().label_width + 2, context.height() - 2) == QColor(128, 0, 128);
+				};
 				auto has_purple_line = [&]()
 				{
 					QImage image(chromosome.size(), QImage::Format_ARGB32);
@@ -1400,17 +1617,24 @@ private slots:
 					}
 					return false;
 				};
-				const bool initially_hidden = !has_purple_line();
+				const bool initially_shown = table->item(2, 2)->checkState() == Qt::Checked && has_purple_line() && context_has_bookmark();
+				table->item(2, 2)->setCheckState(Qt::Unchecked);
+				const bool initially_hidden = initially_shown && !has_purple_line() && !context_has_bookmark();
 				QSignalSpy bookmark_changes(SharedData::instance(), &SharedData::bookmarksChanged);
 				table->item(1, 2)->setCheckState(Qt::Checked);
-				const bool shown = has_purple_line() && QJsonDocument::fromJson(Settings::stringList(key)[1].toUtf8()).object().value("show_in_chromosome_view").toBool() && bookmark_changes.count() == 1;
+				const bool shown = has_purple_line() && context_has_bookmark() && QJsonDocument::fromJson(Settings::stringList(key)[1].toUtf8()).object().value("show_in_chromosome_view").toBool() && bookmark_changes.count() == 1;
 				const QPoint marker(SharedData::settings().label_width + 2, 23);
 				QHelpEvent tooltip(QEvent::ToolTip, marker, chromosome.mapToGlobal(marker));
 				QApplication::sendEvent(&chromosome, &tooltip);
 				const bool tooltip_shown = QToolTip::text().contains("Bookmark: A second bookmark");
 				QToolTip::hideText();
+				const QPoint context_marker(SharedData::settings().label_width + 2, context.height() - 2);
+				QHelpEvent context_tooltip(QEvent::ToolTip, context_marker, context.mapToGlobal(context_marker));
+				QApplication::sendEvent(&context, &context_tooltip);
+				const bool context_tooltip_shown = QToolTip::text().contains("Bookmark: A second bookmark");
+				QToolTip::hideText();
 				table->item(1, 2)->setCheckState(Qt::Unchecked);
-				const bool hidden_again = !has_purple_line();
+				const bool hidden_again = !has_purple_line() && !context_has_bookmark();
 				table->item(1, 2)->setCheckState(Qt::Checked);
 				table->item(1, 0)->setCheckState(Qt::Checked);
 				bool rename_selected = false;
@@ -1436,7 +1660,7 @@ private slots:
 				table->item(2, 0)->setCheckState(Qt::Checked);
 				const bool enabled = delete_button->isEnabled();
 				delete_button->click();
-				deleted = initial_state && initially_hidden && shown && tooltip_shown && hidden_again && renamed && enabled && table->rowCount() == 1 && table->item(0, 0)->text() == "Renamed bookmark" && manager->result() == QDialog::Accepted && !manager->isVisible();
+				deleted = initial_state && initially_hidden && shown && tooltip_shown && context_tooltip_shown && hidden_again && renamed && enabled && table->rowCount() == 1 && table->item(0, 0)->text() == "Renamed bookmark" && manager->result() == QDialog::Accepted && !manager->isVisible();
 			});
 			menu->actions()[1]->trigger();
 		});
@@ -1618,7 +1842,7 @@ private slots:
 			const QString coding = click_text(30); //Codon is split across the two exons.
 			QVERIFY(coding.contains("Gene:</b> GENE"));
 			QVERIFY(coding.contains("Transcript:</b> ENSTpopup"));
-			QVERIFY(coding.contains("<b>Tags:</b> GENCODE primary<br><br><b>cDNA position:</b>"));
+			QVERIFY(coding.contains("<b>Tags:</b> GENCODE primary<br><br><b>Genomic position:</b> chr22:30<br><b>cDNA position:</b>"));
 			QVERIFY(coding.contains(plus ? "cDNA position:</b> c.6" : "cDNA position:</b> c.7"));
 			QVERIFY(coding.contains(plus ? "AA position:</b> 2" : "AA position:</b> 3"));
 			QVERIFY(coding.contains(plus ? "AA (one-letter):</b> K" : "AA (one-letter):</b> F"));
@@ -1627,6 +1851,7 @@ private slots:
 			QVERIFY(utr.contains(plus ? "cDNA position:</b> c.-1" : "cDNA position:</b> c.*1"));
 			QVERIFY(!utr.contains("AA position:"));
 			const QString intron = click_text(20);
+			QVERIFY(intron.contains("Genomic position:</b> chr22:20"));
 			QVERIFY(!intron.contains("cDNA position:"));
 			QVERIFY(!intron.contains("AA position:"));
 			QTest::mousePress(&panel, Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 59, y));
@@ -1894,6 +2119,79 @@ private slots:
 		QVERIFY(viewer->findChild<TrackGroupManager*>()->isVisibleTo(viewer));
 	}
 
+	void mouseCoordinatesAcrossTracksAndEmptyGroups()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		GenomeVisualizationWidget viewer(nullptr);
+		viewer.resize(1000, 700);
+		viewer.show();
+		viewer.loadFile(data_.filePath("first.bed"));
+		auto* manager = viewer.findChild<TrackGroupManager*>();
+		auto* label = viewer.findChild<QLabel*>("label_coordinate");
+		QVERIFY(manager && label);
+		manager->addEmptyTrackGroup(); // Added after the viewer installed its event filter.
+		QCoreApplication::processEvents();
+		auto* bed_track = viewer.findChild<BedTrack*>();
+		auto* scale_panel = viewer.findChild<ChromosomeContextPanel*>();
+		QVERIFY(bed_track && scale_panel);
+		QCOMPARE(scale_panel->width(), bed_track->width());
+		QCOMPARE(scale_panel->mapTo(&viewer, QPoint()).x(), bed_track->mapTo(&viewer, QPoint()).x());
+		QCOMPARE(viewer.findChild<ChromosomePanel*>()->width(), bed_track->width());
+
+		auto check_coordinate = [&](QWidget* widget)
+		{
+			QVERIFY(widget);
+			QVERIFY(widget->hasMouseTracking());
+			const int x0 = SharedData::settings().label_width + 2;
+			const int x = x0 + (widget->width() - x0 - 2) / 2;
+			const QPoint pos(x, widget->height() / 2);
+			QMouseEvent move(QEvent::MouseMove, pos, widget->mapToGlobal(pos), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+			QApplication::sendEvent(widget, &move);
+			const int coordinate = SharedData::region().start() + int(double(x - x0) * SharedData::region().length() / (widget->width() - x0 - 2));
+			QCOMPARE(label->text(), QString("chr22:%1").arg(coordinate));
+
+			const QPoint header(2, pos.y());
+			QMouseEvent header_move(QEvent::MouseMove, header, widget->mapToGlobal(header), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+			QApplication::sendEvent(widget, &header_move);
+			QVERIFY(label->text().isEmpty());
+		};
+		check_coordinate(viewer.findChild<BedTrack*>());
+		check_coordinate(viewer.findChild<GenePanel*>());
+		check_coordinate(viewer.findChild<ChromosomeContextPanel*>());
+		bool checked_empty = false;
+		for (TrackGroup* group : manager->findChildren<TrackGroup*>())
+		{
+			if (group->trackCount() != 0) continue;
+			check_coordinate(group->viewport());
+			checked_empty = true;
+		}
+		QVERIFY(checked_empty);
+		auto* chromosome = viewer.findChild<ChromosomePanel*>();
+		QVERIFY(chromosome && chromosome->hasMouseTracking());
+		const int x0 = SharedData::settings().label_width + 2;
+		QCOMPARE(chromosome->genomicCoordinateAt(x0), 1);
+		QCOMPARE(chromosome->genomicCoordinateAt(x0 - 1), 0);
+		QCOMPARE(chromosome->genomicCoordinateAt(chromosome->width() - 2), 0);
+		const QPoint chromosome_pos(x0 + (chromosome->width() - x0 - 2) / 2, chromosome->height() / 2);
+		QMouseEvent chromosome_move(QEvent::MouseMove, chromosome_pos, chromosome->mapToGlobal(chromosome_pos), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+		QApplication::sendEvent(chromosome, &chromosome_move);
+		const QString chromosome_coordinate = label->text();
+		QVERIFY(chromosome_coordinate.startsWith("chr22:"));
+		QVERIFY(chromosome_coordinate.mid(6).toInt() > SharedData::region().end());
+		SharedData::setRegion(Chromosome("chr22"), 20, 60);
+		QApplication::sendEvent(chromosome, &chromosome_move);
+		QCOMPARE(label->text(), chromosome_coordinate); //Overview coordinates do not depend on zoom.
+		QEvent leave(QEvent::Leave);
+		QApplication::sendEvent(chromosome, &leave);
+		QVERIFY(label->text().isEmpty());
+		auto* scale = viewer.findChild<ChromosomeContextPanel*>();
+		check_coordinate(scale); //Scale coordinates follow the zoomed region.
+		QApplication::sendEvent(scale, &leave);
+		QVERIFY(label->text().isEmpty());
+		QApplication::sendEvent(manager, &leave);
+		QVERIFY(label->text().isEmpty());
+	}
+
 	void trackSelectionAndCollapse()
 	{
 		GenomeVisualizationWidget viewer(nullptr);
@@ -1963,6 +2261,637 @@ private slots:
 		viewer.clearSession();
 		QVERIFY(!dock->findChild<ParameterEditor*>());
 		QCOMPARE(dock->windowTitle(), QString("Track settings"));
+	}
+
+	void svTrackBreakpointsFilteringAndSession()
+	{
+		const QByteArray header = "##fileformat=BEDPE\n#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\tID\tQUAL\tTYPE\tFILTER\tFORMAT\tS1\n";
+		writeFile("variants.BEDPE", header
+			+ "chr22\t80\t80\tchr22\t80\t80\tinsert\t.\tINS\tPASS\tGT\t0/1\n"
+			+ "chr22\t20\t20\tchr22\t60\t60\tdeletion\t50\tDEL\tPASS\tGT\t1/1\n"
+			+ "chr22\t40\t40\tchr23\t50\t50\ttranslocation\t80\tBND\tq10\tGT\t0/1\n"
+			+ "chr22\t95\t95\tchr22\t150\t150\tduplication\t20\tDUP\t.\tGT\t0/1\n");
+		SharedData::setRegion(Chromosome("chr22"), 1, 100);
+		auto tracks = FileLoader::loadTracks(data_.filePath("variants.BEDPE"));
+		QCOMPARE(tracks.size(), 1);
+		std::unique_ptr<TrackWidget> owner(tracks.first());
+		auto* track = qobject_cast<SvTrack*>(owner.get());
+		QVERIFY(track);
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, track->parameters().setDouble("min QUAL", -1));
+		auto render = [](SvTrack* target)
+		{
+			target->resize(800, target->sizeHint().height());
+			QImage image(target->size(), QImage::Format_ARGB32);
+			target->render(&image);
+			return image;
+		};
+		auto x_for = [](int position)
+		{
+			return SharedData::settings().label_width + 2 + int((position - SharedData::region().start()) * double(800 - SharedData::settings().label_width - 4) / SharedData::region().length());
+		};
+		auto has_tick = [&](const QImage& image, int position)
+		{
+			for (int dx = -1; dx <= 1; ++dx)
+				if (image.pixelColor(x_for(position) + dx, 5) == QColor(Qt::gray)) return true;
+			return false;
+		};
+		auto label_point = [&](SvTrack* target, int position, int direction = 1, int level = 0)
+		{
+			const int label_height = int(std::ceil(QFontMetricsF(target->font()).height()));
+			const int arrow_y = 11 + level * (label_height + 10);
+			return QPoint(x_for(position) + direction * 12, arrow_y + 3 + label_height / 2);
+		};
+		auto popup_at = [](SvTrack* target, QPoint point)
+		{
+			QTest::mouseClick(target, Qt::LeftButton, Qt::NoModifier, point);
+			auto* popup = target->findChild<QDialog*>();
+			if (!popup) return QString();
+			const QString text = popup->findChild<QLabel*>()->text();
+			delete popup;
+			return text;
+		};
+		QImage image = render(track);
+		for (int position : {20, 40, 60, 80, 95}) QVERIFY(has_tick(image, position));
+		track->parameters().setBool("PASS only", true);
+		image = render(track);
+		const int arrow_y = 11;
+		QVERIFY(image.height() >= 70);
+		QCOMPARE(image.pixelColor(790, 69), QColor(Qt::white));
+		QCOMPARE(image.pixelColor(x_for(20) + 20, arrow_y), QColor(Qt::gray));
+		QCOMPARE(image.pixelColor(x_for(60) - 20, arrow_y), QColor(Qt::gray));
+		QCOMPARE(image.pixelColor(x_for(30), arrow_y), QColor(Qt::gray)); //Visible mates are connected.
+		QCOMPARE(image.pixelColor(x_for(60) - 3, arrow_y - 2), QColor(Qt::white)); //No arrowhead at the visible mate.
+		QCOMPARE(image.pixelColor(x_for(80) + 20, arrow_y), QColor(Qt::white)); //Coincident insertion endpoints need no arrow.
+		QVERIFY(popup_at(track, label_point(track, 20)).contains("ID: deletion"));
+		QVERIFY(popup_at(track, label_point(track, 60, -1)).contains("ID: deletion"));
+		QVERIFY(popup_at(track, QPoint(x_for(20), image.height() - 4)).isEmpty()); //Clicks are on labels, not stems.
+		QVERIFY(popup_at(track, QPoint(x_for(5), image.height() - 4)).isEmpty());
+		const QPoint label = label_point(track, 20);
+		QTest::mouseClick(track, Qt::RightButton, Qt::NoModifier, label);
+		QVERIFY(!track->findChild<QDialog*>());
+		QTest::mousePress(track, Qt::LeftButton, Qt::NoModifier, label);
+		QTest::mouseRelease(track, Qt::LeftButton, Qt::NoModifier, label + QPoint(12, 0));
+		QVERIFY(!track->findChild<QDialog*>());
+		//The reverse mate is visible even when no first breakpoint is on this chromosome.
+		track->parameters().setBool("PASS only", false);
+		SharedData::setRegion(Chromosome("chr23"), 1, 100);
+		image = render(track);
+		QVERIFY(has_tick(image, 50));
+		const int bnd_y = 11;
+		QCOMPARE(image.pixelColor(x_for(50) + 20, bnd_y), QColor(Qt::gray)); //Other chromosomes also point right.
+		QCOMPARE(image.pixelColor(x_for(50), bnd_y - 1), QColor(Qt::gray)); //Tick extends above the arrow.
+		QCOMPARE(image.pixelColor(x_for(50), bnd_y - 9), QColor(Qt::white)); //Default tick height is eight pixels.
+		const QPoint bnd_label = label_point(track, 50);
+		QHelpEvent help(QEvent::ToolTip, bnd_label, track->mapToGlobal(bnd_label));
+		QApplication::sendEvent(track, &help);
+		QVERIFY(QToolTip::text().contains("Breakpoint 1: chr22:40-40"));
+		QVERIFY(QToolTip::text().contains("Breakpoint 2: chr23:50-50"));
+		QVERIFY(QToolTip::text().contains("QUAL: 80"));
+		QVERIFY(QToolTip::text().contains("FILTER: q10"));
+		QVERIFY(QToolTip::text().contains("S1 GT: 0/1"));
+		QToolTip::hideText();
+		QVERIFY(popup_at(track, bnd_label).contains("ID: translocation"));
+		const int bnd_arrow_length = int(std::max(32.0, QFontMetricsF(track->font()).horizontalAdvance("BND") + 8));
+		QVERIFY(popup_at(track, QPoint(x_for(50) + bnd_arrow_length + 10, bnd_y)).contains("ID: translocation")); //Chromosome label is clickable too.
+		track->parameters().setBool("PASS only", true);
+		QVERIFY(!has_tick(render(track), 50));
+		SharedData::setRegion(Chromosome("chr22"), 1, 100);
+		image = render(track);
+		QVERIFY(has_tick(image, 80));
+		QVERIFY(!has_tick(image, 95));
+		track->parameters().setDouble("min QUAL", 30);
+		image = render(track);
+		QVERIFY(has_tick(image, 20));
+		QVERIFY(!has_tick(image, 80));
+		SharedData::setRegion(Chromosome("chr22"), 45, 100);
+		image = render(track);
+		QCOMPARE(image.pixelColor(x_for(60) - 20, arrow_y), QColor(Qt::gray));
+		SharedData::setRegion(Chromosome("chr22"), 1, 41);
+		image = render(track);
+		QCOMPARE(image.pixelColor(x_for(20) + 20, arrow_y), QColor(Qt::gray));
+		QString xml;
+		QXmlStreamWriter writer(&xml);
+		track->writeToXml(writer);
+		QDomDocument document;
+		QVERIFY(document.setContent(xml));
+		QStringList errors;
+		std::unique_ptr<TrackWidget> restored(TrackWidget::fromXml(document.documentElement(), nullptr, errors));
+		QVERIFY(qobject_cast<SvTrack*>(restored.get()));
+		QVERIFY(errors.isEmpty());
+		QCOMPARE(restored->parameters().getDouble("min QUAL"), 30.0);
+		QVERIFY(restored->parameters().getBool("PASS only"));
+		track->reloadTrack();
+		QCOMPARE(track->parameters().getDouble("min QUAL"), 30.0);
+		QVERIFY(track->parameters().getBool("PASS only"));
+		QFile plain(data_.filePath("variants.BEDPE"));
+		QVERIFY(plain.open(QIODevice::ReadOnly));
+		const QByteArray contents = plain.readAll();
+		const QString compressed_path = data_.filePath("variants.bedpe.gz");
+		BGZF* compressed = bgzf_open(compressed_path.toUtf8().constData(), "w");
+		QVERIFY(compressed);
+		QCOMPARE(bgzf_write(compressed, contents.constData(), contents.size()), contents.size());
+		QCOMPARE(bgzf_close(compressed), 0);
+		auto compressed_tracks = FileLoader::loadTracks(compressed_path);
+		QCOMPARE(compressed_tracks.size(), 1);
+		std::unique_ptr<TrackWidget> compressed_owner(compressed_tracks.first());
+		QVERIFY(qobject_cast<SvTrack*>(compressed_owner.get()));
+		writeFile("minimal.bedpe", "##fileformat=BEDPE\n#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\tTYPE\n"
+			"chr22\t10\t30\tchr22\t90\t90\tINV\n"
+			"chr22\t40\t40\t.\t.\t.\tBND\n");
+		SvTrack minimal(nullptr, data_.filePath("minimal.bedpe"), "Minimal");
+		SharedData::setRegion(Chromosome("chr22"), 25, 80);
+		image = render(&minimal);
+		QVERIFY(has_tick(image, 25));
+		const QPoint minimal_label = label_point(&minimal, 25);
+		QHelpEvent minimal_help(QEvent::ToolTip, minimal_label, minimal.mapToGlobal(minimal_label));
+		QApplication::sendEvent(&minimal, &minimal_help);
+		QVERIFY(QToolTip::text().contains("QUAL: n/a"));
+		QToolTip::hideText();
+		minimal.parameters().setBool("PASS only", true);
+		QVERIFY(!has_tick(render(&minimal), 25));
+		//Three variants at one position share a baseline, with progressively longer ticks.
+		writeFile("stacked.bedpe", header
+			+ "chr22\t20\t20\tchr22\t80\t80\tlow\t50\tDEL\tPASS\tGT\t0/1\n"
+			+ "chr22\t20\t20\tchr22\t90\t90\tmiddle\t50\tDUP\tPASS\tGT\t0/1\n"
+			+ "chr22\t20\t20\tchr23\t50\t50\thigh\t50\tBND\tPASS\tGT\t0/1\n");
+		SharedData::setRegion(Chromosome("chr22"), 1, 41);
+		SvTrack stacked(nullptr, data_.filePath("stacked.bedpe"), "Stacked");
+		image = render(&stacked);
+		const int level_height = int(std::ceil(QFontMetricsF(stacked.font()).height())) + 10;
+		for (int level = 0; level < 3; ++level)
+		{
+			const int y = 11 + level * level_height;
+			QCOMPARE(image.pixelColor(x_for(20) + 20, y), QColor(Qt::gray));
+			const QString text = popup_at(&stacked, label_point(&stacked, 20, 1, level));
+			QVERIFY(text.contains(QStringList{"ID: low", "ID: middle", "ID: high"}[level]));
+		}
+		//Longer ticks extend down from the same top anchor.
+		QCOMPARE(image.pixelColor(x_for(20), 3), QColor(Qt::gray));
+		//Close endpoints of one variant keep one label, rather than stacking duplicates.
+		writeFile("close.bedpe", header + "chr22\t20\t20\tchr22\t22\t22\tclose\t50\tDEL\tPASS\tGT\t0/1\n");
+		SharedData::setRegion(Chromosome("chr22"), 1, 100);
+		SvTrack close(nullptr, data_.filePath("close.bedpe"), "Close");
+		image = render(&close);
+		QVERIFY(has_tick(image, 20));
+		QVERIFY(has_tick(image, 22));
+		QCOMPARE(close.sizeHint().height(), std::max(70, int(std::ceil(QFontMetricsF(close.font()).height())) + 18));
+		QVERIFY(popup_at(&close, label_point(&close, 22, -1)).contains("ID: close"));
+		const int label_width = int(QFontMetricsF(close.font()).horizontalAdvance("DEL"));
+		QPoint hidden_label = label_point(&close, 20);
+		hidden_label.setX(x_for(20) + label_width + 2);
+		QVERIFY(popup_at(&close, hidden_label).isEmpty());
+	}
+	void vcfTrackExpandsRowsAndLimitsVisibility()
+	{
+		QByteArray contents = "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tS1\n";
+		for (int i = 0; i < 12; ++i)
+		{
+			contents += "chrLong\t" + QByteArray::number(5000 + i) + "\t.\tA\tC\t50\tPASS\t.\tGT\t1/1\n";
+		}
+		writeFile("dense.vcf", contents);
+		const QString compressed_path = data_.filePath("dense.vcf.gz");
+		BGZF* compressed = bgzf_open(compressed_path.toUtf8().constData(), "w");
+		QVERIFY(compressed);
+		QCOMPARE(bgzf_write(compressed, contents.constData(), contents.size()), contents.size());
+		QCOMPARE(bgzf_close(compressed), 0);
+		QCOMPARE(tbx_index_build(compressed_path.toUtf8().constData(), 0, &tbx_conf_vcf), 0);
+		for (const QString& path : {data_.filePath("dense.vcf"), compressed_path})
+		{
+			SharedData::setRegion(Chromosome("chrLong"), 4980, 5020);
+			VcfTrack source(nullptr, path, "Dense variants");
+			QCOMPARE(source.parameters().getInt("max visibility"), 1000000);
+			QVERIFY_THROWS_EXCEPTION(ArgumentException, source.parameters().setInt("max visibility", 0));
+			QString xml;
+			QXmlStreamWriter writer(&xml);
+			source.writeToXml(writer);
+			QDomDocument document;
+			QVERIFY(document.setContent(xml));
+			document.documentElement().setAttribute("height", 36); //An old session with room for only two rows.
+			QStringList errors;
+			TrackGroup group;
+			group.resize(800, 120);
+			auto* track = qobject_cast<VcfTrack*>(TrackWidget::fromXml(document.documentElement(), nullptr, errors));
+			QVERIFY(track && errors.isEmpty());
+			group.addTrackWidgets({track});
+			group.show();
+			QTRY_COMPARE(track->sizeHint().height(), 70);
+			SharedData::setRegion(Chromosome("chrLong"), 1, 10000);
+			QTRY_COMPARE(track->sizeHint().height(), 12 * 18);
+			QTRY_VERIFY(track->height() >= 12 * 18); //Extra rows expand the scroll area's contents.
+			QImage image(track->size(), QImage::Format_ARGB32);
+			track->render(&image);
+			const int x = SharedData::settings().label_width + 2 + int((5011 - 1) * double(track->width() - SharedData::settings().label_width - 4) / 10000);
+			QCOMPARE(image.pixelColor(x, 11 * 18 + 5), QColor(Qt::blue)); //The twelfth variant is drawn.
+			track->parameters().setInt("max visibility", 9999);
+			QTRY_COMPARE(track->sizeHint().height(), 70);
+			QTest::mouseClick(track, Qt::LeftButton, Qt::NoModifier, QPoint(x, 5));
+			QVERIFY(!track->findChild<QDialog*>()); //No hidden variants remain clickable.
+			track->parameters().setInt("max visibility", 10000);
+			QTRY_COMPARE(track->sizeHint().height(), 12 * 18); //Inclusive limit, with indexed data reloaded immediately.
+			QTRY_VERIFY(track->height() >= 12 * 18);
+			SharedData::setRegion(Chromosome("chrLong"), 4980, 5020);
+			QTRY_COMPARE(track->sizeHint().height(), 70);
+			QImage minimum_image(track->size(), QImage::Format_ARGB32);
+			track->render(&minimum_image);
+			QCOMPARE(minimum_image.pixelColor(track->width() - 10, 69), QColor(Qt::white));
+			QString limited_xml;
+			QXmlStreamWriter limited_writer(&limited_xml);
+			track->writeToXml(limited_writer);
+			QVERIFY(document.setContent(limited_xml));
+			std::unique_ptr<TrackWidget> restored(TrackWidget::fromXml(document.documentElement(), nullptr, errors));
+			QVERIFY(restored && errors.isEmpty());
+			QCOMPARE(restored->parameters().getInt("max visibility"), 10000);
+		}
+	}
+
+	void vcfTrackRenderingFilteringAndTabix()
+	{
+		int errors_shown = 0;
+		QTimer dismiss_errors;
+		connect(&dismiss_errors, &QTimer::timeout, this, [&]()
+		{
+			if (auto* dialog = qobject_cast<QMessageBox*>(QApplication::activeModalWidget())) { ++errors_shown; dialog->accept(); }
+		});
+		dismiss_errors.start(10);
+		const QByteArray multi_header = "##fileformat=VCFv4.2\n##FORMAT=<ID=GT,Number=1,Type=String,Description=\"Genotype\">\n##FORMAT=<ID=DP,Number=1,Type=Integer,Description=\"Depth\">\n##INFO=<ID=END,Number=1,Type=Integer,Description=\"End\">\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tS1\tS2\n";
+		const QByteArray multi_chr22 =
+			"chr22\t10\thet\tA\tG\t20\tPASS\t.\tDP:GT:AF:AO\t10:0/1:0.3:8\t20:1/1:0.9:10\n"
+			"chr22\t11\tadjacent\tA\tG\t100\tPASS\t.\tGT\t1/1\t0/1\n"
+			"chr22\t20\thom\tA\tT\t40\tq10\t.\tGT:AO:DP\t1/1:8:10\t0/1:5:10\n"
+			"chr22\t30\tref\tA\tC\t60\t.\t.\tGT:AO:DP\t0/0:0:0\t1/1:10:10\n"
+			"chr22\t40\tmulti\tA\tT,G\t80\tPASS\t.\tGT:AF:AO:DP\t1/2:0.1,.:20,30:100\t2/2:.:0,10:10\n"
+			"chr22\t50\tmissing\tA\tT\t.\tPASS\t.\tGT\t./.\t0/1\n"
+			"chr22\t60\tpartial\tA\tG\t0\tPASS\t.\tGT\t0/.\t./.\n"
+			"chr22\t70\thaploid\tA\tC\t99\tPASS\t.\tGT\t1\t.\n"
+			"chr22\t80\tphased\tA\tT\t30\tPASS\t.\tGT\t1|0\t0|1\n"
+			"chr22\t90\tdel\tAAAAA\tA\t50\tPASS\t.\tGT\t0/1\t1/1\n";
+		const QByteArray multi_structural = "chrLong\t5000\tsv\tN\t<DEL>\t100\tPASS\tEND=5050\tGT\t0/1\t1/1\n"
+			"chrLong\t5120\tdelins-longer\tACG\tATTG\t50\tPASS\t.\tGT\t0/1\t1/1\n"
+			"chrLong\t5140\tdelins-shorter\tACGT\tATT\t50\tPASS\t.\tGT\t0/1\t1/1\n";
+		const QByteArray multi_content = multi_header + multi_chr22 + multi_structural;
+		writeFile("multi.vcf", multi_content);
+		QVERIFY_THROWS_EXCEPTION(NotImplementedException, VcfTrack(nullptr, data_.filePath("multi.vcf"), "Multi"));
+		auto singleSample = [](const QByteArray& content, int sample)
+		{
+			QByteArray result;
+			for (const QByteArray& line : content.split('\n'))
+			{
+				if (line.isEmpty()) continue;
+				if (line.startsWith("##")) { result += line + "\n"; continue; }
+				const auto columns = line.split('\t');
+				result += columns.mid(0, 9).join('\t') + "\t" + columns[9 + sample] + "\n";
+			}
+			return result;
+		};
+		const QByteArray header = singleSample(multi_header, 0);
+		const QByteArray chr22 = singleSample(multi_chr22, 0);
+		const QByteArray structural = singleSample(multi_structural, 0);
+		const QString plain_path = data_.filePath("variants.VCF");
+		writeFile("variants.VCF", header + chr22 + structural);
+		SharedData::setRegion(Chromosome("chr22"), 1, 100);
+		auto plain_tracks = FileLoader::loadTracks(plain_path);
+		QCOMPARE(plain_tracks.size(), 1);
+		std::unique_ptr<TrackWidget> plain_owner(plain_tracks.first());
+		auto* plain = qobject_cast<VcfTrack*>(plain_owner.get());
+		QVERIFY(plain);
+		QCOMPARE(plain->parameters().getString("sample"), QByteArray("S1"));
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, plain->parameters().setDouble("min QUAL", -1));
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, plain->parameters().setString("sample", "unknown"));
+		auto render = [](VcfTrack* track)
+		{
+			track->resize(600, track->sizeHint().height());
+			QImage image(track->size(), QImage::Format_ARGB32);
+			track->render(&image);
+			return image;
+		};
+		auto x_for = [](int position)
+		{
+			return SharedData::settings().label_width + 2 + int((position - SharedData::region().start() + 0.5) * (600 - SharedData::settings().label_width - 4) / SharedData::region().length());
+		};
+		auto popup_text = [&](VcfTrack* track, int position)
+		{
+			QTest::mouseClick(track, Qt::LeftButton, Qt::NoModifier, QPoint(x_for(position), 5));
+			auto* popup = track->findChild<QDialog*>();
+			if (!popup) return QString();
+			const QString text = popup->findChild<QLabel*>()->text();
+			delete popup;
+			return text;
+		};
+		QImage image = render(plain);
+		QCOMPARE(image.pixelColor(x_for(10), 4), QColor(224, 224, 224));
+		QCOMPARE(image.pixelColor(x_for(10), 2), QColor(224, 224, 224)); //No heterozygous SNP outline.
+		QCOMPARE(image.pixelColor(x_for(10), 11), QColor(209, 113, 5));
+		QCOMPARE(image.pixelColor(x_for(20), 4), QColor(Qt::red));
+		QCOMPARE(image.pixelColor(x_for(30), 11), QColor(Qt::white));
+		QCOMPARE(image.pixelColor(x_for(40), 4), QColor(224, 224, 224));
+		QCOMPARE(image.pixelColor(x_for(40), 11), QColor(209, 113, 5));
+		QCOMPARE(image.pixelColor(x_for(70), 4), QColor(Qt::blue));
+		QCOMPARE(image.pixelColor(x_for(80), 4), QColor(224, 224, 224));
+		QCOMPARE(image.pixelColor(x_for(80), 11), QColor(Qt::red)); //1|0 has the same gray upper half as 0/1.
+		for (int x = x_for(20) - 1; x <= x_for(20) + 1; ++x) QCOMPARE(image.pixelColor(x, 2), QColor(Qt::red)); //Homozygous alternate SNP has no outline.
+		QCOMPARE(image.pixelColor(x_for(90), 8), QColor(Qt::white)); //Anchor base is not drawn.
+		QCOMPARE(image.pixelColor(x_for(92), 4), QColor(224, 224, 224));
+		QCOMPARE(image.pixelColor(x_for(92), 8), QColor(Qt::black)); //One centered line for 0/1.
+		QCOMPARE(image.pixelColor(x_for(92), 11), QColor(224, 224, 224));
+		QVERIFY(popup_text(plain, 90).isEmpty());
+		QVERIFY(popup_text(plain, 92).contains("chr22:90 AAAAA&gt;A"));
+		SharedData::setRegion(Chromosome("chr22"), 90, 90);
+		image = render(plain);
+		QCOMPARE(image.pixelColor(x_for(90), 8), QColor(Qt::white)); //View contains only the anchor.
+		SharedData::setRegion(Chromosome("chr22"), 92, 93);
+		image = render(plain);
+		QCOMPARE(image.pixelColor(x_for(92), 8), QColor(Qt::black)); //Deletion clipped to view.
+		SharedData::setRegion(Chromosome("chr22"), 1, 100);
+		QVERIFY(popup_text(plain, 10).contains("GT: 0/1")); //GT is not the first FORMAT field.
+		QCOMPARE(popup_text(plain, 10), QString("<qt>chr22:10 A&gt;G<br>QUAL: 20<br>FILTER: PASS<br>GT: 0/1<br>AF: 0.3</qt>")); //FORMAT AF takes priority over AO/DP.
+		QVERIFY(popup_text(plain, 20).contains("AF: 0.8")); //AO/DP fallback without AF.
+		QVERIFY(popup_text(plain, 30).contains("AF: .")); //Zero depth is unavailable.
+		QVERIFY(popup_text(plain, 40).contains("AF: 0.1,0.3")); //One frequency per ALT; fallback for a missing value.
+		QVERIFY(popup_text(plain, 50).contains("AF: .")); //No frequency fields.
+		QVERIFY(popup_text(plain, 50).contains("GT: ./."));
+		QVERIFY(popup_text(plain, 60).contains("GT: 0/."));
+		writeFile("second-sample.vcf", singleSample(multi_content, 1));
+		VcfTrack second_sample(nullptr, data_.filePath("second-sample.vcf"), "Second sample");
+		image = render(&second_sample);
+		QCOMPARE(image.pixelColor(x_for(10), 4), QColor(209, 113, 5));
+		QCOMPARE(image.pixelColor(x_for(40), 4), QColor(209, 113, 5));
+		QCOMPARE(image.pixelColor(x_for(92), 5), QColor(Qt::black)); //Two lines for 1/1.
+		QCOMPARE(image.pixelColor(x_for(92), 10), QColor(Qt::black));
+		QCOMPARE(image.pixelColor(x_for(92), 8), QColor(224, 224, 224));
+		QVERIFY(popup_text(&second_sample, 10).contains("GT: 1/1<br>AF: 0.9"));
+		SharedData::setRegion(Chromosome("chrLong"), 5110, 5150);
+		image = render(plain);
+		QCOMPARE(image.pixelColor(x_for(5120), 4), QColor(Qt::white)); //Shared anchor is excluded.
+		for (int position : {5121, 5142})
+		{
+			for (int y : {4, 11}) //Both halves have equal-width stripes.
+			{
+				int gray = 0, purple = 0;
+				for (int x = x_for(position) - 3; x <= x_for(position) + 4; ++x)
+				{
+					const QColor color = image.pixelColor(x, y);
+					gray += color == QColor(224, 224, 224);
+					purple += color == QColor(140, 0, 200);
+				}
+				QCOMPARE(gray, 4);
+				QCOMPARE(purple, 4);
+			}
+		}
+		QCOMPARE(image.pixelColor(x_for(5121), 8), QColor(Qt::black));
+		QCOMPARE(image.pixelColor(x_for(5142), 8), QColor(Qt::black));
+		image = render(&second_sample);
+		QCOMPARE(image.pixelColor(x_for(5121), 5), QColor(Qt::black));
+		QCOMPARE(image.pixelColor(x_for(5121), 10), QColor(Qt::black));
+		SharedData::setRegion(Chromosome("chr22"), 1, 100);
+		plain->parameters().setString("sample", "S1");
+		plain->parameters().setDouble("min QUAL", 30);
+		render(plain);
+		QVERIFY(popup_text(plain, 10).isEmpty());
+		QVERIFY(popup_text(plain, 50).isEmpty());
+		QVERIFY(popup_text(plain, 80).contains("chr22:80 A&gt;T")); //Inclusive QUAL threshold.
+		plain->parameters().setBool("PASS only", true);
+		render(plain);
+		QVERIFY(popup_text(plain, 20).isEmpty());
+		QVERIFY(popup_text(plain, 30).isEmpty());
+		plain->parameters().setDouble("min QUAL", 0);
+		render(plain);
+		QVERIFY(popup_text(plain, 50).contains("chr22:50 A&gt;T"));
+		plain->parameters().setBool("PASS only", false);
+
+		for (int min_shift : {0, 14})
+		{
+			const QString path = data_.filePath(QString("variants-%1.VCF.GZ").arg(min_shift));
+			//Invalid QUAL is legal to index, but must not be parsed outside the viewed chromosome.
+			const QByteArray content = header + chr22 + "chr23\t10\tunused\tA\tG\tinvalid\tPASS\t.\tGT\t0/1\n" + structural;
+			BGZF* file = bgzf_open(path.toUtf8().constData(), "w");
+			QVERIFY(file);
+			const auto written = bgzf_write(file, content.constData(), content.size());
+			const int closed = bgzf_close(file);
+			QCOMPARE(written, content.size());
+			QCOMPARE(closed, 0);
+			QCOMPARE(tbx_index_build(path.toUtf8().constData(), min_shift, &tbx_conf_vcf), 0);
+			const QString multi_path = data_.filePath(QString("multi-%1.vcf.gz").arg(min_shift));
+			BGZF* multi_file = bgzf_open(multi_path.toUtf8().constData(), "w");
+			QVERIFY(multi_file);
+			QCOMPARE(bgzf_write(multi_file, multi_content.constData(), multi_content.size()), multi_content.size());
+			QCOMPARE(bgzf_close(multi_file), 0);
+			QCOMPARE(tbx_index_build(multi_path.toUtf8().constData(), min_shift, &tbx_conf_vcf), 0);
+			QVERIFY_THROWS_EXCEPTION(NotImplementedException, VcfTrack(nullptr, multi_path, "Multi"));
+			auto tracks = FileLoader::loadTracks(path);
+			QCOMPARE(tracks.size(), 1);
+			std::unique_ptr<TrackWidget> owner(tracks.first());
+			auto* track = qobject_cast<VcfTrack*>(owner.get());
+			QVERIFY(track);
+			//Use the same name when comparing the complete rendered widgets.
+			QString xml;
+			QXmlStreamWriter writer(&xml);
+			track->writeToXml(writer);
+			QDomDocument document;
+			QVERIFY(document.setContent(xml));
+			document.documentElement().setAttribute("display_name", plain->displayName());
+			QStringList errors;
+			std::unique_ptr<TrackWidget> restored(TrackWidget::fromXml(document.documentElement(), nullptr, errors));
+			QVERIFY(restored && errors.isEmpty());
+			auto* indexed = qobject_cast<VcfTrack*>(restored.get());
+			QVERIFY(indexed);
+			//The session restored a fixed height; compare automatic row sizing below.
+			indexed->setMinimumHeight(70);
+			indexed->setMaximumHeight(QWIDGETSIZE_MAX);
+			for (const BedLine& region : {BedLine(Chromosome("chr22"), 1, 100), BedLine(Chromosome("chr22"), 40, 80),
+				BedLine(Chromosome("chrLong"), 5010, 5050), BedLine(Chromosome("chrLong"), 5110, 5150), BedLine(Chromosome("chrX"), 1, 41), BedLine(Chromosome("chr22"), 1, 100)})
+			{
+				SharedData::setRegion(region.chr(), region.start(), region.end());
+				QCOMPARE(render(indexed), render(plain));
+			}
+			indexed->parameters().setDouble("min QUAL", 30);
+			indexed->parameters().setBool("PASS only", true);
+			indexed->parameters().setString("sample", "S1");
+			plain->parameters().setDouble("min QUAL", 30);
+			plain->parameters().setBool("PASS only", true);
+			plain->parameters().setString("sample", "S1");
+			QCOMPARE(render(indexed), render(plain));
+			QString filtered_xml;
+			QXmlStreamWriter filtered_writer(&filtered_xml);
+			indexed->writeToXml(filtered_writer);
+			QDomDocument filtered_document;
+			QVERIFY(filtered_document.setContent(filtered_xml));
+			std::unique_ptr<TrackWidget> filtered(TrackWidget::fromXml(filtered_document.documentElement(), nullptr, errors));
+			QVERIFY(filtered && errors.isEmpty());
+			QCOMPARE(filtered->parameters().getDouble("min QUAL"), 30.0);
+			QVERIFY(filtered->parameters().getBool("PASS only"));
+			QCOMPARE(filtered->parameters().getString("sample"), QByteArray("S1"));
+			const QString session_path = data_.filePath("vcf-session.xml");
+			QFile session(session_path);
+			QVERIFY(session.open(QIODevice::WriteOnly | QIODevice::Truncate));
+			QXmlStreamWriter session_writer(&session);
+			session_writer.writeStartElement("GSviewerSession");
+			session_writer.writeAttribute("version", "1");
+			session_writer.writeStartElement("General");
+			session_writer.writeAttribute("gene_panel_height", "80");
+			session_writer.writeStartElement("DisplayedRegion");
+			session_writer.writeAttribute("chr", "chr22");
+			session_writer.writeAttribute("start", "1");
+			session_writer.writeAttribute("end", "100");
+			session_writer.writeEndElement();
+			SharedData::writeSettingsToXml(session_writer);
+			session_writer.writeEndElement();
+			session_writer.writeStartElement("TrackGroup");
+			session_writer.writeAttribute("height", "100");
+			indexed->writeToXml(session_writer);
+			session_writer.writeEndElement();
+			session_writer.writeEndElement();
+			session.close();
+			QCOMPARE(XmlHelper::isValidXml(session_path, QFINDTESTDATA("../cppVISUAL/Resources/GSviewerSession.xsd")), QString());
+			QSignalSpy deleted(indexed, &TrackWidget::trackDeleted);
+			indexed->reloadTrack();
+			QCOMPARE(deleted.count(), 0);
+			QCOMPARE(render(indexed), render(plain));
+			SharedData::setRegion(Chromosome("chr23"), 1, 41); //Query errors recover on the next valid view.
+			QCOMPARE(indexed->sizeHint().height(), 70);
+			SharedData::setRegion(Chromosome("chr22"), 1, 100);
+			QCOMPARE(render(indexed), render(plain));
+			plain->parameters().setDouble("min QUAL", 0);
+			plain->parameters().setBool("PASS only", false);
+			plain->parameters().setString("sample", "S1");
+		}
+		//Reload a changed sample header while preserving quality/filter settings.
+		plain->parameters().setString("sample", "S1");
+		plain->parameters().setDouble("min QUAL", 25);
+		QByteArray renamed = header;
+		renamed.replace("\tS1\n", "\tS3\n");
+		writeFile("variants.VCF", renamed + chr22 + structural);
+		plain->reloadTrack();
+		QCOMPARE(plain->parameters().getString("sample"), QByteArray("S3"));
+		QCOMPARE(plain->parameters().getDouble("min QUAL"), 25.0);
+		writeFile("sites.vcf", "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\nchr22\t10\tsite\tA\tG\t.\t.\t.\n");
+		std::unique_ptr<VcfTrack> sites(VcfTrack::createTrack(nullptr, data_.filePath("sites.vcf"), "Sites"));
+		QVERIFY(sites);
+		render(sites.get());
+		QVERIFY(popup_text(sites.get(), 10).contains("no samples"));
+		sites->parameters().setDouble("min QUAL", 1);
+		render(sites.get());
+		QVERIFY(popup_text(sites.get(), 10).isEmpty());
+		QCOMPARE(errors_shown, 0);
+		writeFile("bad-gt.vcf", header + "chr22\t10\tbad\tA\tG\t20\tPASS\t.\tGT\t0/2\n");
+		std::unique_ptr<VcfTrack> invalid(VcfTrack::createTrack(nullptr, data_.filePath("bad-gt.vcf"), "Bad GT"));
+		QVERIFY(!invalid);
+		QCOMPARE(errors_shown, 1);
+	}
+
+	void bedTrackTabixIndexed()
+	{
+		const QByteArray visible = "chr22\t0\t1\tfirst_base\nchr22\t9\t20\tleft\nchr22\t19\t30\toverlap\t123\t-\nchr22\t40\t41\tedge\nchr22\t80\t100\tfar\n";
+		//This zero-length record is not accepted by BedFile. Loading chr22 must never parse it.
+		const QByteArray records = visible + "chr23\t50\t50\tunused_invalid\nchrLong\t4999\t5010\tdistant\n";
+		auto reference_data = QSharedPointer<BedFile>::create(BedFile::fromText(visible + "chrLong\t4999\t5010\tdistant\n"));
+		reference_data->sort();
+		int errors = 0;
+		QTimer dismiss_errors;
+		connect(&dismiss_errors, &QTimer::timeout, this, [&]()
+		{
+			if (auto* dialog = qobject_cast<QMessageBox*>(QApplication::activeModalWidget()))
+			{
+				++errors;
+				dialog->accept();
+			}
+		});
+		dismiss_errors.start(10);
+		for (int min_shift : {0, 14}) //TBI and CSI.
+		{
+			const QString path = data_.filePath(QString("indexed-%1.BED.GZ").arg(min_shift));
+			BGZF* stream = bgzf_open(path.toUtf8().constData(), "w");
+			QVERIFY(stream);
+			const auto written = bgzf_write(stream, records.constData(), records.size());
+			const int closed = bgzf_close(stream);
+			QCOMPARE(written, records.size());
+			QCOMPARE(closed, 0);
+			QCOMPARE(tbx_index_build(path.toUtf8().constData(), min_shift, &tbx_conf_bed), 0);
+			SharedData::setRegion(Chromosome("chr22"), 1, 41);
+			auto tracks = FileLoader::loadTracks(path, nullptr);
+			QCOMPARE(tracks.count(), 1);
+			std::unique_ptr<TrackWidget> owner(tracks.first());
+			auto* track = qobject_cast<BedTrack*>(owner.get());
+			QVERIFY(track);
+			QCOMPARE(errors, 0);
+			BedTrack reference(nullptr, "", track->displayName());
+			reference.setBedFile(reference_data);
+			auto compare_drawing = [&]()
+			{
+				QCOMPARE(track->sizeHint().height(), reference.sizeHint().height());
+				track->resize(600, reference.sizeHint().height());
+				reference.resize(track->size());
+				QImage actual(track->size(), QImage::Format_ARGB32);
+				QImage expected(reference.size(), QImage::Format_ARGB32);
+				track->render(&actual);
+				reference.render(&expected);
+				QCOMPARE(actual, expected);
+			};
+			for (const BedLine& region : {BedLine(Chromosome("chr22"), 1, 41), BedLine(Chromosome("chr22"), 42, 82),
+				BedLine(Chromosome("chr22"), 41, 81), BedLine(Chromosome("chrLong"), 4990, 5030),
+				BedLine(Chromosome("chrX"), 1, 41), BedLine(Chromosome("chr22"), 1, 41)})
+			{
+				SharedData::setRegion(region.chr(), region.start(), region.end());
+				compare_drawing();
+			}
+			track->show();
+			QFont font = track->font();
+			font.setPointSize(8);
+			const int row_height = 10 + QFontMetrics(font).height() + 2;
+			const int x = SharedData::settings().label_width + 2 + int(24.5 * (600 - SharedData::settings().label_width - 4) / 41);
+			QTest::mouseClick(track, Qt::LeftButton, Qt::NoModifier, QPoint(x, row_height + 5));
+			auto* popup = track->findChild<QDialog*>();
+			QVERIFY(popup);
+			const QString text = popup->findChild<QLabel*>()->text();
+			QVERIFY(text.contains("chr22:20-30"));
+			QVERIFY(text.contains("overlap"));
+			QVERIFY(text.contains("column 5: 123"));
+			QVERIFY(text.contains("column 6: -"));
+			delete popup;
+			track->parameters().setString("draw mode", "collapsed");
+			reference.parameters().setString("draw mode", "collapsed");
+			compare_drawing();
+			QSignalSpy deleted(track, &TrackWidget::trackDeleted);
+			track->reloadTrack();
+			QCOMPARE(deleted.count(), 0);
+			compare_drawing();
+
+			//Errors while panning clear old data and recover when returning to a valid region.
+			SharedData::setRegion(Chromosome("chr23"), 30, 70);
+			QCOMPARE(track->sizeHint().height(), 25);
+			SharedData::setRegion(Chromosome("chr22"), 1, 41);
+			compare_drawing();
+			QString xml;
+			QXmlStreamWriter writer(&xml);
+			track->writeToXml(writer);
+			QDomDocument document;
+			QVERIFY(document.setContent(xml));
+			QStringList session_errors;
+			std::unique_ptr<TrackWidget> restored(TrackWidget::fromXml(document.documentElement(), nullptr, session_errors));
+			QVERIFY(restored);
+			QVERIFY(session_errors.isEmpty());
+			QCOMPARE(restored->parameters().getString("draw mode"), QByteArray("collapsed"));
+			//Explicitly replacing the BED data disables subsequent tabix queries.
+			track->setBedFile(QSharedPointer<BedFile>::create(BedFile::fromText("chr22\t4\t6\tgenerated\n")));
+			SharedData::setRegion(Chromosome("chr23"), 30, 70);
+			auto generated = QSharedPointer<BedFile>::create();
+			generated->append(BedLine(Chromosome("chr23"), 40, 50));
+			track->setBedFile(generated);
+			reference.setBedFile(generated);
+			SharedData::setRegion(Chromosome("chr23"), 31, 71);
+			compare_drawing();
+		}
+		QCOMPARE(errors, 0);
+		//A compressed track without a tabix index reports an error instead of loading the whole file.
+		const QString no_index = data_.filePath("missing-index.bed.gz");
+		BGZF* stream = bgzf_open(no_index.toUtf8().constData(), "w");
+		QVERIFY(stream);
+		const auto written = bgzf_write(stream, visible.constData(), visible.size());
+		const int closed = bgzf_close(stream);
+		QCOMPARE(written, visible.size());
+		QCOMPARE(closed, 0);
+		std::unique_ptr<BedTrack> missing(BedTrack::createTrack(nullptr, no_index, "Missing index"));
+		QVERIFY(!missing);
+		QCOMPARE(errors, 1);
 	}
 
 	void bedTrackVisibleRowsAndHitTesting()
