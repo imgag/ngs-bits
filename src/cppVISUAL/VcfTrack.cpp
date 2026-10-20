@@ -561,10 +561,5 @@ bool VcfTrack::event(QEvent* event)
 
 VcfTrack* VcfTrack::createTrack(QWidget* parent, QString file_path, QString name)
 {
-	try { return new VcfTrack(parent, file_path, name); }
-	catch (const Exception& e)
-	{
-		QMessageBox::critical(QApplication::activeWindow(), "Error loading VCF", e.message());
-		return nullptr;
-	}
+    return new VcfTrack(parent, file_path, name);
 }

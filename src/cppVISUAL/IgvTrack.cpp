@@ -97,17 +97,9 @@ IgvTrack* IgvTrack::createTrack(QWidget* parent, QString file_path, QString name
 	if (display_name.isEmpty()) display_name = getTrackNameFromIgvFile(igv_file);
 	if (display_name.isEmpty()) display_name = getDisplayNameFromFilePath(file_path);
 
-	try
-	{
-		IgvTrack* track = new IgvTrack(parent, file_path, display_name, igv_file);
-		track->setIgvFile(igv_file);
-		return track;
-	}
-	catch (const ArgumentException& e)
-	{
-		QMessageBox::warning(QApplication::activeWindow(), "Error", e.message());
-		return nullptr;
-	}
+    IgvTrack* track = new IgvTrack(parent, file_path, display_name, igv_file);
+    track->setIgvFile(igv_file);
+    return track;
 }
 
 void IgvTrack::reloadTrack()

@@ -361,10 +361,5 @@ bool SvTrack::event(QEvent* event)
 
 SvTrack* SvTrack::createTrack(QWidget* parent, QString file_path, QString name)
 {
-	try { return new SvTrack(parent, file_path, name); }
-	catch (const Exception& e)
-	{
-		QMessageBox::critical(QApplication::activeWindow(), "Error loading BEDPE", e.message());
-		return nullptr;
-	}
+    return new SvTrack(parent, file_path, name);
 }

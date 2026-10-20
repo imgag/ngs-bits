@@ -222,13 +222,14 @@ void MainWindow::executeApiCommand(ApiCommand cmd) {
             return;
         }
     } catch (Exception e) {
-        THROW(Exception, "An invalid command was received: " + e.message())
-        // err("An invalid command was received", e.message());
-
         QString msg = QString("ERR: %1").arg(e.message());
         qDebug() << "An error occurred" << cmd.verb;
 
         api.dispatchFailure(cmd, msg);
+
+        err("An invalid command was received", e.message());
+        // THROW(Exception, "An invalid command was received: " + e.message());
+
         return;
     }
 
@@ -236,11 +237,11 @@ void MainWindow::executeApiCommand(ApiCommand cmd) {
     api.dispatchResponse(cmd);
 }
 
-// void MainWindow::err(QString header, QString text) {
-//     auto *box = new QMessageBox(QMessageBox::Warning, header, text, QMessageBox::Ok, this);
-//     box->setAttribute(Qt::WA_DeleteOnClose);
-//     box->open();   // window-modal, returns immediately
-// }
+void MainWindow::err(QString header, QString text) {
+    auto *box = new QMessageBox(QMessageBox::Warning, header, text, QMessageBox::Ok, this);
+    box->setAttribute(Qt::WA_DeleteOnClose);
+    box->open();   // window-modal, returns immediately
+}
 
 void MainWindow::handleGoto(QStringList args)
 {
@@ -286,7 +287,7 @@ void MainWindow::handleSleep(QStringList args) {
 }
 
 void MainWindow::handleViewAsPairs(QStringList args) {
-    SharedData::parameters().setBool("view as pairs", true);
+    // SharedData::parameters().setBool("view as pairs", true);
 }
 
 void MainWindow::handleColorBy(QStringList args) {

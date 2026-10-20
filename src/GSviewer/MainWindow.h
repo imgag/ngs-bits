@@ -35,7 +35,7 @@ private:
 
     CommandServer api;
 
-    // void err(QString header, QString text);
+    void err(QString header, QString text);
     void handleGoto(QStringList args);
     void handleLoad(QStringList args);
     void handleGenome(QStringList args);
