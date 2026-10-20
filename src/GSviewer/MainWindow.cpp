@@ -193,7 +193,7 @@ void MainWindow::executeApiCommand(ApiCommand cmd) {
             ui_.gvw->clearSession();
 
         else if (cmd.verb == "echo")
-            return api.dispatchResponse(cmd, cmd.arguments);
+            return api.dispatchResponse(cmd, CommandServer::split_quoted(cmd.arguments).join("; "));
 
         else if (cmd.verb == "goto")
             handleGoto(cmd.arguments);
@@ -206,7 +206,7 @@ void MainWindow::executeApiCommand(ApiCommand cmd) {
 
         else {
             QString msg = QString("UNKOWN COMMAND: %1").arg(cmd.verb);  // Absichtlicher Tippfehler. Das kommmt aus IGV so
-            qDebug() << "Executing" << cmd.verb;
+            qDebug() << "Unrecognised verb" << cmd.verb;
 
             api.dispatchFailure(cmd, msg);
             return;
@@ -215,7 +215,7 @@ void MainWindow::executeApiCommand(ApiCommand cmd) {
         err("An invalid command was received", e.message());
 
         QString msg = QString("ERR: %1").arg(e.message());
-        qDebug() << "Executing" << cmd.verb;
+        qDebug() << "An error occurred" << cmd.verb;
 
         api.dispatchFailure(cmd, msg);
         return;
@@ -244,40 +244,32 @@ void MainWindow::handleGoto(QString args)
         {
             SharedData::setRegion(region.chr(), region.start(), region.end());
             return;
-        }
-        else
-        {
+        } else {
             err("Invalid region", "The region specified is not valid and can therefore not be used as a destination. If you meant to jump to a particular coordinate, be sure to include the chromosome and start/end positions in the format (chrN:start-end), or just the chromonose name: (chrN).");
+            // throw std::exception("Invalid locus specified");
         }
     }
 }
 
 void MainWindow::handleLoad(QString args)
 {
-    if (args.trimmed().isEmpty())
-        ui_.gvw->openFileDialog();
+    QStringList argList = CommandServer::split_quoted(args);
 
-    else
-    {
-        const QRegularExpression re("[,;]");
-
-        for (QString &file : args.split(re))
-            ui_.gvw->loadFile(file);
+    for (auto arg : argList) {
+        if (arg.trimmed().isEmpty()) ui_.gvw->openFileDialog();
+        else ui_.gvw->loadFile(arg);
     }
 }
 
 void MainWindow::handleGenome(QString args) {
     QString file = args;
 
-    if (args.trimmed().isEmpty())
-    {
-        QString open_folder = Settings::path("load_store_file_folder", true);
-        file = QFileDialog::getOpenFileName(this, "Open file(s)", open_folder, "Genome files(*.fa, *.fa.gz);;All files(*.*)");
-    }
+    if (file.isEmpty()) return; // TODO: Raise exception
 
-    ui_.gvw->clearSession();
     RefGenomeService::instance().setReferenceGenome(file);
+    ui_.gvw->clearSession();
 }
+
 void MainWindow::showAboutDialog()
 {
 	AboutDialog dlg(this);

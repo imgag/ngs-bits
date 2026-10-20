@@ -23,7 +23,7 @@ protected:
 
 signals:
     void newConnection(QIODevice* socket);
-    void disconnect(QIODevice* socket);
+    void closedConnection(QIODevice* socket);
 };
 
 class TcpListener : public CommandListener {

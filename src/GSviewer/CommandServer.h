@@ -54,6 +54,8 @@ public:
     void dispatchResponse(ApiCommand cmd, QString data);
     void dispatchFailure(ApiCommand cmd, QString failure);
 
+    static QStringList split_quoted(QString);
+
 signals:
     void commandReceived(ApiCommand cmd);
     void responseReady(CommandResult res);

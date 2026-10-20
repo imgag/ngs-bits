@@ -14,7 +14,7 @@ std::unique_ptr<CommandListener> CommandListener::fromString(const QString &addr
 }
 
 CommandListener::CommandListener(const QString addr, QObject* parent) : QObject(parent), address(addr) {
-    connect(this, &CommandListener::disconnect, this, [](QIODevice* sock) {
+    connect(this, &CommandListener::closedConnection, this, [](QIODevice* sock) {
         sock->deleteLater();
     });
 }
@@ -39,6 +39,8 @@ void TcpListener::terminate() {
 }
 
 LocalListener::LocalListener(const QString &path, QObject* parent) : CommandListener(path, parent) {
+    sock.removeServer(path);
+
     connect(&sock, &QLocalServer::newConnection, this, [this] {
         while (auto *s = sock.nextPendingConnection()) {
             connect(s, &QLocalSocket::disconnected, this, [this, s] {
