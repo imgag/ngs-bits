@@ -49,10 +49,11 @@ MainWindow::MainWindow(QString bind, QWidget *parent)
 	connect(ui_.actionAddNRegions, &QAction::triggered, this, &MainWindow::addNRegions);
 
 	//Set environment variable containing SSL certificates - needed for HTTPS to work for BamReader/htslib
-	QString curl_ca_bundle = Settings::string("curl_ca_bundle", true);
+	QByteArray curl_ca_bundle = Settings::string("curl_ca_bundle", true).trimmed().toUtf8();
 	if (!curl_ca_bundle.isEmpty())
 	{
-		if (!qputenv("CURL_CA_BUNDLE", curl_ca_bundle.toUtf8()))
+		if(!QFile::exists(curl_ca_bundle)) THROW(FileAccessException, "CURL_CA_BUNDLE file does not exist: "+curl_ca_bundle);
+		if (!qputenv("CURL_CA_BUNDLE", curl_ca_bundle))
 		{
 			qDebug() << "Could not set CURL_CA_BUNDLE variable, access to BAM/CRAM files over HTTPS may not be possible";
 		}

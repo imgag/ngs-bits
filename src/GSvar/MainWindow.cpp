@@ -391,10 +391,11 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.vars, SIGNAL(alamutTriggered(QAction*)), this, SLOT(openAlamut(QAction*)));
 
 	//Set environment variable containing SSL certificates - needed for HTTPS to work for BamReader/htslib
-	QString curl_ca_bundle = Settings::string("curl_ca_bundle", true);
+	QByteArray curl_ca_bundle = Settings::string("curl_ca_bundle", true).trimmed().toUtf8();
 	if (!curl_ca_bundle.isEmpty())
 	{
-		if (!qputenv("CURL_CA_BUNDLE", curl_ca_bundle.toUtf8()))
+		if(!QFile::exists(curl_ca_bundle)) THROW(FileAccessException, "CURL_CA_BUNDLE file does not exist: "+curl_ca_bundle);
+		if (!qputenv("CURL_CA_BUNDLE", curl_ca_bundle))
 		{
 			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM/CRAM files over HTTPS may not be possible");
 		}
@@ -4266,7 +4267,7 @@ void MainWindow::on_actionOpenProcessedSampleTabByName_triggered()
 	if (ctrl_pressed) //batch mode
 	{
 		QStringList ps_list = QInputDialog::getMultiLineText(this, "Open processed samples", "Processed samples (one per line)").split("\n");
-		for (QString ps: ps_list)
+		for (QString ps: std::as_const(ps_list))
 		{
 			ps = ps.trimmed();
 			if (ps.isEmpty() || ps[0]=='#') continue;

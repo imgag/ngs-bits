@@ -3,12 +3,13 @@
 #include <QStyleFactory>
 #include <QCommandLineParser>
 #include "Exceptions.h"
+#include <QMessageBox>
 
 int main(int argc, char *argv[])
 {
+	Application a(argc, argv);
 	try
 	{
-		Application a(argc, argv);
 		a.setStyle(QStyleFactory::create("windowsvista"));
 
         QCommandLineParser args;
@@ -28,15 +29,15 @@ int main(int argc, char *argv[])
 	}
 	catch (Exception& e)
 	{
-		QTextStream(stderr) << "Uncaught ngs-bits exception: " << e.message() << Qt::endl;
+		QMessageBox::critical(nullptr, "GSviewer startup error", e.message());
 	}
 	catch (std::exception& e)
 	{
-		QTextStream(stderr) << "Uncaught ngs-bits exception: " << e.what() << Qt::endl;
+		QMessageBox::critical(nullptr, "GSviewer startup error", e.what());
 	}
 	catch(...)
 	{
-		QTextStream(stderr) << "Uncaught ngs-bits exception: unknown exception" << Qt::endl;
+		QMessageBox::critical(nullptr, "GSviewer startup error", "unknown exception type");
 	}
 
 	return -1;
