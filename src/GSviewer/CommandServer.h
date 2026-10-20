@@ -13,6 +13,7 @@
 #include <QElapsedTimer>
 #include <QPointer>
 #include <CommandListener.h>
+#include <QUrl>
 
 struct CommandResult {
     quint32 id;
@@ -44,6 +45,9 @@ private:
 
     ApiCommand parseCommand(QString cmd);
 
+    QHash<QString, QString> accessTokens;
+
+    void handleAccessToken(ApiCommand cmd);
 public:
     explicit CommandServer(QString socket_path = "", QObject *parent = nullptr);
 
@@ -56,6 +60,7 @@ public:
 
     static QStringList split_quoted(QString);
 
+    QUrl parseUrl(QString str);
 signals:
     void commandReceived(ApiCommand cmd);
     void responseReady(CommandResult res);

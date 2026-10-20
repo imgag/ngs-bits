@@ -252,19 +252,26 @@ void MainWindow::handleLoad(QString args)
 {
     QStringList argList = CommandServer::split_quoted(args);
 
+    qDebug() << "Something's broken:" << argList;
+
     for (auto arg : argList) {
-        if (arg.trimmed().isEmpty()) ui_.gvw->openFileDialog();
-        else ui_.gvw->loadFile(arg);
+        if (arg.trimmed().isEmpty())
+        {
+            THROW(Exception, "The URL is empty or invalid");
+        } // ui_.gvw->openFileDialog();
+        else ui_.gvw->loadFile(api.parseUrl(arg).toString());
     }
 }
 
 void MainWindow::handleGenome(QString args) {
-    QString file = args;
+    // QString file = args;
 
-    if (file.isEmpty()) return; // TODO: Raise exception
+    // if (file.isEmpty()) return; // TODO: Raise exception
 
-    RefGenomeService::instance().setReferenceGenome(file);
-    ui_.gvw->clearSession();
+    // RefGenomeService::instance().setReferenceGenome(api.parseUrl(file).toString());
+    // ui_.gvw->clearSession();
+
+    return; // TODO: implement this.
 }
 
 void MainWindow::showAboutDialog()

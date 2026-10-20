@@ -1,5 +1,6 @@
 #include "CommandServer.h"
 
+#include <QUrlQuery>
 #include <QFile>
 #include <QLocalServer>
 #include <QLocalSocket>
@@ -41,12 +42,16 @@ void CommandServer::newConnection(QIODevice* socket) {
 
             pending->push_back(cmd.id);
 
-            emit commandReceived(cmd);
+            if (cmd.verb == "SetAccessToken") {
+                handleAccessToken(cmd);
+            } else {
+                emit commandReceived(cmd);
+            }
         }
     });
     connect(this, &CommandServer::responseReady, socket, [socket, pending](const CommandResult &res){
         if (pending->empty() || pending->front() != res.id)
-            return;   // not ours, or out of order
+            return; // not ours, or out of order
 
         pending->pop_front();
 
@@ -56,6 +61,28 @@ void CommandServer::newConnection(QIODevice* socket) {
 
         socket->write((out + "\n").toUtf8());
     });
+}
+
+void CommandServer::handleAccessToken(ApiCommand cmd) {
+    auto split = cmd.arguments.lastIndexOf(" *");
+
+    auto token = cmd.arguments.sliced(0, split).trimmed();
+    auto urlFragment = cmd.arguments.sliced(split).trimmed();
+
+    if (urlFragment.startsWith('*'))
+        urlFragment = urlFragment.sliced(1);
+
+    if (urlFragment.endsWith('*'))
+        urlFragment = urlFragment.sliced(0, urlFragment.length() - 1);
+
+    QUrl url = QUrl::fromUserInput(urlFragment);
+
+    if (url.scheme().isEmpty()) {
+        url.setScheme("http");
+    }
+
+    accessTokens.insert(url.host(), token);
+    dispatchResponse(cmd);
 }
 
 ApiCommand CommandServer::parseCommand(QString cmd) {
@@ -112,6 +139,21 @@ void CommandServer::dispatchFailure(ApiCommand cmd, QString failure) {
     });
 }
 
+QUrl CommandServer::parseUrl(QString str) {
+    QUrl url = QUrl::fromUserInput(str);
+
+    QUrlQuery query(url);
+
+    if (accessTokens.contains(url.host()))
+        query.addQueryItem("token", accessTokens.value(url.host()));
+
+    url.setQuery(query);
+
+    qDebug() << url;
+
+    return url;
+}
+
 QStringList CommandServer::split_quoted(QString str) {
     QStringList split;
 
@@ -120,13 +162,16 @@ QStringList CommandServer::split_quoted(QString str) {
     for (qsizetype i = 0; i < str.size(); i++) {
         const QChar c = str[i];
 
+        // Handle escaped string characters
         if (c == '\\') {
             const QChar next = str.at(++i);
 
             if (next == '"')
                 token.push_back('"');
+
             else if (next == '\\')
                 token.push_back('\\');
+
             else if (next == 'n')
                 token.push_back('\n');
 
@@ -149,7 +194,8 @@ QStringList CommandServer::split_quoted(QString str) {
             token.push_back(c);
     }
 
-    split << token.trimmed();
+    if (!token.trimmed().isEmpty())
+        split << token.trimmed();
 
     qDebug() << split;
 
