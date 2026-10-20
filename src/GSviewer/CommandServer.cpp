@@ -34,7 +34,7 @@ void CommandServer::newConnection(QIODevice* socket) {
             auto line = socket->readLine();
 
             if (!line.isValidUtf8()) {
-                this->dispatchFailure(ApiCommand { QDateTime::currentDateTime(), cmd_id++, "", "" }, "Invalid UTF-8 sequence received.");
+                this->dispatchFailure(ApiCommand { QDateTime::currentDateTime(), cmd_id++, "", split_quoted("") }, "Invalid UTF-8 sequence received.");
                 continue;
             }
 
@@ -64,24 +64,27 @@ void CommandServer::newConnection(QIODevice* socket) {
 }
 
 void CommandServer::handleAccessToken(ApiCommand cmd) {
-    auto split = cmd.arguments.lastIndexOf(" *");
+    for (auto arg : cmd.arguments) {
+        auto split = arg.lastIndexOf(" *");
 
-    auto token = cmd.arguments.sliced(0, split).trimmed();
-    auto urlFragment = cmd.arguments.sliced(split).trimmed();
+        auto token = arg.sliced(0, split).trimmed();
+        auto urlFragment = arg.sliced(split).trimmed();
 
-    if (urlFragment.startsWith('*'))
-        urlFragment = urlFragment.sliced(1);
+        if (urlFragment.startsWith('*'))
+            urlFragment = urlFragment.sliced(1);
 
-    if (urlFragment.endsWith('*'))
-        urlFragment = urlFragment.sliced(0, urlFragment.length() - 1);
+        if (urlFragment.endsWith('*'))
+            urlFragment = urlFragment.sliced(0, urlFragment.length() - 1);
 
-    QUrl url = QUrl::fromUserInput(urlFragment);
+        QUrl url = QUrl::fromUserInput(urlFragment);
 
-    if (url.scheme().isEmpty()) {
-        url.setScheme("http");
+        if (url.scheme().isEmpty()) {
+            url.setScheme("http");
+        }
+
+        accessTokens.insert(url.host(), token);
     }
 
-    accessTokens.insert(url.host(), token);
     dispatchResponse(cmd);
 }
 
@@ -111,7 +114,7 @@ ApiCommand CommandServer::parseCommand(QString cmd) {
         QDateTime::currentDateTime(),
         cmd_id++,
         verb,
-        arguments,
+        split_quoted(arguments),
     };
 }
 

@@ -190,7 +190,7 @@ void MainWindow::executeApiCommand(ApiCommand cmd) {
             ui_.gvw->clearSession();
 
         else if (cmd.verb == "echo")
-            return api.dispatchResponse(cmd, CommandServer::split_quoted(cmd.arguments).join("; "));
+            return api.dispatchResponse(cmd, cmd.arguments.join("; "));
 
         else if (cmd.verb == "goto")
             handleGoto(cmd.arguments);
@@ -201,6 +201,18 @@ void MainWindow::executeApiCommand(ApiCommand cmd) {
         else if (cmd.verb == "genome")
             handleGenome(cmd.arguments);
 
+        else if (cmd.verb == "setSleepInterval")
+            handleSleep(cmd.arguments);
+
+        else if (cmd.verb == "viewaspairs")
+            handleViewAsPairs(cmd.arguments);
+
+        else if (cmd.verb == "colorBy")
+            handleColorBy(cmd.arguments);
+
+        else if (cmd.verb == "screenshot")
+            handleScreenshot(cmd.arguments);
+
         else {
             QString msg = QString("UNKOWN COMMAND: %1").arg(cmd.verb);  // Absichtlicher Tippfehler. Das kommmt aus IGV so
             qDebug() << "Unrecognised verb" << cmd.verb;
@@ -209,7 +221,8 @@ void MainWindow::executeApiCommand(ApiCommand cmd) {
             return;
         }
     } catch (Exception e) {
-        err("An invalid command was received", e.message());
+        THROW(Exception, "An invalid command was received: " + e.message())
+        // err("An invalid command was received", e.message());
 
         QString msg = QString("ERR: %1").arg(e.message());
         qDebug() << "An error occurred" << cmd.verb;
@@ -222,19 +235,15 @@ void MainWindow::executeApiCommand(ApiCommand cmd) {
     api.dispatchResponse(cmd);
 }
 
-void MainWindow::err(QString header, QString text) {
-    auto *box = new QMessageBox(QMessageBox::Warning, header, text, QMessageBox::Ok, this);
-    box->setAttribute(Qt::WA_DeleteOnClose);
-    box->open();   // window-modal, returns immediately
-}
+// void MainWindow::err(QString header, QString text) {
+//     auto *box = new QMessageBox(QMessageBox::Warning, header, text, QMessageBox::Ok, this);
+//     box->setAttribute(Qt::WA_DeleteOnClose);
+//     box->open();   // window-modal, returns immediately
+// }
 
-void MainWindow::handleGoto(QString args)
+void MainWindow::handleGoto(QStringList args)
 {
-    const QRegularExpression re("[,;]");
-
-    auto tracks = args.split(re);
-
-    for (QString &locus : tracks)
+    for (QString &locus : args)
     {
         BedLine region = BedLine::fromString(locus);
         if (region.isValid())
@@ -242,19 +251,16 @@ void MainWindow::handleGoto(QString args)
             SharedData::setRegion(region.chr(), region.start(), region.end());
             return;
         } else {
-            err("Invalid region", "The region specified is not valid and can therefore not be used as a destination. If you meant to jump to a particular coordinate, be sure to include the chromosome and start/end positions in the format (chrN:start-end), or just the chromonose name: (chrN).");
+            THROW(Exception, "The region specified is not valid and can therefore not be used as a destination. If you meant to jump to a particular coordinate, be sure to include the chromosome and start/end positions in the format (chrN:start-end), or just the chromonose name: (chrN).");
+            // err("Invalid region", "The region specified is not valid and can therefore not be used as a destination. If you meant to jump to a particular coordinate, be sure to include the chromosome and start/end positions in the format (chrN:start-end), or just the chromonose name: (chrN).");
             // throw std::exception("Invalid locus specified");
         }
     }
 }
 
-void MainWindow::handleLoad(QString args)
+void MainWindow::handleLoad(QStringList args)
 {
-    QStringList argList = CommandServer::split_quoted(args);
-
-    qDebug() << "Something's broken:" << argList;
-
-    for (auto arg : argList) {
+    for (auto arg : args) {
         if (arg.trimmed().isEmpty())
         {
             THROW(Exception, "The URL is empty or invalid");
@@ -263,7 +269,7 @@ void MainWindow::handleLoad(QString args)
     }
 }
 
-void MainWindow::handleGenome(QString args) {
+void MainWindow::handleGenome(QStringList args) {
     // QString file = args;
 
     // if (file.isEmpty()) return; // TODO: Raise exception
@@ -272,6 +278,22 @@ void MainWindow::handleGenome(QString args) {
     // ui_.gvw->clearSession();
 
     return; // TODO: implement this.
+}
+
+void MainWindow::handleSleep(QStringList args) {
+    return; // TODO: Consider whether implementation is truly necessary
+}
+
+void MainWindow::handleViewAsPairs(QStringList args) {
+    SharedData::parameters().setBool("view as pairs", true);
+}
+
+void MainWindow::handleColorBy(QStringList args) {
+
+}
+
+void MainWindow::handleScreenshot(QStringList args) {
+
 }
 
 void MainWindow::showAboutDialog()

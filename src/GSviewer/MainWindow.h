@@ -35,10 +35,14 @@ private:
 
     CommandServer api;
 
-    void handleGoto(QString args);
-    void handleLoad(QString args);
-    void handleGenome(QString args);
-    void err(QString header, QString text);
+    // void err(QString header, QString text);
+    void handleGoto(QStringList args);
+    void handleLoad(QStringList args);
+    void handleGenome(QStringList args);
+    void handleSleep(QStringList args);
+    void handleViewAsPairs(QStringList args);
+    void handleColorBy(QStringList args);
+    void handleScreenshot(QStringList args);
 };
 
 #endif // MAINWINDOW_H

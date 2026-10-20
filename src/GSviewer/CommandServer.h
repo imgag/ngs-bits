@@ -32,7 +32,7 @@ struct ApiCommand {
     QString verb;
 
     /// The remaining command text after the verb.
-    QString arguments;
+    QStringList arguments;
 };
 
 class CommandServer : public QObject
