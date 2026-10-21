@@ -4,6 +4,7 @@
 #include "cppVISUAL_global.h"
 #include "TrackWidget.h"
 #include "IgvFile.h"
+#include "BedFile.h"
 #include "ChromosomalIndex.h"
 
 //Fast read-only parameters access; populated and maintained by ParameterList::link().
@@ -55,12 +56,12 @@ private:
 	std::unique_ptr<ChromosomalIndex<IgvFile>> chr_index_;
 
 	// draw functions
-	void drawPlot(QPainter&);
-	void drawPoints(QPainter&, const QVector<int>& idxes);
-	void drawLinePlot(QPainter&, const QVector<int>& idxes);
-	void drawHeatMap(QPainter&, const QVector<int>& idxes);
-	void drawBarChart(QPainter&, const QVector<int>& idxes);
-	void drawReferenceLine(QPainter&, double value);
+	void drawPlot(QPainter&, const BedLine& region, const Viewport& viewport);
+	void drawPoints(QPainter&, const QVector<int>& idxes, const BedLine& region, const Viewport& viewport);
+	void drawLinePlot(QPainter&, const QVector<int>& idxes, const Viewport& viewport);
+	void drawHeatMap(QPainter&, const QVector<int>& idxes, const BedLine& region, const Viewport& viewport);
+	void drawBarChart(QPainter&, const QVector<int>& idxes, const BedLine& region, const Viewport& viewport);
+	void drawReferenceLine(QPainter&, double value, const Viewport& viewport);
 	void drawScaleText(QPainter&);
 
 	// handles right click by user

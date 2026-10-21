@@ -96,7 +96,7 @@ void BamCoverageTrack::storeCoverage()
 	coverage_.clear();
 
 	const BedLine& region = SharedData::region();
-	if (region.length() > fast_settings_.visibility_range) return;
+	if (!region.isValid() || region.length() > fast_settings_.visibility_range) return;
 	coverage_.fill(BaseCoverage(), region.length());
 	if (!track_data_) return;
 
@@ -192,6 +192,7 @@ void BamCoverageTrack::paintEvent(QPaintEvent*)
 	painter.fillRect(rect(), Qt::white);
 	const BedLine& region = SharedData::region();
 	drawLabel(painter);
+	if (drawOverviewMessage(painter)) return;
 	if (region.length() > fast_settings_.visibility_range) drawZoomInText(painter);
 	else
 	{
@@ -364,7 +365,7 @@ void BamCoverageTrack::mousePressEvent(QMouseEvent* event)
 bool BamCoverageTrack::isCurrentRegionValid()
 {
 	const BedLine& region = SharedData::region();
-	return (region.length() <= fast_settings_.visibility_range);
+	return region.isValid() && region.length() <= fast_settings_.visibility_range;
 }
 
 void BamCoverageTrack::mouseReleaseEvent(QMouseEvent* event)

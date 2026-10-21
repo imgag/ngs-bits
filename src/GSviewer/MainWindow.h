@@ -22,6 +22,7 @@ private slots:
 	void openDocumentation();
 	void showAboutDialog();
 	void addNRegions();
+	void showNamedColors();
 
     ///Enables/Disables the remote application control API
     void on_actionEnable_Remote_Application_Control_changed();

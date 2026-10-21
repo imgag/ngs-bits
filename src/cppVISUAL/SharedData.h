@@ -44,6 +44,8 @@ public:
 	{
 		return instance()->genome_index_;
 	}
+	//Canonical chromosomes present in the reference, ordered 1-22, X, Y.
+	static const BedFile& wholeGenomeRegions();
 
 	//Return transcripts
 	static const TranscriptList& transcripts()
@@ -73,11 +75,12 @@ public:
 	//Requires all global settings and applies them atomically after validation.
 	static void loadSettingsFromXml(const QDomElement& general);
 
-	//Return the currently displayed region
+	//Return the currently displayed region (invalid for the whole-genome overview).
 	static const BedLine& region()
 	{
 		return  instance()->region_;
 	}
+	//An invalid chromosome selects the whole-genome overview.
 	static void setRegion(const Chromosome& chr, int start, int end);
 
 	//Returns the instance (creates it on first call). This method is public only to connect signal/slots. For all other purposes, use other methods.

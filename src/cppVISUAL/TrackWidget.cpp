@@ -176,9 +176,19 @@ void TrackWidget::drawLabel(QPainter& painter)
 	painter.restore();
 }
 
+bool TrackWidget::drawOverviewMessage(QPainter& painter)
+{
+	if (SharedData::region().isValid()) return false;
+	const Viewport viewport = getViewport();
+	painter.setPen(Qt::gray);
+	painter.drawText(QRect(viewport.x0, 0, std::max(0, viewport.usable_width), height()), Qt::AlignCenter,
+		"select single chromosome region to show content");
+	return true;
+}
+
 float Viewport::genomePosToScreen(int genome_pos) const
 {
-	return (genome_pos - SharedData::region().start()) * pixels_per_base + x0;
+	return (genome_pos - genome_start) * pixels_per_base + x0;
 }
 
 float Viewport::genomeWidthToScreen(int genome_width) const
@@ -193,16 +203,38 @@ bool Viewport::isOutOfDrawRegion(int x) const
 
 int Viewport::screenXToGenomePos(int x_pos) const
 {
-	return SharedData::region().start() + static_cast<int>((x_pos - x0) / pixels_per_base);
+	return genome_start + static_cast<int>((x_pos - x0) / pixels_per_base);
 }
 
 Viewport TrackWidget::getViewport() const
 {
 	int label_width = SharedData::settings().label_width;
 	int usable_width = width() - label_width - 4;
-	float pixels_per_base = (float)usable_width / SharedData::region().length();
+	float pixels_per_base = SharedData::region().isValid() ? (float)usable_width / SharedData::region().length() : 0.0f;
 
-	return {usable_width, label_width + 2, pixels_per_base};
+	return {usable_width, label_width + 2, pixels_per_base, SharedData::region().start()};
+}
+
+QVector<QPair<BedLine, Viewport>> TrackWidget::plotViewports() const
+{
+	const Viewport viewport = getViewport();
+	if (SharedData::region().isValid()) return {{SharedData::region(), viewport}};
+	QVector<QPair<BedLine, Viewport>> plots;
+	if (viewport.usable_width <= 0) return plots;
+	const BedFile& regions = SharedData::wholeGenomeRegions();
+	qint64 total_length = 0;
+	for (int i = 0; i < regions.count(); ++i) total_length += regions[i].length();
+	if (total_length <= 0) return plots;
+	qint64 offset = 0;
+	for (int i = 0; i < regions.count(); ++i)
+	{
+		const int left = viewport.x0 + qRound(double(offset) / total_length * viewport.usable_width);
+		offset += regions[i].length();
+		const int right = viewport.x0 + qRound(double(offset) / total_length * viewport.usable_width);
+		if (right <= left) continue;
+		plots.append({regions[i], {right - left, left, float(right - left) / regions[i].length(), regions[i].start()}});
+	}
+	return plots;
 }
 
 void TrackWidget::showInfoPopup(QPointF global_pos, QString info)
@@ -368,7 +400,11 @@ TrackWidget* TrackWidget::fromXml(const QDomElement& track_element, QWidget* par
 	{
 		track->session_height_ = height;
 		//Variant tracks grow with the number of overlapping variants at the current zoom level.
-		if (type != VcfTrack::type() && type != SvTrack::type()) track->setFixedHeight(height);
+		if (type != VcfTrack::type() && type != SvTrack::type())
+		{
+			const int restored_height = type == BedTrack::type() ? std::max(height, track->minimumHeight()) : height;
+			track->setFixedHeight(restored_height);
+		}
 	}
 	else errors << "Missing or invalid track height for " + file_path;
 	return track;

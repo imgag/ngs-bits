@@ -97,7 +97,9 @@ void GenomeVisualizationWidget::setupBookmarkMenu()
 	connect(menu, &QMenu::aboutToShow, this, [this, menu]()
 	{
 		menu->clear();
-		connect(menu->addAction("Store current region"), &QAction::triggered, this, &GenomeVisualizationWidget::storeBookmark);
+		QAction* store = menu->addAction("Store current region");
+		store->setEnabled(SharedData::region().isValid());
+		connect(store, &QAction::triggered, this, &GenomeVisualizationWidget::storeBookmark);
 
 		connect(menu->addAction("Manage"), &QAction::triggered, this, [this]()
 		{
@@ -295,11 +297,14 @@ void GenomeVisualizationWidget::updateIndices()
 	//init chromosome list (ordered correctly)
 	ui_->chr_selector->blockSignals(true);
 	ui_->chr_selector->clear();
+	ui_->chr_selector->addItem("All");
+	valid_chrs_.clear();
 	foreach(const Chromosome& chr, SharedData::genome().chromosomes())
 	{
 		valid_chrs_ << chr.str();
 	}
 	ui_->chr_selector->addItems(valid_chrs_);
+	ui_->chr_selector->setCurrentText(SharedData::region().isValid() ? SharedData::region().chr().strNormalized(true) : QByteArray("All"));
 	ui_->chr_selector->blockSignals(false);
 
 	//init gene and transcript list
@@ -316,10 +321,16 @@ void GenomeVisualizationWidget::updateIndices()
 
 void GenomeVisualizationWidget::setChromosomeRegion(QString chr)
 {
+	if (chr == "All")
+	{
+		SharedData::setRegion(Chromosome(), 0, 0);
+		return;
+	}
 	Chromosome c(chr);
 	if (!c.isValid())
 	{
 		QMessageBox::warning(this, __FUNCTION__, "Could not convert chromosome string '" + chr + "' to valid chromosome!");
+		return;
 	}
 
 	SharedData::setRegion(chr, 1, SharedData::genome().lengthOf(c));
@@ -391,18 +402,21 @@ void GenomeVisualizationWidget::search()
 void GenomeVisualizationWidget::zoomIn()
 {
 	const BedLine& reg = SharedData::region();
+	if (!reg.isValid()) return;
 	SharedData::setRegion(reg.chr(), reg.start()+reg.length()/4, reg.end()-reg.length()/4);
 }
 
 void GenomeVisualizationWidget::zoomOut()
 {
 	const BedLine& reg = SharedData::region();
+	if (!reg.isValid()) return;
 	SharedData::setRegion(reg.chr(), reg.start()-reg.length()/2, reg.end()+reg.length()/2);
 }
 
 void GenomeVisualizationWidget::zoomIn(int x)
 {
 	const BedLine& reg = SharedData::region();
+	if (!reg.isValid()) return;
 	int current_len = reg.length();
 	int new_len = current_len / 2;
 
@@ -417,6 +431,7 @@ void GenomeVisualizationWidget::zoomIn(int x)
 void GenomeVisualizationWidget::zoomOut(int x)
 {
 	const BedLine& reg = SharedData::region();
+	if (!reg.isValid()) return;
 	int current_len = reg.length();
 	int new_len = current_len * 2;
 
@@ -458,17 +473,21 @@ void GenomeVisualizationWidget::wheelEvent(QWheelEvent* event)
 void GenomeVisualizationWidget::updateRegion()
 {
 	const BedLine& reg = SharedData::region();
+	//The overview already includes its scale; leave no empty context area below it.
+	ui_->chr_context_panel->setVisible(reg.isValid());
 
 	//update region selectors at top
 	ui_->chr_selector->blockSignals(true);
-	ui_->chr_selector->setCurrentText(reg.chr().strNormalized(true));
+	ui_->chr_selector->setCurrentText(reg.isValid() ? reg.chr().strNormalized(true) : QByteArray("All"));
 	ui_->chr_selector->blockSignals(false);
 	ui_->search->blockSignals(true);
-	ui_->search->setText(reg.toString(true));
+	ui_->search->setText(reg.isValid() ? reg.toString(true) : QString());
 	ui_->search->blockSignals(false);
 
 	//update size label in toolbar
-	ui_->label_region_size->setText(QString::number(reg.length()));
+	ui_->label_region_size->setText(reg.isValid() ? QString::number(reg.length()) : QString());
+	ui_->zoomin_btn->setEnabled(reg.isValid());
+	ui_->zoomout_btn->setEnabled(reg.isValid());
 }
 
 void GenomeVisualizationWidget::updateCoordinateLabel(QString text)

@@ -17,7 +17,17 @@ namespace
 QSharedPointer<BedFile> queryBed(const TabixIndexedFile& tabix, const BedLine& region)
 {
 	auto bed = QSharedPointer<BedFile>::create();
-	if (!region.isValid()) return bed;
+	if (!region.isValid())
+	{
+		const BedFile& chromosomes = SharedData::wholeGenomeRegions();
+		for (int c = 0; c < chromosomes.count(); ++c)
+		{
+			const auto queried = queryBed(tabix, chromosomes[c]);
+			for (int i = 0; i < queried->count(); ++i) bed->append((*queried)[i]);
+		}
+		bed->sort();
+		return bed;
+	}
 	for (const QByteArray& line : tabix.getMatchingLines(region.chr(), region.start(), region.end(), true))
 	{
 		const QByteArrayList fields = line.split('\t');
@@ -38,7 +48,7 @@ BedTrack::BedTrack(QWidget* parent, QString file_path, QString name)
 	:TrackWidget(parent, file_path, name, type())
 {
 	initializeSettings(&fast_settings_);
-	setMinimumHeight(25);
+	setMinimumHeight(SharedData::region().isValid() ? 25 : 50);
 	connect(&settings_, &ParameterList::parameterChanged, this, [this]()
 	{
 		updateGeometry();
@@ -46,6 +56,7 @@ BedTrack::BedTrack(QWidget* parent, QString file_path, QString name)
 	});
 	connect(SharedData::instance(), &SharedData::regionChanged, this, [this]()
 	{
+		setMinimumHeight(SharedData::region().isValid() ? 25 : 50);
 		if (tabix_)
 		{
 			try
@@ -69,7 +80,7 @@ BedTrack::BedTrack(QWidget* parent, QString file_path, QString name)
 QList<Parameter> BedTrack::getParameters() const
 {
 	return {
-		Parameter("color", "Region color.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, ColorNames::names().join('\t').toUtf8()}}),
+		Parameter("color", "Region color.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, (ColorNames::names() + QStringList{"transcript blue"}).join('\t').toUtf8()}}),
 		Parameter("draw mode", "How regions are drawn:\ncollapsed: overlapping regions share one row\nexpanded: overlapping regions occupy separate rows", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("collapsed\texpanded")}}),
 		Parameter("show region names", "Display region names from the fourth BED column.", ParameterType::BOOL, {})
 	};
@@ -79,7 +90,7 @@ QHash<QByteArray, QVariant> BedTrack::getParameterDefaults() const
 {
 	return {
 		{"draw mode", QByteArray("expanded")},
-		{"color", QByteArray("dark blue")},
+		{"color", QByteArray("transcript blue")},
 		{"show region names", true}
 	};
 }
@@ -138,7 +149,7 @@ bool BedTrack::load()
 void BedTrack::paintEvent(QPaintEvent* /*event*/)
 {
 	const int row_height = rowHeight();
-	const QColor color = ColorNames::color(QString::fromUtf8(fast_settings_.color));
+	const QColor color = fast_settings_.color == "transcript blue" ? QColor("#0000B2") : ColorNames::color(QString::fromUtf8(fast_settings_.color));
 	const BedLine& region = SharedData::region();
 	const Viewport& viewport = getViewport();
 
@@ -154,8 +165,14 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 		painter.drawText(QRect(viewport.x0, 0, std::max(0, viewport.usable_width), height()), Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap, load_error_);
 		return;
 	}
-	if (!bedfile_ || viewport.usable_width <= 0 || region.length() <= 0) return;
+	if (!bedfile_ || viewport.usable_width <= 0) return;
 	painter.setClipRect(QRect(viewport.x0, 0, viewport.usable_width, height()));
+	if (!region.isValid())
+	{
+		drawOverview(painter, color);
+		return;
+	}
+	if (region.length() <= 0) return;
 
 	//set up font
 	painter.setFont(regionFont());
@@ -208,6 +225,51 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 	}
 }
 
+void BedTrack::drawOverview(QPainter& painter, const QColor& color)
+{
+	const Viewport viewport = getViewport();
+	QVector<int> counts(viewport.usable_width, 0);
+	int maximum = 0;
+	for (const auto& plot : plotViewports())
+	{
+		const BedLine& region = plot.first;
+		const Viewport& chromosome = plot.second;
+		//Difference counts avoid walking every pixel covered by every region.
+		QVector<int> differences(chromosome.usable_width + 1, 0);
+		for (int idx : chr_index_->matchingIndices(region.chr(), region.start(), region.end()))
+		{
+			const BedLine& line = (*bedfile_)[idx];
+			const qint64 start = std::max(line.start(), region.start()) - region.start();
+			const qint64 end = std::min(line.end(), region.end()) - region.start() + 1;
+			const int first = start * chromosome.usable_width / region.length();
+			const int last = (end * chromosome.usable_width - 1) / region.length();
+			++differences[first];
+			--differences[last + 1];
+		}
+		int count = 0;
+		for (int x = 0; x < chromosome.usable_width; ++x)
+		{
+			count += differences[x];
+			counts[chromosome.x0 - viewport.x0 + x] = count;
+			maximum = std::max(maximum, count);
+		}
+	}
+	const int bottom = height() - 4;
+	const int plot_height = std::max(1, height() - 8);
+	if (maximum > 0)
+	{
+		for (int x = 0; x < counts.size(); ++x)
+		{
+			if (counts[x] == 0) continue;
+			const int bar_height = std::max(1, qRound(double(counts[x]) / maximum * plot_height));
+			painter.fillRect(viewport.x0 + x, bottom - bar_height, 1, bar_height, color);
+		}
+	}
+	painter.setPen(Qt::black);
+	painter.drawText(QRect(viewport.x0, 0, viewport.usable_width, height()), Qt::AlignLeft | Qt::AlignTop,
+		QString("[0,%1]").arg(maximum));
+}
+
 QFont BedTrack::regionFont() const
 {
 	QFont result = font();
@@ -222,6 +284,7 @@ int BedTrack::rowHeight() const
 
 QSize BedTrack::sizeHint() const
 {
+	if (!SharedData::region().isValid()) return QSize(parentWidget() ? parentWidget()->width() : 200, 50);
 	int rowCount = 1;
 
 	if (fast_settings_.draw_mode == "expanded")
@@ -238,6 +301,7 @@ void BedTrack::calculateRows()
 	num_rows_ = 0;
 	if (!chr_index_) return;
 	const BedLine& region = SharedData::region();
+	if (!region.isValid()) return;
 	visible_indices_ = chr_index_->matchingIndices(region.chr(), region.start(), region.end());
 	QVector<int> row_end_positions;
 	for (int idx : visible_indices_)
@@ -290,7 +354,7 @@ void BedTrack::handlePopupRequest(QPointF local_pos, QPointF global_pos)
 	const Viewport& viewport = getViewport();
 	const BedLine& region = SharedData::region();
 
-	if (!chr_index_ || viewport.usable_width <= 0 || region.length() <= 0 || viewport.isOutOfDrawRegion(local_pos.x())) return;
+	if (!region.isValid() || !chr_index_ || viewport.usable_width <= 0 || region.length() <= 0 || viewport.isOutOfDrawRegion(local_pos.x())) return;
 	int x = viewport.screenXToGenomePos(local_pos.x());
 
 	const int total_width = width() - SharedData::settings().label_width - 4;

@@ -12,6 +12,7 @@
 #include <RefGenomeService.h>
 #include "AboutDialog.h"
 #include "ParameterEditor.h"
+#include "ColorNames.h"
 #include "htslib/hts.h"
 #include "GenomeVisualizationWidget.h"
 #include <QCryptographicHash>
@@ -26,6 +27,8 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QVBoxLayout>
+#include <QTableWidget>
+#include <QHeaderView>
 
 MainWindow::MainWindow(QString bind, QWidget *parent)
     : QMainWindow(parent),
@@ -47,6 +50,7 @@ MainWindow::MainWindow(QString bind, QWidget *parent)
 	connect(ui_.actionAbout, &QAction::triggered, this, &MainWindow::showAboutDialog);
 	connect(ui_.actionExit, &QAction::triggered, this, &MainWindow::close);
 	connect(ui_.actionAddNRegions, &QAction::triggered, this, &MainWindow::addNRegions);
+	connect(ui_.actionShowNamedColors, &QAction::triggered, this, &MainWindow::showNamedColors);
 
 	//Set environment variable containing SSL certificates - needed for HTTPS to work for BamReader/htslib
 	QByteArray curl_ca_bundle = Settings::string("curl_ca_bundle", true).trimmed().toUtf8();
@@ -153,6 +157,35 @@ void MainWindow::addNRegions()
 	{
 		QMessageBox::warning(this, "Add N regions", e.message());
 	}
+}
+
+void MainWindow::showNamedColors()
+{
+	QDialog dialog(this);
+	dialog.setWindowTitle("Named colors");
+	dialog.resize(380, 600);
+	auto* layout = new QVBoxLayout(&dialog);
+	const QStringList names = ColorNames::names();
+	auto* table = new QTableWidget(names.size(), 2, &dialog);
+	table->setHorizontalHeaderLabels({"Name", "Color"});
+	table->verticalHeader()->hide();
+	table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	for (int row = 0; row < names.size(); ++row)
+	{
+		const QColor color = ColorNames::color(names[row]);
+		table->setItem(row, 0, new QTableWidgetItem(names[row]));
+		auto* swatch = new QTableWidgetItem(color.name());
+		swatch->setBackground(color);
+		swatch->setForeground(color.lightness() < 128 ? Qt::white : Qt::black);
+		swatch->setTextAlignment(Qt::AlignCenter);
+		table->setItem(row, 1, swatch);
+	}
+	layout->addWidget(table);
+	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
+	connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
+	layout->addWidget(buttons);
+	dialog.exec();
 }
 
 void MainWindow::showSettings()

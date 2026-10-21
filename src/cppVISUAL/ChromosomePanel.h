@@ -46,6 +46,7 @@ private:
 	void drawBands(QPainter* painter, const BedFile& bands, QVector<int> idxes,
 				   int total_width, int total_length);
 	void drawRegion(QPainter* painter, int total_length);
+	void drawGenome(QPainter& painter);
 	void drawDragRegion(QPainter* painter);
 	void drawBookmarks(QPainter& painter, int total_length);
 	void drawPseudoAutosomalRegions(QPainter& painter, int total_length);
