@@ -15,6 +15,7 @@
 #include <QMessageBox>
 #include <QStandardPaths>
 #include <VariantHgvsAnnotator.h>
+#include <QProcess>
 
 const GeneSet& GSvarHelper::impritingGenes()
 {
@@ -851,6 +852,61 @@ QString GSvarHelper::setQuality(QStringList ps_ngsd_ids)
 		update_query.exec("UPDATE processed_sample SET quality='"+qc_class+"' WHERE id='"+ps_id+"'");
 	}
 	return "The quality has been automatically set for " + QString::number(good_count+medium_count+bad_count) + " sample(s): \n good - " + QString::number(good_count) + "\n medium - " + QString::number(medium_count) + "\n bad - " +QString::number(bad_count) + "\n n/a - " +QString::number(n_a_count) +  + "\n no rules - " +QString::number(no_rules_count);
+}
+
+bool GSvarHelper::registerGSvarUrlScheme()
+{
+	if (Helper::isWindows())
+	{
+		const QString app_path = QDir::toNativeSeparators(QCoreApplication::applicationFilePath());
+		QSettings registry("HKEY_CURRENT_USER\\Software\\Classes\\gsvar", QSettings::NativeFormat);
+		registry.setValue("Default", "URL:GSvar Protocol");
+		registry.setValue("URL Protocol", "");
+
+		QSettings cmd("HKEY_CURRENT_USER\\Software\\Classes\\gsvar\\shell\\open\\command", QSettings::NativeFormat);
+		cmd.setValue("Default", QString("\"%1\" \"%2\"").arg(app_path, "%1"));
+		registry.sync();
+		cmd.sync();
+
+		return registry.status() == QSettings::NoError && cmd.status() == QSettings::NoError;
+	}
+
+	if (Helper::isLinux())
+	{
+		const QString app_path = QCoreApplication::applicationFilePath();
+
+		const QString desktop_dir = QDir::homePath() + "/.local/share/applications";
+		const QString desktop_file = desktop_dir + "/gsvar.desktop";
+
+		QDir().mkpath(desktop_dir);
+
+		QFile file(desktop_file);
+		if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) return false;
+
+		QTextStream out(&file);
+		out << "[Desktop Entry]\n";
+		out << "Type=Application\n";
+		out << "Name=GSvar\n";
+		out << "Exec=\"" << app_path << "\" \"%u\"\n";
+		out << "Terminal=false\n";
+		// out << "NoDisplay=true\n";
+		out << "Categories=Science;MedicalSoftware;\n";
+		out << "MimeType=x-scheme-handler/gsvar;\n";
+
+		file.close();
+
+		if (file.error() != QFile::NoError) return false;
+
+		// Register GSvar as the default handler for gsvar:// URLs.
+		QProcess process;
+		process.start("xdg-mime", {"default", "gsvar.desktop", "x-scheme-handler/gsvar"});
+		if (!process.waitForFinished(5000) || process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0) return false;
+
+		process.start("update-desktop-database", {desktop_dir});
+		if (!process.waitForFinished(5000) || process.exitStatus() != QProcess::NormalExit || process.exitCode() != 0) return false;
+	}
+
+	return true;
 }
 
 GSvarHelper::GSvarHelper()
