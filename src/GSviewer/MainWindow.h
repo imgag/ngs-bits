@@ -44,6 +44,7 @@ private:
     void handleViewAsPairs(QStringList args);
     void handleColorBy(QStringList args);
     void handleScreenshot(QStringList args);
+    void handleGroupBy(QStringList args);
 };
 
 #endif // MAINWINDOW_H

@@ -130,8 +130,6 @@ QSharedPointer<SegFile> FileLoader::loadSegFile(QString file_path)
 
 QSharedPointer<BamReader> FileLoader::loadBamFile(QString file_path)
 {
-    qDebug() << "BAM File: " << file_path;
-
     // TODO: Add reference genome
 
     QSharedPointer<BamReader> reader = QSharedPointer<BamReader>::create(file_path);

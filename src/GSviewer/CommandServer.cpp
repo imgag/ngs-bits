@@ -138,8 +138,6 @@ QUrl CommandServer::parseUrl(QString str) {
 
 
         url.setQuery(query);
-
-        qDebug() << "Added Token to URL:" << url << "(" << accessTokens.value(url.host()) << ")";
     }
 
     return url;
@@ -174,12 +172,11 @@ QStringList CommandServer::split_quoted(QString str) {
             split << token.trimmed();
             token.clear();
         } else if (c == '"') {
-            if (isQuoted) {
+            isQuoted = !isQuoted;
+
+            if (!isQuoted) {
                 split << token.trimmed();
                 token.clear();
-                isQuoted = false;
-            } else {
-                isQuoted = true;
             }
         } else
             token.push_back(c);

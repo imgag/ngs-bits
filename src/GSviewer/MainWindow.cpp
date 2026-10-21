@@ -244,7 +244,10 @@ void MainWindow::executeApiCommand(ApiCommand cmd) {
         else if (cmd.verb == "colorBy")
             handleColorBy(cmd.arguments);
 
-        else if (cmd.verb == "screenshot")
+        else if (cmd.verb == "group")
+            handleGroupBy(cmd.arguments);
+
+        else if (cmd.verb == "snapshot")
             handleScreenshot(cmd.arguments);
 
         else {
@@ -307,14 +310,20 @@ void MainWindow::handleLoad(QStringList args)
 }
 
 void MainWindow::handleGenome(QStringList args) {
-    // QString file = args;
+    // This code used to work, but has since stopped, because GSvar passes a different file format than what is expected. Resultantly, disable the code and return an error if this function is used.
 
-    // if (file.isEmpty()) return; // TODO: Raise exception
+    // if (args.length() != 1) THROW(Exception, "Expected exactly 1 argument. Got " + QString::number(args.length()));
+
+    // QString file = args[0];
+
+    // if (file.isEmpty()) THROW(Exception, "Expected a path or URL. Got nothing");
 
     // RefGenomeService::instance().setReferenceGenome(api.parseUrl(file).toString());
     // ui_.gvw->clearSession();
 
-    return; // TODO: implement this.
+    THROW(Exception, "This command will not be implemented due to differences in Scope between IGV and GSViewer.");
+
+    return;
 }
 
 void MainWindow::handleSleep(QStringList args) {
@@ -327,17 +336,37 @@ void MainWindow::handleViewAsPairs(QStringList args) {
     }
 }
 
+static const QHash<QString, QString> RENAME_COLORBY = {
+    { "UNEXPECTED_PAIR", "insert size" }
+};
+
 void MainWindow::handleColorBy(QStringList args) {
     if (args.length() != 1)
         THROW(Exception, "Invalid number of arguments received. Expected exactly 1, got " + QString::number(args.length()));
 
+    auto rename = RENAME_COLORBY.contains(args[0]) ? RENAME_COLORBY.value(args[0]) : args[0];
+
     for (auto track : ui_.gvw->bam_tracks()) {
-        track->parameters().setString("color by", args[0].toUtf8());
+        track->parameters().setString("color by", rename.toUtf8());
     }
 }
 
-void MainWindow::handleScreenshot(QStringList args) {
+static const QHash<QString, QString> RENAME_GROUPBY = {
+    {  }
+};
 
+void MainWindow::handleGroupBy(QStringList args) {
+    if (args.length() < 1 || args.length() > 2)
+        THROW(Exception, "Expected exactly 1-2 arguments. Got " + QString::number(args.length()));
+
+    auto rename = RENAME_GROUPBY.contains(args[0]) ? RENAME_GROUPBY.value(args[0]) : args[0];
+
+    for (auto track : ui_.gvw->bam_tracks())
+        track->parameters().setString("group by", rename.toUtf8());
+}
+
+void MainWindow::handleScreenshot(QStringList args) {
+    THROW(Exception, "This command is not implemented yet. We're awaiting architectural changes before this is possible.");
 }
 
 void MainWindow::showAboutDialog()
