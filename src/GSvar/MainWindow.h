@@ -318,7 +318,7 @@ public slots:
 	///Ping GSvar server
 	void on_actionPingGSvarServer_triggered();
 	///Ping NGSD server
-    void on_actionPingNgsdServer_triggered();
+	void on_actionPingNgsdServer_triggered();
 
 	///Calculate gaps based on current target region filter
 	void calculateGapsByTargetRegionFilter();
@@ -521,7 +521,6 @@ protected:
     void performLogout();
 	//Returns the path to the genome viewer app
 	QString viewerApp();
-
 
 private:
 	//GUI

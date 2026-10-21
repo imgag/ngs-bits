@@ -87,7 +87,7 @@ void IGVCommandWorker::run()
 		}
 		emit processingFinished();
 		return;
-    }
+	}
 
 	//execute all commands
 	foreach(const IgvWorkerCommand& command, commands_)
