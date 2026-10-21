@@ -853,6 +853,23 @@ QString GSvarHelper::setQuality(QStringList ps_ngsd_ids)
 	return "The quality has been automatically set for " + QString::number(good_count+medium_count+bad_count) + " sample(s): \n good - " + QString::number(good_count) + "\n medium - " + QString::number(medium_count) + "\n bad - " +QString::number(bad_count) + "\n n/a - " +QString::number(n_a_count) +  + "\n no rules - " +QString::number(no_rules_count);
 }
 
+bool GSvarHelper::registerGSvarUrlScheme()
+{
+	if (!Helper::isWindows()) return false;
+
+	const QString app_path = QDir::toNativeSeparators(QCoreApplication::applicationFilePath());
+	QSettings registry("HKEY_CURRENT_USER\\Software\\Classes\\gsvar", QSettings::NativeFormat);
+	registry.setValue("Default", "URL:GSvar Protocol");
+	registry.setValue("URL Protocol", "");
+
+	QSettings cmd("HKEY_CURRENT_USER\\Software\\Classes\\gsvar\\shell\\open\\command", QSettings::NativeFormat);
+	cmd.setValue("Default", QString("\"%1\" \"%2\"").arg(app_path, "%1"));
+	registry.sync();
+	cmd.sync();
+
+	return registry.status() == QSettings::NoError && cmd.status() == QSettings::NoError;
+}
+
 GSvarHelper::GSvarHelper()
 {
 }

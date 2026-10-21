@@ -399,6 +399,30 @@ MainWindow::MainWindow(QWidget *parent)
 			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM/CRAM files over HTTPS may not be possible");
 		}
 	}
+
+	if (GSvarHelper::registerGSvarUrlScheme())
+	{
+		QMessageBox::warning(this, "Registry entry", "Created");
+		const QStringList args = QCoreApplication::arguments();
+		qDebug() << "Arguments:" << args;
+		if (args.size() > 1)
+		{
+			const QString urlArg = args.at(1);
+			qDebug() << "Protocol URL:" << urlArg;
+			QUrl url(urlArg);
+			if (url.isValid())
+			{
+				qDebug() << "Scheme:" << url.scheme();
+				QMessageBox::warning(this, "Scheme", url.scheme());
+				qDebug() << "Host:" << url.host();
+				QMessageBox::warning(this, "Host", url.host());
+				qDebug() << "Path:" << url.path();
+				QMessageBox::warning(this, "Path", url.path());
+				qDebug() << "Query:" << url.query();
+				QMessageBox::warning(this, "Query", url.query());
+			}
+		}
+	}
 }
 
 QString MainWindow::appName() const
@@ -447,6 +471,13 @@ void MainWindow::lazyLoadIGVfiles(QString current_file)
 {
     IgvSessionManager::get(0).removeCache();
     IgvSessionManager::get(0).startCachingForRegularIGV(variants_.type(), current_file);
+}
+
+void MainWindow::openGSvarUrl(const QUrl url)
+{
+	qDebug() << url.toString();
+	QMessageBox::warning(this, "Opening URL", "URL: " + url.toString());
+
 }
 
 void MainWindow::checkServerAvailability()

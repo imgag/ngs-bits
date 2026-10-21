@@ -48,6 +48,8 @@ public:
     /// Gets the list of files needed to initialize IGV, reduces the delay before the fist call to IGV
     void lazyLoadIGVfiles(QString current_file);
 
+	void openGSvarUrl(const QUrl url);
+
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
 	///Returns the LOG files corresponding to the variant list.

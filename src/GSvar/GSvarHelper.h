@@ -90,6 +90,9 @@ public:
 	//Automatically set quality. Returns a human-readable summary of the qualities set.
 	static QString setQuality(QStringList ps_ngsd_ids);
 
+	//Creates an entry in the Windows registry to start GSvar using a URL like gsvar://sample/processed_sample_id
+	static bool registerGSvarUrlScheme();
+
 protected:
 	GSvarHelper();
 	static GSvarHelper& instance();
