@@ -288,6 +288,10 @@ void GenomeVisualizationWidget::reloadTracks()
 	ui_->track_group_manager->reloadTracks();
 }
 
+QList<BamAlignmentTrack*> GenomeVisualizationWidget::bam_tracks() {
+    return findChildren<BamAlignmentTrack*>();
+}
+
 void GenomeVisualizationWidget::clearSession()
 {
 	clearParameterEditor();

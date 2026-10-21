@@ -286,8 +286,6 @@ void MainWindow::handleGoto(QStringList args)
             return;
         } else {
             THROW(Exception, "The region specified is not valid and can therefore not be used as a destination. If you meant to jump to a particular coordinate, be sure to include the chromosome and start/end positions in the format (chrN:start-end), or just the chromonose name: (chrN).");
-            // err("Invalid region", "The region specified is not valid and can therefore not be used as a destination. If you meant to jump to a particular coordinate, be sure to include the chromosome and start/end positions in the format (chrN:start-end), or just the chromonose name: (chrN).");
-            // throw std::exception("Invalid locus specified");
         }
     }
 }
@@ -324,12 +322,18 @@ void MainWindow::handleSleep(QStringList args) {
 }
 
 void MainWindow::handleViewAsPairs(QStringList args) {
-
-    // SharedData::parameters().setBool("view as pairs", true);
+    for (auto track : ui_.gvw->bam_tracks()) {
+        track->parameters().setBool("view as pairs", true);
+    }
 }
 
 void MainWindow::handleColorBy(QStringList args) {
+    if (args.length() != 1)
+        THROW(Exception, "Invalid number of arguments received. Expected exactly 1, got " + QString::number(args.length()));
 
+    for (auto track : ui_.gvw->bam_tracks()) {
+        track->parameters().setString("color by", args[0].toUtf8());
+    }
 }
 
 void MainWindow::handleScreenshot(QStringList args) {
