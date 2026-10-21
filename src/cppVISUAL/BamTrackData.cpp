@@ -75,6 +75,13 @@ void BamTrackData::updateRegion()
 	const int max_len = visibility_range_;
 	const BedLine& region = SharedData::region();
 
+	if (!region.isValid())
+	{
+		return_empty_ = true;
+		emit onDataUpdate();
+		return;
+	}
+
 	if (region.length() > max_len)
 	{
 		bam_reader_->setRegion(region.chr(), 0, 0);

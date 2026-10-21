@@ -97,6 +97,21 @@ void SharedData::updateSettingsConstraints()
 	settings_.overrideConstraint("BAM insert size upper percentile", ConstraintType::MIN, fast_settings_.bam_insert_size_lower_percentile);
 }
 
+const BedFile& SharedData::wholeGenomeRegions()
+{
+	static const BedFile regions = []()
+	{
+		BedFile output;
+		for (int i = 1; i <= 24; ++i)
+		{
+			const Chromosome chr(i <= 22 ? QString::number(i) : (i == 23 ? QString("X") : QString("Y")));
+			if (genome().chromosomes().contains(chr)) output.append(BedLine(chr, 1, genome().lengthOf(chr)));
+		}
+		return output;
+	}();
+	return regions;
+}
+
 void SharedData::setTranscripts(const TranscriptList& transcripts)
 {
 	SharedData* inst = instance();
@@ -123,6 +138,14 @@ void SharedData::setTranscripts(const TranscriptList& transcripts)
 
 void SharedData::setRegion(const Chromosome& chr, int start, int end)
 {
+	//An invalid chromosome selects the whole-genome overview.
+	if (!chr.isValid())
+	{
+		if (!instance()->region_.isValid()) return;
+		instance()->region_ = BedLine();
+		emit instance()->regionChanged();
+		return;
+	}
 	if (end < start) THROW(ArgumentException, "Invalid chromosome range - end before start: "+QString::number(start) + "-" + QString::number(end));
 
 	//extend region to minimal region size
@@ -170,6 +193,11 @@ SharedData* SharedData::instance()
 
 void SharedData::mouseMoved(int x, int width)
 {
+	if (!region().isValid())
+	{
+		emit instance()->updateGenomicCoordinate("");
+		return;
+	}
 	int label_width = SharedData::settings().label_width;
 	const BedLine& region = SharedData::region();
 	double pixels_per_base_ =  (double)(width-label_width-4) / (double)region.length();
@@ -193,7 +221,7 @@ SharedData::SharedData(QObject* parent)
 	, transcripts_index_(transcripts_)
 	, settings_("Global settings", getParameters(), getParameterDefaults())
 	, fast_settings_()
-	, region_(Chromosome("chr7"), 5971876, 5984933) //just some random default to make sure it is not a invalid region
+	, region_()
 {
 	settings_.link(&fast_settings_);
 	updateSettingsConstraints();

@@ -90,11 +90,23 @@
     </property>
     <addaction name="actionAddNRegions"/>
    </widget>
+   <widget class="QMenu" name="menuDebug">
+    <property name="title">
+     <string>Debug</string>
+    </property>
+    <addaction name="actionShowNamedColors"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuSession"/>
    <addaction name="menuTools"/>
+   <addaction name="menuDebug"/>
    <addaction name="menuHelp"/>
   </widget>
+  <action name="actionShowNamedColors">
+   <property name="text">
+    <string>Show named colors</string>
+   </property>
+  </action>
   <action name="actionLoadFile">
    <property name="text">
     <string>Load file</string>

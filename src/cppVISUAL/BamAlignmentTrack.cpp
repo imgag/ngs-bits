@@ -101,7 +101,7 @@ void BamAlignmentTrack::fullLoad()
 bool BamAlignmentTrack::isCurrentRegionValid()
 {
 	const BedLine& region = SharedData::region();
-	return (region.length() <= fast_settings_.visibility_range);
+	return region.isValid() && region.length() <= fast_settings_.visibility_range;
 }
 
 void BamAlignmentTrack::dataReady()
@@ -110,6 +110,10 @@ void BamAlignmentTrack::dataReady()
 	{
 		makePairs();
 		calculateRows();
+	}
+	else
+	{
+		num_rows_ = 1;
 	}
 	updateGeometry();
 	update();
@@ -328,6 +332,7 @@ void BamAlignmentTrack::paintEvent(QPaintEvent*)
 
 	painter.fillRect(rect(), Qt::white);
 	drawLabel(painter);
+	if (drawOverviewMessage(painter)) return;
 	const BedLine& region = SharedData::region();
 	if (region.length() > fast_settings_.visibility_range) drawZoomInText(painter);
 	else

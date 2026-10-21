@@ -220,6 +220,7 @@ void SvTrack::paintEvent(QPaintEvent*)
 	QPainter painter(this);
 	painter.fillRect(rect(), Qt::white);
 	drawLabel(painter);
+	if (drawOverviewMessage(painter)) return;
 	const Viewport viewport = getViewport();
 	painter.setClipRect(QRect(viewport.x0, 0, std::max(0, viewport.usable_width), height()));
 	for (int i = 0; i < placements_.size(); ++i)

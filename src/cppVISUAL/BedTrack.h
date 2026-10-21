@@ -74,6 +74,8 @@ private:
 	//Row spacing shared by drawing, sizing and popup hit testing.
 	int rowHeight() const;
 	QFont regionFont() const;
+	//Counts overlapping regions per screen column across the canonical chromosomes.
+	void drawOverview(QPainter& painter, const QColor& color);
 
 	// handles pop up request and displays the correct information at global pos
 	void handlePopupRequest(QPointF local_pos, QPointF global_pos);

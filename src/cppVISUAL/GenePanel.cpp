@@ -102,6 +102,13 @@ void GenePanel::updateTranscriptLayout()
 {
 	const BedLine& region = SharedData::region();
 	char_size_ = characterSize(font());
+	if (!region.isValid())
+	{
+		pixels_per_base_ = 0;
+		trans_positions_.clear();
+		setMinimumHeight(char_size_.height() + 8);
+		return;
+	}
 	amino_acid_width_ = 0;
 	const QFontMetrics metrics(font());
 	for (QChar amino_acid : QString("ACDEFGHIKLMNPQRSTVWY*"))
@@ -193,6 +200,14 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 	painter.drawLine(QPoint(label_width, 0), QPoint(label_width, h));
 	painter.drawText(QRect(2,2, label_width-4, label_width-4), "Gene");
 	painter.drawText(QRect(2,2, label_width-4, label_width-4), Qt::AlignRight|Qt::AlignTop, strand_forward_ ? "→" : "←");
+
+	if (!region.isValid())
+	{
+		painter.setPen(Qt::gray);
+		painter.drawText(QRect(label_width + 2, 0, std::max(0, w - label_width - 4), h), Qt::AlignCenter,
+			"select single chromosome region to show content");
+		return;
+	}
 
 	//paint sequence (only if at lest one pixel per base is available)
 	if (pixels_per_base_ >= 1 && region.chr() != "")

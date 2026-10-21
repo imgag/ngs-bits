@@ -27,6 +27,7 @@ void ChromosomePanel::updateRegion()
 
 int ChromosomePanel::genomicCoordinateAt(int x) const
 {
+	if (!SharedData::region().isValid()) return 0;
 	const int x0 = SharedData::settings().label_width + 2;
 	const int usable_width = width() - x0 - 2;
 	if (usable_width <= 0 || x < x0 || x >= x0 + usable_width) return 0;
@@ -83,6 +84,11 @@ void ChromosomePanel::paintEvent(QPaintEvent* /*event*/)
 	QPainter painter(this);
 
 	painter.setRenderHint(QPainter::Antialiasing, true);
+	if (!region.isValid())
+	{
+		drawGenome(painter);
+		return;
+	}
 
 	static BedFile bands = NGSHelper::cytoBands();
 	static bool sorted = false;
@@ -112,6 +118,39 @@ void ChromosomePanel::paintEvent(QPaintEvent* /*event*/)
 
 
 		drawDragRegion(&painter);
+	}
+}
+
+void ChromosomePanel::drawGenome(QPainter& painter)
+{
+	const int x0 = SharedData::settings().label_width + 2;
+	const int usable_width = width() - x0 - 2;
+	if (usable_width <= 0) return;
+	const BedFile& regions = SharedData::wholeGenomeRegions();
+	qint64 total_length = 0;
+	for (int i = 0; i < regions.count(); ++i)
+	{
+		total_length += regions[i].length();
+	}
+	if (total_length <= 0) return;
+
+	QFont font = painter.font();
+	font.setPointSize(8);
+	painter.setFont(font);
+	painter.setPen(Qt::black);
+	const int text_height = painter.fontMetrics().height();
+	const double y = height() - 2;
+	qint64 offset = 0;
+	painter.drawLine(QLineF(x0, y - 6, x0, y));
+	for (int i = 0; i < regions.count(); ++i)
+	{
+		const Chromosome& chr = regions[i].chr();
+		const double left = x0 + double(offset) / total_length * usable_width;
+		offset += regions[i].length();
+		const double right = x0 + double(offset) / total_length * usable_width;
+		painter.drawLine(QLineF(right, y - 6, right, y));
+		painter.drawText(QRectF(left, y - 8 - (2 - i % 2) * text_height, right - left, text_height),
+			Qt::AlignCenter, QString::fromUtf8(chr.strNormalized(false)));
 	}
 }
 
@@ -208,7 +247,7 @@ void ChromosomePanel::mouseMoveEvent(QMouseEvent* event)
 
 void ChromosomePanel::mousePressEvent(QMouseEvent* event)
 {
-	if (event->button() == Qt::LeftButton)
+	if (event->button() == Qt::LeftButton && SharedData::region().isValid())
 	{
 		int x = event->pos().x();
 		is_dragging_ = true;

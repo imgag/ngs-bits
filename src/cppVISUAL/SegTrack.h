@@ -52,6 +52,7 @@ private:
 	double valueToY(double value) const;
 	double displayedValue(double value) const;
 	QColor segmentColor(double value) const;
+	void drawPlot(QPainter& painter, const BedLine& region, const Viewport& viewport);
 	void handlePopupRequest(QPoint local_pos, QPointF global_pos);
 };
 

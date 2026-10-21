@@ -33,6 +33,7 @@ void ChromosomeContextPanel::paintEvent(QPaintEvent*)
 	int total_width = width() - label_width - 4;
 
 	QPainter painter(this);
+	if (!SharedData::region().isValid()) return;
 
 	drawArrowsAndSize(&painter, label_width, total_width);
 	drawTicks(&painter, label_width, total_width);
@@ -218,7 +219,7 @@ int ChromosomeContextPanel::tickInterval(int range, int max_ticks)
 
 void ChromosomeContextPanel::mousePressEvent(QMouseEvent* event)
 {
-	if (event->button() == Qt::LeftButton)
+	if (event->button() == Qt::LeftButton && SharedData::region().isValid())
 	{
 		is_dragging_ = true;
 		drag_start_x_ = event->pos().x();

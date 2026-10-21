@@ -150,29 +150,18 @@ double SegTrack::valueToY(double value) const
 
 double SegTrack::displayedValue(double value) const
 {
-	return fast_settings_.draw_mode == "ClinCNV" && value < 0 ? 0 : value;
+	if (fast_settings_.draw_mode == "ClinCNV" && value < 0) value = 0;
+	return std::clamp(value, fast_settings_.min, fast_settings_.max);
 }
 
 QColor SegTrack::segmentColor(double value) const
 {
 	const bool clincnv = fast_settings_.draw_mode == "ClinCNV";
 	if (clincnv && value < 0) return Qt::black;
-	const QColor gray(192, 192, 192);
-	if (clincnv && value >= 1.8 && value <= 2.2) return gray;
-
-	const bool below = value < (clincnv ? 1.8 : fast_settings_.reference);
+	const bool below = value < (clincnv ? 2.0 : fast_settings_.reference);
 	QColor color = trackColor(below ? fast_settings_.alt_color : fast_settings_.color);
 	if (!color.isValid()) color = Qt::blue;
-	if (!clincnv) return color;
-
-	//Reach full color at copy numbers 1 and 3, independently of the axis limits.
-	const double range = below ? 1.8 - 1.0 : 3.0 - 2.2;
-	const double distance = below ? 1.8 - value : value - 2.2;
-	const double fraction = range > 0 ? std::clamp(distance / range, 0.0, 1.0) : 1.0;
-	return QColor::fromRgbF(gray.redF() + fraction * (color.redF() - gray.redF()),
-		gray.greenF() + fraction * (color.greenF() - gray.greenF()),
-		gray.blueF() + fraction * (color.blueF() - gray.blueF()),
-		gray.alphaF() + fraction * (color.alphaF() - gray.alphaF()));
+	return color;
 }
 
 void SegTrack::paintEvent(QPaintEvent*)
@@ -181,32 +170,41 @@ void SegTrack::paintEvent(QPaintEvent*)
 	painter.fillRect(rect(), Qt::white);
 	drawLabel(painter);
 	const auto viewport = getViewport();
-	const auto& region = SharedData::region();
-	if (!chr_index_ || viewport.usable_width <= 0 || region.length() <= 0 || !std::isfinite(fast_settings_.min)
+	if (!chr_index_ || viewport.usable_width <= 0 || !std::isfinite(fast_settings_.min)
 		|| !std::isfinite(fast_settings_.max) || fast_settings_.min >= fast_settings_.max) return;
+	for (const auto& plot : plotViewports()) drawPlot(painter, plot.first, plot.second);
 	painter.setClipRect(QRect(viewport.x0, 0, viewport.usable_width, height()));
-	if (fast_settings_.show_reference && fast_settings_.reference >= fast_settings_.min && fast_settings_.reference <= fast_settings_.max)
-	{
-		painter.setPen(QPen(Qt::lightGray, 1, Qt::DashLine));
-		const double y = valueToY(fast_settings_.reference);
-		painter.drawLine(QPointF(viewport.x0, y), QPointF(viewport.x0 + viewport.usable_width, y));
-	}
-	painter.setRenderHint(QPainter::Antialiasing);
+	painter.setPen(Qt::black);
+	painter.drawText(QRect(viewport.x0, 0, viewport.usable_width, height()), Qt::AlignLeft | Qt::AlignTop,
+		QString("[%1,%2]").arg(fast_settings_.min).arg(fast_settings_.max));
+}
+
+void SegTrack::drawPlot(QPainter& painter, const BedLine& region, const Viewport& viewport)
+{
+	painter.save();
+	painter.setClipRect(QRect(viewport.x0, 0, viewport.usable_width, height()));
+	painter.setRenderHint(QPainter::Antialiasing, false);
 	for (int idx : chr_index_->matchingIndices(region.chr(), region.start(), region.end()))
 	{
 		const auto& line = (*file_)[idx];
 		const double value = displayedValue(line.value());
-		if (value < fast_settings_.min || value > fast_settings_.max) continue;
 		QColor color = segmentColor(line.value());
 		if (fast_settings_.draw_mode == "ClinCNV") color.setAlphaF(color.alphaF() * file_->varianceAlpha(line.variance()));
 		painter.setPen(QPen(color, 2));
 		const double x = viewport.genomePosToScreen(std::max(line.start(), region.start()));
 		const double end = viewport.genomePosToScreen(std::min(line.end(), region.end())) + viewport.pixels_per_base;
-		painter.drawLine(QPointF(x, valueToY(value)), QPointF(std::max(x + 1, end), valueToY(value)));
+		const int y = qRound(valueToY(value));
+		painter.drawLine(QPoint(qRound(x), y), QPoint(qRound(std::max(x + 1, end)), y));
 	}
-	painter.setPen(Qt::black);
-	painter.drawText(QRect(viewport.x0, 0, viewport.usable_width, height()), Qt::AlignLeft | Qt::AlignTop,
-		QString("[%1,%2]").arg(fast_settings_.min).arg(fast_settings_.max));
+	if (fast_settings_.show_reference
+		&& fast_settings_.reference >= fast_settings_.min && fast_settings_.reference <= fast_settings_.max)
+	{
+		painter.setRenderHint(QPainter::Antialiasing, false);
+		painter.setPen(QPen(QColor(128, 128, 128, 128), 1));
+		const int y = qRound(valueToY(fast_settings_.reference));
+		painter.drawLine(viewport.x0, y, viewport.x0 + viewport.usable_width, y);
+	}
+	painter.restore();
 }
 
 void SegTrack::mousePressEvent(QMouseEvent* event)
@@ -226,8 +224,16 @@ void SegTrack::mouseReleaseEvent(QMouseEvent* event)
 
 void SegTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 {
-	const auto viewport = getViewport();
-	const auto& region = SharedData::region();
+	BedLine region;
+	Viewport viewport = getViewport();
+	for (const auto& plot : plotViewports())
+	{
+		if (local_pos.x() < plot.second.x0 || local_pos.x() >= plot.second.x0 + plot.second.usable_width) continue;
+		region = plot.first;
+		viewport = plot.second;
+		break;
+	}
+	if (!region.isValid()) return;
 	if (!chr_index_ || viewport.usable_width <= 0 || region.length() <= 0 || viewport.isOutOfDrawRegion(local_pos.x())
 		|| !std::isfinite(fast_settings_.min) || !std::isfinite(fast_settings_.max) || fast_settings_.min >= fast_settings_.max) return;
 	QStringList info;
@@ -237,7 +243,6 @@ void SegTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 	{
 		const auto& line = (*file_)[idx];
 		const double value = displayedValue(line.value());
-		if (value < fast_settings_.min || value > fast_settings_.max) continue;
 		if (std::abs(valueToY(value) - local_pos.y()) > 6) continue;
 		if (local_pos.x() < viewport.genomePosToScreen(line.start()) - 6
 			|| local_pos.x() > viewport.genomePosToScreen(line.end()) + viewport.pixels_per_base + 6) continue;

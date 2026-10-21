@@ -399,6 +399,7 @@ void VcfTrack::paintEvent(QPaintEvent*)
 	QPainter painter(this);
 	painter.fillRect(rect(), Qt::white);
 	drawLabel(painter);
+	if (drawOverviewMessage(painter)) return;
 	const Viewport viewport = getViewport();
 	painter.setClipRect(QRect(viewport.x0, 0, std::max(0, viewport.usable_width), height()));
 	if (SharedData::region().length() > fast_settings_.max_visibility)

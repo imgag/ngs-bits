@@ -97,13 +97,102 @@ private slots:
 	void initTestCase()
 	{
 		QVERIFY(QDir().mkpath(data_.path()));
-		writeFile("reference.fa", ">chr22\n" + QByteArray(100, 'A') + "\n>chr23\nATGATGTAA" + QByteArray(91, 'A') + "\n>chrX\n" + QByteArray(100, 'A') + "\n>chrLong\n" + QByteArray(10000, 'A') + "\n");
-		writeFile("reference.fa.fai", "chr22\t100\t7\t100\t101\nchr23\t100\t115\t100\t101\nchrX\t100\t222\t100\t101\nchrLong\t10000\t332\t10000\t10001\n");
+		writeFile("reference.fa", ">chr22\n" + QByteArray(100, 'A') + "\n>chr23\nATGATGTAA" + QByteArray(91, 'A') + "\n>chrX\n" + QByteArray(100, 'A') + "\n>chrLong\n" + QByteArray(10000, 'A') + "\n>chrY\n" + QByteArray(200, 'A') + "\n");
+		writeFile("reference.fa.fai", "chr22\t100\t7\t100\t101\nchr23\t100\t115\t100\t101\nchrX\t100\t222\t100\t101\nchrLong\t10000\t332\t10000\t10001\nchrY\t200\t10339\t200\t201\n");
 		writeFile("settings.ini", "reference_genome=" + data_.filePath("reference.fa").toUtf8() + "\n");
 		Settings::setSettingsOverride(data_.filePath("settings.ini"));
 		SharedData::setRegion(Chromosome("chr22"), 1, 80);
 		writeFile("first.bed", "chr22\t10\t20\n");
 		writeFile("second.bed", "chr22\t30\t40\n");
+	}
+
+	void wholeGenomeOverview()
+	{
+		const BedLine original = SharedData::region();
+		const auto restore = qScopeGuard([&]() { SharedData::setRegion(original.chr(), original.start(), original.end()); });
+		QSignalSpy changes(SharedData::instance(), &SharedData::regionChanged);
+		SharedData::setRegion(Chromosome(), 0, 0);
+		QVERIFY(!SharedData::region().isValid());
+		QCOMPARE(changes.count(), 1);
+		SharedData::setRegion(Chromosome(), 0, 0);
+		QCOMPARE(changes.count(), 1);
+
+		ChromosomePanel panel(nullptr);
+		const int x0 = SharedData::settings().label_width + 2;
+		panel.resize(x0 + 402, 40);
+		QImage image(panel.size(), QImage::Format_ARGB32);
+		panel.render(&image);
+		//Only chr22, X and Y are canonical in this reference: lengths 100, 100, 200.
+		for (int offset : {0, 100, 200, 400})
+		{
+			QVERIFY(image.pixelColor(x0 + offset, panel.height() - 5).lightness() < 128);
+		}
+		QVERIFY(image.pixelColor(x0 + 300, panel.height() - 5).lightness() > 128);
+		QCOMPARE(panel.genomicCoordinateAt(x0 + 50), 0);
+		QTest::mouseClick(&panel, Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 50, 20));
+		QVERIFY(!SharedData::region().isValid());
+
+		GenePanel gene(nullptr);
+		writeFile("overview.vcf", "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\nchr22\t10\t.\tA\tG\t.\tPASS\t.\n");
+		writeFile("overview.bedpe", "##fileformat=BEDPE\n#CHROM_A\tSTART_A\tEND_A\tCHROM_B\tSTART_B\tEND_B\tTYPE\nchr22\t10\t10\tchr22\t20\t20\tDEL\n");
+		VcfTrack vcf(nullptr, data_.filePath("overview.vcf"), "VCF");
+		SvTrack sv(nullptr, data_.filePath("overview.bedpe"), "SV");
+		BamAlignmentTrack alignment(nullptr, "", "Alignments");
+		BamCoverageTrack coverage(nullptr, "", "Coverage");
+		for (QWidget* widget : QList<QWidget*>{&gene, &vcf, &sv, &alignment, &coverage})
+		{
+			widget->setFixedSize(900, 80);
+			QImage actual(widget->size(), QImage::Format_ARGB32);
+			widget->render(&actual);
+			QImage expected(widget->size(), QImage::Format_ARGB32);
+			expected.fill(Qt::white);
+			QPainter painter(&expected);
+			painter.setFont(widget->font());
+			painter.setPen(Qt::gray);
+			const QRect content(x0, 0, 900 - x0 - 2, 80);
+			painter.drawText(content, Qt::AlignCenter, "select single chromosome region to show content");
+			painter.end();
+			QVERIFY2(actual.copy(content) == expected.copy(content), widget->metaObject()->className());
+			QTest::mouseClick(widget, Qt::LeftButton, Qt::NoModifier, content.center());
+		}
+
+		//Loading BAM data in the overview must avoid querying an invalid chromosome.
+		writeFile("overview.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\nread\t0\tchr22\t10\t60\t10M\t*\t0\t0\tAAAAAAAAAA\tIIIIIIIIII\n");
+		{
+			BamReader reader(data_.filePath("overview.sam"));
+			BamWriter writer(data_.filePath("overview.bam"));
+			writer.writeHeader(reader);
+			BamAlignment read;
+			while (reader.getNextAlignment(read)) writer.writeAlignment(read);
+		}
+		QCOMPARE(sam_index_build(data_.filePath("overview.bam").toUtf8().constData(), 0), 0);
+		auto data = BamTrackDataManager::getOrCreate(data_.filePath("overview.bam"));
+		QVERIFY(data);
+		QVERIFY(data->getAlignments().isEmpty());
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		QCOMPARE(data->getAlignments().count(), 1);
+		SharedData::setRegion(Chromosome(), 0, 0);
+		QVERIFY(data->getAlignments().isEmpty());
+
+		GenomeVisualizationWidget viewer(nullptr);
+		viewer.show();
+		QCoreApplication::processEvents();
+		auto* context = viewer.findChild<ChromosomeContextPanel*>("chr_context_panel");
+		QVERIFY(context->isHidden());
+		auto* chromosome = viewer.findChild<ChromosomePanel*>("chr_panel");
+		auto* frame = viewer.findChild<QWidget*>("chromosome_frame");
+		QVERIFY(frame->height() - chromosome->mapTo(frame, QPoint(0, chromosome->height())).y() <= 2);
+		QVERIFY(QMetaObject::invokeMethod(&viewer, "updateIndices", Qt::DirectConnection));
+		auto* selector = viewer.findChild<QComboBox*>("chr_selector");
+		QCOMPARE(selector->currentText(), QString("All"));
+		QVERIFY(!viewer.findChild<QToolButton*>("zoomin_btn")->isEnabled());
+		selector->setCurrentText("chr22");
+		QVERIFY(SharedData::region().isValid());
+		QVERIFY(!context->isHidden());
+		QVERIFY(viewer.findChild<QToolButton*>("zoomin_btn")->isEnabled());
+		selector->setCurrentText("All");
+		QVERIFY(!SharedData::region().isValid());
+		QVERIFY(context->isHidden());
 	}
 
 	void transcriptCache()
@@ -395,7 +484,7 @@ private slots:
 		QCOMPARE(track->parameters().getDouble("max"), 6.0);
 		QCOMPARE(track->parameters().getDouble("reference"), 2.0);
 		QCOMPARE(track->sizeHint().height(), 80);
-		track->parameters().setString("draw mode", "segment");
+		track->parameters().setString("draw mode", "segments");
 		SharedData::setRegion(Chromosome("chr22"), 1, 80);
 		track->resize(SharedData::settings().label_width + 4 + 160, 80);
 		track->show();
@@ -418,7 +507,7 @@ private slots:
 		QTest::mouseClick(track.data(), Qt::LeftButton, Qt::NoModifier, low + QPoint(0, -20));
 		QVERIFY(!track->findChild<QDialog*>());
 
-		track->parameters().setString("draw mode", "segment");
+		track->parameters().setString("draw mode", "segments");
 		QString xml;
 		QXmlStreamWriter writer(&xml);
 		track->writeToXml(writer);
@@ -428,11 +517,52 @@ private slots:
 		QScopedPointer<TrackWidget> restored(TrackWidget::fromXml(document.documentElement(), nullptr, errors));
 		QVERIFY(errors.isEmpty());
 		QVERIFY(qobject_cast<SegTrack*>(restored.data()));
-		QCOMPARE(restored->parameters().getString("draw mode"), QByteArray("segment"));
+		QCOMPARE(restored->parameters().getString("draw mode"), QByteArray("segments"));
 		QCOMPARE(restored->displayName(), track->displayName());
 		QSignalSpy deleted(track.data(), &TrackWidget::trackDeleted);
 		track->reloadTrack();
 		QCOMPARE(deleted.count(), 0);
+	}
+
+	void segWholeGenomeRendering()
+	{
+		const BedLine original = SharedData::region();
+		const auto restore = qScopeGuard([&]() { SharedData::setRegion(original.chr(), original.start(), original.end()); });
+		SharedData::setRegion(Chromosome(), 0, 0);
+		SegTrack track(nullptr, "", "SEG overview");
+		const int x0 = SharedData::settings().label_width + 2;
+		track.resize(x0 + 402, 80);
+		track.setSegFile(QSharedPointer<SegFile>::create(QVector<SegFileLine>{
+			{Chromosome("chr22"), 21, 40, "gain", 3.0},
+			{Chromosome("chr22"), 90, 120, "clipped", 4.0},
+			{Chromosome("chrX"), 21, 40, "loss", 1.0},
+			{Chromosome("chrY"), 21, 40, "gain", 4.0},
+			{Chromosome("chrY"), 190, 250, "clipped", 4.0},
+			{Chromosome("chr23"), 1, 100, "excluded", 5.0},
+			{Chromosome("chrLong"), 1, 10000, "excluded", 5.0}}, QByteArrayList{}, "annotation"));
+		QImage image(track.size(), QImage::Format_ARGB32);
+		for (const QByteArray& mode : QByteArrayList{"segments", "ClinCNV"})
+		{
+			track.parameters().setString("draw mode", mode);
+			track.render(&image);
+			const QList<QPoint> markers{{x0 + 30, 40}, {x0 + 130, 64}, {x0 + 230, 28}};
+			for (int i = 0; i < markers.count(); ++i)
+			{
+				QCOMPARE(image.pixelColor(markers[i]), QColor(i == 1 ? Qt::red : Qt::blue));
+				QTest::mouseClick(&track, Qt::LeftButton, Qt::NoModifier, markers[i]);
+				auto* popup = track.findChild<QDialog*>();
+				QVERIFY(popup);
+				const QString chr = i == 0 ? "chr22" : (i == 1 ? "chrX" : "chrY");
+				QVERIFY(popup->findChild<QLabel*>()->text().contains("Region: " + chr + ":21-40"));
+				delete popup;
+			}
+			QCOMPARE(image.pixelColor(x0 + 105, 28), QColor(Qt::white));
+			QCOMPARE(image.pixelColor(x0 + 395, 28), QColor(Qt::blue));
+			QCOMPARE(image.pixelColor(x0 + 400, 28), QColor(Qt::white));
+		}
+		SharedData::setRegion(Chromosome("chrX"), 1, 100);
+		track.render(&image);
+		QCOMPARE(image.pixelColor(x0 + 120, 64), QColor(Qt::red));
 	}
 
 	void segClinCnvColorsAndNegativePopup()
@@ -451,26 +581,73 @@ private slots:
 		QImage image(track.size(), QImage::Format_ARGB32);
 		track.render(&image);
 		const int x0 = SharedData::settings().label_width + 2;
-		const QColor gray(192, 192, 192);
-		const QVector<QColor> colors{gray, gray, gray, QColor(224, 96, 96), QColor(96, 96, 224), Qt::red, Qt::blue, Qt::black};
+		const QColor reference_over_blue(64, 64, 191);
+		const QVector<QColor> colors{Qt::red, reference_over_blue, Qt::blue, Qt::red, Qt::blue, Qt::red, Qt::blue, Qt::black};
 		for (int i = 0; i < values.size(); ++i)
 		{
 			const QPoint position(x0 + 55 + i * 100, qRound(124 - std::max(0.0, values[i]) * 20));
 			QCOMPARE(image.pixelColor(position), colors[i]);
 		}
+		QCOMPARE(image.pixelColor(x0 + 155, 83), QColor(Qt::blue));
+		QCOMPARE(image.pixelColor(x0 + 250, 84), QColor(191, 191, 191));
+		QCOMPARE(image.pixelColor(x0 + 155, 85), QColor(Qt::white));
+		QCOMPARE(image.pixelColor(x0 + 155, 86), QColor(Qt::white));
 		QTest::mouseClick(&track, Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 755, 124));
 		auto* popup = track.findChild<QDialog*>();
 		QVERIFY(popup);
 		QVERIFY(popup->findChild<QLabel*>()->text().contains("Value: -1"));
 		delete popup;
 
-		track.parameters().setString("draw mode", "segment");
+		SharedData::setRegion(Chromosome("chr22"), 1, 100);
+		track.render(&image);
+		QCOMPARE(image.pixelColor(x0 + 124, 84), reference_over_blue);
+		QCOMPARE(image.pixelColor(x0 + 124, 83), QColor(Qt::blue));
+		SharedData::setRegion(Chromosome(), 0, 0);
+		track.render(&image);
+		QCOMPARE(image.pixelColor(x0 + 31, 84), reference_over_blue);
+		QCOMPARE(image.pixelColor(x0 + 31, 83), QColor(Qt::blue));
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+
+		track.parameters().setString("draw mode", "segments");
 		track.render(&image);
 		QCOMPARE(image.pixelColor(x0 + 355, 96), QColor(Qt::red));
 		QCOMPARE(image.pixelColor(x0 + 455, 72), QColor(Qt::blue));
-		QCOMPARE(image.pixelColor(x0 + 755, 124), QColor(Qt::white));
+		QCOMPARE(image.pixelColor(x0 + 755, 124), QColor(Qt::red));
 		QTest::mouseClick(&track, Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 755, 124));
-		QVERIFY(!track.findChild<QDialog*>());
+		popup = track.findChild<QDialog*>();
+		QVERIFY(popup);
+		QVERIFY(popup->findChild<QLabel*>()->text().contains("Value: -1"));
+		delete popup;
+	}
+
+	void segOutOfRangeSegmentsAndPopups()
+	{
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		SegTrack track(nullptr, "", "Clamped segments");
+		const int x0 = SharedData::settings().label_width + 2;
+		track.resize(x0 + 802, 128);
+		track.setSegFile(QSharedPointer<SegFile>::create(QVector<SegFileLine>{
+			{Chromosome("chr22"), 10, 20, "low", -1.0},
+			{Chromosome("chr22"), 50, 60, "high", 9.0}}, QByteArrayList{}, "annotation"));
+		track.parameters().setDouble("min", 1.0);
+		track.parameters().setDouble("max", 4.0);
+		track.show();
+		QImage image(track.size(), QImage::Format_ARGB32);
+		for (const QByteArray& mode : QByteArrayList{"segments", "ClinCNV"})
+		{
+			track.parameters().setString("draw mode", mode);
+			track.render(&image);
+			QCOMPARE(image.pixelColor(x0 + 145, 124), QColor(mode == "ClinCNV" ? Qt::black : Qt::red));
+			QCOMPARE(image.pixelColor(x0 + 545, 4), QColor(Qt::blue));
+			for (const QPoint& point : {QPoint(x0 + 145, 124), QPoint(x0 + 545, 4)})
+			{
+				QTest::mouseClick(&track, Qt::LeftButton, Qt::NoModifier, point);
+				auto* popup = track.findChild<QDialog*>();
+				QVERIFY(popup);
+				QVERIFY(popup->findChild<QLabel*>()->text().contains(point.y() == 124 ? "Value: -1" : "Value: 9"));
+				delete popup;
+			}
+		}
 	}
 
 	void segVarianceStatisticsAndAlpha()
@@ -511,7 +688,7 @@ private slots:
 			QCOMPARE(color.red(), color.green());
 			QCOMPARE(color.blue(), 255);
 		}
-		track.parameters().setString("draw mode", "segment");
+		track.parameters().setString("draw mode", "segments");
 		track.render(&image);
 		QCOMPARE(image.pixelColor(x0 + 18 * 40 + 15, 64), QColor(Qt::blue));
 
@@ -520,6 +697,50 @@ private slots:
 		QCOMPARE(constant.varianceAlpha(2), 0.3);
 		SegFile missing({SegFileLine(Chromosome("chr22"), 1, 2, "text", 3)}, {}, "variance");
 		QCOMPARE(missing.varianceAlpha(missing[0].variance()), 1.0);
+	}
+
+	void igvWholeGenomeRendering()
+	{
+		const BedLine original = SharedData::region();
+		const auto restore = qScopeGuard([&]() { SharedData::setRegion(original.chr(), original.start(), original.end()); });
+		SharedData::setRegion(Chromosome(), 0, 0);
+		IgvTrack track(nullptr, "", "IGV overview");
+		const int x0 = SharedData::settings().label_width + 2;
+		track.resize(x0 + 402, 100);
+		track.setIgvFile(QSharedPointer<IgvFile>::create(QVector<IgvFileLine>{
+			{Chromosome("chr22"), 21, 21, 0.75}, {Chromosome("chr22"), 61, 61, 0.75},
+			{Chromosome("chrX"), 21, 21, 0.75}, {Chromosome("chrX"), 61, 61, 0.75},
+			{Chromosome("chrY"), 21, 21, 0.75}, {Chromosome("chrY"), 161, 161, 0.75},
+			{Chromosome("chr23"), 1, 100, 1.0}, {Chromosome("chrLong"), 1, 10000, 1.0}}, QByteArrayList{}));
+		QImage image(track.size(), QImage::Format_ARGB32);
+		for (const QByteArray& mode : QByteArrayList{"points", "bar chart", "heatmap", "line plot"})
+		{
+			track.parameters().setString("draw mode", mode);
+			track.render(&image);
+			//Canonical chromosome widths are 100, 100, 200 pixels, matching the top panel.
+			for (int offset : {20, 120, 220})
+			{
+				const QColor pixel = image.pixelColor(x0 + offset, 27);
+				QVERIFY2(pixel.blue() > pixel.red(), mode.constData());
+				QTest::mouseClick(&track, Qt::LeftButton, Qt::NoModifier, QPoint(x0 + offset, 27));
+				auto* popup = track.findChild<QDialog*>();
+				QVERIFY(popup);
+				const QString chr = offset == 20 ? "chr22" : (offset == 120 ? "chrX" : "chrY");
+				QVERIFY(popup->findChild<QLabel*>()->text().contains("Region: " + chr + ":21-21"));
+				delete popup;
+			}
+			if (mode == "line plot")
+			{
+				QCOMPARE(image.pixelColor(x0 + 90, 27), QColor(Qt::white));
+				QCOMPARE(image.pixelColor(x0 + 190, 27), QColor(Qt::white));
+				QCOMPARE(image.pixelColor(x0 + 40, 27), QColor(Qt::blue));
+			}
+		}
+		//Switch back to the ordinary single-chromosome coordinate mapping.
+		SharedData::setRegion(Chromosome("chrX"), 1, 100);
+		track.parameters().setString("draw mode", "points");
+		track.render(&image);
+		QVERIFY(image.pixelColor(x0 + 82, 27).blue() > image.pixelColor(x0 + 82, 27).red());
 	}
 
 	void igvNumericRecordsAndMetadata()
@@ -2778,6 +2999,82 @@ private slots:
 		QCOMPARE(errors_shown, 1);
 	}
 
+	void bedTrackWholeGenomeHistogram()
+	{
+		const BedLine original = SharedData::region();
+		const auto restore = qScopeGuard([&]() { SharedData::setRegion(original.chr(), original.start(), original.end()); });
+		SharedData::setRegion(Chromosome(), 0, 0);
+		BedTrack track(nullptr, "", "BED histogram");
+		track.parameters().setString("color", "transcript blue");
+		auto data = QSharedPointer<BedFile>::create();
+		for (const BedLine& line : {
+			BedLine(Chromosome("chr22"), 21, 21), BedLine(Chromosome("chr22"), 22, 22),
+			BedLine(Chromosome("chr22"), 21, 40), BedLine(Chromosome("chrX"), 21, 30),
+			BedLine(Chromosome("chrY"), 200, 250), BedLine(Chromosome("chr23"), 1, 100),
+			BedLine(Chromosome("chrLong"), 1, 10000)}) data->append(line);
+		data->sort();
+		track.setBedFile(data);
+		QCOMPARE(track.sizeHint().height(), 50);
+		const int x0 = SharedData::settings().label_width + 2;
+		track.resize(x0 + 42, 50); //10 pixels chr22, 10 chrX, 20 chrY.
+		QImage image(track.size(), QImage::Format_ARGB32);
+		for (const QByteArray& mode : QByteArrayList{"collapsed", "expanded"})
+		{
+			track.parameters().setString("draw mode", mode);
+			track.render(&image);
+			QCOMPARE(image.pixelColor(x0 + 2, 30), QColor("#0000B2")); //Three regions under one pixel.
+			for (int x : {3, 12, 39})
+			{
+				QCOMPARE(image.pixelColor(x0 + x, 40), QColor("#0000B2")); //One region: one third height.
+				QCOMPARE(image.pixelColor(x0 + x, 30), QColor(Qt::white));
+			}
+			for (int x : {4, 9, 10, 13, 20, 38, 40})
+				QCOMPARE(image.pixelColor(x0 + x, 40), QColor(Qt::white));
+		}
+		track.resize(x0 + 82, 50);
+		image = QImage(track.size(), QImage::Format_ARGB32);
+		track.render(&image);
+		QCOMPARE(image.pixelColor(x0 + 4, 30), QColor("#0000B2"));
+		data = QSharedPointer<BedFile>::create();
+		track.setBedFile(data);
+		track.render(&image);
+		QCOMPARE(image.pixelColor(x0 + 4, 40), QColor(Qt::white));
+	}
+
+	void bedTrackHistogramMinimumHeightInLayoutAndSession()
+	{
+		const BedLine original = SharedData::region();
+		const auto restore = qScopeGuard([&]() { SharedData::setRegion(original.chr(), original.start(), original.end()); });
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		TrackGroup group(nullptr);
+		group.resize(600, 30);
+		auto* track = new BedTrack(nullptr, "", "BED");
+		group.addTrackWidgets({track});
+		group.show();
+		QTRY_COMPARE(track->height(), 25);
+		SharedData::setRegion(Chromosome(), 0, 0);
+		QTRY_COMPARE(track->height(), 50);
+		QCOMPARE(track->minimumHeight(), 50);
+		SharedData::setRegion(Chromosome("chr22"), 1, 80);
+		QTRY_COMPARE(track->height(), 25);
+
+		writeFile("histogram-height.bed", "chr22\t10\t20\n");
+		std::unique_ptr<BedTrack> source(BedTrack::createTrack(nullptr, data_.filePath("histogram-height.bed"), "BED"));
+		source->setFixedHeight(25);
+		QString xml;
+		QXmlStreamWriter writer(&xml);
+		source->writeToXml(writer);
+		QDomDocument document;
+		QVERIFY(document.setContent(xml));
+		SharedData::setRegion(Chromosome(), 0, 0);
+		QStringList errors;
+		std::unique_ptr<TrackWidget> restored(TrackWidget::fromXml(document.documentElement(), nullptr, errors));
+		QVERIFY(restored);
+		QVERIFY(errors.isEmpty());
+		QCOMPARE(restored->height(), 50);
+		QCOMPARE(restored->minimumHeight(), 50);
+	}
+
 	void bedTrackTabixIndexed()
 	{
 		const QByteArray visible = "chr22\t0\t1\tfirst_base\nchr22\t9\t20\tleft\nchr22\t19\t30\toverlap\t123\t-\nchr22\t40\t41\tedge\nchr22\t80\t100\tfar\n";
@@ -2828,7 +3125,7 @@ private slots:
 			};
 			for (const BedLine& region : {BedLine(Chromosome("chr22"), 1, 41), BedLine(Chromosome("chr22"), 42, 82),
 				BedLine(Chromosome("chr22"), 41, 81), BedLine(Chromosome("chrLong"), 4990, 5030),
-				BedLine(Chromosome("chrX"), 1, 41), BedLine(Chromosome("chr22"), 1, 41)})
+				BedLine(Chromosome("chrX"), 1, 41), BedLine(), BedLine(Chromosome("chr22"), 1, 41)})
 			{
 				SharedData::setRegion(region.chr(), region.start(), region.end());
 				compare_drawing();

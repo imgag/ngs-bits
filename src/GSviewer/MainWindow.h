@@ -21,6 +21,7 @@ private slots:
 	void openDocumentation();
 	void showAboutDialog();
 	void addNRegions();
+	void showNamedColors();
 
 private:
 	Ui::MainWindow ui_;

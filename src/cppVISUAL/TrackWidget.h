@@ -3,6 +3,7 @@
 
 #include "cppVISUAL_global.h"
 #include "ParameterList.h"
+#include "BedFile.h"
 #include <QMouseEvent>
 #include <QWidget>
 #include <QXmlStreamWriter>
@@ -14,6 +15,7 @@ struct CPPVISUALSHARED_EXPORT Viewport
 	int usable_width; //usable width of painting (widget width - label region width - 4px margin)
 	int x0; //leftmost x-coodinate
 	float pixels_per_base; //pixels per base
+	int genome_start; //one-based coordinate at x0
 
 	float genomePosToScreen(int genome_pos) const;
 	float genomeWidthToScreen(int genome_width) const;
@@ -70,8 +72,12 @@ protected:
 	void showInfoPopup(QPointF global_pos, QString info);
 	// draws the name of the widget on the left side
 	void drawLabel(QPainter&);
+	//Draws the overview placeholder and returns true if no single region is selected.
+	bool drawOverviewMessage(QPainter&);
 	//Returns the current viewport for drawing and coordinate conversion.
 	Viewport getViewport() const;
+	//One plot for a selected region, or proportional plots for all canonical chromosomes.
+	QVector<QPair<BedLine, Viewport>> plotViewports() const;
 
 	QString file_path_; //path or URL of the source file
 	ParameterList settings_; //settings
