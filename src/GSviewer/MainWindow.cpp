@@ -1,5 +1,7 @@
 #include "MainWindow.h"
 #include "Settings.h"
+#include "TrackGroup.h"
+#include "IgvTrack.h"
 #include "TranscriptCache.h"
 #include "SharedData.h"
 #include "GenomeVisualizationWidget.h"
@@ -29,6 +31,7 @@
 #include <QVBoxLayout>
 #include <QTableWidget>
 #include <QHeaderView>
+#include <TrackGroupManager.h>
 
 MainWindow::MainWindow(QString bind, QWidget *parent)
     : QMainWindow(parent),
@@ -326,8 +329,8 @@ static const QHash<QString, QString> RENAME_COLORBY = {
 };
 
 void MainWindow::handleColorBy(QStringList args) {
-    if (args.length() != 1)
-        THROW(Exception, "Invalid number of arguments received. Expected exactly 1, got " + QString::number(args.length()));
+    if (args.length() < 1 || args.length() > 2)
+        THROW(Exception, "Expected exactly 1-2 arguments. Got " + QString::number(args.length()));
 
     auto rename = RENAME_COLORBY.contains(args[0]) ? RENAME_COLORBY.value(args[0]) : args[0];
 
@@ -351,7 +354,42 @@ void MainWindow::handleGroupBy(QStringList args) {
 }
 
 void MainWindow::handleScreenshot(QStringList args) {
-    THROW(Exception, "This command is not implemented yet. We're awaiting architectural changes before this is possible.");
+    // THROW(Exception, "This command is not implemented yet. We're awaiting architectural changes before this is possible.");
+
+    if (args.length() > 1)
+        THROW(Exception, "Expected exactly 0 or 1 arguments. Got " + QString::number(args.length()));
+
+    auto track = findChild<TrackGroupManager*>();
+
+    track->ensurePolished();
+
+    if (track->layout()) track->layout()->activate();
+    if (track->size().isEmpty()) track->resize(track->sizeHint());
+
+    qreal dpr = 1.0;
+
+    QImage img(track->size() * dpr, QImage::Format_ARGB32_Premultiplied);
+    img.setDevicePixelRatio(dpr);
+    img.fill(Qt::transparent);
+
+    track->render(&img, QPoint(), QRegion(), QWidget::DrawWindowBackground | QWidget::DrawChildren);
+
+    qDebug() << "Capturing screenshot" << SharedData::region().toString(true);
+
+    if (args.length() > 0 && !args[0].isEmpty())
+        img.save(args[0]);
+
+    else {
+        const QDir dir(QDir(QStandardPaths::writableLocation(QStandardPaths::PicturesLocation))
+                           .filePath("GSviewer Screenshots"));
+
+        if (!dir.mkpath(".")) THROW(ProgrammingException, "Unable to create intermediate directory for screenshots");
+
+        const QString destination = dir.filePath(
+            SharedData::region().toString(true).replace(':', '-') + ".png");
+
+        img.save(destination);
+    }
 }
 
 void MainWindow::showAboutDialog()
