@@ -45,6 +45,7 @@ private:
     void handleColorBy(QStringList args);
     void handleScreenshot(QStringList args);
     void handleGroupBy(QStringList args);
+    void stub();
 };
 
 #endif // MAINWINDOW_H

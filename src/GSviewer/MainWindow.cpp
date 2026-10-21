@@ -232,9 +232,6 @@ void MainWindow::executeApiCommand(ApiCommand cmd) {
         else if (cmd.verb == "load")
             handleLoad(cmd.arguments);
 
-        else if (cmd.verb == "genome")
-            handleGenome(cmd.arguments);
-
         else if (cmd.verb == "setSleepInterval")
             handleSleep(cmd.arguments);
 
@@ -249,6 +246,9 @@ void MainWindow::executeApiCommand(ApiCommand cmd) {
 
         else if (cmd.verb == "snapshot")
             handleScreenshot(cmd.arguments);
+
+        else if (cmd.verb == "collapse" || cmd.verb == "genome")
+            stub();
 
         else {
             QString msg = QString("UNKOWN COMMAND: %1").arg(cmd.verb);  // Absichtlicher Tippfehler. Das kommmt aus IGV so
@@ -277,6 +277,8 @@ void MainWindow::err(QString header, QString text) {
     box->setAttribute(Qt::WA_DeleteOnClose);
     box->open();   // window-modal, returns immediately
 }
+
+void MainWindow::stub() {}
 
 void MainWindow::handleGoto(QStringList args)
 {
@@ -307,23 +309,6 @@ void MainWindow::handleLoad(QStringList args)
             else ui_.gvw->loadFile(url.toString());
         }
     }
-}
-
-void MainWindow::handleGenome(QStringList args) {
-    // This code used to work, but has since stopped, because GSvar passes a different file format than what is expected. Resultantly, disable the code and return an error if this function is used.
-
-    // if (args.length() != 1) THROW(Exception, "Expected exactly 1 argument. Got " + QString::number(args.length()));
-
-    // QString file = args[0];
-
-    // if (file.isEmpty()) THROW(Exception, "Expected a path or URL. Got nothing");
-
-    // RefGenomeService::instance().setReferenceGenome(api.parseUrl(file).toString());
-    // ui_.gvw->clearSession();
-
-    THROW(Exception, "This command will not be implemented due to differences in Scope between IGV and GSViewer.");
-
-    return;
 }
 
 void MainWindow::handleSleep(QStringList args) {
