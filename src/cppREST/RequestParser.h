@@ -32,7 +32,7 @@ private:
 
 	QList<int> getBoundaryStartPositions(const QByteArray& form, const QString& boundary) const;
 	QString getMultipartFileName(const QByteArray& multipart_item) const;
-	QByteArray getMultipartFileContent(QByteArray& multipart_item) const;
+	QByteArray getMultipartFileContent(const QByteArray& multipart_item) const;
 };
 
 
