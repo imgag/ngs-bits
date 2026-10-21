@@ -9,7 +9,8 @@
 #include <BamCoverageTrack.h>
 #include <BamAlignmentTrack.h>
 
-namespace Ui {
+namespace Ui
+{
 class GenomeVisualizationWidget;
 }
 
@@ -29,7 +30,7 @@ public:
 	//Adds a generated BED track with a backing file for reload/session persistence.
 	void addBedTrack(QSharedPointer<BedFile> regions, QString file_path, QString name);
 
-    QList<BamAlignmentTrack*> bam_tracks();
+	QList<BamAlignmentTrack*> bamTracks();
 
 public slots:
 	//Shows 'open file' dialog
@@ -72,12 +73,12 @@ protected slots:
 	//Update the label that shows the genomic coordinate under the cursor
 	void updateCoordinateLabel(QString text);
 	//Updates indices (called when transcripts changed)
-    void updateIndices();
+	void updateIndices();
 	//Sets the region of the whole chromosome
 	void setChromosomeRegion(QString chromsome);
 	//Debugging method
 	//Toggle settings visbilty
-    void toggleSettingsVisibility();
+	void toggleSettingsVisibility();
 
 signals:
 	//Emitted when the displayed region has changed.

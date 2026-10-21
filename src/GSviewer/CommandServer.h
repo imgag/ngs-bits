@@ -15,58 +15,61 @@
 #include <CommandListener.h>
 #include <QUrl>
 
-struct CommandResult {
-    quint32 id;
-    bool success;
-    QString output;
+struct CommandResult
+{
+	quint32 id;
+	bool success;
+	QString output;
 };
 
-struct ApiCommand {
-    /// Timestamp of when the command was parsed (not when it was dispatched or handled)
-    QDateTime received;
+struct ApiCommand
+{
+	/// Timestamp of when the command was parsed (not when it was dispatched or handled)
+	QDateTime received;
 
-    /// A Serial ID representing the command's ordering
-    quint32 id;
+	/// A Serial ID representing the command's ordering
+	quint32 id;
 
-    /// The verb with which the command was invoked. (The first argument).
-    QString verb;
+	/// The verb with which the command was invoked. (The first argument).
+	QString verb;
 
-    /// The remaining command text after the verb.
-    QStringList arguments;
+	/// The remaining command text after the verb.
+	QStringList arguments;
 };
 
 class CommandServer : public QObject
 {
-    Q_OBJECT
+	Q_OBJECT
 
 private:
-    std::unique_ptr<CommandListener> sock;
-    quint32 cmd_id = 0;
+	std::unique_ptr<CommandListener> sock_;
+	quint32 cmd_id_ = 0;
 
-    ApiCommand parseCommand(QString cmd);
+	ApiCommand parseCommand(QString cmd);
 
-    QHash<QString, QString> accessTokens;
+	QHash<QString, QString> access_tokens_;
 
-    void handleAccessToken(ApiCommand cmd);
+	void handleAccessToken(ApiCommand cmd);
+
 public:
-    explicit CommandServer(QString socket_path = "", QObject *parent = nullptr);
+	explicit CommandServer(QString socket_path = "", QObject* parent = nullptr);
 
-    void bind();
-    void terminate();
+	void bind();
+	void terminate();
 
-    void dispatchResponse(ApiCommand cmd);
-    void dispatchResponse(ApiCommand cmd, QString data);
-    void dispatchFailure(ApiCommand cmd, QString failure);
+	void dispatchResponse(ApiCommand cmd);
+	void dispatchResponse(ApiCommand cmd, QString data);
+	void dispatchFailure(ApiCommand cmd, QString failure);
 
-    static QStringList split_quoted(QString);
+	static QStringList splitQuoted(QString);
 
-    QUrl parseUrl(QString str);
+	QUrl parseUrl(QString str);
 signals:
-    void commandReceived(ApiCommand cmd);
-    void responseReady(CommandResult res);
+	void commandReceived(ApiCommand cmd);
+	void responseReady(CommandResult res);
 
 protected slots:
-    void newConnection(QIODevice* sock);
+	void newConnection(QIODevice* socket);
 };
 
 #endif // COMMANDSERVER_H

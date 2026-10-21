@@ -31,10 +31,10 @@ enum class TabType
 
 ///Main window class
 class MainWindow
-		: public QMainWindow
+	: public QMainWindow
 {
 	Q_OBJECT
-	
+
 public:
 	///Constructor
 	MainWindow(QWidget* parent = 0);
@@ -45,19 +45,19 @@ public:
 	/// Gets server API information to make sure ther the server is currently running
 	bool isServerRunning();
 
-    /// Gets the list of files needed to initialize IGV, reduces the delay before the fist call to IGV
-    void lazyLoadIGVfiles(QString current_file);
+	/// Gets the list of files needed to initialize IGV, reduces the delay before the fist call to IGV
+	void lazyLoadIGVfiles(QString current_file);
 
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
 	///Returns the LOG files corresponding to the variant list.
-	QStringList getLogFiles();	
+	QStringList getLogFiles();
 	///Adds a file to the recent processed sample list
 	void addToRecentSamples(QString ps);
 	///Updates recent processed samples menu
 	void updateRecentSampleMenu();
 	///Updates IGV menu
-    void updateIGVMenu();
+	void updateIGVMenu();
 	///Enabled/disables actions/buttons depending if NGSD is enabled or disabled.
 	void updateNGSDSupport();
 	///Returns 'nobr' paragraph start for Qt tooltips
@@ -67,7 +67,7 @@ public:
 	void editVariantClassification(VariantList& variant, int index);
 
 	///Returns if germline report is supported for current variant list. If error is given, it is filled with the error message, if false is returned.
-	bool germlineReportSupported(bool require_ngsd = true, QString* error=nullptr);
+	bool germlineReportSupported(bool require_ngsd = true, QString* error = nullptr);
 	///Returns the processed sample name for which report configuration is set and the report is generated.
 	QString germlineReportSample();
 	///Returns if somatic tumor-normal report is supported for current variant list.
@@ -91,14 +91,14 @@ public:
 
 	/// Checks if there is a new client version available
 	void checkClientUpdates();
-    QString getCurrentFileName();
-    AnalysisType getCurrentAnalysisType();
+	QString getCurrentFileName();
+	AnalysisType getCurrentAnalysisType();
 
 public slots:
 	///Upload variant to Clinvar
-    void uploadToClinvar(int variant_index1, int variant_index2=-1);
-    /// Updates (only in clinet-server mode) the secure token
-    void updateSecureToken();
+	void uploadToClinvar(int variant_index1, int variant_index2 = -1);
+	/// Updates (only in clinet-server mode) the secure token
+	void updateSecureToken();
 	/// Checks (only in clinet-server mode) if the server is currently running
 	void checkServerAvailability();
 	/// Resets the expiration time for the URLs related to the currently opened sample
@@ -106,13 +106,13 @@ public slots:
 	/// Checks (only in clinet-server mode) if there is some new information needed to be displayed to the user (e.g. downtimes, maintenance, reboots, updates)
 	void checkUserNotifications();
 	///Loads a variant list. Unloads the variant list if no file name is given
-	void loadFile(QString filename="", bool show_only_error_issues=false);
+	void loadFile(QString filename = "", bool show_only_error_issues = false);
 	///Checks if variant list is outdated
 	void checkVariantList(QList<QPair<Log::LogLevel, QString>>& issues);
 	///Checks if processed samples have bad quality or other problems
 	void checkProcessedSamplesInNGSD(QList<QPair<Log::LogLevel, QString>>& issues);
 	///Shows a dialog with issues in analysis. Returns the DialogCode.
-	int showAnalysisIssues(QList<QPair<Log::LogLevel, QString> >& issues, bool show_only_error_issues);
+	int showAnalysisIssues(QList<QPair<Log::LogLevel, QString>>& issues, bool show_only_error_issues);
 	///Open dialog
 	void on_actionOpen_triggered();
 	///Open dialog by name (using NGSD)
@@ -127,8 +127,8 @@ public slots:
 	void on_actionOpenProcessedSampleTabByName_triggered();
 	///Open sequencing run tab by name
 	void on_actionOpenSequencingRunTabByName_triggered();
-    ///Open sequencing gene tab by gene name
-    void on_actionOpenGeneTabByName_triggered();
+	///Open sequencing gene tab by gene name
+	void on_actionOpenGeneTabByName_triggered();
 	///Open variant tab by search
 	void on_actionOpenVariantTab_triggered();
 	///Open processing system by short name
@@ -154,7 +154,7 @@ public slots:
 	void on_actionSpecies_triggered();
 	void on_actionUsers_triggered();
 	void on_actionExportTestData_triggered();
-    void on_actionExportSampleData_triggered();
+	void on_actionExportSampleData_triggered();
 	void on_actionImportSequencingRuns_triggered();
 	void on_actionImportTestData_triggered();
 	void on_actionImportMids_triggered();
@@ -177,7 +177,7 @@ public slots:
 	void on_actionCheckBamAccess_triggered();
 	void on_actionAnalysisTimePlot_triggered();
 
-    ///Gender determination
+	///Gender determination
 	void on_actionGenderXY_triggered();
 	///Gender determination
 	void on_actionGenderHet_triggered();
@@ -318,7 +318,7 @@ public slots:
 	///Ping GSvar server
 	void on_actionPingGSvarServer_triggered();
 	///Ping NGSD server
-    void on_actionPingNgsdServer_triggered();
+	void on_actionPingNgsdServer_triggered();
 
 	///Calculate gaps based on current target region filter
 	void calculateGapsByTargetRegionFilter();
@@ -407,13 +407,13 @@ public slots:
 	///Open column settings dialog
 	void openColumnSettings();
 	///Open settings dialog on a specific page
-	void openSettingsDialog(QString page_name="view", QString section = "");
+	void openSettingsDialog(QString page_name = "view", QString section = "");
 
 	///Subpanel design dialog
 	void openSubpanelDesignDialog(const GeneSet& genes = GeneSet());
 
 	///Adds and shows a modeless dialog
-	void addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize=false);
+	void addModelessDialog(QSharedPointer<QDialog> dlg, bool maximize = false);
 	///Adds and shows a modeless dialog
 	void deleteClosedModelessDialogs();
 	///Imports phenotype data from NGSD
@@ -422,7 +422,7 @@ public slots:
 	void createSubPanelFromPhenotypeFilter();
 
 	///Opens a sample based on the processed sample name
-	void openProcessedSampleFromNGSD(QString processed_sample_name, bool search_multi=true);
+	void openProcessedSampleFromNGSD(QString processed_sample_name, bool search_multi = true);
 	///Opens a sample based on the sample name
 	void openSampleFromNGSD(QString sample_name);
 
@@ -435,7 +435,7 @@ public slots:
 	void openRunTab(QString run_name);
 	///Open run batch tab
 	void openRunBatchTab(const QStringList& run_names);
-    ///Open gene tab
+	///Open gene tab
 	void openGeneTab(QString symbol);
 	///Open variant tab
 	void openVariantTab(Variant variant);
@@ -484,26 +484,26 @@ public slots:
 	//Show matching CNVs and SVs
 	void showMatchingCnvsAndSvs(BedLine region);
 
-    //Open a window with the IGV command history
+	//Open a window with the IGV command history
 	void displayIgvHistoryTable();
-    //Show in the status bar that IGV is currently executing a command
-    void changeIgvIconToActive();
-    //Show in the status bar that IGV is idle
-    void changeIgvIconToNormal();
+	//Show in the status bar that IGV is currently executing a command
+	void changeIgvIconToActive();
+	//Show in the status bar that IGV is idle
+	void changeIgvIconToNormal();
 	//Open background jobs dialog
 	void showBackgroundJobDialog();
-    //Starts a background job and returns its id
-    int startJob(BackgroundWorkerBase* worker, bool show_busy_dialog);
-    //Returns information about a background job status by its id
-    QString getJobStatus(int id);
-    //Returns error messages for a background job by its id (if it failed)
-    QString getJobMessages(int id);
+	//Starts a background job and returns its id
+	int startJob(BackgroundWorkerBase* worker, bool show_busy_dialog);
+	//Returns information about a background job status by its id
+	QString getJobStatus(int id);
+	//Returns error messages for a background job by its id (if it failed)
+	QString getJobMessages(int id);
 	///Opens IVG at the position of a CNV/SV
 	void jumpToCnvOrSvPosition(int row);
 	//Set application style
 	void setStyle(QString name);
 
-    ///close the app and logout (if in client-sever mode)
+	///close the app and logout (if in client-sever mode)
 	void closeAndLogout();
 
 
@@ -516,9 +516,9 @@ protected:
 	///	Wrapper function for QInputDialog::getItem to handle long URLs:
 	/// the list visible to the user will contain only file names (not entire URLs). It makes the
 	/// list easier to read and saves some screen real estate
-	QString getFileSelectionItem(QString window_title, QString label_text, QStringList file_list, bool *ok);
-    /// Removes a user's session on the server (in client-server mode)
-    void performLogout();
+	QString getFileSelectionItem(QString window_title, QString label_text, QStringList file_list, bool* ok);
+	/// Removes a user's session on the server (in client-server mode)
+	void performLogout();
 	//Returns the path to the genome viewer app
 	QString viewerApp();
 
@@ -529,7 +529,7 @@ private:
 	int var_last_;
 	QList<QSharedPointer<QDialog>> modeless_dialogs_;
 	QLabel* notification_label_;
-    ClickableLabel* igv_history_label_;
+	ClickableLabel* igv_history_label_;
 	ClickableLabel* background_job_label_;
 	BackgroundJobDialog* bg_job_dialog_;
 
@@ -580,8 +580,8 @@ private:
 	DelayedInitializationTimer init_timer_;
 	QString displayed_maintenance_message_id_;
 
-    //current server version (if in client-server mode)
-    QString server_version_; 
+	//current server version (if in client-server mode)
+	QString server_version_;
 };
 
 #endif // MAINWINDOW_H

@@ -7,46 +7,48 @@
 
 class CommandListener : public QObject
 {
-    Q_OBJECT
+	Q_OBJECT
 
 protected:
-    explicit CommandListener(QString addr, QObject *parent = nullptr);
+	explicit CommandListener(QString addr, QObject* parent = nullptr);
 
 public:
-    static std::unique_ptr<CommandListener> fromString(const QString &address, QObject* parent = nullptr);
+	static std::unique_ptr<CommandListener> fromString(const QString& address, QObject* parent = nullptr);
 
-    virtual void bind() = 0;
-    virtual void terminate() = 0;
+	virtual void bind() = 0;
+	virtual void terminate() = 0;
 
 protected:
-    QString address;
+	QString address_;
 
 signals:
-    void newConnection(QIODevice* socket);
-    void closedConnection(QIODevice* socket);
+	void newConnection(QIODevice* socket);
+	void closedConnection(QIODevice* socket);
 };
 
-class TcpListener : public CommandListener {
+class TcpListener : public CommandListener
+{
 private:
-    QTcpServer sock;
-    quint16 port;
+	QTcpServer sock_;
+	quint16 port_;
 
 public:
-    TcpListener(const quint16 port, QObject *parent = nullptr);
+	TcpListener(const quint16 port, QObject* parent = nullptr);
 
-    void bind() override;
-    void terminate() override;
+	void bind() override;
+	void terminate() override;
 };
 
-class LocalListener : public CommandListener {
+class LocalListener : public CommandListener
+{
 private:
-    QLocalServer sock;
+	QLocalServer sock_;
 
 public:
-    LocalListener(const QString &path, QObject *parent);
+	LocalListener(const QString& path, QObject* parent);
 
-    void bind() override;
-    void terminate() override;
+	void bind() override;
+	void terminate() override;
 };
 
 #endif // COMMANDLISTENER_H

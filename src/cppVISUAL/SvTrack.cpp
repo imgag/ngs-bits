@@ -43,8 +43,7 @@ QList<Parameter> SvTrack::getParameters() const
 {
 	return {
 		Parameter("min QUAL", "Minimum variant quality. Missing or invalid QUAL is included only when the minimum is zero.", ParameterType::DOUBLE, {{ConstraintType::MIN, 0.0}, {ConstraintType::DISPLAY_DIGITS, 2}}),
-		Parameter("PASS only", "Show only variants with FILTER=PASS. Excludes missing FILTER and FILTER=.", ParameterType::BOOL, {})
-	};
+		Parameter("PASS only", "Show only variants with FILTER=PASS. Excludes missing FILTER and FILTER=.", ParameterType::BOOL, {})};
 }
 
 QHash<QByteArray, QVariant> SvTrack::getParameterDefaults() const
@@ -81,7 +80,11 @@ void SvTrack::loadSource()
 
 void SvTrack::reloadTrack()
 {
-	try { loadSource(); updateLayout(); }
+	try
+	{
+		loadSource();
+		updateLayout();
+	}
 	catch (const Exception& e)
 	{
 		QMessageBox::critical(QApplication::activeWindow(), "Error loading BEDPE", e.message());
@@ -123,8 +126,7 @@ void SvTrack::updateLayout()
 				p.side = side;
 				p.x = viewport.genomePosToScreen(std::clamp(midpoint(starts[side], ends[side]), region.start(), region.end()));
 				const bool same_chr = chrs[side] == chrs[1 - side];
-				p.mate_visible = same_chr && starts[1 - side] >= 0 && ends[1 - side] >= starts[1 - side]
-					&& starts[1 - side] <= region.end() && ends[1 - side] >= region.start();
+				p.mate_visible = same_chr && starts[1 - side] >= 0 && ends[1 - side] >= starts[1 - side] && starts[1 - side] <= region.end() && ends[1 - side] >= region.start();
 				const int direction = same_chr && starts[1 - side] >= 0 && midpoint(starts[1 - side], ends[1 - side]) < midpoint(starts[side], ends[side]) ? -1 : 1;
 				const double label_width = metrics.horizontalAdvance(StructuralVariantTypeToString(sv.type()));
 				const double arrow_length = std::max(32.0, label_width + 8);
@@ -307,11 +309,14 @@ int SvTrack::variantAt(const QPoint& pos, QRect* hit_rect, bool labels_only) con
 			return p.index;
 		}
 	}
-	if (!labels_only) for (const auto& p : placements_)
+	if (!labels_only)
 	{
-		if (!p.bounds.contains(pos)) continue;
-		if (hit_rect) *hit_rect = p.bounds.toAlignedRect();
-		return p.index;
+		for (const auto& p : placements_)
+		{
+			if (!p.bounds.contains(pos)) continue;
+			if (hit_rect) *hit_rect = p.bounds.toAlignedRect();
+			return p.index;
+		}
 	}
 	return -1;
 }
@@ -329,8 +334,7 @@ void SvTrack::mouseReleaseEvent(QMouseEvent* event)
 {
 	if (event->button() == Qt::LeftButton)
 	{
-		if (pressed_variant_ >= 0 && variantAt(event->pos(), nullptr, true) == pressed_variant_
-			&& (event->pos() - mouse_press_pos_).manhattanLength() < QApplication::startDragDistance())
+		if (pressed_variant_ >= 0 && variantAt(event->pos(), nullptr, true) == pressed_variant_ && (event->pos() - mouse_press_pos_).manhattanLength() < QApplication::startDragDistance())
 		{
 			showInfoPopup(event->globalPosition(), variantText(pressed_variant_));
 		}
@@ -362,5 +366,5 @@ bool SvTrack::event(QEvent* event)
 
 SvTrack* SvTrack::createTrack(QWidget* parent, QString file_path, QString name)
 {
-    return new SvTrack(parent, file_path, name);
+	return new SvTrack(parent, file_path, name);
 }
