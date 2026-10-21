@@ -64,26 +64,11 @@ void CommandServer::newConnection(QIODevice* socket) {
 }
 
 void CommandServer::handleAccessToken(ApiCommand cmd) {
-    for (auto arg : cmd.arguments) {
-        auto split = arg.lastIndexOf(" *");
+    QUrl url = QUrl::fromUserInput(cmd.arguments[1].sliced(1, cmd.arguments[1].length() - 2).trimmed());
 
-        auto token = arg.sliced(0, split).trimmed();
-        auto urlFragment = arg.sliced(split).trimmed();
+    if (url.scheme().isEmpty()) url.setScheme("http");
 
-        if (urlFragment.startsWith('*'))
-            urlFragment = urlFragment.sliced(1);
-
-        if (urlFragment.endsWith('*'))
-            urlFragment = urlFragment.sliced(0, urlFragment.length() - 1);
-
-        QUrl url = QUrl::fromUserInput(urlFragment);
-
-        if (url.scheme().isEmpty()) {
-            url.setScheme("http");
-        }
-
-        accessTokens.insert(url.host(), token);
-    }
+    accessTokens.insert(url.host(), cmd.arguments[0].trimmed());
 
     dispatchResponse(cmd);
 }
@@ -145,14 +130,17 @@ void CommandServer::dispatchFailure(ApiCommand cmd, QString failure) {
 QUrl CommandServer::parseUrl(QString str) {
     QUrl url = QUrl::fromUserInput(str);
 
-    QUrlQuery query(url);
+    if (url.scheme().startsWith("http") || url.scheme().startsWith("https")) {
+        QUrlQuery query(url);
 
-    if (accessTokens.contains(url.host()))
-        query.addQueryItem("token", accessTokens.value(url.host()));
+        if (accessTokens.contains(url.host()))
+            query.addQueryItem("token", accessTokens.value(url.host()));
 
-    url.setQuery(query);
 
-    qDebug() << url;
+        url.setQuery(query);
+
+        qDebug() << "Added Token to URL:" << url << "(" << accessTokens.value(url.host()) << ")";
+    }
 
     return url;
 }
@@ -199,8 +187,6 @@ QStringList CommandServer::split_quoted(QString str) {
 
     if (!token.trimmed().isEmpty())
         split << token.trimmed();
-
-    qDebug() << split;
 
     return split;
 }

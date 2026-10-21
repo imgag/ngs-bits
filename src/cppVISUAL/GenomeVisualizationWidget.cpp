@@ -244,7 +244,11 @@ void GenomeVisualizationWidget::openFileDialog()
 	{
 		foreach(QString file, files)
         {
-            loadFile(file);
+            try {
+                loadFile(file);
+            } catch (Exception e) {
+                QMessageBox::critical(QApplication::activeWindow(), "Could not load file", e.message());
+            }
         }
 		Settings::setPath("load_store_file_folder", QFileInfo(files[0]).absolutePath());
 	}

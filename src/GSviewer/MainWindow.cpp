@@ -266,7 +266,6 @@ void MainWindow::executeApiCommand(ApiCommand cmd) {
         return;
     }
 
-    qDebug() << "Dispatching default response";
     api.dispatchResponse(cmd);
 }
 
@@ -300,7 +299,12 @@ void MainWindow::handleLoad(QStringList args)
         {
             THROW(Exception, "The URL is empty or invalid");
         } // ui_.gvw->openFileDialog();
-        else ui_.gvw->loadFile(api.parseUrl(arg).toString());
+        else {
+            QUrl url = api.parseUrl(arg);
+
+            if (url.isLocalFile()) ui_.gvw->loadFile(url.toLocalFile());
+            else ui_.gvw->loadFile(url.toString());
+        }
     }
 }
 
@@ -320,6 +324,7 @@ void MainWindow::handleSleep(QStringList args) {
 }
 
 void MainWindow::handleViewAsPairs(QStringList args) {
+
     // SharedData::parameters().setBool("view as pairs", true);
 }
 
