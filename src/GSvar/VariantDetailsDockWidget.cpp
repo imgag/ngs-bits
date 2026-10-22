@@ -743,7 +743,7 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 	else
 	{
 		//best transcript
-		if (LoginManager::active()) //TODO Marc: debug why so slow at first use
+		if (LoginManager::active())
 		{
 			NGSD db(false, "", false);
 			int current_best_quality = -1;

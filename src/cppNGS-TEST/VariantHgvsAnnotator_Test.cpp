@@ -1754,6 +1754,4 @@ private:
 		VariantConsequence hgvs = annotator.annotate(transcript, variant);
 		S_EQUAL(hgvs.exonOrIntron(transcript), "intron1/1");
 	}
-
-	//TODO Marc: benchmark consequence annotation against BioCommons - see https://emea.illumina.com/science/genomics-research/articles/Connected-Annotations-blog.html
 };

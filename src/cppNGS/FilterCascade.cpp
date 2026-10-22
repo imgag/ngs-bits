@@ -552,7 +552,7 @@ bool FilterCascade::operator==(const FilterCascade& rhs) const
 		QSharedPointer<FilterBase> f1 = filters_[i];
 		QSharedPointer<FilterBase> f2 = rhs.filters_[i];
 
-		//comare name/type
+		//compare name/type
 		if (f1->name()!=f2->name()) return false;
 		if (f1->type()!=f2->type()) return false;
 

@@ -163,7 +163,7 @@ void AnalysisTimePlot::copyToClipboard()
 		SqlQuery query = db.getQuery();
 		query.exec(getSqlQuery(", TRUNCATE(t.min*t.threads, 2) as min_x_threads, t.dragen_used, t.server, sys.type as system_type, sys.name_manufacturer as system_name"));
 		QStringList tsv = query.toTSV();
-		//TODO headers
+		//TODO Marc: headers
 		QApplication::clipboard()->setText(tsv.join("\n"));
 		QApplication::restoreOverrideCursor();
 		QMessageBox::information(this, "QC export", "Copied " + QString::number(query.size()) + " QC values to clipboard.");
