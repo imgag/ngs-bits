@@ -242,7 +242,7 @@ class CPPNGSSHARED_EXPORT FilterCascade
 		//Creates a filter cascade from a tab-separated text (one filter with parameters per line).
 		static FilterCascade fromText(const QByteArrayList& lines);
 		//Creates the filter cascade representation as a tab-seperated text (one filter with parameters per line).
-        QStringList toText() const;
+		QByteArrayList toText() const;
 		//Serializes a parameter using the filter file format (yes/no and comma-separated lists).
 		static QByteArray parameterValueAsString(const Parameter& parameter);
 

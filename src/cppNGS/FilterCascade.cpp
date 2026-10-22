@@ -560,12 +560,12 @@ QByteArray FilterCascade::parameterValueAsString(const Parameter& parameter)
 	THROW(ProgrammingException, "Unhandled filter parameter type!");
 }
 
-QStringList FilterCascade::toText() const
+QByteArrayList FilterCascade::toText() const
 {
-	QStringList lines;
+	QByteArrayList lines;
 	for (const QSharedPointer<FilterBase>& filter : std::as_const(filters_))
 	{
-		QStringList params;
+		QByteArrayList params;
 		for (const Parameter& param : filter->parameters())
 		{
 			params << param.name() + "=" + parameterValueAsString(param);
@@ -5926,27 +5926,29 @@ FilterFusionReadSupport::FilterFusionReadSupport()
 	name_ = "Fusion read support";
 	type_ = VariantType::FUSIONS;
 	description_ = QStringList() << "Show only fusions with a minimum number of supporting reads";
-	params_ << FilterParameter("split_reads1", FilterParameterType::INT, 5, "Minimum split reads on breakpoint 1");
-	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("split_reads2", FilterParameterType::INT, 5, "Minimum split reads on breakpoint 2");
-	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("discordant_mates", FilterParameterType::INT, 5, "Minimum discordant mates supporting the fusion");
-	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("coverage1", FilterParameterType::INT, 5, "Minimum coverage at breakpoint 1");
-	params_.last().constraints["min"] = "0";
-	params_ << FilterParameter("coverage2", FilterParameterType::INT, 5, "Minimum coverage at breakpoint 2");
-	params_.last().constraints["min"] = "0";
-
+	initParameters({
+					Parameter("split_reads1", "Minimum split reads on breakpoint 1", ParameterType::INT, {{ConstraintType::MIN, "0"}}),
+					Parameter("split_reads2", "Minimum split reads on breakpoint 2", ParameterType::INT, {{ConstraintType::MIN, "0"}}),
+					Parameter("discordant_mates", "Minimum discordant mates supporting the fusion", ParameterType::INT, {{ConstraintType::MIN, "0"}}),
+					Parameter("coverage1", "Minimum coverage at breakpoint 1", ParameterType::INT, {{ConstraintType::MIN, "0"}}),
+					Parameter("coverage2", "Minimum coverage at breakpoint 2", ParameterType::INT, {{ConstraintType::MIN, "0"}})
+   }, {
+					{"split_reads1", 5},
+					{"split_reads2", 5},
+					{"discordant_mates", 5},
+					{"coverage1", 5},
+					{"coverage2", 5}
+   });
     checkIsRegistered();
 }
 
 QString FilterFusionReadSupport::toText() const
 {
-	QString to_str = name() + " split_reads1 &ge; " + QString::number(getInt("split_reads1", false));
-	to_str += " and split_reads2 &ge; " + QString::number(getInt("split_reads2", false));
-	to_str += " and discordant_mates &ge; " + QString::number(getInt("discordant_mates", false));
-	to_str += " and coverage1 &ge; " + QString::number(getInt("coverage1", false));
-	to_str += " and coverage2 &ge; " + QString::number(getInt("coverage2", false));
+	QString to_str = name() + " split_reads1 &ge; " + QString::number(getInt("split_reads1"));
+	to_str += " and split_reads2 &ge; " + QString::number(getInt("split_reads2"));
+	to_str += " and discordant_mates &ge; " + QString::number(getInt("discordant_mates"));
+	to_str += " and coverage1 &ge; " + QString::number(getInt("coverage1"));
+	to_str += " and coverage2 &ge; " + QString::number(getInt("coverage2"));
 	return to_str;
 }
 
@@ -5980,22 +5982,25 @@ FilterFusionReadingFrame::FilterFusionReadingFrame()
 	name_ = "Fusion reading frame";
 	type_ = VariantType::FUSIONS;
 	description_ = QStringList() << "Show only fusions with the given reading frame";
-	params_ << FilterParameter("reading_frame", FilterParameterType::STRINGLIST, QStringList() << "stop-codon" << "out-of-frame" << "in-frame" << "empty", "reading frame types");
-	params_.last().constraints["valid"] = "stop-codon,out-of-frame,in-frame,empty";
+	initParameters({
+		Parameter("reading_frame", "", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("stop-codon\tout-of-frame\tin-frame\tempty")}})
+	}, {
+	   {"reading_frame", QVariant::fromValue(QByteArrayList({"stop-codon", "out-of-frame", "in-frame", "empty"}))}
+   });
 
 	checkIsRegistered();
 }
 
 QString FilterFusionReadingFrame::toText() const
 {
-	return name() + " " + getStringList("reading_frame", false).join(",");
+	return name() + " " + getStringList("reading_frame").join(",");
 }
 
 void FilterFusionReadingFrame::apply(const ArribaFile& fusions, FilterResult& result) const
 {
 	if (!enabled_) return;
 
-	QStringList allowed = getStringList("reading_frame", true);
+	QStringList allowed = getStringList("reading_frame");
 
 	//if 'empty' is allowed append '.' as that is written by arriba in the file/annotation
 	if (allowed.contains("empty"))
@@ -6016,22 +6021,25 @@ FilterFusionConfidence::FilterFusionConfidence()
 	name_ = "Fusion confidence";
 	type_ = VariantType::FUSIONS;
 	description_ = QStringList() << "Show only fusions with the given confidence";
-	params_ << FilterParameter("confidence", FilterParameterType::STRINGLIST, QStringList() << "high" << "medium" << "low", "");
-	params_.last().constraints["valid"] = "high,medium,low,empty";
+	initParameters({
+		Parameter("confidence", "", ParameterType::STRINGLIST, {{ConstraintType::ALLOWED_VALUES, QByteArray("HIGH\tMODERATE\tLOW\tempty")}})
+	}, {
+	   {"impact", QVariant::fromValue(QByteArrayList({"HIGH", "MODERATE", "LOW", "empty"}))}
+   });
 
 	checkIsRegistered();
 }
 
 QString FilterFusionConfidence::toText() const
 {
-	return name() + " " + getStringList("confidence", false).join(",");
+	return name() + " " + getStringList("confidence").join(",");
 }
 
 void FilterFusionConfidence::apply(const ArribaFile& fusions, FilterResult& result) const
 {
 	if (!enabled_) return;
 
-	QStringList allowed = getStringList("confidence", true);
+	QStringList allowed = getStringList("confidence");
 	int idx_confidence = fusions.columnIndex("confidence");
 
 	for(int i=0; i<fusions.count(); ++i)
