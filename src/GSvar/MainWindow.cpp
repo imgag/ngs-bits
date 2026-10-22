@@ -2812,10 +2812,12 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 			res_.clear();
 		}
 
-		//determine valid filter entries from filter column (and add new filters low_mappability/mosaic to make outdated GSvar files work as well)
+		//determine valid filter entries from filter column form input file (and some defaults to make outdated GSvar files work as well)
 		QStringList valid_filter_entries = variants_.filters().keys();
-		if (!valid_filter_entries.contains("low_mappability")) valid_filter_entries << "low_mappability";
-		if (!valid_filter_entries.contains("mosaic")) valid_filter_entries << "mosaic";
+		foreach  (QString entry, QStringList() << "low_conf_region" << "low_mappability" << "mosaic" << "off-target" << "sr_low_mappability" << "dragen_mrjd" << "targeted")
+		{
+			if (!valid_filter_entries.contains(entry)) valid_filter_entries << entry;
+		}
 		ui_.filters->setValidFilterEntries(valid_filter_entries);
 
 		//update data structures
