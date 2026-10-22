@@ -424,10 +424,20 @@ const BedFile& NGSHelper::pseudoAutosomalRegion()
 	return output;
 }
 
+const BedFile& NGSHelper::cytoBands()
+{
+	static BedFile bands;
+	if (bands.isEmpty())
+	{
+		bands.load(":/Resources/hg38_cyto_band.bed");
+	}
+
+	return bands;
+}
+
 QByteArray NGSHelper::cytoBand(Chromosome chr, int pos)
 {
-	BedFile bands;
-	bands.load(":/Resources/hg38_cyto_band.bed");
+	const BedFile& bands = cytoBands();
 
 	//search for band
 	for (int i=0; i<bands.count(); ++i)
@@ -443,8 +453,7 @@ QByteArray NGSHelper::cytoBand(Chromosome chr, int pos)
 
 BedLine NGSHelper::cytoBandToRange(QByteArray cytoband)
 {
-	BedFile bands;
-	bands.load(":/Resources/hg38_cyto_band.bed");
+	const BedFile& bands = cytoBands();
 
 	//determine chromosome
 	if (cytoband.contains('-'))

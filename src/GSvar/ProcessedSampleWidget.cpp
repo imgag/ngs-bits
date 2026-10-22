@@ -74,6 +74,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	{
 		INFO(AccessDeniedException, "You do not have permissions to open sample '" + db.processedSampleName(ps_id)+ "'!");
 	}
+	s_id_ = db.getValue("SELECT sample_id FROM processed_sample WHERE id="+ps_id).toString();
 
 	//QC value > plot
 	QAction* action = new QAction(QIcon(":/Icons/chart.png"), "Plot", this);
@@ -88,7 +89,7 @@ ProcessedSampleWidget::ProcessedSampleWidget(QWidget* parent, QString ps_id)
 	//sample details > open external data sources
 	action = new QAction(QIcon(":/Icons/Link.png"), "Open external database (if available)", this);
 	ui_->disease_details->addAction(action);
-	connect(action, SIGNAL(triggered(bool)), this, SLOT(openExternalDiseaseDatabase()));	
+	connect(action, SIGNAL(triggered(bool)), this, SLOT(openExternalDiseaseDatabase()));
 }
 
 ProcessedSampleWidget::~ProcessedSampleWidget()
@@ -123,9 +124,9 @@ void ProcessedSampleWidget::delayedInitialization()
 
 	//init IGV menu (can be slow, so we do it after the main initialization)
 	NGSD db;
+	QString sample_type = db.getValue("SELECT sample_type FROM sample WHERE id="+s_id_).toByteArray();
     QMenu* menu = new QMenu();
 	addIgvMenuEntry(menu, PathType::BAM);
-	QString sample_type = db.getSampleData(db.sampleId(db.processedSampleName(ps_id_))).type;
     if(sample_type == "cfDNA")
     {
         menu->addSeparator();
@@ -187,7 +188,6 @@ void ProcessedSampleWidget::updateGUI()
 
 	try
 	{
-
 		NGSD db;
 
 		//#### processed sample details ####
@@ -195,8 +195,7 @@ void ProcessedSampleWidget::updateGUI()
 		styleQualityLabel(ui_->quality, ps_data.quality);
 		ui_->name->setText(ps_data.name);
 		GSvarHelper::limitLines(ui_->comments_processed_sample, ps_data.comments);
-		QString name_short = db.getValue("SELECT name_short FROM processing_system WHERE name_manufacturer=:0", true, ps_data.processing_system).toString();
-		ui_->system->setText("<a href=\"" + name_short + "\">"+ps_data.processing_system+"</a>");
+		ui_->system->setText("<a href=\"" + ps_data.processing_system_short + "\">"+ps_data.processing_system+"</a>");
 		ui_->project->setText("<a href=\"" + ps_data.project_name + "\">"+ps_data.project_name+"</a>");
 		QString run = ps_data.run_name;
 		if (run.isEmpty())
@@ -219,18 +218,23 @@ void ProcessedSampleWidget::updateGUI()
 		QString normal_sample = ps_data.normal_sample_name;
 		ui_->normal_sample->setText("<a href=\"" + normal_sample + "\">"+normal_sample+"</a>");
 		ui_->ancestry->setText(NGSHelper::populationCodeToHumanReadable(ps_data.ancestry));
+
 		QStringList ancestry_details;
-		ancestry_details << "Raw scores:";
-		ancestry_details << "AFR (African): " + db.getValue("SELECT score_afr FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
-		ancestry_details << "EUR (European): " + db.getValue("SELECT score_eur FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
-		ancestry_details << "SAS (South asian): " + db.getValue("SELECT score_sas FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
-		ancestry_details << "EAS (East asian): " + db.getValue("SELECT score_eas FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_, true).toString();
-		ui_->ancestry->setToolTip(ancestry_details.join("\n"));
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT * FROM processed_sample_ancestry WHERE processed_sample_id="+ps_id_);
+		if (query.next())
+		{
+			ancestry_details << "Raw scores:";
+			ancestry_details << "AFR (African): " + query.value("score_afr").toString();
+			ancestry_details << "EUR (European): " + query.value("score_eur").toString();
+			ancestry_details << "SAS (South asian): " + query.value("score_sas").toString();
+			ancestry_details << "EAS (East asian): " + query.value("score_eas").toString();
+			ui_->ancestry->setToolTip(ancestry_details.join("\n"));
+		}
 		ui_->urgent->setText(ps_data.urgent ? "<font color=red>yes</font>" : "");
 
 		//#### sample details ####
-		QString s_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id='" + ps_id_ + "'").toString();
-		SampleData s_data = db.getSampleData(s_id);
+		SampleData s_data = db.getSampleData(s_id_);
 		styleQualityLabel(ui_->s_quality, s_data.quality);
 		ui_->s_name->setText(s_data.name);
 		ui_->name_external->setText(s_data.name_external);
@@ -246,7 +250,7 @@ void ProcessedSampleWidget::updateGUI()
 		ui_->tissue->setText(s_data.tissue);
 		GSvarHelper::limitLines(ui_->comments_sample, s_data.comments);
 		QStringList groups;
-		foreach(SampleGroup group, s_data.sample_groups)
+		foreach(const SampleGroup& group, s_data.sample_groups)
 		{
 			groups << group.name;
 		}
@@ -271,8 +275,6 @@ void ProcessedSampleWidget::updateGUI()
 		{
 			ui_->report_config->setText(db.reportConfigSummaryText(ps_id_, true));
 		}
-
-
 
 		//#### kasp status ####
 		try
@@ -326,8 +328,8 @@ void ProcessedSampleWidget::updateGUI()
 		GUIHelper::resizeTableHeight(ui_->disease_details);
 
 		//#### sample relations ####
-		addMissingRelations(db, s_id);
-		DBTable rel_table = db.createTable("sample_relations", "SELECT id, (SELECT name FROM sample WHERE id=sample1_id), (SELECT sample_type FROM sample WHERE id=sample1_id), (SELECT gender FROM sample WHERE id=sample1_id), relation, (SELECT name FROM sample WHERE id=sample2_id), (SELECT sample_type  FROM sample WHERE id=sample2_id), (SELECT gender  FROM sample WHERE id=sample2_id), (SELECT name FROM user WHERE id=sample_relations.user_id), date FROM sample_relations WHERE sample1_id='" + s_id + "' OR sample2_id='" + s_id + "'");
+		addMissingRelations(db, s_id_);
+		DBTable rel_table = db.createTable("sample_relations", "SELECT id, (SELECT name FROM sample WHERE id=sample1_id), (SELECT sample_type FROM sample WHERE id=sample1_id), (SELECT gender FROM sample WHERE id=sample1_id), relation, (SELECT name FROM sample WHERE id=sample2_id), (SELECT sample_type  FROM sample WHERE id=sample2_id), (SELECT gender  FROM sample WHERE id=sample2_id), (SELECT name FROM user WHERE id=sample_relations.user_id), date FROM sample_relations WHERE sample1_id='" + s_id_ + "' OR sample2_id='" + s_id_ + "'");
 		rel_table.setHeaders(QStringList() << "sample 1" << "type 1" << "gender 1" << "relation" << "sample 2" << "type 2" << "gender 2" << "added_by" << "added_date");
 		ui_->sample_relations->setData(rel_table);
 		GUIHelper::resizeTableHeight(ui_->sample_relations);
@@ -353,14 +355,21 @@ void ProcessedSampleWidget::updateQCMetrics()
 {
 	try
 	{
+		//get meta data
 		NGSD db;
-		SampleData sample_data = db.getSampleData(db.sampleId(db.processedSampleName(ps_id_)));
+		SqlQuery query = db.getQuery();
+		query.exec("SELECT s.sample_type, s.tumor, sys.name_short, sys.type as system_type FROM sample s, processed_sample ps, processing_system sys WHERE s.id=ps.sample_id AND ps.processing_system_id=sys.id AND ps.id="+ps_id_);
+		query.next();
+		QString sample_type = query.value("sample_type").toString();
+		bool is_tumor = query.value("tumor").toBool();
+		QString system_short = query.value("name_short").toString();
+		QString system_type = query.value("system_type").toString();
 
 		//create table
 		QString conditions;
 		if (!ui_->qc_all->isChecked())
 		{
-			QStringList preferred_qc_parameters = limitedQCParameter(sample_data.type);
+			QStringList preferred_qc_parameters = limitedQCParameter(sample_type);
 			conditions = "AND (t.qcml_id IN ('" + preferred_qc_parameters.join("', '") + "'))";
 		}
 		DBTable qc_table = db.createTable("processed_sample_qc", "SELECT qc.id, t.qcml_id, t.name, qc.value, t.description FROM processed_sample_qc qc, qc_terms t WHERE qc.qc_terms_id=t.id AND t.obsolete=0 AND qc.processed_sample_id='" + ps_id_ + "' " + conditions);
@@ -438,22 +447,15 @@ void ProcessedSampleWidget::updateQCMetrics()
 		ui_->qc_table->setColumnTooltips("name", descriptions);
 
 		//colors
-		QString sys_type = db.getValue("SELECT sys.type FROM processed_sample ps, processing_system sys WHERE ps.processing_system_id=sys.id AND ps.id='"+ps_id_+"'").toString();
 		int c = qc_table.columnIndex("value");
-
-		//is it a tumor or not
-		QString s_id = db.getValue("SELECT sample_id FROM processed_sample WHERE id='" + ps_id_ + "'").toString();
-		SampleData s_data = db.getSampleData(s_id);
-
-		ProcessedSampleData ps_data = db.getProcessedSampleData(ps_id_);
-		QString name_short = db.getValue("SELECT name_short FROM processing_system WHERE name_manufacturer=:0", true, ps_data.processing_system).toString();
 		QcRuleMatcher qc_rule_matcher = GSvarHelper::qcRuleMatcher();
 		for (int r=0; r<qc_table.rowCount(); ++r)
 		{
 			bool ok = false;
 			double qc_value = ui_->qc_table->item(r,c)->text().toDouble(&ok);
 			if (!ok) continue;
-			QString qc_class = qc_rule_matcher.evaluate(db.getQCTermNameByAccession(qc_table.row(r).value(0)), qc_value, name_short, sys_type, s_data.is_tumor);
+
+			QString qc_class = qc_rule_matcher.evaluate(db.getQCTermNameByAccession(qc_table.row(r).value(0)), qc_value, system_short, system_type, is_tumor);
 			GSvarHelper::colorQcItem(ui_->qc_table->item(r,c), qc_class);
 		}
 	}
@@ -787,7 +789,7 @@ void ProcessedSampleWidget::addIgvMenuEntry(QMenu* menu, PathType file_type)
     catch(Exception& e)
     {        
         action->setEnabled(false);
-    }
+	}
 }
 
 void ProcessedSampleWidget::openIgvTrack()
@@ -850,8 +852,8 @@ void ProcessedSampleWidget::openGeneExpressionWidget()
 	if (file_location.exists)
 	{
 		NGSD db;
-		int sys_id = db.processingSystemIdFromProcessedSample(processedSampleName());
-		QString tissue = db.getSampleData(db.sampleId(sampleName())).tissue;
+		int sys_id = db.getValue("SELECT processing_system_id FROM processed_sample WHERE id="+ps_id_).toInt();
+		QString tissue = db.getValue("SELECT tissue FROM sample WHERE id="+s_id_).toString();
 		ExpressionGeneWidget* widget = new ExpressionGeneWidget(file_location.filename, sys_id, tissue, "", GeneSet(), db.getProcessedSampleData(ps_id_).project_name, ps_id_, RNA_COHORT_GERMLINE, this);
 		auto dlg = GUIHelper::createDialog(widget, "Gene expression of " + db.processedSampleName(ps_id_));
 		GlobalServiceProvider::addModelessDialog(dlg);
@@ -869,8 +871,8 @@ void ProcessedSampleWidget::openExonExpressionWidget()
 	if (file_location.exists)
 	{
 		NGSD db;
-		int sys_id = db.processingSystemIdFromProcessedSample(processedSampleName());
-		QString tissue = db.getSampleData(db.sampleId(sampleName())).tissue;
+		int sys_id = db.getValue("SELECT processing_system_id FROM processed_sample WHERE id="+ps_id_).toInt();
+		QString tissue = db.getValue("SELECT tissue FROM sample WHERE id="+s_id_).toString();
 		ExpressionExonWidget* widget = new ExpressionExonWidget(file_location.filename, sys_id, tissue, "", GeneSet(), db.getProcessedSampleData(ps_id_).project_name, ps_id_, RNA_COHORT_GERMLINE, this);
 		auto dlg = GUIHelper::createDialog(widget, "Exon expression of " + db.processedSampleName(ps_id_));
 		GlobalServiceProvider::addModelessDialog(dlg);

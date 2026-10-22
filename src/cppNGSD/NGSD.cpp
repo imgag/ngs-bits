@@ -29,7 +29,9 @@
 NGSD::NGSD(bool test_db, QString test_name_override, bool open)
 	: test_db_(test_db)
 	, debug_(false)
+	, debug_min_s_(-1)
 	, cache_context_(!test_name_override.isEmpty() ? -1 : (test_db ? 1 : 0))
+	, open_(open)
 {
 	const QString db_identifier = "NGSD_" + QUuid::createUuid().toString();
 	try
@@ -94,6 +96,11 @@ bool NGSD::isAvailable(bool test_db)
 	return Settings::contains(prefix+"_host") && Settings::contains(prefix+"_port") && Settings::contains(prefix+"_name") && Settings::contains(prefix+"_user") && Settings::contains(prefix+"_pass");
 }
 
+QString NGSD::databaseName() const
+{
+	return db_->databaseName();
+}
+
 int NGSD::userId(QString user_name, bool only_active, bool throw_if_fails)
 {
 	// don't fail if user name is empty
@@ -139,6 +146,11 @@ QString NGSD::userLogin(int user_id)
 QString NGSD::userEmail(int user_id)
 {
 	return getValue("SELECT email FROM user WHERE id=:0", false,  QString::number(user_id)).toString();
+}
+
+QDateTime NGSD::userLastLogin(QString user_login)
+{
+	return getValue("SELECT last_login FROM user WHERE user_id=:0", false,  user_login).toDateTime();
 }
 
 const QString& NGSD::passwordReplacement()
@@ -717,7 +729,7 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, s.sender_id, s.species_id, s.received, s.receiver_id, s.tissue, s.patient_identifier, s.year_of_birth, s.order_date, s.sampling_date FROM sample s WHERE id=" + sample_id);
+	query.exec("SELECT s.name, s.name_external, s.gender, s.quality, s.comment, s.disease_group, s.disease_status, s.tumor, s.ffpe, s.sample_type, se.name, sp.name, s.received, s.receiver_id, s.tissue, s.patient_identifier, s.year_of_birth, s.order_date, s.sampling_date FROM sample s, sender se, species sp WHERE s.sender_id=se.id AND s.species_id=sp.id AND s.id=" + sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'sample' given: '" + sample_id + "'");
@@ -737,8 +749,8 @@ SampleData NGSD::getSampleData(const QString& sample_id)
 	output.is_tumor = query.value(7).toString()=="1";
 	output.is_ffpe = query.value(8).toString()=="1";
 	output.type = query.value(9).toString();
-	output.sender = getValue("SELECT name FROM sender WHERE id=:0", false, query.value(10).toString()).toString();
-	output.species = getValue("SELECT name FROM species WHERE id=:0", false, query.value(11).toString()).toString();
+	output.sender = query.value(10).toString();
+	output.species = query.value(11).toString();
 	QVariant received_date = query.value(12);
 	if (!received_date.isNull())
 	{
@@ -785,7 +797,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 {
 	//execute query
 	SqlQuery query = getQuery();
-	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, sys.name_manufacturer as sys_name, sys.type as sys_type, ps.quality, ps.comment, p.name as p_name, p.type as p_type, r.name as r_name, ps.normal_id, s.gender, ps.operator_id, ps.processing_input, ps.molarity, ps.processing_modus, ps.batch_number, ps.scheduled_for_resequencing, ps.urgent FROM sample s, project p, processing_system sys, processed_sample ps LEFT JOIN sequencing_run r ON ps.sequencing_run_id=r.id WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.processing_system_id=sys.id AND ps.id=" + processed_sample_id);
+	query.exec("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) as ps_name, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, sys.type as sys_type, ps.quality, ps.comment, p.name as p_name, p.type as p_type, r.name as r_name, ps.normal_id, s.gender, ps.operator_id, ps.processing_input, ps.molarity, ps.processing_modus, ps.batch_number, ps.scheduled_for_resequencing, ps.urgent FROM sample s, project p, processing_system sys, processed_sample ps LEFT JOIN sequencing_run r ON ps.sequencing_run_id=r.id WHERE ps.sample_id=s.id AND ps.project_id=p.id AND ps.processing_system_id=sys.id AND ps.id=" + processed_sample_id);
 	if (query.size()==0)
 	{
 		THROW(ProgrammingException, "Invalid 'id' for table 'processed_sample' given: '" + processed_sample_id + "'");
@@ -796,6 +808,7 @@ ProcessedSampleData NGSD::getProcessedSampleData(const QString& processed_sample
 	ProcessedSampleData output;
 	output.name = query.value("ps_name").toString().trimmed();
 	output.processing_system = query.value("sys_name").toString().trimmed();
+	output.processing_system_short = query.value("sys_name_short").toString().trimmed();
 	output.processing_system_type = query.value("sys_type").toString().trimmed();
 	output.quality = query.value("quality").toString().trimmed();
 	output.comments = query.value("comment").toString().trimmed();
@@ -1279,7 +1292,12 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 			output += ps_name + ".bam";
 		}
 	}
-	else if (type==PathType::GSVAR) output += ps_name + ".GSvar";
+	else if (type==PathType::GSVAR)
+	{
+		output += ps_name + ".GSvar";
+		// choose between available files: prefer the *.gz
+		if (QFileInfo(output+".gz").exists()) output += ".gz";
+	}
 	else if (type==PathType::VCF) output += ps_name + "_var_annotated.vcf.gz";
 	else if (type==PathType::VCF_CF_DNA) output += ps_name + "_var.vcf";
 	else if (type==PathType::LOWCOV_BED) output += ps_name + "_" + sys_name_short + "_lowcov.bed";
@@ -4288,7 +4306,7 @@ QVector<double> NGSD::getQCValues(const QString& accession, const QString& proce
 
 QString NGSD::getQCTermNameByAccession(const QString &accession)
 {
-	return getValue("SELECT qc_terms.name FROM qc_terms WHERE qcml_id='"+accession+"'").toString();
+	return referenceCache().getQCTermNameByAccession(*this, accession.toLatin1());
 }
 
 KaspData NGSD::kaspData(const QString& processed_sample_id)
@@ -8567,7 +8585,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, QSharedPointe
 
 		query.bindValue(19, config->includeMutationBurden());
 
-		if (config->filters().count() > 0) query.bindValue(20, config->filters().toText().join("\n"));
+		if (config->filters().count() > 0) query.bindValue(20, QString::fromUtf8(config->filters().toText().join('\n')));
         else query.bindValue(20, QVariant(QString()));
 
 		query.bindValue(21, id);
@@ -8629,7 +8647,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, QSharedPointe
 
 		query.bindValue(23, config->includeMutationBurden());
 
-		if (config->filters().count() > 0) query.bindValue(24, config->filters().toText().join("\n"));
+		if (config->filters().count() > 0) query.bindValue(24, QString::fromUtf8(config->filters().toText().join('\n')));
         else query.bindValue(24, QVariant(QString()));
 
 		query.exec();
@@ -8894,7 +8912,7 @@ QSharedPointer<SomaticReportConfiguration> NGSD::somaticReportConfig(QString t_p
 
 	if(!query.value("filters").isNull())
 	{
-		output->setFilters(FilterCascade::fromText(query.value("filters").toString().split("\n")));
+		output->setFilters(FilterCascade::fromText(query.value("filters").toString().toUtf8().split('\n')));
 	}
 	else if (!query.value("filter_base_name").isNull()) //TODO temp loading help while converting to having the filters completely in the DB
 	{

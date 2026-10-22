@@ -1,0 +1,115 @@
+#ifndef BAMCOVERAGETRACK_H
+#define BAMCOVERAGETRACK_H
+
+#include "cppVISUAL_global.h"
+#include "TrackWidget.h"
+#include "BamTrackData.h"
+
+#include <QSharedPointer>
+
+struct CPPVISUALSHARED_EXPORT BaseCoverage // stores coverage at a given genome pos
+{
+	// bases read in forward strands
+	int forward_a =0;
+	int forward_c =0;
+	int forward_g =0;
+	int forward_t =0;
+	int forward_n =0;
+
+	// bases read in reverse strands
+	int reverse_a =0;
+	int reverse_c =0;
+	int reverse_g =0;
+	int reverse_t =0;
+	int reverse_n =0;
+
+	int insertions =0;
+	int deletions =0;
+
+	int a() const {return forward_a + reverse_a;}
+	int c() const {return forward_c + reverse_c;}
+	int g() const {return forward_g + reverse_g;}
+	int t() const {return forward_t + reverse_t;}
+	int n() const {return forward_n + reverse_n;}
+
+	bool is_variant =false; // set to true when a significant number of bases differ from the reference base
+
+	int total() const {return a() + c() + g() + t() + n();}
+};
+
+//Fast read-only parameters access; populated and maintained by ParameterList::link().
+struct CPPVISUALSHARED_EXPORT BamCoverageTrackSettings : public QObject
+{
+	Q_OBJECT
+	Q_PROPERTY(bool show_soft_clipped_bases MEMBER show_soft_clipped_bases)
+	Q_PROPERTY(bool show_secondary_alignments MEMBER show_secondary_alignments)
+	Q_PROPERTY(int min_mq MEMBER min_mq)
+	Q_PROPERTY(double min_display_af_for_snp MEMBER min_display_af_for_snp)
+	Q_PROPERTY(int track_height MEMBER track_height)
+	Q_PROPERTY(int visibility_range MEMBER visibility_range)
+
+public:
+	bool show_soft_clipped_bases{};
+	bool show_secondary_alignments{};
+	int min_mq{};
+	double min_display_af_for_snp{};
+	int track_height{};
+	int visibility_range{};
+};
+
+//Track that displays the coverage of alignments for every genome pos
+class CPPVISUALSHARED_EXPORT BamCoverageTrack
+	: public TrackWidget
+{
+	Q_OBJECT
+public:
+	BamCoverageTrack(QWidget* parent, QString file_path, QString name);
+	~BamCoverageTrack();
+	static QByteArray type() { return "BamCoverageTrack"; }
+
+	void setTrackData(QSharedPointer<BamTrackData> track_data);
+	virtual void reloadTrack() override;
+
+	QSize sizeHint() const override;
+
+	static BamCoverageTrack* createTrack(QWidget* parent, QString file_path, QString name);
+
+protected:
+	QList<Parameter> getParameters() const override;
+	QHash<QByteArray, QVariant> getParameterDefaults() const override;
+	void paintEvent(QPaintEvent*) override;
+	void mousePressEvent(QMouseEvent*) override;
+	void mouseReleaseEvent(QMouseEvent*) override;
+
+private:
+	BamCoverageTrackSettings fast_settings_;
+	// track_data shared b/w coverage/alignment tracks
+	QSharedPointer<BamTrackData> track_data_;
+	// vector for stroing the coverage everytime the region changes
+	QVector<BaseCoverage> coverage_;
+	int max_coverage_;
+
+	// calculates coverage per base and caches it in coverage_
+	void storeCoverage();
+
+	void drawZoomInText(QPainter&);
+	void drawCoverage(QPainter&);
+	// draws the current max coverage text on the top left
+	void drawCurrentMaxText(QPainter&);
+
+	// displays info at global_pos that was request at local_pos
+	void handlePopupRequest(QPointF local_pos, QPointF global_pos);
+	// returns true if current region size <= max_region_len
+	bool isCurrentRegionValid();
+
+	// converts BaseCoverage into a string for the pop up info
+	QString getCoverageText(const BaseCoverage& coverage, int coverage_idx);
+
+	// used for checking if user is dragging or not
+	QPoint mouse_press_pos_;
+
+private slots:
+	void dataReady();
+};
+
+#endif // BAMCOVERAGETRACK_H

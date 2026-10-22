@@ -132,5 +132,6 @@
         <file>Icons/strchive.png</file>
         <file>Icons/LitVar2.png</file>
         <file>Icons/qc_check.png</file>
+        <file>Icons/Icon_highres.png</file>
     </qresource>
 </RCC>

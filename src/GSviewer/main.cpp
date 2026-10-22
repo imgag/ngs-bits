@@ -1,11 +1,33 @@
 #include "MainWindow.h"
 #include "Application.h"
+#include <QStyleFactory>
+#include "Exceptions.h"
+#include <QMessageBox>
 
 int main(int argc, char *argv[])
 {
 	Application a(argc, argv);
-	MainWindow w;
-	w.showMaximized();
-	
-	return a.exec();
+	try
+	{
+		a.setStyle(QStyleFactory::create("windowsvista"));
+
+		MainWindow w;
+		w.showMaximized();
+
+		return a.exec();
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::critical(nullptr, "GSviewer startup error", e.message());
+	}
+	catch (std::exception& e)
+	{
+		QMessageBox::critical(nullptr, "GSviewer startup error", e.what());
+	}
+	catch(...)
+	{
+		QMessageBox::critical(nullptr, "GSviewer startup error", "unknown exception type");
+	}
+
+	return -1;
 }

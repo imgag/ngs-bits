@@ -1463,17 +1463,55 @@ QCValue Statistics::mutationBurden(QString somatic_vcf, QString target, QString 
 	VcfFile vcf_file;
 	vcf_file.load(somatic_vcf);
 	int somatic_var_count = 0;
+
+	bool is_dragen = false;
+	bool source_header_found = false;
+	int tumor_pos = -1;
+	foreach (const VcfHeaderLine header, vcf_file.vcfHeader().comments())
+	{
+		if (header.key == "source")
+		{
+			source_header_found = true;
+			QString value = QString(header.value).toUpper();
+			if (value.contains("DRAGEN"))
+			{
+				is_dragen = true;
+			}
+		}
+
+		if (header.key == "SAMPLE")
+		{
+			for(int idx=0; idx<vcf_file.sampleIDs().count(); idx++)
+			{
+				const QByteArray& value = header.value;
+				if (value.contains(vcf_file.sampleIDs()[idx]) && value.contains("IsTumor=yes")) tumor_pos=idx;
+			}
+		}
+	}
+	//make sure source information is available!
+	if (! source_header_found) THROW(FileParseException, "Source header in vcf file not found!");
+
+	//if only one sample found in vcf use that column
+	if (vcf_file.sampleIDs().count() == 1) tumor_pos = 0;
+	if (is_dragen && tumor_pos == -1) THROW(ArgumentException, "Source identified as dragen calls but coundn't identify the tumor sample column from header. Needed to filter variants by SQ");
+
 	for(int i=0;i<vcf_file.count();++i)
 	{
 		//Skip low quality filtered variants
-		if(vcf_file[i].filters().contains("freq-nor")) continue;
-		if(vcf_file[i].filters().contains("freq-tum")) continue;
-		if(vcf_file[i].filters().contains("depth-nor")) continue;
-		if(vcf_file[i].filters().contains("depth-tum")) continue;
-		if(vcf_file[i].filters().contains("lt-3-reads")) continue;
-		if(vcf_file[i].filters().contains("LowEVS")) continue; //Skip strelka2 low quality variants
-		if(vcf_file[i].filters().contains("LowDepth")) continue; //Skip strelka2 low depth variants
-		if(vcf_file[i].filters().contains("weak-evidence")) continue; //Skip dragen low quality variants
+		if(! vcf_file[i].filtersPassed()) continue;
+
+		//Dragen calls contain SQ for somatic quality - Dragen also calls many low quality variants that inflate the mutation burden
+		if (is_dragen)
+		{
+			QByteArray sq_value = vcf_file[i].formatValueFromSample("SQ",tumor_pos);
+			bool ok;
+			float sq = sq_value.toFloat(&ok);
+
+			if (ok && sq < 35)
+			{
+				continue;
+			}
+		}
 
 		const Chromosome chr = vcf_file[i].chr();
 		int start = vcf_file[i].start();
@@ -1538,16 +1576,54 @@ QCValue Statistics::mutationBurdenNormalized(QString somatic_vcf, QString exons,
 	vcf_file.load(somatic_vcf);
 	int somatic_var_count = 0;
 	int somatic_count_in_tsg = 0;
+
+	bool is_dragen = false;
+	bool source_header_found = false;
+	int tumor_pos = -1;
+	foreach (const VcfHeaderLine header, vcf_file.vcfHeader().comments())
+	{
+		if (header.key == "source")
+		{
+			source_header_found = true;
+			QString value = QString(header.value).toUpper();
+			if (value.contains("DRAGEN"))
+			{
+				is_dragen = true;
+			}
+		}
+
+		if (header.key == "SAMPLE")
+		{
+			for(int idx=0; idx<vcf_file.sampleIDs().count(); idx++)
+			{
+				if (header.value.contains(vcf_file.sampleIDs()[idx]) && header.value.contains("IsTumor=yes")) tumor_pos=idx;
+			}
+		}
+	}
+	//make sure source information is available!
+	if (! source_header_found) THROW(FileParseException, "Source header in vcf file not found!");
+
+	//if only one sample found in vcf use that column
+	if (vcf_file.sampleIDs().count() == 1) tumor_pos = 0;
+	if (is_dragen && tumor_pos == -1) THROW(ArgumentException, "Source identified as dragen calls but coundn't identify the tumor sample column from header. Needed to filter variants by SQ");
+
 	for(int i=0;i<vcf_file.count();++i)
 	{
-		if(vcf_file[i].filters().contains("freq-nor")) continue;
-		if(vcf_file[i].filters().contains("freq-tum")) continue;
-		if(vcf_file[i].filters().contains("depth-nor")) continue;
-		if(vcf_file[i].filters().contains("depth-tum")) continue;
-		if(vcf_file[i].filters().contains("lt-3-reads")) continue;
-		if(vcf_file[i].filters().contains("LowEVS")) continue; //Skip strelka2 low quality variants
-		if(vcf_file[i].filters().contains("LowDepth")) continue; //Skip strelka2 low depth variants
-		if(vcf_file[i].filters().contains("weak-evidence")) continue; //Skip dragen low quality variants
+		//Skip low quality filtered variants
+		if(! vcf_file[i].filtersPassed()) continue;
+
+		//Dragen calls contain SQ for somatic quality - Dragen also calls many low quality variants that inflate the mutation burden
+		if (is_dragen)
+		{
+			QByteArray sq_value = vcf_file[i].formatValueFromSample("SQ",tumor_pos);
+			bool ok;
+			float sq = sq_value.toFloat(&ok);
+
+			if (ok && sq < 35)
+			{
+				continue;
+			}
+		}
 
 		const Chromosome chr = vcf_file[i].chr();
 		int start = vcf_file[i].start();

@@ -118,6 +118,7 @@ struct CPPNGSDSHARED_EXPORT TableFieldInfo
 
 	//index+key info
 	bool is_primary_key = false;
+	bool has_auto_increment = false;
 	bool is_unique = false;
 	QString fk_table; //target table of FK
 	QString fk_field; //target field of FK
@@ -321,7 +322,8 @@ struct CPPNGSDSHARED_EXPORT SampleDiseaseInfo
 struct CPPNGSDSHARED_EXPORT ProcessedSampleData
 {
 	QString name;
-	QString processing_system;
+	QString processing_system; //long name
+	QString processing_system_short; //short name, used e.g. in file names
 	QString processing_system_type;
 	QString sequencer_type;
 	QString quality;
@@ -723,10 +725,13 @@ public:
 	///Returns if the database is a production database based on information in the table 'db_info'.
 	bool isProductionDb() const;
 	///Enables debuggins
-	void enableDebugging(bool enabled) { debug_ = enabled; }
+	void enableDebugging(bool enabled, double debug_min_s=-1) { debug_ = enabled; debug_min_s_ = debug_min_s; }
 
 	///Returns if the database is available (i.e. the credentials are in the settings file or the application is in client-server mode)
 	static bool isAvailable(bool test_db=false);
+
+	///Returns the database name
+	QString databaseName() const;
 
 	///Returns the table list.
 	QStringList tables() const;
@@ -770,7 +775,8 @@ public:
 	///Returns a SqlQuery object on the NGSD for custom queries.
 	SqlQuery getQuery() const
 	{
-		return SqlQuery(*db_, debug_);
+		if(!open_) THROW(DatabaseException, "Cannot execute query on NGSD instance with not opened database connection!");
+		return SqlQuery(*db_, debug_, debug_min_s_);
 	}
 	///Executes all queries from a text file.
 	void executeQueriesFromFile(QString filename);
@@ -1016,12 +1022,16 @@ public:
 	QString userName(int user_id);
 	///Returns the user email corresponding the given ID.
 	QString userEmail(int user_id);
+	///Returns the user last login date and time
+	QDateTime userLastLogin(QString user_login);
+
 	///Replacement for passwords when they are shown in the GUI.
 	static const QString& passwordReplacement();
 	///Checks if the given user/password tuple is correct. If ok, returns an empty string. If not, returns an error message.
 	QString checkPassword(QString user_name, QString password, bool only_active=true);
 	///Sets the password for a NGSD user using a new random salt.
-	void setPassword(int user_id, QString password);
+	void setPassword(int user_id, QString password);	
+
 	///Return a role for a given user.
 	QByteArray getUserRole(int user_id);
 
@@ -1316,8 +1326,11 @@ protected:
 	bool test_db_;
 	//Enable debugging (prints executed queries)
 	bool debug_;
+	double debug_min_s_;
 	//production cache=0, test cache=1, no cache=-1
 	int cache_context_;
+	//If database connection was actually opened in constructor.
+	bool open_;
 
 	NGSDReferenceDataCache& referenceCache() const;
 	NGSDUserCache& userCache() const;

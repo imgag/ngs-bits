@@ -133,7 +133,28 @@ private:
         add_headers.insert("Content-Type", "text/html");
 		add_headers.insert("Range", "bytes=0-5,5-8");
         IS_THROWN(HttpException, HttpRequestHandler().get(ClientHelper::serverApiUrl(), add_headers));
-	}	
+	}
+
+	TEST_METHOD(test_partial_content_chunk_border)
+	{
+		if (!ServerHelper::settingsValid(true))
+		{
+			SKIP("Server has not been configured correctly");
+		}
+
+		QByteArray reply;
+		HttpHeaders add_headers;
+		add_headers.insert("Accept", "text/html");
+		add_headers.insert("Content-Type", "text/html");
+		add_headers.insert("Range", "bytes=0-20480");
+		int code = sendGetRequest(reply, ClientHelper::serverApiUrl() + "assets/20kb.txt", add_headers);
+		if (code == 0)
+		{
+			SKIP("This test requieres a running server");
+		}
+		I_EQUAL(code, 206);
+		S_EQUAL(reply.mid(reply.size()-7, 6), "ABCDEF");
+	}
 
 	TEST_METHOD(test_token_based_authentication)
 	{

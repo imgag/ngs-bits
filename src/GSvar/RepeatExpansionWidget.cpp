@@ -667,7 +667,7 @@ void RepeatExpansionWidget::loadMetaDataFromNGSD()
         }
         if (!hpo_like_clause.isEmpty())
         {
-            QSqlQuery hpo_query = db.getQuery();
+			SqlQuery hpo_query = db.getQuery();
             hpo_query.exec("SELECT hpo_id, name FROM hpo_term WHERE " + hpo_like_clause);
 
             int hpo_terms_counter = -1;

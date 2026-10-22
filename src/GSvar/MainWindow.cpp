@@ -376,7 +376,6 @@ MainWindow::MainWindow(QWidget *parent)
 		connect(active_url_update_timer, SIGNAL(timeout()), this, SLOT(updateActiveUrls()));
 		active_url_update_timer->start(30 * 60 * 1000); // every 30 minutes
 
-
 		//check if there are new notifications for the users
 		if (Settings::boolean("display_user_notifications", true))
 		{
@@ -391,12 +390,12 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.vars, SIGNAL(publishToClinvarTriggered(int, int)), this, SLOT(uploadToClinvar(int, int)));
 	connect(ui_.vars, SIGNAL(alamutTriggered(QAction*)), this, SLOT(openAlamut(QAction*)));
 
-	// Environment variable containing the file path to the list of certificate authorities
-	// (needed for HTTPS to work correctly, especially for htslib and BamReader)
-	QString curl_ca_bundle = Settings::string("curl_ca_bundle", true);
-	if ((Helper::isWindows()) && (!curl_ca_bundle.isEmpty()))
+	//Set environment variable containing SSL certificates - needed for HTTPS to work for BamReader/htslib
+	QByteArray curl_ca_bundle = Settings::string("curl_ca_bundle", true).trimmed().toUtf8();
+	if (!curl_ca_bundle.isEmpty())
 	{
-		if (!qputenv("CURL_CA_BUNDLE", curl_ca_bundle.toUtf8()))
+		if(!QFile::exists(curl_ca_bundle)) THROW(FileAccessException, "CURL_CA_BUNDLE file does not exist: "+curl_ca_bundle);
+		if (!qputenv("CURL_CA_BUNDLE", curl_ca_bundle))
 		{
 			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM/CRAM files over HTTPS may not be possible");
 		}
@@ -803,6 +802,12 @@ void MainWindow::on_actionCloseMetaDataTabs_triggered()
 void MainWindow::on_actionImportVariants_triggered()
 {
 	ImportDialog dlg(this, ImportDialog::VARIANTS);
+	dlg.exec();
+}
+
+void MainWindow::on_actionImportUsers_triggered()
+{
+	ImportDialog dlg(this, ImportDialog::USERS);
 	dlg.exec();
 }
 
@@ -1625,31 +1630,31 @@ void MainWindow::delayedInitialization()
 	PingWorker* workter = new PingWorker();
 	startJob(workter, false);
 
-    if (NGSD::isAvailable())
-    {
-			//user login for database
-			LoginDialog dlg(this);
-			dlg.exec();
+	if (NGSD::isAvailable())
+	{
+		//user login for database
+		LoginDialog dlg(this);
+		dlg.exec();
 
-			if (LoginManager::active())
-			{
+		if (LoginManager::active())
+		{
 			try
 			{
-			ui_.filters->loadTargetRegions();
+			        ui_.filters->loadTargetRegions();
 			}
 			catch(Exception& e)
 			{
-			Log::warn("Target region data for filter widget could not be loaded from NGSD: " + e.message());
+			        Log::warn("Target region data for filter widget could not be loaded from NGSD: " + e.message());
 			}
-			}
+		}
 
-			//start initialization of NGSD gene/transcript cache
-			NGSDCacheInitializer* ngsd_initializer = new NGSDCacheInitializer();
-			startJob(ngsd_initializer, false);
-    }
+		//start initialization of NGSD gene/transcript cache
+		NGSDCacheInitializer* ngsd_initializer = new NGSDCacheInitializer();
+		startJob(ngsd_initializer, false);
+	}
 
 	//create default IGV session (variants)
-	IGVSession* igv_default = IgvSessionManager::create(this, "Default IGV", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), Settings::path("igv_genome"));
+	IGVSession* igv_default = IgvSessionManager::create(this, "Default IGV", viewerApp(), Settings::string("igv_host"), Settings::path("igv_genome"));
 	connect(igv_default, SIGNAL(started()), this, SLOT(changeIgvIconToActive()));
 	connect(igv_default, SIGNAL(finished()), this, SLOT(changeIgvIconToNormal()));
 
@@ -1664,7 +1669,7 @@ void MainWindow::delayedInitialization()
 	{
 	   virus_genome = ClientHelper::serverApiUrl() + "genome/somatic_viral.fa";
 	}
-	IGVSession* igv_virus = IgvSessionManager::create(this, "Virus IGV", Settings::path("igv_app").trimmed(), Settings::string("igv_host"), virus_genome);
+	IGVSession* igv_virus = IgvSessionManager::create(this, "Virus IGV", viewerApp(), Settings::string("igv_host"), virus_genome);
 	connect(igv_virus, SIGNAL(started()), this, SLOT(changeIgvIconToActive()));
 	connect(igv_virus, SIGNAL(finished()), this, SLOT(changeIgvIconToNormal()));
 
@@ -2807,10 +2812,12 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 			res_.clear();
 		}
 
-		//determine valid filter entries from filter column (and add new filters low_mappability/mosaic to make outdated GSvar files work as well)
+		//determine valid filter entries from filter column form input file (and some defaults to make outdated GSvar files work as well)
 		QStringList valid_filter_entries = variants_.filters().keys();
-		if (!valid_filter_entries.contains("low_mappability")) valid_filter_entries << "low_mappability";
-		if (!valid_filter_entries.contains("mosaic")) valid_filter_entries << "mosaic";
+		foreach  (QString entry, QStringList() << "low_conf_region" << "low_mappability" << "mosaic" << "off-target" << "sr_low_mappability" << "dragen_mrjd" << "targeted")
+		{
+			if (!valid_filter_entries.contains(entry)) valid_filter_entries << entry;
+		}
 		ui_.filters->setValidFilterEntries(valid_filter_entries);
 
 		//update data structures
@@ -3232,7 +3239,7 @@ void MainWindow::on_actionAbout_triggered()
 
 	//show dialog
 	AboutDialog dlg(this);
-	dlg.setIcon(QPixmap(":/Icons/Icon.png"));
+	dlg.setIcon(QPixmap(":/Icons/Icon_highres.png"));
 	dlg.setDescription("A free decision support system for germline and somatic variants.<br>Check the <a href='https://github.com/imgag/ngs-bits/blob/master/doc/GSvar/index.md'>GitHub page</a> for details.");
 	dlg.addLibVersionLine("htslib version: " + QString(hts_version()));
 	dlg.addLibVersionLine("Genome build: " + GSvarHelper::buildAsString());
@@ -4258,13 +4265,28 @@ void MainWindow::openProcessedSampleTabsCurrentAnalysis()
 
 void MainWindow::on_actionOpenProcessedSampleTabByName_triggered()
 {
-	ProcessedSampleSelector dlg(this, false);
-	if (!dlg.exec()) return;
+	bool ctrl_pressed = QGuiApplication::keyboardModifiers().testFlag(Qt::ControlModifier);
+	if (ctrl_pressed) //batch mode
+	{
+		QStringList ps_list = QInputDialog::getMultiLineText(this, "Open processed samples", "Processed samples (one per line)").split("\n");
+		for (QString ps: std::as_const(ps_list))
+		{
+			ps = ps.trimmed();
+			if (ps.isEmpty() || ps[0]=='#') continue;
 
-	QString ps_name = dlg.processedSampleName();
-	if (ps_name.isEmpty()) return;
+			openProcessedSampleTab(ps);
+		}
+	}
+	else
+	{
+		ProcessedSampleSelector dlg(this, false);
+		if (!dlg.exec()) return;
 
-	openProcessedSampleTab(ps_name);
+		QString ps_name = dlg.processedSampleName();
+		if (ps_name.isEmpty()) return;
+
+		openProcessedSampleTab(ps_name);
+	}
 }
 
 void MainWindow::on_actionOpenSequencingRunTabByName_triggered()
@@ -5064,6 +5086,31 @@ void MainWindow::on_actionDetermineProxy_triggered()
 		proxies << (proxy.hostName() + ":" + QString::number(proxy.port()));
 	}
 	QMessageBox::information(this, "Determine proxy for URL", "For the URL '" + url + "' the follwing proxies are used:\n" + proxies.join('\n'));
+}
+
+void MainWindow::on_actionCheckBamAccess_triggered()
+{
+	QString bam_file_url = ClientHelper::serverApiUrl()+"/assets/rna.bam";
+	try
+	{
+		BamReader reader(bam_file_url);
+		reader.setRegion("chr1", 998754, 998774);
+		BamAlignment alignment;
+		if (reader.chromosomeSize("chr1")!=248956422) THROW(Exception, "Wrong chromosome size in the header");
+		if (!reader.getNextAlignment(alignment)) THROW(FileAccessException, "Could not read the next alignment");
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::critical(this, "Failed BAM check", "Could not access the BAM file '"+bam_file_url+"': " + e.message());
+		return;
+	}
+	catch (...)
+	{
+		QMessageBox::critical(this, "Failed BAM check", "Could not access the BAM file '"+bam_file_url+"'!");
+		return;
+	}
+
+	QMessageBox::information(this, "Successful BAM check", "BAM file '"+bam_file_url+"' has been accessed and is readable!");
 }
 
 void MainWindow::on_actionAnalysisTimePlot_triggered()
@@ -7147,4 +7194,16 @@ void MainWindow::performLogout()
     if (!LoginManager::active()) return;
 
     LoginManager::logout();
+}
+
+QString MainWindow::viewerApp()
+{
+	if (Settings::boolean("igv_use_gsviewer_instead", true))
+	{
+		return QCoreApplication::applicationDirPath() + QDir::separator() + "GSviewer.exe";
+	}
+	else
+	{
+		return Settings::path("igv_app").trimmed();
+	}
 }

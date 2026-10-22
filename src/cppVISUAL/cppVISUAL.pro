@@ -9,6 +9,10 @@ DEFINES += CPPVISUAL_LIBRARY
 INCLUDEPATH += $$PWD/../cppCORE
 LIBS += -L$$PWD/../../bin -lcppCORE
 
+#include cppCORE library
+INCLUDEPATH += $$PWD/../cppXML
+LIBS += -L$$PWD/../../bin -lcppXML
+
 #include cppNGS library
 INCLUDEPATH += $$PWD/../cppNGS
 LIBS += -L$$PWD/../../bin -lcppNGS
@@ -28,14 +32,58 @@ unix: QMAKE_CXXFLAGS += $$system(pkg-config --cflags libxml-2.0)
 unix: LIBS += -lxml2
 
 SOURCES += \
+    SvTrack.cpp \
+    VcfTrack.cpp \
+    AddBookmarkDialog.cpp \
+    BookmarkManager.cpp \
+    BamAlignmentTrack.cpp \
+    BamCoverageTrack.cpp \
+    BamTrackData.cpp \
+    BamTrackDataManager.cpp \
+    BedTrack.cpp \
+    ChromosomeContextPanel.cpp \
+    FileLoader.cpp \
     GenomeVisualizationWidget.cpp \
     GenePanel.cpp \
-    GenomeData.cpp
+    ChromosomePanel.cpp \
+    IgvTrack.cpp \
+    SegTrack.cpp \
+    TrackGroupManager.cpp \
+    RowPacker.cpp \
+    SharedData.cpp \
+    TrackGroup.cpp \
+    TrackWidget.cpp
 
 HEADERS += \
+    SvTrack.h \
+    VcfTrack.h \
+    AddBookmarkDialog.h \
+    BookmarkManager.h \
+    BamAlignmentTrack.h \
+    BamCoverageTrack.h \
+    BamTrackData.h \
+    BamTrackDataManager.h \
+    BedTrack.h \
+    ChromosomeColors.h \
+    ChromosomeContextPanel.h \
+    FileLoader.h \
     GenomeVisualizationWidget.h \
     GenePanel.h \
-    GenomeData.h
+    ChromosomePanel.h \
+    IgvTrack.h \
+    IgvFile.h \
+    SegTrack.h \
+    SegFile.h \
+    TrackGroupManager.h \
+    RowPacker.h \
+    SharedData.h \
+    TrackGroup.h \
+    TrackWidget.h
 
 FORMS += \
+    AddBookmarkDialog.ui \
+    BookmarkManager.ui \
     GenomeVisualizationWidget.ui
+
+RESOURCES += \
+    cppVISUAL.qrc
