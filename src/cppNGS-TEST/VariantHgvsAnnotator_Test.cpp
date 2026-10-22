@@ -1629,5 +1629,131 @@ private:
 		I_EQUAL(hgvs2.intron_number, -1);
 	}
 
+	TEST_METHOD(regression_frameshift_is_not_stop_lost)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		FastaFileIndex reference(Settings::string("reference_genome", true));
+		VariantHgvsAnnotator annotator(reference);
+		VcfLine variant("chr11", 2884858, "GC", QList<Sequence>() << "GTT");
+
+		VariantConsequence hgvs = annotator.annotate(trans_CDKN1C(), variant);
+		S_EQUAL(hgvs.hgvs_c, "c.631delinsAA");
+		S_EQUAL(hgvs.hgvs_p, "p.Ala211AsnfsTer30");
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::FRAMESHIFT_VARIANT));
+		IS_FALSE(hgvs.types.contains(VariantConsequenceType::STOP_LOST));
+	}
+
+	TEST_METHOD(regression_unknown_splice_effect_is_not_inframe_deletion)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		FastaFileIndex reference(Settings::string("reference_genome", true));
+		VariantHgvsAnnotator annotator(reference, VariantHgvsAnnotator::Parameters(5000, 3, 8, 8));
+
+		//Delete the last two coding bases of exon 2 and the canonical donor bases.
+		VcfLine variant("chr3", 196217934, "GAGGT", QList<Sequence>() << "G");
+		VariantConsequence hgvs = annotator.annotate(trans_SLC51A(), variant);
+
+		S_EQUAL(hgvs.hgvs_p, "p.?");
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::SPLICE_DONOR_VARIANT));
+		IS_FALSE(hgvs.types.contains(VariantConsequenceType::INFRAME_DELETION));
+	}
+
+	TEST_METHOD(regression_mitochondrial_inframe_insertion_uses_mitochondrial_code)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		FastaFileIndex reference(Settings::string("reference_genome", true));
+		VariantHgvsAnnotator annotator(reference);
+
+		Transcript transcript;
+		transcript.setGene("MT-CO1");
+		transcript.setName("synthetic_MT_CO1");
+		transcript.setSource(Transcript::ENSEMBL);
+		transcript.setStrand(Transcript::PLUS);
+		BedFile regions;
+		regions.append(BedLine("chrMT", 5904, 7445));
+		transcript.setRegions(regions, 5904, 7445);
+
+		VcfLine variant("chrMT", 5906, "G", QList<Sequence>() << "GATA");
+		VariantConsequence hgvs = annotator.annotate(transcript, variant);
+
+		S_EQUAL(hgvs.hgvs_p, "p.Met1_Phe2insMet");
+		IS_FALSE(hgvs.hgvs_p.contains("insIle"));
+	}
+
+
+	TEST_METHOD(regression_synonymous_mnp_is_not_stop_lost_or_missense)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		FastaFileIndex reference(Settings::string("reference_genome", true));
+		VariantHgvsAnnotator annotator(reference);
+
+		VcfLine variant("chr3", 196217855, "CTT", QList<Sequence>() << "TTA");
+		VariantConsequence hgvs = annotator.annotate(trans_SLC51A(), variant);
+		S_EQUAL(hgvs.hgvs_p, "p.Leu18=");
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::SYNONYMOUS_VARIANT));
+		IS_FALSE(hgvs.types.contains(VariantConsequenceType::PROTEIN_ALTERING_VARIANT));
+		IS_FALSE(hgvs.types.contains(VariantConsequenceType::MISSENSE_VARIANT));
+		IS_FALSE(hgvs.types.contains(VariantConsequenceType::STOP_LOST));
+		S_EQUAL(variantImpactToString(hgvs.impact), "LOW");
+	}
+
+	TEST_METHOD(reject_variant_on_different_chromosome)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		FastaFileIndex reference(Settings::string("reference_genome", true));
+		VariantHgvsAnnotator annotator(reference);
+		Sequence ref = reference.seq("chr3", 65423403, 1);
+		Sequence alt = ref == "A" ? "C" : "A";
+		VcfLine variant("chr3", 65423403, ref, QList<Sequence>() << alt);
+
+		IS_THROWN(ProgrammingException, annotator.annotate(trans_NEAT1(), variant));
+	}
+
+	TEST_METHOD(reject_variant_with_incorrect_reference)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		FastaFileIndex reference(Settings::string("reference_genome", true));
+		VariantHgvsAnnotator annotator(reference);
+		Sequence ref = reference.seq("chr11", 65423403, 1) == "A" ? "C" : "A";
+		Sequence alt = ref == "G" ? "T" : "G";
+		VcfLine variant("chr11", 65423403, ref, QList<Sequence>() << alt);
+
+		IS_THROWN(ProgrammingException, annotator.annotate(trans_NEAT1(), variant));
+	}
+
+	TEST_METHOD(start_lost_deletion_is_not_inframe_deletion)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		FastaFileIndex reference(Settings::string("reference_genome", true));
+		VariantHgvsAnnotator annotator(reference);
+		Sequence ref = reference.seq("chr3", 196216711, 6);
+		VcfLine variant("chr3", 196216711, ref, QList<Sequence>() << ref.left(1));
+
+		VariantConsequence hgvs = annotator.annotate(trans_SLC51A(), variant);
+		S_EQUAL(hgvs.hgvs_p, "p.Met1?");
+		IS_TRUE(hgvs.types.contains(VariantConsequenceType::START_LOST));
+		IS_FALSE(hgvs.types.contains(VariantConsequenceType::INFRAME_DELETION));
+	}
+
+	TEST_METHOD(intron_total_uses_number_of_introns)
+	{
+		SKIP_IF_NO_HG38_GENOME();
+
+		FastaFileIndex reference(Settings::string("reference_genome", true));
+		VariantHgvsAnnotator annotator(reference);
+		Transcript transcript = trans_NEAT1();
+		VcfLine variant("chr11", 65423403, "C", QList<Sequence>() << "T");
+
+		VariantConsequence hgvs = annotator.annotate(transcript, variant);
+		S_EQUAL(hgvs.exonOrIntron(transcript), "intron1/1");
+	}
+
 	//TODO Marc: benchmark consequence annotation against BioCommons - see https://emea.illumina.com/science/genomics-research/articles/Connected-Annotations-blog.html
 };
