@@ -637,6 +637,47 @@ HttpResponse ServerController::getProcessedSamplePath(const HttpRequest& request
 	return HttpResponse(response_data, json_doc_output.toJson());
 }
 
+HttpResponse ServerController::getProcessedSampleFiles(const HttpRequest &request)
+{
+	int id = request.getUrlParams()["ps_id"].toInt();
+
+	QString ps_name;
+	QString sample_folder_path;
+
+	try
+	{
+		ps_name = NGSD().processedSampleName(request.getUrlParams()["ps_id"]);
+		sample_folder_path = getProcessedSampleFile(id, PathType::SAMPLE_FOLDER, EndpointManager::getTokenIfAvailable(request));
+	}
+	catch (DatabaseException& e)
+	{
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
+	}
+	catch (HttpException& e)
+	{
+		return HttpResponse(ResponseStatus::UNAUTHORIZED, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
+	}
+	catch (Exception& e)
+	{
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
+	}
+
+	QStringList folder_file_list = QDir(sample_folder_path).entryList(QDir::Files|QDir::Dirs|QDir::NoDotAndDotDot, QDir::Name);
+
+	QJsonDocument json_doc_output;
+	QJsonArray file_list_as_json;
+	for (QString item: folder_file_list) file_list_as_json.append(item);
+	json_doc_output.setArray(file_list_as_json);
+
+	BasicResponseData response_data;
+	response_data.byte_ranges = QList<ByteRange>{};
+	response_data.length = json_doc_output.toJson().length();
+	response_data.content_type = request.getContentType();
+	response_data.is_downloadable = false;
+
+	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
 HttpResponse ServerController::checkProjectFolder(const HttpRequest &request)
 {
 	int id = request.getUrlParams()["id"].toInt();
@@ -1561,17 +1602,14 @@ HttpResponse ServerController::getProcessingSystemGenes(const HttpRequest& reque
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, e.message()));
     }
 
-	if (filename.isEmpty())
-    {
-        return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Processing system genes file has not been found"));
-	}
+	if (filename.isEmpty()) return HttpResponse(ResponseStatus::NOT_FOUND, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Processing system genes file has not been found"));
 	return createStaticStreamResponse(filename, false);
 }
 
 HttpResponse ServerController::getSecondaryAnalyses(const HttpRequest& request)
 {
 	QString processed_sample_name = request.getUrlParams()["ps_name"];
-	QString type  = QUrl::fromEncoded(request.getUrlParams()["type"].toUtf8()).toString();
+	QString type = QUrl::fromEncoded(request.getUrlParams()["type"].toUtf8()).toString();
 	QStringList secondary_analyses;
 	try
 	{
@@ -1723,6 +1761,72 @@ HttpResponse ServerController::getCurrentClientInfo(const HttpRequest& /*request
 	response_data.length = json_doc_output.toJson().length();
 	response_data.content_type = ContentType::APPLICATION_JSON;
 	return HttpResponse(response_data, json_doc_output.toJson());
+}
+
+HttpResponse ServerController::addProjectToDb(const HttpRequest &request)
+{
+	return addRecordToDbTable("project", request);
+}
+
+HttpResponse ServerController::addProcessingSystemToDb(const HttpRequest &request)
+{
+	return addRecordToDbTable("processing_system", request);
+}
+
+HttpResponse ServerController::addDeviceToDb(const HttpRequest &request)
+{
+	return addRecordToDbTable("device", request);
+}
+
+HttpResponse ServerController::addSequencingRunToDb(const HttpRequest &request)
+{
+	return addRecordToDbTable("sequencing_run", request);
+}
+
+HttpResponse ServerController::addSampleToDb(const HttpRequest &request)
+{
+	return addRecordToDbTable("sample", request);
+}
+
+HttpResponse ServerController::addSampleRelationToDb(const HttpRequest &request)
+{
+	return addRecordToDbTable("sample_relations", request);
+}
+
+HttpResponse ServerController::addProcessedSampleToDb(const HttpRequest &request)
+{
+	return addRecordToDbTable("processed_sample", request);
+}
+
+HttpResponse ServerController::addSenderToDb(const HttpRequest &request)
+{
+	return addRecordToDbTable("sender", request);
+}
+
+HttpResponse ServerController::addUserToDb(const HttpRequest &request)
+{
+	try
+	{
+		QString token = EndpointManager::getTokenIfAvailable(request);
+		if (token.isEmpty())
+		{
+			return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), EndpointManager::formatResponseMessage(request, "You are not allowed to access this information"));
+		}
+
+		Session current_session = SessionManager::getSessionBySecureToken(token);
+		QByteArray role = NGSD().getUserRole(current_session.user_id);
+		if (role!="admin")
+		{
+			THROW_HTTP(HttpException, "You are not allowed to add new users", 401,  {}, {});
+		}
+	}
+	catch (DatabaseException& e)
+	{
+		Log::error("Database error while checking permissions: " + e.message());
+		THROW_HTTP(HttpException, e.message(), 500,  {}, {});
+	}
+
+	return addRecordToDbTable("user", request);
 }
 
 HttpResponse ServerController::performBlatSearch(const HttpRequest& request)
@@ -1882,6 +1986,32 @@ QString ServerController::stripParamsFromTempUrl(const QString& url)
     return output;
 }
 
+void ServerController::importDataToNGSD(NGSD &db, const QString& table_name, const QHash<QString, QVariant> &values)
+{
+	if (values.isEmpty()) THROW(DatabaseException, "No values supplied for INSERT");
+
+	QStringList column_names;
+	QStringList placeholders;
+	QList<QVariant> bound_values;
+
+	for (auto it = values.constBegin(); it != values.constEnd(); ++it)
+	{
+		const QString& column_name = it.key();
+
+		TableInfo table_info = db.tableInfo(table_name);
+		if (!table_info.fieldNames().contains(column_name)) THROW(DatabaseException, QString("Unknown column '%1' for table '%2'").arg(column_name, table_name));
+
+		column_names.append(column_name);
+		placeholders.append("?");
+		bound_values.append(it.value());
+	}
+
+	SqlQuery query = db.getQuery();
+	query.prepare(QString("INSERT INTO %1 (%2) VALUES (%3)").arg(table_name, column_names.join(", "), placeholders.join(", ")));
+	for (int i = 0; i < bound_values.size(); ++i) query.addBindValue(bound_values[i]);
+	query.exec();
+}
+
 HttpResponse ServerController::createStaticFolderResponse(const QString path, const HttpRequest& request)
 {
 	if (!Settings::boolean("allow_folder_listing", true))
@@ -1953,6 +2083,31 @@ HttpResponse ServerController::createStaticLocationResponse(const QString path, 
 	}
 
 	return createStaticFileResponse(path, request);
+}
+
+HttpResponse ServerController::addRecordToDbTable(const QString &table_name, const HttpRequest& request)
+{
+	NGSD db;
+	XmlImportValidator validator;
+	const XmlValidationResult result = validator.validateInsert(request.getBody(), table_name);
+
+	if (result.isValid())
+	{
+		try
+		{			
+			importDataToNGSD(db, table_name, result.values);
+		}
+		catch (DatabaseException& e)
+		{
+			return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, ContentType::TEXT_PLAIN, QString("Database error: %1").arg(e.message()));
+		}
+
+		return HttpResponse(ResponseStatus::OK, ContentType::TEXT_PLAIN, QString("A new record has been added to the '%1' table").arg(table_name));
+	}
+	else
+	{
+		return HttpResponse(ResponseStatus::BAD_REQUEST, ContentType::TEXT_PLAIN, QString("Error while adding a new record to the '%1' table: %2").arg(table_name, result.errors.join(", ")));
+	}
 }
 
 HttpResponse ServerController::uploadFileToFolder(QString upload_folder, const HttpRequest& request)

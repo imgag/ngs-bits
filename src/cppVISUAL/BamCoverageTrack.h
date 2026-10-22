@@ -35,8 +35,26 @@ struct CPPVISUALSHARED_EXPORT BaseCoverage // stores coverage at a given genome 
 	bool is_variant =false; // set to true when a significant number of bases differ from the reference base
 
 	int total() const {return a() + c() + g() + t() + n();}
+};
 
-	int max() const {return std::max({a(), c(), g(), t(), n()});}
+//Fast read-only parameters access; populated and maintained by ParameterList::link().
+struct CPPVISUALSHARED_EXPORT BamCoverageTrackSettings : public QObject
+{
+	Q_OBJECT
+	Q_PROPERTY(bool show_soft_clipped_bases MEMBER show_soft_clipped_bases)
+	Q_PROPERTY(bool show_secondary_alignments MEMBER show_secondary_alignments)
+	Q_PROPERTY(int min_mq MEMBER min_mq)
+	Q_PROPERTY(double min_display_af_for_snp MEMBER min_display_af_for_snp)
+	Q_PROPERTY(int track_height MEMBER track_height)
+	Q_PROPERTY(int visibility_range MEMBER visibility_range)
+
+public:
+	bool show_soft_clipped_bases{};
+	bool show_secondary_alignments{};
+	int min_mq{};
+	double min_display_af_for_snp{};
+	int track_height{};
+	int visibility_range{};
 };
 
 //Track that displays the coverage of alignments for every genome pos
@@ -45,24 +63,26 @@ class CPPVISUALSHARED_EXPORT BamCoverageTrack
 {
 	Q_OBJECT
 public:
-	explicit BamCoverageTrack(QWidget* parent, QString file_path, QString name);
+	BamCoverageTrack(QWidget* parent, QString file_path, QString name);
+	~BamCoverageTrack();
+	static QByteArray type() { return "BamCoverageTrack"; }
+
 	void setTrackData(QSharedPointer<BamTrackData> track_data);
 	virtual void reloadTrack() override;
 
-	static QString staticType() {return "BAM/CRAM_COVERAGE";}
-	QString getType() override {return staticType();}
-
 	QSize sizeHint() const override;
-	QSize minimumSizeHint() const override {return sizeHint();}
 
 	static BamCoverageTrack* createTrack(QWidget* parent, QString file_path, QString name);
 
 protected:
+	QList<Parameter> getParameters() const override;
+	QHash<QByteArray, QVariant> getParameterDefaults() const override;
 	void paintEvent(QPaintEvent*) override;
 	void mousePressEvent(QMouseEvent*) override;
 	void mouseReleaseEvent(QMouseEvent*) override;
 
 private:
+	BamCoverageTrackSettings fast_settings_;
 	// track_data shared b/w coverage/alignment tracks
 	QSharedPointer<BamTrackData> track_data_;
 	// vector for stroing the coverage everytime the region changes
@@ -82,7 +102,7 @@ private:
 	// returns true if current region size <= max_region_len
 	bool isCurrentRegionValid();
 
-	// converts BaseCoverage into a string for the pop up info (TODO: this can also be HTML)
+	// converts BaseCoverage into a string for the pop up info
 	QString getCoverageText(const BaseCoverage& coverage, int coverage_idx);
 
 	// used for checking if user is dragging or not

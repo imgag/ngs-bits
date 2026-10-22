@@ -339,6 +339,10 @@ QCCollection StatisticsReads::getResult()
 		QMapIterator<int,long long> it(read_lengths_);
 		int hist_min = std::max(0, read_lengths_.firstKey() - 20);
 		int hist_max = (is_longread ? n95 : longest_read) + 20;
+
+		//TODO: remove
+		hist_max = 1000;
+
 		Histogram read_length_hist = Histogram(hist_min, hist_max, (hist_max-hist_min)/60);
 		it.toFront();
 		while(it.hasNext())

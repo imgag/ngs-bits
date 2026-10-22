@@ -20,37 +20,60 @@ struct CPPVISUALSHARED_EXPORT ReadPair
 	int end = INT_MIN; // max of the ends of the two alignments
 };
 
+//Fast read-only parameters access; populated and maintained by ParameterList::link().
+struct CPPVISUALSHARED_EXPORT BamAlignmentTrackSettings : public QObject
+{
+	Q_OBJECT
+	Q_PROPERTY(bool view_as_pairs MEMBER view_as_pairs)
+	Q_PROPERTY(bool show_all_bases MEMBER show_all_bases)
+	Q_PROPERTY(bool show_soft_clipped_bases MEMBER show_soft_clipped_bases)
+	Q_PROPERTY(bool show_secondary_alignments MEMBER show_secondary_alignments)
+	Q_PROPERTY(int min_mq MEMBER min_mq)
+	Q_PROPERTY(QByteArray group_by MEMBER group_by)
+	Q_PROPERTY(QByteArray color_by MEMBER color_by)
+	Q_PROPERTY(int visibility_range MEMBER visibility_range)
+
+public:
+	bool view_as_pairs{};
+	bool show_all_bases{};
+	bool show_soft_clipped_bases{};
+	bool show_secondary_alignments{};
+	int min_mq{};
+	QByteArray group_by{};
+	QByteArray color_by{};
+	int visibility_range{};
+};
+
 //Track that displays alignmnets in a BAM/CRAM file
 class CPPVISUALSHARED_EXPORT BamAlignmentTrack
 	: public TrackWidget
 {
 	Q_OBJECT
 public:
-	explicit BamAlignmentTrack(QWidget* parent, QString file_path, QString name);
+	BamAlignmentTrack(QWidget* parent, QString file_path, QString name);
+	~BamAlignmentTrack();
+	static QByteArray type() { return "BamAlignmentTrack"; }
+
 	void setTrackData(QSharedPointer<BamTrackData> track_data);
 
 	QSize sizeHint() const override;
-	QSize minimumSizeHint() const override {return sizeHint();}
 
-	static QString staticType() {return "BAM/CRAM";}
-	QString getType() override {return staticType();}
-
-	virtual QMap<QString, QVariant> getSettings() override;
-	virtual void loadKeyValueFromXml(QString key, QString value) override;
 
 	virtual void reloadTrack() override;
 
 	static BamAlignmentTrack* createTrack(QWidget* parent, QString file_path, QString name);
 
 protected:
+	QList<Parameter> getParameters() const override;
+	QHash<QByteArray, QVariant> getParameterDefaults() const override;
 	void paintEvent(QPaintEvent*) override;
 	void populateContextMenu(QMenu&, const QPoint&) override;
 	void mousePressEvent(QMouseEvent*) override;
 	void mouseReleaseEvent(QMouseEvent*) override;
 
-
-
 private:
+	BamAlignmentTrackSettings fast_settings_;
+	bool isGroupingEnabled() const;
 	QSharedPointer<BamTrackData> track_data_;
 
 	void drawZoomInText(QPainter&);
@@ -62,27 +85,27 @@ private:
 	void calculateRowsNormalMode();
 	// assigns rows to pairs for pair mode
 	void calculateRowsPairMode();
-	// computes the stats for insertsize
-	void computeInsertSizeStats();
+	// Packs reads into groups according to the selected grouping mode.
+	void calculateGroupedRows();
 	// iterates through the alignments and stores pairs as ReadPair in read_pairs_
 	void makePairs();
 
 	void drawNormalMode(QPainter& painter);
 	void drawPairMode(QPainter& painter, const BedLine& region);
+	void drawGroups(QPainter& painter);
 
 	void drawAlignmentAndMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y);
 
 	void drawAlignment(QPainter&, const BamAlignmentWrapper& al, int row_y);
+	void drawInsertions(QPainter&, const BamAlignmentWrapper& al, int row_y);
 	void drawBase(QPainter&, const Viewport& view_port, int genome_pos,
 				  char base, int qual, int row_y);
 	// draws bases in BamAlignment that do not match the reference base
 	// which are pre calculated in the AlignmentWrapper
 	void drawMismatches(QPainter&, const BamAlignmentWrapper& al, int row_y);
-	// draws all bases (only if show_all_bases_ flag is true), draws soft clip bases too
+	// draws all bases if enabled in settings_, including soft clips if enabled
 	// if the corresponding flag is set
 	void drawAllBases(QPainter&, const BamAlignmentWrapper& al, int row_y);
-	// draws a highlight on the given alignment
-	void drawHighlight(QPainter&, const BamAlignmentWrapper& al, int row_y);
 
 	QString getBamAlignmentText(const BamAlignmentWrapper& al, int genome_pos);
 
@@ -103,47 +126,34 @@ private:
 	bool isCurrentRegionValid();
 	// gives the start and end point of the alignments
 	// if current mode is show_clip_bases_, this gives start and end with that
-	// TODO: insertation can also be expanded in the future
-	int getAlignmentStart(const BamAlignmentWrapper&);
-	int getAlignmentEnd(const BamAlignmentWrapper&);
+	int getAlignmentStart(const BamAlignmentWrapper&) const;
+	int getAlignmentEnd(const BamAlignmentWrapper&) const;
+	bool isAlignmentVisible(const BamAlignmentWrapper& alignment) const;
 	// returns color of alignment based on its properties and current coloring scheme
 	QColor getAlignmentColor(const BamAlignmentWrapper&);
 	// adds Go To Mate, select/delect options to context menu
 	void addAlignmentOptionsToCtxtMenu(QMenu& menu, const QPoint& local_pos);
-	// adds color schemes to context menu
-	void addColorOptionToCtxtMenu(QMenu& menu, const QPoint& local_pos);
 
-
-	/*TODO: all of these need to be stored as LRUCache*/
 	QHash<AlignmentKey, int> row_idxes_; // BamAlignmentWrapperId -> row index
-	QHash<QString, int> pair_row_idxes_; // Pair Name -> row index
+	QHash<AlignmentKey, int> pair_row_idxes_; // First alignment ID -> row index
 
-	QHash<QString, bool> row_stored_with_pair_; // Pair Name -> bool, used for checking if alignment with name was stored as a pair or not
-
-	QHash<int, QVector<int>> normal_row_store_; // row -> vector of alignment indices
-	QHash<int, QVector<int>> pair_row_store_; // row -> vector of pair indices
+	QHash<AlignmentKey, bool> row_stored_with_pair_; // First alignment ID -> whether a mate was stored
 
 
 	RowPacker row_packer_;
 	QVector<ReadPair> read_pairs_; // vector of pairs
+	struct ReadGroup
+	{
+		QString label;
+		int first_row;
+	};
+	QVector<ReadGroup> read_groups_;
 
 	int num_rows_ = 1;
 	QPoint mouse_press_pos_;
 	QSize cached_char_size_;
 	QFont cached_font_;
 
-	//settings
-	enum ColoringScheme
-	{
-		NONE,
-		INSERT_SIZE,
-		READ_STRAND
-	};
-
-	bool view_as_pairs_ = false;
-	bool show_all_bases_ = false;
-	bool show_soft_clip_bases_ = false;
-	ColoringScheme coloring_scheme_ = INSERT_SIZE;
 	QString selected_name_ = ""; // name of selected alignment
 
 

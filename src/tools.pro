@@ -29,7 +29,9 @@ TOOLS_NGS = \
 	BedAnnotateGC \ 
 	BedChunk \ 
 	BedCoverage \ 
-	BedExtend \ 
+	BedExtend \
+	BedMethylationStats \
+	BedExtractMethylationPlotData \
 	BedHighCoverage \ 
 	BedInfo \ 
 	BedIntersect \ 

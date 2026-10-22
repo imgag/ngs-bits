@@ -15,6 +15,7 @@
 #include "GUIHelper.h"
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
+#include "ColorNames.h"
 
 VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	: QWidget(parent)
@@ -315,11 +316,10 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			foreach(const DBEntry& entry, parseDB(anno, ';'))
 			{
 				//determine color
-				Color color = NONE;
-				if (entry.details.contains("conflicting interpretations of pathogenicity")) color = NONE;
-				else if (entry.details.contains("likely pathogenic")) color = ORANGE;
-				else if (entry.details.contains("pathogenic")) color = RED;
-				else if (entry.details.contains("benign")) color = GREEN;
+				QString color = "";
+				if (entry.details.contains("likely pathogenic")) color = "orange";
+				else if (entry.details.contains("pathogenic")) color = "red";
+				else if (entry.details.contains("benign")) color = "green";
 
 				QString url = entry.id.startsWith("RCV") ? "https://www.ncbi.nlm.nih.gov/clinvar/" : "https://www.ncbi.nlm.nih.gov/clinvar/variation/";
 				text += formatLink(entry.id, url + entry.id, color) + " ";
@@ -331,10 +331,10 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			foreach(const DBEntry& entry, parseDB(anno, ';'))
 			{
 				//determine color
-				Color color = NONE;
-				if (entry.details.contains("CLASS=DM?")) color = ORANGE;
-				else if (entry.details.contains("CLASS=DM")) color = RED;
-				else if (entry.details.contains("CLASS=DP") || entry.details.contains("CLASS=DFP")) color = ORANGE;
+				QString color = "";
+				if (entry.details.contains("CLASS=DM?")) color = "orange";
+				else if (entry.details.contains("CLASS=DM")) color = "red";
+				else if (entry.details.contains("CLASS=DP") || entry.details.contains("CLASS=DFP")) color = "orange";
 
 				text += formatLink(entry.id, "https://my.qiagendigitalinsights.com/bbp/view/hgmd/pro/mut.php?acc=" + entry.id, color) + " ";
 				tooltip += nobr() + entry.id + ": " + entry.details;
@@ -352,14 +352,14 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				{
 					if (part.mid(5).toDouble()<20)
 					{
-						part = formatText(part, YELLOW);
+						part = formatText(part, "yellow");
 					}
 				}
 				if (part.startsWith("DP="))
 				{
 					if (part.mid(3).toInt()<15)
 					{
-						part = formatText(part, YELLOW);
+						part = formatText(part, "yellow");
 					}
 				}
 
@@ -378,7 +378,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			double value = anno.toDouble(&ok);
 			if (ok && value>=1.6)
 			{
-				text = formatText(anno, RED);
+				text = formatText(anno, "red");
 			}
 			else
 			{
@@ -391,11 +391,11 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			double value = anno.toDouble(&ok);
 			if (ok && value>=25.3)
 			{
-				text = formatText(anno, RED);
+				text = formatText(anno, "red");
 			}
 			else if (ok && value>=22.7)
 			{
-				text = formatText(anno, ORANGE);
+				text = formatText(anno, "orange");
 			}
 			else
 			{
@@ -408,11 +408,11 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			double value = anno.toDouble(&ok);
 			if (ok && value>=0.9)
 			{
-				text = formatText(anno, RED);
+				text = formatText(anno, "red");
 			}
 			else if (ok && value>=0.5)
 			{
-				text = formatText(anno, ORANGE);
+				text = formatText(anno, "orange");
 			}
 			else
 			{
@@ -425,11 +425,11 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			double value = anno.toDouble(&ok);
 			if (ok && value>=0.564)
 			{
-				text = formatText(anno, RED);
+				text = formatText(anno, "red");
 			}
 			else if (ok && value<=0.34)
 			{
-				text = formatText(anno, GREEN);
+				text = formatText(anno, "green");
 			}
 			else
 			{
@@ -442,31 +442,31 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			int value = anno.toInt(&ok);
 			if (ok && value==1)
 			{
-				text = formatText("benign (1)", GREEN);
+				text = formatText("benign (1)", "green");
 			}
 			else if (ok && value==2)
 			{
-				text = formatText("likely benign (2)", GREEN);
+				text = formatText("likely benign (2)", "green");
 			}
 			else if (ok && value==3)
 			{
-				text = formatText("unclear significance (3)", ORANGE);
+				text = formatText("unclear significance (3)", "orange");
 			}
 			else if (ok && value==4)
 			{
-				text = formatText("likely pathogenic (4)", RED);
+				text = formatText("likely pathogenic (4)", "red");
 			}
 			else if (ok && value==5)
 			{
-				text = formatText("pathogenic (5)", RED);
+				text = formatText("pathogenic (5)", "red");
 			}
 			else if (anno=="M")
 			{
-				text = formatText("modifier (M)", ORANGE);
+				text = formatText("modifier (M)", "orange");
 			}
 			else if (anno=="R")
 			{
-				text = formatText("established risk allele (R)", ORANGE);
+				text = formatText("established risk allele (R)", "orange");
 			}
 			else if (anno!="" && anno!="n/a")
 			{
@@ -490,7 +490,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 			{
 				bool ok = true;
 				double value = anno.toDouble(&ok);
-				text = (ok && value>=0.05) ? formatText(anno, GREEN) : anno;
+				text = (ok && value>=0.05) ? formatText(anno, "green") : anno;
 			}
 
 			//make gnomAD value clickable
@@ -525,7 +525,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				}
 
 				text = QString::number(max_af, 'g', 4);
-				if (max_af>=0.05) text = formatText(text, GREEN);
+				if (max_af>=0.05) text = formatText(text, "green");
 
 				tooltip = tt_parts.join("\n");
 			}
@@ -537,12 +537,12 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		}
 		else if(name=="ncg_oncogene")
 		{
-			if(anno.contains("1")) text = formatText(anno,RED);
+			if(anno.contains("1")) text = formatText(anno,"red");
 			else text = anno;
 		}
 		else if(name=="ncg_tsg")
 		{
-			if(anno.contains("1")) text = formatText(anno, RED);
+			if(anno.contains("1")) text = formatText(anno, "red");
 			else text = anno;
 		}
 		else if(name=="CANCERHOTSPOTS_AA_CHANGE")
@@ -558,11 +558,9 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		{
 			if (anno!="")
 			{
-				Color bg_color = NONE;
-				if(anno == "1" || anno == "2" || anno == "3") bg_color = RED;
-
 				int a_index = vl.annotationIndexByName("CMC_MUTATION_ID", true, false);
 				QString cmc_var_id = vl[index].annotations()[a_index];
+				QString bg_color = (anno == "1" || anno == "2" || anno == "3") ? "red" : "";
 				text = formatLink(anno, "https://cancer.sanger.ac.uk/cosmic/search?q="+cmc_var_id, bg_color);
 			}
 		}
@@ -583,11 +581,11 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				QString value_str = QString::number(value, 'f', 2);
 				if (value >= 0.8)
 				{
-					text = formatText(value_str, RED);
+					text = formatText(value_str, "red");
 				}
 				else if (value >= 0.5)
 				{
-					text = formatText(value_str, ORANGE);
+					text = formatText(value_str, "orange");
 				}
 				else
 				{
@@ -618,11 +616,11 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 				//output: max import
 				if (impacts.contains(MaxEntScanImpact::HIGH))
 				{
-					text = formatText("HIGH (see tooltip)", RED);
+					text = formatText("HIGH (see tooltip)", "red");
 				}
 				else if (impacts.contains(MaxEntScanImpact::MODERATE))
 				{
-					text = formatText("MODERATE (see tooltip)", ORANGE);
+					text = formatText("MODERATE (see tooltip)", "orange");
 				}
 				else
 				{
@@ -708,26 +706,6 @@ double VariantDetailsDockWidget::maxAlleleFrequency(const VariantList& vl, int i
 	return output;
 }
 
-QString VariantDetailsDockWidget::colorToString(VariantDetailsDockWidget::Color color)
-{
-	switch(color)
-	{
-		case NONE:
-			return "";
-		case GREEN:
-			return "rgba(0, 255, 0, 128)";
-		case ORANGE:
-			return "rgba(255, 100, 0, 128)";
-		case RED:
-			return "rgba(255, 0, 0, 128)";
-		case YELLOW:
-			return "rgba(255, 255, 0, 128)";
-	};
-
-	THROW(ProgrammingException, "Unkonwn color!");
-}
-
-
 void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int index)
 {
 	//clear
@@ -765,17 +743,17 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 	else
 	{
 		//best transcript
-		if (LoginManager::active())
+		if (LoginManager::active()) //TODO Marc: debug why so slow at first use
 		{
 			NGSD db(false, "", false);
 			int current_best_quality = -1;
 			int transcript_idx = -1;
 
-
 			for (int i=0; i<trans_data.count(); ++i)
 			{
 				int gene_id = db.geneId(trans_data[i].gene);
 				if (gene_id==-1) continue;
+
 				int quality;
 				Transcript best = db.bestTranscript(gene_id, vl[index].parseTranscriptString(vl[index].annotations()[a_index]), &quality);
 				if (trans_data[i].id==best.nameWithVersion())
@@ -804,7 +782,7 @@ void VariantDetailsDockWidget::initTranscriptDetails(const VariantList& vl, int 
 	QString tooltip;
 	foreach(const VariantTranscript& trans, trans_data)
 	{
-		//highlight preferred transcripts
+		//highlight prefer"red" transcripts
 		bool is_relevant = relevant_transcripts.value(trans.gene).contains(trans.idWithoutVersion());
 		tooltip += nobr() + (is_relevant ? "<b>" : "") + trans.toString(' ') + (is_relevant ? "</b>" : "");
 	}
@@ -837,8 +815,8 @@ void VariantDetailsDockWidget::setTranscript(int index)
 	//set detail labels
 	if (trans.impact==VariantImpact::HIGH)
 	{
-		ui->detail_type->setText(formatText(trans.type, RED));
-		ui->detail_impact->setText(formatText(variantImpactToString(trans.impact), RED));
+		ui->detail_type->setText(formatText(trans.type, "red"));
+		ui->detail_impact->setText(formatText(variantImpactToString(trans.impact), "red"));
 	}
 	else
 	{
@@ -892,14 +870,15 @@ void VariantDetailsDockWidget::variantClicked(QString link)
     IgvSessionManager::get(0).gotoInIGV(region, true);
 }
 
-QString VariantDetailsDockWidget::formatLink(QString text, QString url, Color bgcolor)
+QString VariantDetailsDockWidget::formatLink(QString text, QString url, QString bgcolor)
 {
-	return "<a style=\"color: #000000; background-color:" + colorToString(bgcolor) + ";\" href=\"" + url + "\">" + text + "</a>";
+	QString bgcolor_str = bgcolor=="" ? "" : " background-color:" + ColorNames::stringRGBA(bgcolor, 128) + ";";
+	return "<a style=\"color: #000000;"+bgcolor_str+"\" href=\"" + url + "\">" + text + "</a>";
 }
 
-QString VariantDetailsDockWidget::formatText(QString text, Color bgcolor)
+QString VariantDetailsDockWidget::formatText(QString text, QString bgcolor)
 {
-	return "<span style=\"background-color: " + colorToString(bgcolor) + ";\">" + text + "</span>";
+	return "<span style=\"background-color: " + ColorNames::stringRGBA(bgcolor, 128) + ";\">" + text + "</span>";
 }
 
 QList<VariantDetailsDockWidget::DBEntry> VariantDetailsDockWidget::parseDB(QString anno, char sep)

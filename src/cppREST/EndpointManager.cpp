@@ -110,7 +110,10 @@ HttpResponse EndpointManager::getUserTokenAuthStatus(const HttpRequest& request)
 
 HttpResponse EndpointManager::getDbTokenAuthStatus(const HttpRequest& request)
 {
-    if (!request.getHeaderByName("User-Agent").contains("GSvar"))
+	bool valid_client = false;
+	for (QString item: request.getHeaderByName("User-Agent")) if (item.startsWith("GSvar")) valid_client = true;
+
+	if (!valid_client)
     {
         Log::warn(EndpointManager::formatResponseMessage(request, "Unauthorized entity tried to request the database credentials"));
         return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), EndpointManager::formatResponseMessage(request, "You are not allowed to request the database credentials. This incident will be reported"));

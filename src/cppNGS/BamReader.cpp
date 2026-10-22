@@ -3,8 +3,10 @@
 #include "Helper.h"
 #include "VersatileFile.h"
 #include "RefGenomeService.h"
+
 #include <limits>
 #include <new>
+#include <htslib/hts_log.h>
 /*
 External documentation used for the implementation:
 - reading BAM file: https://gist.github.com/PoisonAlien/350677acc03b2fbf98aa
@@ -13,7 +15,6 @@ External documentation used for the implementation:
 - replacing CIGAR data: https://github.com/iontorrent/samtools/blob/master/padding.c
 - replacing base/quality data with different length: https://github.com/samtools/htslib/issues/672
 */
-
 
 BamAlignment::BamAlignment()
 {
@@ -494,7 +495,7 @@ void BamReader::init(const QString& bam_file, QString ref_genome)
 	//open file
 	if (fp_==nullptr)
 	{
-		THROW(FileAccessException, "Could not open BAM/CRAM file " + bam_file_);
+		THROW(FileAccessException, "Could not open  " + bam_file_ + ". sam_open returned errno " + QString::number(errno));
 	}
 
 	//apply optimizations
@@ -534,6 +535,13 @@ BamReader::BamReader(const QString& bam_file)
 	: bam_file_(Helper::canonicalPath(bam_file))
 	, fp_(sam_open(bam_file.toUtf8().constData(), "r"))
 {
+	//for debugging - attention the htlib debug output is often only written to stderr when the application closes...
+	if (fp_==nullptr)
+	{
+		hts_set_log_level(HTS_LOG_DEBUG);
+		fp_ = sam_open(bam_file.toUtf8().constData(), "r");
+	}
+
 	init(bam_file);
 }
 
@@ -620,6 +628,24 @@ GenomeBuild BamReader::build() const
 	THROW(Exception, "Could not determine genome build of BAM file '" + bam_file_ + "'!");
 }
 
+bool BamReader::checkIfPairedEnd(int use_reads)
+{
+	int done = 0;
+	clearIterator();
+	BamAlignment al;
+	while (getNextAlignment(al))
+	{
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment() || al.isUnmapped()) continue;
+
+		if (al.isPaired()) return true;
+
+		++done;
+		if (done>=use_reads) break;
+	}
+
+	return false;
+}
+
 BamInfo BamReader::info()
 {
 	//we don't need bases and qualities for this method - they are re-enabled at the end
@@ -653,22 +679,8 @@ BamInfo BamReader::info()
 	}
 	catch (...) {}
 
-    //paired end
-	double n_all = 0;
-	double n_paired = 0;
-    clearIterator();
-    BamAlignment al;
-	while (getNextAlignment(al))
-	{
-		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment() || al.isDuplicate() || al.isUnmapped()) continue;
-        if (al.mappingQuality()<20) continue;
-
-		if (al.isPaired()) n_paired += 1.0;
-
-		n_all += 1.0;
-		if (n_all >= 100.0) break;
-	}
-	output.paired_end = n_paired/n_all > 0.1;
+	//paired end
+	output.paired_end = checkIfPairedEnd(100);
 
     //mapper
     QByteArrayList headers = headerLines();
@@ -731,11 +743,12 @@ BamInfo BamReader::info()
     }
 
     //false duplications masked (checks a masked region. Nothing is mapped there if mased. Works for WES/panel as well because of off-target reads).
-    if (output.build=="hg38")
+	if (output.build=="hg38")
 	{
 		try
 		{
 			setRegion("chr21", 5968000, 6160000);
+			BamAlignment al;
 			while(getNextAlignment(al))
 			{
 				output.false_duplications_masked = false;
@@ -804,7 +817,7 @@ const QList<Chromosome>& BamReader::chromosomes() const
 
 const Chromosome& BamReader::chromosome(int chr_id) const
 {
-	if (chr_id>=chrs_.size()) THROW(ArgumentException, "Chromosome ID '" + QString::number(chr_id) + "' out of bounds in BAM/CRAM file " + bam_file_);
+	if (chr_id<0 || chr_id>=chrs_.size()) THROW(ArgumentException, "Chromosome ID '" + QString::number(chr_id) + "' out of bounds in BAM/CRAM file " + bam_file_);
 
 	return chrs_[chr_id];
 }

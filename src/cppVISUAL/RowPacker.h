@@ -5,7 +5,7 @@
 #include <QVector>
 #include <QPair>
 
-//handles row assignment for intervals
+//Handles row assignment for intervals. E.g. used to determine where reads in a BAM file are displayed in the track
 class CPPVISUALSHARED_EXPORT RowPacker
 {
 public:
@@ -14,7 +14,6 @@ public:
 		int start;
 		int end;
 		int payload; // payload is, for example, the index of the BamAlignment object.
-		// TODO: if this class needs to be made generic, payload should be T*, a generic pointer.
 	};
 	void clear()
 	{

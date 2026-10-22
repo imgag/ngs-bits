@@ -166,6 +166,7 @@ private:
 		IS_FALSE(db.isProductionDb());
 
 		//log in user
+		LoginManager::updateLastLogin(db.userId("ahmustm1"), true); // no last_login value is set, we do not want to reset the password
 		LoginManager::login("ahmustm1", "", true);
 
 		//escapeText
@@ -2028,6 +2029,7 @@ private:
 		NGSD db(true);
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in2.sql"));
+		LoginManager::updateLastLogin(db.userId("ahmustm1"), true); // no last_login value is set, we do not want to reset the password
 		LoginManager::login("ahmustm1", "", true);
 
 		QDate report_date = QDate::fromString("2021-02-19", Qt::ISODate);
@@ -2286,6 +2288,7 @@ private:
 		db.init();
 		db.executeQueriesFromFile(TESTDATA("data_in/NGSD_in1.sql"));
 		//log in user
+		LoginManager::updateLastLogin(db.userId("ahmustm1"), true); // no last_login value is set, we do not want to reset the password
 		LoginManager::login("ahmustm1", "", true);
 
 		//Test methods for somatic CNVs in NGSD
@@ -2451,7 +2454,7 @@ private:
 		som_rep_conf->setCinChromosomes({"chr1", "chr5", "chr9", "chrX", "chrY"});
 		som_rep_conf->setLimitations("Due to low coverage we could not detect all variants for gene BRAF.");
 		som_rep_conf->setFilterName("somatic");
-		QStringList filter_text;
+		QByteArrayList filter_text;
 		filter_text << "Variant type	HIGH=frameshift_variant,splice_acceptor_variant,splice_donor_variant,start_lost,start_retained_variant,stop_gained,stop_lost	MODERATE=inframe_deletion,inframe_insertion,missense_variant	LOW=splice_region_variant	MODIFIER=";
 		filter_text << "Column match	pattern=promoter	column=regulatory	action=KEEP";
 		filter_text << "Filter column empty";
@@ -2543,7 +2546,7 @@ private:
 		S_EQUAL(res_config->filterName(), "somatic");
 		IS_TRUE(res_config->filters() == filters)
 
-		QStringList res_filter_text = res_config->filters().toText();
+		QByteArrayList res_filter_text = res_config->filters().toText();
 		for (int i=0; i< filter_text.count(); i++)
 		{
 			S_EQUAL(res_filter_text[i].trimmed(), filter_text[i]);

@@ -23,4 +23,6 @@ unix: LIBS += -lxml2
 #special treatment for VcfToBedpe
 INCLUDEPATH += $$PWD/../VcfToBedpe
 
-SOURCES += $$files(./*.cpp)
+SOURCES += $$files(./*.cpp) \
+    BedExtractMethylationPlotData_Test.cpp \
+    BedMethylationStats_Test.cpp

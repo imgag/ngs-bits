@@ -83,6 +83,7 @@ void SettingsDialog::loadSettings()
 	ui_.proxy_password->setText(Settings::string("proxy_password", true));
 
 	//IGV
+	ui_.igv_use_gsviewer_instead->setChecked(Settings::boolean("igv_use_gsviewer_instead", true));
 	ui_.igv_default_small->setChecked(Settings::boolean("igv_default_small", true));
 	ui_.igv_default_sv->setChecked(Settings::boolean("igv_default_sv", true));
 	ui_.igv_default_lowcov->setChecked(Settings::boolean("igv_default_lowcov", true));
@@ -106,6 +107,7 @@ void SettingsDialog::storeSettings()
 	Settings::setString("proxy_password", ui_.proxy_password->text());
 
 	//IGV
+	Settings::setBoolean("igv_use_gsviewer_instead", ui_.igv_use_gsviewer_instead->isChecked());
 	Settings::setBoolean("igv_default_small", ui_.igv_default_small->isChecked());
 	Settings::setBoolean("igv_default_sv", ui_.igv_default_sv->isChecked());
 	Settings::setBoolean("igv_default_lowcov", ui_.igv_default_lowcov->isChecked());

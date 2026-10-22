@@ -1,10 +1,9 @@
 #include "BamTrackData.h"
+#include <QScopedValueRollback>
 #include "FileLoader.h"
 
 #include <GenomeVisualizationWidget.h>
 #include <QtConcurrent/QtConcurrent>
-
-#define BAM_OPTIMIZATION
 
 constexpr int REF_OVERHANG = 500; // max
 
@@ -15,10 +14,54 @@ AlignmentKey AlignmentKey::makeKey(const BamAlignment& al)
 	uint64_t h1 = qHash(al.name());
 	h1 ^= ((uint64_t)al.start() << 1);
 	h1 ^= ((uint64_t)al.isReverseStrand() << 32);
+	h1 ^= ((uint64_t)al.isSecondaryAlignment() << 33);
+	h1 ^= ((uint64_t)al.isSupplementaryAlignment() << 34);
 
 	uint64_t h2 = qHashBits(cigar.data(), cigar.size());
 
 	return {h1, h2};
+}
+
+void BamTrackData::bindVisibilityRange(ParameterList& parameters)
+{
+	parameters.setInt("visibility range", visibility_range_);
+	connect(this, &BamTrackData::visibilityRangeChanged, &parameters, [&parameters](int range)
+	{
+		parameters.setInt("visibility range", range);
+	});
+}
+
+void BamTrackData::setVisibilityRange(int range)
+{
+	if (range < 1) THROW(ArgumentException, "BAM visibility range must be positive.");
+	if (range == visibility_range_) return;
+	visibility_range_ = range;
+	// Refresh data before the other tracks recalculate using the new range.
+	if (bam_reader_) updateRegion();
+	emit visibilityRangeChanged(range);
+}
+
+void BamTrackData::bindReadFilters(ParameterList& parameters)
+{
+	const auto apply_filter = [&parameters](const QByteArray& name, const QVariant& value)
+	{
+		if (name == "min MQ") parameters.setInt(name, value.toInt());
+		else parameters.setBool(name, value.toBool());
+	};
+	for (auto it = read_filters_.cbegin(); it != read_filters_.cend(); ++it) apply_filter(it.key(), it.value());
+	connect(this, &BamTrackData::readFilterChanged, &parameters, apply_filter);
+	connect(&parameters, &ParameterList::parameterChanged, this, [this, &parameters]()
+	{
+		if (syncing_read_filters_) return;
+		QScopedValueRollback<bool> guard(syncing_read_filters_, true);
+		for (auto it = read_filters_.begin(); it != read_filters_.end(); ++it)
+		{
+			const QVariant value = parameters.parameter(it.key()).value();
+			if (value == it.value()) continue;
+			it.value() = value;
+			emit readFilterChanged(it.key(), value);
+		}
+	});
 }
 
 void BamTrackData::updateRegion()
@@ -29,8 +72,15 @@ void BamTrackData::updateRegion()
 		return;
 	}
 
-	int max_len = SharedData::settings().bam_max_region_len;
+	const int max_len = visibility_range_;
 	const BedLine& region = SharedData::region();
+
+	if (!region.isValid())
+	{
+		return_empty_ = true;
+		emit onDataUpdate();
+		return;
+	}
 
 	if (region.length() > max_len)
 	{
@@ -41,8 +91,6 @@ void BamTrackData::updateRegion()
 	}
 
 	return_empty_ = false;
-
-	#ifdef BAM_OPTIMIZATION
 
 	int new_start = region.start();
 	int new_end = region.end();
@@ -72,16 +120,14 @@ void BamTrackData::updateRegion()
 
 		int padding = region.length() / 3;
 
-		int p_start = std::max(0, new_start - padding);
+		int p_start = std::max(1, new_start - padding);
 		int p_end = new_end + padding;
 
 		pruneAlignments(p_start, p_end); // remove out of bound alignments
 
-		// an alignment read can extend past (or before) the padded region
-		// an alignment read is roughly ~101bp (at most) so a overhang of 500 bp should be sufficient
-		int ref_fetch_start = std::max(0, p_start - REF_OVERHANG);
-		int ref_fetch_end   = p_end + REF_OVERHANG;
-
+		// Start with a viewport-sized cache; fetchRegion extends it for longer alignments.
+		int ref_fetch_start = std::max(1, p_start - REF_OVERHANG);
+		int ref_fetch_end   = std::min(p_end + REF_OVERHANG, SharedData::genome().lengthOf(region.chr()));
 		ref_seq_ = SharedData::genome().seq(
 			region.chr(),
 			ref_fetch_start,
@@ -107,31 +153,10 @@ void BamTrackData::updateRegion()
 		loaded_region_.setStart(p_start);
 		loaded_region_.setEnd(p_end);
 		is_loading_ = false;
-		// TODO: need to check if this is too slow
-		// std::sort(alignments_.begin(), alignments_.end(),
-		// 		  [](const BamAlignmentWrapper& a, const BamAlignmentWrapper&b){
-		// 			return a.start() < b.start();}
-		// 		  );
 
 		emit onDataUpdate();
 		return;
 	}
-
-
-	#else
-	alignments_.clear();
-	return_empty_ = false;
-
-
-	int padding = region.length() / 3;
-	int start = region.start() - padding;
-	int end = region.end() + padding;
-
-	bam_reader_->setRegion(region.chr(), start, end);
-
-	updateData();
-
-	#endif
 }
 
 void BamTrackData::fullLoad(const BedLine& region)
@@ -147,8 +172,8 @@ void BamTrackData::fullLoad(const BedLine& region)
 	alignments_.squeeze();
 	loaded_ids_.squeeze();
 
-	int ref_fetch_start = std::max(0, p_start - REF_OVERHANG);
-	int ref_fetch_end   = p_end + REF_OVERHANG;
+	int ref_fetch_start = std::max(1, p_start - REF_OVERHANG);
+	int ref_fetch_end   = std::min(p_end + REF_OVERHANG, SharedData::genome().lengthOf(region.chr()));
 
 	ref_seq_ = SharedData::genome().seq(
 		region.chr(),
@@ -174,25 +199,47 @@ void BamTrackData::fullLoad(const BedLine& region)
 void BamTrackData::fetchRegion(const BedLine& region, QVector<BamAlignmentWrapper>* dest)
 {
 	bam_reader_->setRegion(region.chr(), region.start(), region.end());
+	const auto& genome = SharedData::genome();
+	const int chromosome_end = genome.lengthOf(region.chr());
 
 	BamAlignment al;
 	while (bam_reader_->getNextAlignment(al))
 	{
-		if (al.isUnmapped() || al.isDuplicate() || al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
+		if (al.isUnmapped() || al.isDuplicate()) continue;
 
 		BamAlignmentWrapper wrapped_alignment(al);
 		if (loaded_ids_.contains(wrapped_alignment.id)) continue;
-		try
+		wrapped_alignment.chr = bam_reader_->chromosome(al.chromosomeID());
+		// A negative mate chromosome ID means that no mate location is available.
+		if (al.mateChrosomeID() >= 0)
 		{
-			wrapped_alignment.mate_chr = bam_reader_->chromosome(al.mateChrosomeID());
-		}
-		catch (const Exception& e)
-		{
-			//TODO: decide what to do here
-			// for now the mate_chr remains invalid
+			try
+			{
+				wrapped_alignment.mate_chr = bam_reader_->chromosome(al.mateChrosomeID());
+			}
+			catch (const ArgumentException& e)
+			{
+				if (!invalid_mate_warning_shown_)
+				{
+					qWarning().noquote() << "Invalid mate chromosome in" << file_path_ << ":" << e.message();
+					invalid_mate_warning_shown_ = true;
+				}
+			}
 		}
 		loaded_ids_.insert(wrapped_alignment.id);
 
+		// Cache reference bases for the entire alignment, including long reads outside the viewport.
+		if (al.start() < ref_start_)
+		{
+			ref_seq_.prepend(genome.seq(region.chr(), al.start(), ref_start_ - al.start()));
+			ref_start_ = al.start();
+		}
+		const int ref_end = ref_start_ + ref_seq_.length() - 1;
+		const int alignment_end = std::min(al.end(), chromosome_end);
+		if (alignment_end > ref_end)
+		{
+			ref_seq_.append(genome.seq(region.chr(), ref_end + 1, alignment_end - ref_end));
+		}
 		wrapped_alignment.storeCigarData(al, ref_seq_, ref_start_);
 
 		if (!wrapped_alignment.isValid()) continue; // has st/en < -1
@@ -200,8 +247,6 @@ void BamTrackData::fetchRegion(const BedLine& region, QVector<BamAlignmentWrappe
 		if (dest) dest->push_back(std::move(wrapped_alignment));
 		else alignments_.push_back(std::move(wrapped_alignment));
 	}
-	//TODO: this can be optimized i.e when we pan only a bit to the left, we dont need to recalculate
-	// only recalulate stats when we change by a large amount
 	computeInsertSizeStats();
 }
 
@@ -231,7 +276,7 @@ void BamTrackData::computeInsertSizeStats()
 	sizes.reserve(alignments_.size());
 	foreach (const auto& aln, alignments_)
 	{
-		if (aln.isReverseStrand()) continue;
+		if (aln.isReverseStrand() || aln.isSecondaryAlignment()) continue;
 		int tlen = std::abs(aln.insertSize());
 		if (tlen > 0 && tlen < 10000) sizes << tlen;
 	}
@@ -245,9 +290,9 @@ void BamTrackData::computeInsertSizeStats()
 
 	std::sort(sizes.begin(), sizes.end());
 	int n = sizes.size();
-	// TODO: these percentiles should come from settings somewhere!
-	insert_size_stats_.insert_size_min = sizes[(int)(n * 0.005)];
-	insert_size_stats_.insert_size_max = sizes[(int)(n * 0.995)];
+	const GlobalSettings& settings = SharedData::settings();
+	insert_size_stats_.insert_size_min = sizes[std::min(n - 1, (int)(n * settings.bam_insert_size_lower_percentile))];
+	insert_size_stats_.insert_size_max = sizes[std::min(n - 1, (int)(n * settings.bam_insert_size_upper_percentile))];
 }
 
 void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Sequence& ref_seq, int ref_start)
@@ -293,7 +338,8 @@ void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Se
 				continue;
 			case BAM_CHARD_CLIP:
 				continue;
-			default: // TODO: handle exception (invalid cigar op)
+			default:
+				THROW(ProgrammingException, "Unhandled CIGAR OP " + QString::number(op));
 				continue;
 		}
 		if (c_data.event == MATCH)
@@ -314,12 +360,7 @@ void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Se
 				}
 				else
 				{
-					qWarning()
-					<< "Reference sequence too short for alignment"
-					<< alignment.name()
-					<< genome_pos
-					<< ref_start
-					<< ref_seq.length();
+					qWarning() << "Reference sequence too short for alignment" << alignment.name() << genome_pos << ref_start << ref_seq.length();
 				}
 				++genome_pos;
 				++read_pos;
@@ -352,37 +393,10 @@ void BamAlignmentWrapper::storeCigarData(const BamAlignment& alignment, const Se
 			else
 			{
 				qDebug() << "DATA BUG: SOFTCLIP NOT AT END OR START" << genome_pos << " " << end() << Qt::endl;
-				// GenomeVisualizationWidget::displayError("Alignment " + name() + " contains soft clip between start/end");
 			}
 		}
 		events << c_data;
 	}
-}
-
-void BamTrackData::updateData()
-{
-	alignments_.clear();
-	const BedLine& region = SharedData::region();
-	ref_seq_ = SharedData::genome().seq(region.chr(), region.start(), region.length());
-	ref_start_ = region.start();
-	BamAlignment al;
-	while (bam_reader_->getNextAlignment(al))
-	{
-		if (al.isUnmapped() || al.isDuplicate() || al.isSecondaryAlignment() || al.isSupplementaryAlignment()) continue;
-		BamAlignmentWrapper wrapped_alignment(al);
-		try
-		{
-			wrapped_alignment.mate_chr = bam_reader_->chromosome(al.mateChrosomeID());
-		}
-		catch (const Exception&)
-		{
-			// TODO: decide what to do here, give the user an error? Don't display mate?
-		}
-		qDebug() << wrapped_alignment.mate_chr.str() << Qt::endl;
-		wrapped_alignment.storeCigarData(al, ref_seq_, region.start());
-		alignments_ << wrapped_alignment;
-	}
-	emit onDataUpdate();
 }
 
 void BamTrackData::reload()

@@ -101,6 +101,11 @@ bool NGSD::isAvailable(bool test_db)
 	return Settings::contains(prefix+"_host") && Settings::contains(prefix+"_port") && Settings::contains(prefix+"_name") && Settings::contains(prefix+"_user") && Settings::contains(prefix+"_pass");
 }
 
+QString NGSD::databaseName() const
+{
+	return db_->databaseName();
+}
+
 int NGSD::userId(QString user_name, bool only_active, bool throw_if_fails)
 {
 	// don't fail if user name is empty
@@ -146,6 +151,11 @@ QString NGSD::userLogin(int user_id)
 QString NGSD::userEmail(int user_id)
 {
 	return getValue("SELECT email FROM user WHERE id=:0", false,  QString::number(user_id)).toString();
+}
+
+QDateTime NGSD::userLastLogin(QString user_login)
+{
+	return getValue("SELECT last_login FROM user WHERE user_id=:0", false,  user_login).toDateTime();
 }
 
 const QString& NGSD::passwordReplacement()
@@ -1287,7 +1297,12 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 			output += ps_name + ".bam";
 		}
 	}
-	else if (type==PathType::GSVAR) output += ps_name + ".GSvar";
+	else if (type==PathType::GSVAR)
+	{
+		output += ps_name + ".GSvar";
+		// choose between available files: prefer the *.gz
+		if (QFileInfo(output+".gz").exists()) output += ".gz";
+	}
 	else if (type==PathType::VCF) output += ps_name + "_var_annotated.vcf.gz";
 	else if (type==PathType::VCF_CF_DNA) output += ps_name + "_var.vcf";
 	else if (type==PathType::LOWCOV_BED) output += ps_name + "_" + sys_name_short + "_lowcov.bed";
@@ -8973,7 +8988,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, QSharedPointe
 
 		query.bindValue(19, config->includeMutationBurden());
 
-		if (config->filters().count() > 0) query.bindValue(20, config->filters().toText().join("\n"));
+		if (config->filters().count() > 0) query.bindValue(20, QString::fromUtf8(config->filters().toText().join('\n')));
         else query.bindValue(20, QVariant(QString()));
 
 		query.bindValue(21, id);
@@ -9035,7 +9050,7 @@ int NGSD::setSomaticReportConfig(QString t_ps_id, QString n_ps_id, QSharedPointe
 
 		query.bindValue(23, config->includeMutationBurden());
 
-		if (config->filters().count() > 0) query.bindValue(24, config->filters().toText().join("\n"));
+		if (config->filters().count() > 0) query.bindValue(24, QString::fromUtf8(config->filters().toText().join('\n')));
         else query.bindValue(24, QVariant(QString()));
 
 		query.exec();
@@ -9300,7 +9315,7 @@ QSharedPointer<SomaticReportConfiguration> NGSD::somaticReportConfig(QString t_p
 
 	if(!query.value("filters").isNull())
 	{
-		output->setFilters(FilterCascade::fromText(query.value("filters").toString().split("\n")));
+		output->setFilters(FilterCascade::fromText(query.value("filters").toString().toUtf8().split('\n')));
 	}
 	else if (!query.value("filter_base_name").isNull()) //TODO temp loading help while converting to having the filters completely in the DB
 	{

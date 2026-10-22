@@ -4,10 +4,15 @@
 #include "cppVISUAL_global.h"
 #include "BedFile.h"
 #include <QWidget>
+#include <QPointer>
+#include "DelayedInitializationTimer.h"
 
 namespace Ui {
 class GenomeVisualizationWidget;
 }
+
+class ParameterEditor;
+class TrackWidget;
 
 //Widget for genome visaulization, similar to IGV
 class CPPVISUALSHARED_EXPORT GenomeVisualizationWidget
@@ -18,29 +23,36 @@ class CPPVISUALSHARED_EXPORT GenomeVisualizationWidget
 public:
 	//Default constructor
 	GenomeVisualizationWidget(QWidget* parent);
-
-	//display errors to user
-	static void displayError(QString msg);
-	//opens file dialog and returns selected the file path
-	static QString getOpenFileName(QString caption, QString dir, QString options);
+	~GenomeVisualizationWidget() override;
+	//Adds a generated BED track with a backing file for reload/session persistence.
+	void addBedTrack(QSharedPointer<BedFile> regions, QString file_path, QString name);
 
 public slots:
-	//Triggers the 'open file' dialog
-	void loadFile();
+	//Shows 'open file' dialog
+	void openFileDialog();
+	//Shows 'open URL' dialog
+	void openUrlDialog();
+	//Loads a file
+	void loadFile(QString filename);
 	//Triggers reload tracks for all tracks
 	void reloadTracks();
 	//Clears everything
-	void newSession();
+	void clearSession();
 	//Save current session
 	void saveSession();
 	// load session from file, triggers 'open file dialog' and loads the session
 	void loadSession();
 
 protected:
+	bool eventFilter(QObject* watched, QEvent* event) override;
+	//set up debug button
+	void setupDebugButton();
 	// handles zoom in/out
 	void wheelEvent(QWheelEvent* event) override;
 
 protected slots:
+	//Delayed initialization
+	void delayedInitialization();
 	//Perform search based on input field (chromosome, region, gene, transcript, ...)
 	void search();
 	//Zoom in
@@ -59,6 +71,9 @@ protected slots:
 	void updateIndices();
 	//Sets the region of the whole chromosome
 	void setChromosomeRegion(QString chromsome);
+	//Debugging method
+	//Toggle settings visbilty
+	void toggleSettingsVisibility();
 
 signals:
 	//Emitted when the displayed region has changed.
@@ -66,6 +81,14 @@ signals:
 
 private:
 	Ui::GenomeVisualizationWidget* ui_;
+	DelayedInitializationTimer timer_;
+	QPointer<TrackWidget> selected_track_;
+	ParameterEditor* parameter_editor_ = nullptr;
+	QMetaObject::Connection selected_track_destroyed_;
+	void selectTrack(TrackWidget* track);
+	void clearParameterEditor();
+	void setupBookmarkMenu();
+	void storeBookmark();
 
 	QStringList valid_chrs_; //chromosome list (normalized)
 	QHash<QByteArray, QSet<int>> gene_to_trans_indices_;

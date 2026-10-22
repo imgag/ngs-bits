@@ -6,26 +6,29 @@
 #include "FastaFileIndex.h"
 #include "ChromosomalIndex.h"
 #include "BedFile.h"
+#include "ParameterList.h"
 
-#include <QSize>
 #include <QXmlStreamWriter>
 #include <QDomDocument>
 
-//Helper struct for globally used settings
-struct CPPVISUALSHARED_EXPORT GlobalSettings
+//Fast read-only parameters access; populated and maintained by ParameterList::link().
+struct CPPVISUALSHARED_EXPORT GlobalSettings : public QObject
 {
-	//Width of the label area on the left of panels
-	int label_width  = 165;
-	//If only GENCODE primary are shown in GenePanel (also relevant for search)
-	bool show_only_primary = true;
-	//Minimum number of bases to show
-	int min_window_size = 40;
-	//How many bases genes/transcripts are padded with, e.g. after search
-	int transcript_padding = 2000;
-	//Max region length for bam tracks
-	int bam_max_region_len = 30000;
-	// Threshold for mismatch thresohld in coverage track s.t. the bar is not drawn gray
-	float coverage_mismatch_threshold = .2f; // if > threshold % are mismatched, the bar is colored
+	Q_OBJECT
+	Q_PROPERTY(int label_width MEMBER label_width)
+	Q_PROPERTY(int min_window_size MEMBER min_window_size)
+	Q_PROPERTY(int transcript_padding MEMBER transcript_padding)
+	Q_PROPERTY(int bam_max_visibility_region MEMBER bam_max_visibility_region)
+	Q_PROPERTY(double bam_insert_size_lower_percentile MEMBER bam_insert_size_lower_percentile)
+	Q_PROPERTY(double bam_insert_size_upper_percentile MEMBER bam_insert_size_upper_percentile)
+
+public:
+	int label_width{};
+	int min_window_size{};
+	int transcript_padding{};
+	int bam_max_visibility_region{};
+	double bam_insert_size_lower_percentile{};
+	double bam_insert_size_upper_percentile{};
 };
 
 //Singleton for data shared by all widgets for visualization.
@@ -41,13 +44,15 @@ public:
 	{
 		return instance()->genome_index_;
 	}
+	//Canonical chromosomes present in the reference, ordered 1-22, X, Y.
+	static const BedFile& wholeGenomeRegions();
 
 	//Return transcripts
 	static const TranscriptList& transcripts()
 	{
 		return instance()->transcripts_;
 	}
-	//Sets transcripts and creates/updates indices
+	//Sets transcripts and creates/updates indices. Do this after initializing GenomeVisualizationWidget!
 	static void setTranscripts(const TranscriptList& transcripts);
 
 	//Returns indices of transcripts in a region
@@ -56,53 +61,56 @@ public:
 		return  instance()->transcripts_index_.matchingIndices(chr, start, end);
 	}
 
-	//Return the global settings
+	//Returns editable global parameters. Changes synchronize the fast settings and emit settingsChanged.
+	static ParameterList& parameters() { return instance()->settings_; }
+
+	//Returns fast read-only access to global settings
 	static const GlobalSettings& settings()
 	{
-		return  instance()->settings_;
-	}
-	static void setSettings(const GlobalSettings& settings)
-	{
-		instance()->settings_ = settings;
-		emit instance()->settingsChanged();
+		return instance()->fast_settings_;
 	}
 
-	//Return the currently displayed region
+	//Writes one Settings element per global parameter, inside the General element.
+	static void writeSettingsToXml(QXmlStreamWriter& writer);
+	//Requires all global settings and applies them atomically after validation.
+	static void loadSettingsFromXml(const QDomElement& general);
+
+	//Return the currently displayed region (invalid for the whole-genome overview).
 	static const BedLine& region()
 	{
 		return  instance()->region_;
 	}
+	//An invalid chromosome selects the whole-genome overview.
 	static void setRegion(const Chromosome& chr, int start, int end);
-
-	//Returns the size of a character
-	static const QSize& characterSize()
-	{
-		return  instance()->char_size_;
-	}
-
-	// writes session information to xml
-	static void writeToXml(QXmlStreamWriter&);
-	static void loadFromXml(QDomElement&);
 
 	//Returns the instance (creates it on first call). This method is public only to connect signal/slots. For all other purposes, use other methods.
 	static SharedData* instance();
+
+	//Updates genomic coordinate in status bar
+	static void mouseMoved(int x, int width);
 
 signals:
 	void transcriptsChanged();
 	void settingsChanged();
 	void regionChanged();
+	void bookmarksChanged();
+	void updateGenomicCoordinate(QString);
 
 protected:
 	explicit SharedData(QObject* parent = nullptr);
 	Q_DISABLE_COPY(SharedData)
-	QSize determineCharacterSize();
 
 	FastaFileIndex genome_index_;
 	TranscriptList transcripts_;
 	ChromosomalIndex<TranscriptList> transcripts_index_;
-	GlobalSettings settings_;
+	ParameterList settings_;
+	GlobalSettings fast_settings_;
 	BedLine region_;
-	QSize char_size_;
+
+private:
+	static QList<Parameter> getParameters();
+	static QHash<QByteArray, QVariant> getParameterDefaults();
+	void updateSettingsConstraints();
 };
 
 
