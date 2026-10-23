@@ -1358,9 +1358,6 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 
 QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analysis_type)
 {
-	//init
-	QStringList project_types = getEnum("project", "type");
-
 	//convert to platform-specific canonical path
 	QStringList output = getValues("SELECT gsvar_file FROM secondary_analysis WHERE type='" + analysis_type + "' AND gsvar_file LIKE '%" + processed_sample_name + "%'");
 	for (int i=0; i<output.count(); ++i)
@@ -1385,6 +1382,11 @@ QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analy
 
 		qDebug() << "final path: " << file;
 
+		if (!file.endsWith(".gz", Qt::CaseInsensitive))
+		{
+			QString gz_file_version = file+".gz";
+			if (QFile(gz_file_version).exists()) file = gz_file_version;
+		}
 		output[i] = file;
 	}
 
