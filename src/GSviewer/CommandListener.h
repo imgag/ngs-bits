@@ -33,7 +33,7 @@ private:
 	quint16 port_;
 
 public:
-	TcpListener(const quint16 port, QObject* parent = nullptr);
+	TcpListener(const quint16 port = 60141, QObject* parent = nullptr);
 
 	void bind() override;
 	void terminate() override;

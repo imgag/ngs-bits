@@ -94,8 +94,6 @@ void MainWindow::delayedInitialization()
 		{
 			ui_.actionEnable_Remote_Application_Control->setChecked(true);
 		}
-
-		SharedData::setRegion("chr17", 43091889, 43093530);
 	}
 	catch (Exception e)
 	{
