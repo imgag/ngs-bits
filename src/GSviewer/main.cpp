@@ -1,17 +1,28 @@
 #include "MainWindow.h"
 #include "Application.h"
 #include <QStyleFactory>
+#include <QCommandLineParser>
 #include "Exceptions.h"
 #include <QMessageBox>
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 	Application a(argc, argv);
 	try
 	{
 		a.setStyle(QStyleFactory::create("windowsvista"));
 
-		MainWindow w;
+		QCommandLineParser args;
+
+		args.addHelpOption();
+		args.addVersionOption();
+
+		QCommandLineOption port("port", "The port or socket path GSviewer should receive commands on.", "<PORT | PATH>");
+		args.addOption(port);
+
+		args.process(a);
+
+		MainWindow w(args.value("port"));
 		w.showMaximized();
 
 		return a.exec();
@@ -24,7 +35,7 @@ int main(int argc, char *argv[])
 	{
 		QMessageBox::critical(nullptr, "GSviewer startup error", e.what());
 	}
-	catch(...)
+	catch (...)
 	{
 		QMessageBox::critical(nullptr, "GSviewer startup error", "unknown exception type");
 	}

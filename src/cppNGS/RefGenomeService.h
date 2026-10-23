@@ -16,10 +16,12 @@ public:
 protected:
     RefGenomeService();
     ~RefGenomeService();
-    static RefGenomeService& instance();
+
+	static RefGenomeService& instance();
 
 private:
     QString ref_genome_file_;
+
 };
 
 

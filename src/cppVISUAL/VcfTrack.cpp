@@ -144,8 +144,7 @@ QList<Parameter> VcfTrack::getParameters() const
 		Parameter("min QUAL", "Minimum variant QUAL. Missing QUAL is included only when the minimum is zero.", ParameterType::DOUBLE, {{ConstraintType::MIN, 0.0}, {ConstraintType::DISPLAY_DIGITS, 2}}),
 		Parameter("PASS only", "Show only records with FILTER=PASS. Excludes unfiltered records (FILTER=.).", ParameterType::BOOL, {}),
 		Parameter("max visibility", "Maximum visible region length in bases. Zoom in to show variants in larger regions.", ParameterType::INT, {{ConstraintType::MIN, 1}}),
-		Parameter("sample", "Sample used for genotype allele bands: white=REF, BAM base colors=ALT alleles, light gray upper half=heterozygous SNP or insertion, hatched gray=missing.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, sampleChoices().join('\t')}})
-	};
+		Parameter("sample", "Sample used for genotype allele bands: white=REF, BAM base colors=ALT alleles, light gray upper half=heterozygous SNP or insertion, hatched gray=missing.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, sampleChoices().join('\t')}})};
 }
 
 QHash<QByteArray, QVariant> VcfTrack::getParameterDefaults() const
@@ -368,7 +367,11 @@ void VcfTrack::updateLayout()
 			//Center insertions between the anchor base and the following base.
 			if (isInsertion(variant.columns[3], variant.columns[4].split(','))) x += viewport.genomeWidthToScreen(1) / 2;
 			const double min_width = 3;
-			if (width < min_width) { x -= (min_width - width) / 2; width = min_width; }
+			if (width < min_width)
+			{
+				x -= (min_width - width) / 2;
+				width = min_width;
+			}
 			int row = 0;
 			while (row < row_ends.size() && x <= row_ends[row] + 2) ++row;
 			if (row == row_ends.size()) row_ends << x + width;
@@ -428,7 +431,10 @@ void VcfTrack::paintEvent(QPaintEvent*)
 		{
 			painter.fillRect(placement.rect, QColor(224, 224, 224));
 			QVector<int> alternate_alleles;
-			for (int allele : gt.alleles) if (allele > 0) alternate_alleles << allele;
+			for (int allele : gt.alleles)
+			{
+				if (allele > 0) alternate_alleles << allele;
+			}
 			for (int i = 0; i < alternate_alleles.count(); ++i)
 			{
 				//Keep both alternate colors visible for multi-allelic genotypes such as 1/2.
@@ -439,9 +445,10 @@ void VcfTrack::paintEvent(QPaintEvent*)
 			continue;
 		}
 		const bool deletion = deletionSpan(variant).first > 0;
-		const bool same_insertion = insertion && !gt.alleles.isEmpty() && gt.alleles.first() > 0
-			&& std::all_of(gt.alleles.begin(), gt.alleles.end(), [&](int allele) { return allele == gt.alleles.first(); });
-		const int deleted_alleles = std::count_if(gt.alleles.begin(), gt.alleles.end(), [](int allele) { return allele > 0; });
+		const bool same_insertion = insertion && !gt.alleles.isEmpty() && gt.alleles.first() > 0 && std::all_of(gt.alleles.begin(), gt.alleles.end(), [&](int allele)
+		{ return allele == gt.alleles.first(); });
+		const int deleted_alleles = std::count_if(gt.alleles.begin(), gt.alleles.end(), [](int allele)
+		{ return allele > 0; });
 		if (deletion)
 		{
 			if (isDelins(variant.columns[3], alts)) painter.fillRect(placement.rect, delinsBrush());
@@ -458,7 +465,11 @@ void VcfTrack::paintEvent(QPaintEvent*)
 				{
 					double x = viewport.genomePosToScreen(span.first);
 					double width = viewport.genomeWidthToScreen(span.second - span.first + 1);
-					if (width < 3) { x -= (3 - width) / 2; width = 3; }
+					if (width < 3)
+					{
+						x -= (3 - width) / 2;
+						width = 3;
+					}
 					const double left = std::max(placement.rect.left(), x);
 					const double right = std::min(placement.rect.right(), x + width);
 					const double y = deleted_alleles == 1 ? placement.rect.center().y() : band.center().y() - (band.center().y() > placement.rect.center().y() ? 1 : 0);
@@ -490,15 +501,17 @@ const VcfTrack::Placement* VcfTrack::placementAt(const QPoint& pos) const
 {
 	const Viewport viewport = getViewport();
 	if (pos.x() < viewport.x0 || pos.x() >= viewport.x0 + viewport.usable_width) return nullptr;
-	for (const Placement& placement : placements_) if (placement.rect.contains(pos)) return &placement;
+	for (const Placement& placement : placements_)
+	{
+		if (placement.rect.contains(pos)) return &placement;
+	}
 	return nullptr;
 }
 
 QString VcfTrack::variantText(const Variant& variant) const
 {
 	const auto& columns = variant.columns;
-	QString text = QString::fromUtf8(variant.chr.str()) + ":" + QString::number(variant.start)
-		+ " " + QString::fromUtf8(columns[3]) + ">" + QString::fromUtf8(columns[4]);
+	QString text = QString::fromUtf8(variant.chr.str()) + ":" + QString::number(variant.start) + " " + QString::fromUtf8(columns[3]) + ">" + QString::fromUtf8(columns[4]);
 	text += "\nQUAL: " + QString::fromUtf8(columns[5]);
 	text += "\nFILTER: " + QString::fromUtf8(columns[6]);
 	QStringList frequencies;
@@ -554,7 +567,11 @@ bool VcfTrack::event(QEvent* event)
 	{
 		const auto* help = static_cast<QHelpEvent*>(event);
 		if (const Placement* placement = placementAt(help->pos())) QToolTip::showText(help->globalPos(), html(variantText(variants_[placement->index])), this, placement->rect.toAlignedRect());
-		else { QToolTip::hideText(); event->ignore(); }
+		else
+		{
+			QToolTip::hideText();
+			event->ignore();
+		}
 		return true;
 	}
 	return TrackWidget::event(event);
@@ -562,10 +579,5 @@ bool VcfTrack::event(QEvent* event)
 
 VcfTrack* VcfTrack::createTrack(QWidget* parent, QString file_path, QString name)
 {
-	try { return new VcfTrack(parent, file_path, name); }
-	catch (const Exception& e)
-	{
-		QMessageBox::critical(QApplication::activeWindow(), "Error loading VCF", e.message());
-		return nullptr;
-	}
+	return new VcfTrack(parent, file_path, name);
 }

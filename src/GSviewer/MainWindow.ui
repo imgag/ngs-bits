@@ -69,6 +69,8 @@
     </property>
     <addaction name="actionOpen_documentation"/>
     <addaction name="separator"/>
+    <addaction name="actionEnable_Remote_Application_Control"/>
+    <addaction name="separator"/>
     <addaction name="actionSettings"/>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
@@ -145,6 +147,14 @@
   <action name="actionLoadURL">
    <property name="text">
     <string>Load URL</string>
+   </property>
+  </action>
+  <action name="actionEnable_Remote_Application_Control">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Enable Remote Application Control</string>
    </property>
   </action>
   <action name="actionAddNRegions">

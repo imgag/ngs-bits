@@ -97,17 +97,9 @@ IgvTrack* IgvTrack::createTrack(QWidget* parent, QString file_path, QString name
 	if (display_name.isEmpty()) display_name = getTrackNameFromIgvFile(igv_file);
 	if (display_name.isEmpty()) display_name = getDisplayNameFromFilePath(file_path);
 
-	try
-	{
-		IgvTrack* track = new IgvTrack(parent, file_path, display_name, igv_file);
-		track->setIgvFile(igv_file);
-		return track;
-	}
-	catch (const ArgumentException& e)
-	{
-		QMessageBox::warning(QApplication::activeWindow(), "Error", e.message());
-		return nullptr;
-	}
+	IgvTrack* track = new IgvTrack(parent, file_path, display_name, igv_file);
+	track->setIgvFile(igv_file);
+	return track;
 }
 
 void IgvTrack::reloadTrack()
@@ -119,7 +111,7 @@ void IgvTrack::reloadTrack()
 
 QSize IgvTrack::sizeHint() const
 {
-	return QSize( parentWidget() ? parentWidget()->width() : 200, fast_settings_.track_height);
+	return QSize(parentWidget() ? parentWidget()->width() : 200, fast_settings_.track_height);
 }
 
 void IgvTrack::setIgvFile(QSharedPointer<IgvFile> igv_file)
@@ -157,12 +149,11 @@ void IgvTrack::drawScaleText(QPainter& painter)
 	Viewport viewport = getViewport();
 	painter.setPen(Qt::black);
 	QRect rec(viewport.x0, 0, width(), height());
-	painter.drawText(rec, Qt::AlignLeft, "["+QString::number(fast_settings_.min) + "," + QString::number(fast_settings_.max) + "]");
+	painter.drawText(rec, Qt::AlignLeft, "[" + QString::number(fast_settings_.min) + "," + QString::number(fast_settings_.max) + "]");
 }
 
 void IgvTrack::drawPlot(QPainter& painter, const BedLine& region, const Viewport& viewport)
 {
-
 	//check min is less than max
 	if (fast_settings_.min >= fast_settings_.max) return;
 	if (viewport.usable_width <= 0) return;
@@ -217,9 +208,9 @@ void IgvTrack::drawLinePlot(QPainter& painter, const QVector<int>& idxes, const 
 	painter.setRenderHint(QPainter::Antialiasing, true);
 	painter.setPen(QPen(Qt::blue, 2, Qt::SolidLine));
 
-	for (int i =1; i < idxes.count(); ++i)
+	for (int i = 1; i < idxes.count(); ++i)
 	{
-		const IgvFileLine& bd1 = (*igv_file_)[idxes[i-1]];
+		const IgvFileLine& bd1 = (*igv_file_)[idxes[i - 1]];
 		const IgvFileLine& bd2 = (*igv_file_)[idxes[i]];
 
 		const double value1 = bd1.value();
@@ -262,9 +253,9 @@ void IgvTrack::drawHeatMap(QPainter& painter, const QVector<int>& idxes, const B
 
 		double t = std::clamp(value, 0.0, 1.0);
 
-		int r = HEATMAP_COL1.red()   + t * (HEATMAP_COL2.red()   - HEATMAP_COL1.red());
+		int r = HEATMAP_COL1.red() + t * (HEATMAP_COL2.red() - HEATMAP_COL1.red());
 		int g = HEATMAP_COL1.green() + t * (HEATMAP_COL2.green() - HEATMAP_COL1.green());
-		int b = HEATMAP_COL1.blue()  + t * (HEATMAP_COL2.blue()  - HEATMAP_COL1.blue());
+		int b = HEATMAP_COL1.blue() + t * (HEATMAP_COL2.blue() - HEATMAP_COL1.blue());
 		int a = HEATMAP_COL1.alpha() + t * (HEATMAP_COL2.alpha() - HEATMAP_COL1.alpha());
 
 		QColor color(r, g, b, a);
@@ -329,8 +320,7 @@ void IgvTrack::mouseReleaseEvent(QMouseEvent* event)
 {
 	TrackWidget::mouseReleaseEvent(event);
 	QPoint pos = event->pos();
-	if ((pos - mouse_press_pos_).manhattanLength() >= QApplication::startDragDistance()
-		|| event->button() != Qt::LeftButton)
+	if ((pos - mouse_press_pos_).manhattanLength() >= QApplication::startDragDistance() || event->button() != Qt::LeftButton)
 	{
 		return;
 	}

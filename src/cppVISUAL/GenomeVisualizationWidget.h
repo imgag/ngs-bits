@@ -6,8 +6,11 @@
 #include <QWidget>
 #include <QPointer>
 #include "DelayedInitializationTimer.h"
+#include <BamCoverageTrack.h>
+#include <BamAlignmentTrack.h>
 
-namespace Ui {
+namespace Ui
+{
 class GenomeVisualizationWidget;
 }
 
@@ -26,6 +29,8 @@ public:
 	~GenomeVisualizationWidget() override;
 	//Adds a generated BED track with a backing file for reload/session persistence.
 	void addBedTrack(QSharedPointer<BedFile> regions, QString file_path, QString name);
+
+	QList<BamAlignmentTrack*> bamTracks();
 
 public slots:
 	//Shows 'open file' dialog

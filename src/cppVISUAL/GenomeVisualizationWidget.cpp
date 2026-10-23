@@ -80,10 +80,10 @@ void GenomeVisualizationWidget::setupDebugButton()
 	{
 		QAction* action = debug_menu->addAction("goto " + query);
 		connect(action, &QAction::triggered, this, [this, query]()
-				{
-					ui_->search->setText(query);
-					search();
-				});
+		{
+			ui_->search->setText(query);
+			search();
+		});
 	}
 
 	ui_->debug_btn->setMenu(debug_menu);
@@ -124,7 +124,6 @@ void GenomeVisualizationWidget::setupBookmarkMenu()
 				{
 					SharedData::setRegion(region.chr(), region.start(), region.end());
 				});
-
 			}
 		}
 	});
@@ -139,7 +138,7 @@ void GenomeVisualizationWidget::storeBookmark()
 	QStringList bookmarks = Settings::stringList("bookmark_regions", true);
 	bookmarks.append(QString::fromUtf8(QJsonDocument(bookmark).toJson(QJsonDocument::Compact)));
 	Settings::setStringList("bookmark_regions", bookmarks);
-	emit SharedData::instance()->bookmarksChanged();
+	emit SharedData::instance() -> bookmarksChanged();
 }
 
 GenomeVisualizationWidget::~GenomeVisualizationWidget()
@@ -242,9 +241,16 @@ void GenomeVisualizationWidget::openFileDialog()
 	QStringList files = QFileDialog::getOpenFileNames(this, "Open file(s)", open_folder, "NGS files(*.bam *.cram *.bed *.bed.gz *.bedpe *.bedpe.gz *.vcf *.vcf.gz *.igv *.seg);;All files(*.*)");
 	if (!files.isEmpty())
 	{
-		foreach(QString file, files)
+		foreach (QString file, files)
 		{
-			loadFile(file);
+			try
+			{
+				loadFile(file);
+			}
+			catch (Exception e)
+			{
+				QMessageBox::critical(QApplication::activeWindow(), "Could not load file", e.message());
+			}
 		}
 		Settings::setPath("load_store_file_folder", QFileInfo(files[0]).absolutePath());
 	}
@@ -264,7 +270,15 @@ void GenomeVisualizationWidget::openUrlDialog()
 		return;
 	}
 
-	loadFile(url);
+	try
+	{
+		loadFile(url);
+	}
+	catch (Exception e)
+	{
+		QMessageBox::warning(this, "Unable to load file", "The URL " + url + " failed to load due to the following error:\n\t" + e.message());
+		return;
+	}
 }
 
 void GenomeVisualizationWidget::loadFile(QString filename)
@@ -284,6 +298,11 @@ void GenomeVisualizationWidget::reloadTracks()
 	ui_->track_group_manager->reloadTracks();
 }
 
+QList<BamAlignmentTrack*> GenomeVisualizationWidget::bamTracks()
+{
+	return findChildren<BamAlignmentTrack*>();
+}
+
 void GenomeVisualizationWidget::clearSession()
 {
 	clearParameterEditor();
@@ -299,7 +318,7 @@ void GenomeVisualizationWidget::updateIndices()
 	ui_->chr_selector->clear();
 	ui_->chr_selector->addItem("All");
 	valid_chrs_.clear();
-	foreach(const Chromosome& chr, SharedData::genome().chromosomes())
+	foreach (const Chromosome& chr, SharedData::genome().chromosomes())
 	{
 		valid_chrs_ << chr.str();
 	}
@@ -308,11 +327,11 @@ void GenomeVisualizationWidget::updateIndices()
 	ui_->chr_selector->blockSignals(false);
 
 	//init gene and transcript list
-	for(int i=0; i<SharedData::transcripts().size(); ++i)
+	for (int i = 0; i < SharedData::transcripts().size(); ++i)
 	{
 		const Transcript& trans = SharedData::transcripts()[i];
 
-		if (trans.source()!=Transcript::ENSEMBL) continue;
+		if (trans.source() != Transcript::ENSEMBL) continue;
 
 		gene_to_trans_indices_[trans.gene().toUpper()] << i;
 		trans_to_index_[trans.name().toUpper()] = i;
@@ -346,7 +365,7 @@ void GenomeVisualizationWidget::search()
 	QByteArray text = ui_->search->text().trimmed().toUtf8();
 
 	//chromosome
-	if (valid_chrs_.contains(text) || (!text.startsWith("chr") && valid_chrs_.contains("chr"+text)))
+	if (valid_chrs_.contains(text) || (!text.startsWith("chr") && valid_chrs_.contains("chr" + text)))
 	{
 		setChromosomeRegion(text);
 		return;
@@ -371,14 +390,14 @@ void GenomeVisualizationWidget::search()
 	if (gene_to_trans_indices_.contains(text))
 	{
 		BedFile roi;
-		foreach(int index, gene_to_trans_indices_[text])
+		foreach (int index, gene_to_trans_indices_[text])
 		{
 			const Transcript& trans = SharedData::transcripts()[index];
 			roi.append(BedLine(trans.chr(), trans.start(), trans.end()));
 		}
 		roi.extend(SharedData::settings().transcript_padding);
 		roi.merge();
-		if (roi.count()>1)
+		if (roi.count() > 1)
 		{
 			QToolTip::showText(ui_->search->mapToGlobal(QPoint(0, 0)), "Gene has several transcript regions, using the first one!\nUse transcript identifiers to select a specific transcript of the gene!" + text);
 		}
@@ -389,10 +408,10 @@ void GenomeVisualizationWidget::search()
 
 	//transcript
 	int index = trans_to_index_.value(text, -1);
-	if (index!=-1)
+	if (index != -1)
 	{
 		const Transcript& trans = SharedData::transcripts()[index];
-		SharedData::setRegion(trans.chr(), trans.start()-SharedData::settings().transcript_padding, trans.end()+SharedData::settings().transcript_padding);
+		SharedData::setRegion(trans.chr(), trans.start() - SharedData::settings().transcript_padding, trans.end() + SharedData::settings().transcript_padding);
 		return;
 	}
 
@@ -403,14 +422,14 @@ void GenomeVisualizationWidget::zoomIn()
 {
 	const BedLine& reg = SharedData::region();
 	if (!reg.isValid()) return;
-	SharedData::setRegion(reg.chr(), reg.start()+reg.length()/4, reg.end()-reg.length()/4);
+	SharedData::setRegion(reg.chr(), reg.start() + reg.length() / 4, reg.end() - reg.length() / 4);
 }
 
 void GenomeVisualizationWidget::zoomOut()
 {
 	const BedLine& reg = SharedData::region();
 	if (!reg.isValid()) return;
-	SharedData::setRegion(reg.chr(), reg.start()-reg.length()/2, reg.end()+reg.length()/2);
+	SharedData::setRegion(reg.chr(), reg.start() - reg.length() / 2, reg.end() + reg.length() / 2);
 }
 
 void GenomeVisualizationWidget::zoomIn(int x)
@@ -531,7 +550,7 @@ void GenomeVisualizationWidget::saveSession()
 	writer.writeAttribute("chr", region.chr().strNormalized(true));
 	writer.writeAttribute("start", QString::number(region.start()));
 	writer.writeAttribute("end", QString::number(region.end()));
-	writer.writeEndElement();  // DisplayRegion
+	writer.writeEndElement(); // DisplayRegion
 
 	SharedData::writeSettingsToXml(writer);
 	writer.writeEndElement(); // General

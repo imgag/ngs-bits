@@ -295,23 +295,35 @@ void VariantTable::customContextMenu(QPoint pos)
 		//set region
 		SharedData::setRegion(variant.chr(), variant.start(), variant.end());
 		
-		//load BAMs
-		GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this);
-		foreach(const FileLocation& loc, GlobalServiceProvider::fileLocationProvider().getBamFiles(false))
+		try
 		{
-			widget->loadFile(loc.filename);
-		}
+			//load BAMs
+			GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this);
+			foreach(const FileLocation& loc, GlobalServiceProvider::fileLocationProvider().getBamFiles(false))
+			{
+				widget->loadFile(loc.filename);
+			}
 
-		//load transcripts
-		if (SharedData::transcripts().isEmpty())
+			//load transcripts
+			if (SharedData::transcripts().isEmpty())
+			{
+				SharedData::setTranscripts(NGSD().transcripts());
+			}
+
+
+			//show
+			auto dlg = GUIHelper::createDialog(widget, "GSvar visualization");
+			dlg->exec();
+		}
+		catch (Exception e)
 		{
-			SharedData::setTranscripts(NGSD().transcripts());
+			foreach(const FileLocation& loc, GlobalServiceProvider::fileLocationProvider().getBamFiles(false))
+			{
+				qDebug() << "Attempted to load file" << loc.filename;
+			}
+
+			QMessageBox::warning(QApplication::activeWindow(), "Failed to load a file", "At least one file failed to load. See application logs for a list of attempted loads.\n\t" + e.message());
 		}
-
-
-		//show
-		auto dlg = GUIHelper::createDialog(widget, "GSvar visualization");
-		dlg->exec();
 	}
 	else if (parent_menu && parent_menu->title()=="Open link")
 	{

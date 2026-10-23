@@ -1,36 +1,35 @@
 #include "MainWindow.h"
-#include "Settings.h"
-#include "TranscriptCache.h"
-#include "SharedData.h"
-#include "AboutDialog.h"
-#include "ParameterEditor.h"
-#include "ColorNames.h"
-#include "htslib/hts.h"
-#include "GenomeVisualizationWidget.h"
-#include "FileLoader.h"
-#include <QCryptographicHash>
-#include <QDir>
-#include <QFileInfo>
-#include <QMessageBox>
-#include <QStandardPaths>
 #include <QApplication>
-#include <QProgressDialog>
+#include <QCryptographicHash>
 #include <QDesktopServices>
-#include <QUrl>
 #include <QDialog>
 #include <QDialogButtonBox>
-#include <QVBoxLayout>
-#include <QTableWidget>
+#include <QDir>
+#include <QFileInfo>
 #include <QHeaderView>
+#include <QMessageBox>
+#include <QProgressDialog>
+#include <QStandardPaths>
+#include <QTableWidget>
+#include <QUrl>
+#include <QVBoxLayout>
+#include "AboutDialog.h"
+#include "ColorNames.h"
+#include "GenomeVisualizationWidget.h"
+#include "ParameterEditor.h"
+#include "Settings.h"
+#include "TranscriptCache.h"
+#include <TrackGroupManager.h>
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(QString bind, QWidget* parent)
 	: QMainWindow(parent)
 	, ui_()
 	, init_timer_(this, true)
+	, api_(bind, this)
 {
 	ui_.setupUi(this);
 
-	//sginals and slots
+	// signals and slots
 	connect(ui_.actionLoadFile, &QAction::triggered, ui_.gvw, &GenomeVisualizationWidget::openFileDialog);
 	connect(ui_.actionLoadURL, &QAction::triggered, ui_.gvw, &GenomeVisualizationWidget::openUrlDialog);
 	connect(ui_.actionReloadTracks, &QAction::triggered, ui_.gvw, &GenomeVisualizationWidget::reloadTracks);
@@ -48,11 +47,24 @@ MainWindow::MainWindow(QWidget *parent)
 	QByteArray curl_ca_bundle = Settings::string("curl_ca_bundle", true).trimmed().toUtf8();
 	if (!curl_ca_bundle.isEmpty())
 	{
-		if(!QFile::exists(curl_ca_bundle)) THROW(FileAccessException, "CURL_CA_BUNDLE file does not exist: "+curl_ca_bundle);
+		if (!QFile::exists(curl_ca_bundle))
+		{
+			THROW(FileAccessException, "CURL_CA_BUNDLE file does not exist: " + curl_ca_bundle);
+		}
 		if (!qputenv("CURL_CA_BUNDLE", curl_ca_bundle))
 		{
-			qDebug() << "Could not set CURL_CA_BUNDLE variable, access to BAM/CRAM files over HTTPS may not be possible";
+			qDebug() << "Could not set CURL_CA_BUNDLE variable, access to BAM/CRAM files over "
+						"HTTPS may not be possible";
 		}
+	}
+
+	// API
+
+	if (!bind.isEmpty())
+	{
+		connect(&api_, &CommandServer::commandReceived, this, &MainWindow::executeApiCommand);
+		ui_.actionEnable_Remote_Application_Control->setChecked(true);
+		api_.bind();
 	}
 }
 
@@ -65,7 +77,7 @@ void MainWindow::delayedInitialization()
 		timer.start();
 		{
 			QString gff_file = Settings::string("ensembl_gff");
-			QProgressDialog progress_dialog("loading gene/transcript Gff file: "+gff_file, QString(), 0, 0, this);
+			QProgressDialog progress_dialog("loading gene/transcript Gff file: " + gff_file, QString(), 0, 0, this);
 			progress_dialog.setWindowModality(Qt::ApplicationModal);
 			progress_dialog.setCancelButton(nullptr);
 			progress_dialog.setMinimumDuration(0);
@@ -75,11 +87,18 @@ void MainWindow::delayedInitialization()
 			SharedData::setTranscripts(TranscriptCache::load(gff_file));
 		}
 		qDebug() << "Parsing transcripts took: " << Helper::elapsedTime(timer);
-    }
+
+		bool enable_api = Settings::boolean("enable_remote_application_control", true);
+
+		if (enable_api)
+		{
+			ui_.actionEnable_Remote_Application_Control->setChecked(true);
+		}
+	}
 	catch (Exception e)
 	{
-		QTextStream(stderr) << "Error loading transcripts: "+e.message();
-        exit(-1);
+		QTextStream(stderr) << "Error loading transcripts: " + e.message();
+		exit(-1);
 	}
 }
 
@@ -111,7 +130,10 @@ void MainWindow::addNRegions()
 				{
 					if (sequence[i] == 'N' || sequence[i] == 'n')
 					{
-						if (n_start == 0) n_start = start + i;
+						if (n_start == 0)
+						{
+							n_start = start + i;
+						}
 					}
 					else if (n_start > 0)
 					{
@@ -120,13 +142,19 @@ void MainWindow::addNRegions()
 					}
 				}
 			}
-			if (n_start > 0) regions->append(BedLine(chr, n_start, length));
+			if (n_start > 0)
+			{
+				regions->append(BedLine(chr, n_start, length));
+			}
 		}
 		regions->sort();
 
 		//store BED
 		const QString folder = QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + "/generated_tracks";
-		if (!QDir().mkpath(folder)) THROW(FileAccessException, "Could not create directory: " + folder);
+		if (!QDir().mkpath(folder))
+		{
+			THROW(FileAccessException, "Could not create directory: " + folder);
+		}
 		const QByteArray reference = QFileInfo(Settings::string("reference_genome")).absoluteFilePath().toUtf8();
 		const QString file_path = folder + "/N_regions.bed";
 		regions->store(file_path);
@@ -174,7 +202,7 @@ void MainWindow::showSettings()
 	dialog.setWindowTitle("Global settings");
 	dialog.setMinimumSize(300, 330);
 	QVBoxLayout* layout = new QVBoxLayout(&dialog);
-	layout->setContentsMargins(QMargins(3,3,3,3));
+	layout->setContentsMargins(QMargins(3, 3, 3, 3));
 	layout->setSpacing(3);
 	ParameterEditor* editor = new ParameterEditor(SharedData::parameters(), &dialog);
 	editor->disableAutoApply();
@@ -185,6 +213,229 @@ void MainWindow::showSettings()
 void MainWindow::openDocumentation()
 {
 	QDesktopServices::openUrl(QUrl("https://github.com/imgag/ngs-bits/blob/master/doc/GSviewer/index.md"));
+}
+
+void MainWindow::on_actionEnable_Remote_Application_Control_changed()
+{
+	bool should_enable = ui_.actionEnable_Remote_Application_Control->isChecked();
+
+	if (should_enable)
+	{
+		api_.bind();
+	}
+	else
+	{
+		api_.terminate();
+	}
+}
+
+void MainWindow::executeApiCommand(ApiCommand cmd)
+{
+	try
+	{
+		if (cmd.verb == "new")
+		{
+			ui_.gvw->clearSession();
+		}
+		else if (cmd.verb == "echo")
+		{
+			return api_.dispatchResponse(cmd, cmd.arguments.join("; "));
+		}
+		else if (cmd.verb == "goto")
+		{
+			handleGoto(cmd.arguments);
+		}
+		else if (cmd.verb == "load")
+		{
+			handleLoad(cmd.arguments);
+		}
+		else if (cmd.verb == "setSleepInterval")
+		{
+			handleSleep(/* cmd.arguments */);
+		}
+		else if (cmd.verb == "viewaspairs")
+		{
+			handleViewAsPairs(/* cmd.arguments */);
+		}
+		else if (cmd.verb == "colorBy")
+		{
+			handleColorBy(cmd.arguments);
+		}
+		else if (cmd.verb == "group")
+		{
+			handleGroupBy(cmd.arguments);
+		}
+		else if (cmd.verb == "snapshot")
+		{
+			handleScreenshot(cmd.arguments);
+		}
+		else if (cmd.verb == "collapse" || cmd.verb == "genome")
+		{
+			stub();
+		}
+		else
+		{
+			QString msg = QString("UNKOWN COMMAND: %1").arg(cmd.verb); // Absichtlicher Tippfehler. Das kommmt aus IGV so
+			qDebug() << "Unrecognised verb" << cmd.verb;
+
+			api_.dispatchFailure(cmd, msg);
+			return;
+		}
+	}
+	catch (Exception e)
+	{
+		QString msg = QString("ERR: %1").arg(e.message());
+		qDebug() << "An error occurred" << cmd.verb;
+
+		api_.dispatchFailure(cmd, msg);
+
+		err("An invalid command was received", e.message());
+
+		return;
+	}
+
+	api_.dispatchResponse(cmd);
+}
+
+void MainWindow::err(QString header, QString text)
+{
+	auto* box = new QMessageBox(QMessageBox::Warning, header, text, QMessageBox::Ok, this);
+	box->setAttribute(Qt::WA_DeleteOnClose);
+	box->open(); // window-modal, returns immediately
+}
+
+void MainWindow::stub()
+{
+}
+
+void MainWindow::handleGoto(QStringList args)
+{
+	for (QString& locus : args)
+	{
+		BedLine region = BedLine::fromString(locus);
+		if (region.isValid())
+		{
+			SharedData::setRegion(region.chr(), region.start(), region.end());
+			return;
+		}
+		else
+		{
+			THROW(Exception, "The region specified is not valid and can therefore not be used as a "
+				"destination. If you meant to jump to a particular coordinate, be sure to "
+				"include the chromosome and start/end positions in the format (chrN:start-end), "
+				"or just the chromonose name: (chrN).");
+		}
+	}
+}
+
+void MainWindow::handleLoad(QStringList args)
+{
+	for (auto &arg : args)
+	{
+		if (arg.trimmed().isEmpty())
+		{
+			THROW(Exception, "The URL is empty or invalid");
+		}
+		else
+		{
+			QUrl url = api_.parseUrl(arg);
+
+			if (url.isLocalFile())
+			{
+				ui_.gvw->loadFile(url.toLocalFile());
+			}
+			else
+			{
+				ui_.gvw->loadFile(url.toString());
+			}
+		}
+	}
+}
+
+void MainWindow::handleSleep(/*QStringList args*/)
+{
+	return; // TODO: Consider whether implementation is truly necessary
+}
+
+void MainWindow::handleViewAsPairs(/*QStringList args*/)
+{
+	for (auto track : ui_.gvw->bamTracks())
+	{
+		track->parameters().setBool("view as pairs", true);
+	}
+}
+
+static const QHash<QString, QString> RENAME_COLORBY = {{"UNEXPECTED_PAIR", "insert size"}};
+
+void MainWindow::handleColorBy(QStringList args)
+{
+	if (args.length() < 1 || args.length() > 2)
+	{
+		THROW(Exception, "Expected exactly 1-2 arguments. Got " + QString::number(args.length()));
+	}
+
+	auto rename = RENAME_COLORBY.contains(args[0]) ? RENAME_COLORBY.value(args[0]) : args[0];
+
+	for (auto track : ui_.gvw->bamTracks())
+	{
+		track->parameters().setString("color by", rename.toUtf8());
+	}
+}
+
+static const QHash<QString, QString> RENAME_GROUPBY = {{}};
+
+void MainWindow::handleGroupBy(QStringList args)
+{
+	if (args.length() < 1 || args.length() > 2)
+	{
+		THROW(Exception, "Expected exactly 1-2 arguments. Got " + QString::number(args.length()));
+	}
+
+	auto rename = RENAME_GROUPBY.contains(args[0]) ? RENAME_GROUPBY.value(args[0]) : args[0];
+
+	for (auto track : ui_.gvw->bamTracks())
+	{
+		track->parameters().setString("group by", rename.toUtf8());
+	}
+}
+
+void MainWindow::handleScreenshot(QStringList args)
+{
+	if (args.length() > 1)
+	{
+		THROW(Exception, "Expected exactly 0 or 1 arguments. Got " + QString::number(args.length()));
+	}
+
+	auto track = findChild<TrackGroupManager*>();
+
+	track->ensurePolished();
+
+	if (track->layout()) track->layout()->activate();
+	if (track->size().isEmpty()) track->resize(track->sizeHint());
+
+	qreal dpr = 1.0;
+
+	QImage img(track->size() * dpr, QImage::Format_ARGB32_Premultiplied);
+	img.setDevicePixelRatio(dpr);
+	img.fill(Qt::transparent);
+
+	track->render(&img, QPoint(), QRegion(), QWidget::DrawWindowBackground | QWidget::DrawChildren);
+
+	qDebug() << "Capturing screenshot" << SharedData::region().toString(true);
+
+	if (args.length() > 0 && !args[0].isEmpty()) img.save(args[0]);
+
+	else
+	{
+		const QDir dir(QDir(QStandardPaths::writableLocation(QStandardPaths::PicturesLocation)).filePath("GSviewer Screenshots"));
+
+		if (!dir.mkpath(".")) THROW(ProgrammingException, "Unable to create intermediate directory for screenshots");
+
+		const QString destination = dir.filePath(
+			SharedData::region().toString(true).replace(':', '-') + ".png");
+
+		img.save(destination);
+	}
 }
 
 void MainWindow::showAboutDialog()
