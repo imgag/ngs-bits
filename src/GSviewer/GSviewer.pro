@@ -1,7 +1,6 @@
 include("../app_gui.pri")
 
-QT       += gui widgets network sql xml printsupport charts svg \
-    core5compat
+QT       += gui widgets network sql xml printsupport charts svg
 QTPLUGIN += QSQLMYSQL
 
 TARGET = GSviewer
