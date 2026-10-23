@@ -1,11 +1,13 @@
 #include "CommandServer.h"
 
-#include <QUrlQuery>
 #include <QFile>
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QMessageBox>
 #include <QRegularExpression>
+#include <QUrlQuery>
+#include <Exception>
+#include <Exceptions.h>
 #include <deque>
 
 using namespace Qt::StringLiterals;
@@ -77,6 +79,9 @@ void CommandServer::newConnection(QIODevice* socket)
 
 void CommandServer::handleAccessToken(ApiCommand cmd)
 {
+	if (cmd.arguments.length() != 2) THROW(Exception, "Expected exactly 2 arguments. Got " + QString::number(cmd.arguments.length()));
+	if (cmd.arguments[1].length() < 2) THROW(Exception, "A URL of length <2 was received. This is very likely invalid.");
+
 	QUrl url = QUrl::fromUserInput(cmd.arguments[1].sliced(1, cmd.arguments[1].length() - 2).trimmed());
 
 	if (url.scheme().isEmpty()) url.setScheme("http");
@@ -180,6 +185,12 @@ QStringList CommandServer::splitQuoted(QString str)
 		// Handle escaped string characters
 		if (c == '\\')
 		{
+			if (i >= str.size())
+			{
+				token.push_back("\\");
+				continue;
+			}
+
 			const QChar next = str.at(++i);
 
 			if (next == '"')
@@ -202,7 +213,8 @@ QStringList CommandServer::splitQuoted(QString str)
 		}
 		else if (c.isSpace() && !is_quoted)
 		{
-			split << token.trimmed();
+			if (!token.trimmed().isEmpty()) split << token.trimmed();
+
 			token.clear();
 		}
 		else if (c == '"')

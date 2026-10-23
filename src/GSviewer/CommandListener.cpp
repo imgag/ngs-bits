@@ -38,7 +38,7 @@ TcpListener::TcpListener(const quint16 port, QObject* parent)
 		{
 			connect(s, &QTcpSocket::disconnected, this, [this, s]
 			{
-				emit disconnect(s);
+				emit closedConnection(s);
 			});
 			emit newConnection(s);
 		}

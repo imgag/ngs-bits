@@ -270,7 +270,15 @@ void GenomeVisualizationWidget::openUrlDialog()
 		return;
 	}
 
-	loadFile(url);
+	try
+	{
+		loadFile(url);
+	}
+	catch (Exception e)
+	{
+		QMessageBox::warning(this, "Unable to load file", "The URL " + url + " failed to load due to the following error:\n\t" + e.message());
+		return;
+	}
 }
 
 void GenomeVisualizationWidget::loadFile(QString filename)

@@ -20,7 +20,7 @@ SOURCES += main.cpp \
 
 HEADERS += MainWindow.h \
     CommandListener.h \
-    CommandServer.h
+    CommandServer.h \
     TranscriptCache.h
 
 FORMS += MainWindow.ui

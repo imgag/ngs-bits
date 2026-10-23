@@ -96,7 +96,7 @@ void MainWindow::delayedInitialization()
 		}
 		qDebug() << "Parsing transcripts took: " << Helper::elapsedTime(timer);
 
-		bool enable_api = Settings::boolean("enable_remote_application_control", false);
+		bool enable_api = Settings::boolean("enable_remote_application_control", true);
 
 		if (enable_api)
 		{
