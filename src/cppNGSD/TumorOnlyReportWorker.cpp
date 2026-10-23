@@ -108,7 +108,7 @@ void TumorOnlyReportWorker::writeXML(QString filename, bool test)
 
 	//group gaps by gene
 	QMap<QByteArray, BedFile> gaps_by_gene;
-	if(QFileInfo::exists(config_.low_coverage_file))
+	if(QFile::exists(config_.low_coverage_file))
 	{
 		BedFile low_cov;
 		low_cov.load(config_.low_coverage_file);
@@ -386,7 +386,7 @@ void TumorOnlyReportWorker::writeRtf(QByteArray file_path)
 
 
 	//gap statistics if target file exists
-	if(config_.roi.isValid() && QFileInfo::exists(config_.low_coverage_file))
+	if(config_.roi.isValid() && QFile::exists(config_.low_coverage_file))
 	{
 		doc_.addPart(RtfParagraph("Statistik:").setBold(true).setSpaceAfter(45).setSpaceBefore(45).setFontSize(16).RtfCode());
 		RtfTable table;

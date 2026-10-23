@@ -16,6 +16,7 @@
 #include "GlobalServiceProvider.h"
 #include "IgvSessionManager.h"
 #include "ColorNames.h"
+#include <QLayoutItem>
 
 VariantDetailsDockWidget::VariantDetailsDockWidget(QWidget* parent)
 	: QWidget(parent)
@@ -207,6 +208,18 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->ngsd_comment, vl, index, "comment");
 	setAnnotation(ui->ngsd_validation, vl, index, "validation");
 
+	//somatic - hide if not in GSvar file (more space for other labels)
+	bool show_somatic = vl.annotationExists("ncg_tsg") || vl.annotationExists("ncg_oncogene") || vl.annotationExists("CANCERHOTSPOTS_AA_CHANGE") || vl.annotationExists("CMC_mutation_significance");
+	ui->line_somatic->setVisible(show_somatic);
+	for (int i = 0; i < ui->layout_somatic->count(); ++i)
+	{
+		QLayoutItem* item = ui->layout_somatic->itemAt(i);
+		if (QWidget* widget = item->widget())
+		{
+			widget->setVisible(show_somatic);
+		}
+	}
+
 	//somatic details
 	setAnnotation(ui->somatic_count, vl, index, "NGSD_som_c");
 	setAnnotation(ui->somatic_oncogene, vl, index, "ncg_oncogene");
@@ -214,11 +227,21 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->somatic_cancerhotspots, vl, index, "CANCERHOTSPOTS_AA_CHANGE");
 	setAnnotation(ui->somatic_cmc_class, vl, index, "CMC_mutation_significance");
 	setAnnotation(ui->genome_nexus, vl, index, "genome_nexus");
-
-	//somatic VICC data from NGSD
 	setAnnotation(ui->somatic_vicc_score, vl, index, "NGSD_som_vicc_interpretation");
 
-	//RNA (ASE)
+	//RNA - hide if not in GSvar file (more space for other labels)
+	bool show_rna = vl.annotationExists("aberrant_splicing") || vl.annotationExists("tpm");
+	ui->line_rna->setVisible(show_rna);
+	for (int i = 0; i < ui->layout_rna->count(); ++i)
+	{
+		QLayoutItem* item = ui->layout_rna->itemAt(i);
+		if (QWidget* widget = item->widget())
+		{
+			widget->setVisible(show_rna);
+		}
+	}
+
+	//RNA
 	QString rna_ase = "";
 	int ase_af_idx = vl.annotationIndexByName("ASE_af", true, false);
 	int ase_pval_idx = vl.annotationIndexByName("ASE_pval", true, false);
@@ -232,10 +255,6 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 		}
 	}
 	ui->rna_ase->setText(rna_ase);
-	setAnnotation(ui->rna_splicing, vl, index, "aberrant_splicing");
-	setAnnotation(ui->rna_tpm, vl, index, "tpm");
-
-	//RNA (fold-change)
 	QString rna_rel = "";
 	int expr_log2fc_idx = vl.annotationIndexByName("expr_log2fc", true, false);
 	int expr_zscore_idx = vl.annotationIndexByName("expr_zscore", true, false);
@@ -249,6 +268,8 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 		}
 	}
 	ui->rna_rel->setText(rna_rel);
+	setAnnotation(ui->rna_splicing, vl, index, "aberrant_splicing");
+	setAnnotation(ui->rna_tpm, vl, index, "tpm");
 
 	//update NGSD button
 	ui->var_btn->setEnabled(LoginManager::active());
@@ -671,7 +692,7 @@ void VariantDetailsDockWidget::setAnnotation(QLabel* label, const VariantList& v
 		}
 	}
 
-	if(name == "genome_nexus")
+	if(name=="genome_nexus")
 	{
 		FastaFileIndex genome_index(Settings::string("reference_genome"));
 		QString url = "https://grch38.genomenexus.org/variant/";

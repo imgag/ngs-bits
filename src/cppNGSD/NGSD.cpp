@@ -1296,7 +1296,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	{
 		output += ps_name + ".GSvar";
 		// choose between available files: prefer the *.gz
-		if (QFileInfo(output+".gz").exists()) output += ".gz";
+		if (QFile::exists(output+".gz")) output += ".gz";
 	}
 	else if (type==PathType::VCF) output += ps_name + "_var_annotated.vcf.gz";
 	else if (type==PathType::VCF_CF_DNA) output += ps_name + "_var.vcf";
@@ -5264,6 +5264,8 @@ QString NGSD::analysisJobGSvarFile(int job_id)
 	{
 		THROW(ProgrammingException, "Unknown analysis type '" + job.type + "'!");
 	}
+
+	qDebug() << output; //TODO fallback to GZ?!
 
 	return output;
 }

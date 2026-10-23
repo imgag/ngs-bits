@@ -349,6 +349,8 @@ public:
 	///get annotation header by name
 	VariantAnnotationDescription annotationDescriptionByName(const QString& description_name, bool error_not_found = true) const;
 
+	///Checks if at least one annotation with the name exists (case-insensitive)
+	bool annotationExists(const QString& name) const;
 	///Looks up annotation header index by name. If no or several annotations match, -1 is returned (or an error is thrown if @p error_on_mismatch is set).
 	int annotationIndexByName(const QString& name, bool exact_match = true, bool error_on_mismatch = true) const;
 	///Looks up the index of an annotation in the VEP header (CSQ info field). Keep in mind the that CSQ field of variants conains comma-sparated entries for each transcript!
