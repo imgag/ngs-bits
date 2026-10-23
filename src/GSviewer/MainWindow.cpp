@@ -36,30 +36,12 @@ MainWindow::MainWindow(QString bind, QWidget* parent)
 	ui_.setupUi(this);
 
 	// signals and slots
-	connect(ui_.actionLoadFile,
-		&QAction::triggered,
-		ui_.gvw,
-		&GenomeVisualizationWidget::openFileDialog);
-	connect(ui_.actionLoadURL,
-		&QAction::triggered,
-		ui_.gvw,
-		&GenomeVisualizationWidget::openUrlDialog);
-	connect(ui_.actionReloadTracks,
-		&QAction::triggered,
-		ui_.gvw,
-		&GenomeVisualizationWidget::reloadTracks);
-	connect(ui_.actionClearSession,
-		&QAction::triggered,
-		ui_.gvw,
-		&GenomeVisualizationWidget::clearSession);
-	connect(ui_.actionStore_session,
-		&QAction::triggered,
-		ui_.gvw,
-		&GenomeVisualizationWidget::saveSession);
-	connect(ui_.actionLoadSession,
-		&QAction::triggered,
-		ui_.gvw,
-		&GenomeVisualizationWidget::loadSession);
+	connect(ui_.actionLoadFile, &QAction::triggered, ui_.gvw, &GenomeVisualizationWidget::openFileDialog);
+	connect(ui_.actionLoadURL, &QAction::triggered, ui_.gvw, &GenomeVisualizationWidget::openUrlDialog);
+	connect(ui_.actionReloadTracks, &QAction::triggered, ui_.gvw, &GenomeVisualizationWidget::reloadTracks);
+	connect(ui_.actionClearSession, &QAction::triggered, ui_.gvw, &GenomeVisualizationWidget::clearSession);
+	connect(ui_.actionStore_session, &QAction::triggered, ui_.gvw, &GenomeVisualizationWidget::saveSession);
+	connect(ui_.actionLoadSession, &QAction::triggered, ui_.gvw, &GenomeVisualizationWidget::loadSession);
 	connect(ui_.actionOpen_documentation, &QAction::triggered, this, &MainWindow::openDocumentation);
 	connect(ui_.actionSettings, &QAction::triggered, this, &MainWindow::showSettings);
 	connect(ui_.actionAbout, &QAction::triggered, this, &MainWindow::showAboutDialog);
@@ -135,11 +117,7 @@ void MainWindow::addNRegions()
 	try
 	{
 		//show progress dialog
-		QProgressDialog progress_dialog("Finding N regions in the reference genome...",
-			"Cancel",
-			0,
-			27,
-			this);
+		QProgressDialog progress_dialog("Finding N regions in the reference genome...", "Cancel", 0, 27, this);
 		progress_dialog.setWindowModality(Qt::ApplicationModal);
 		progress_dialog.setCancelButton(nullptr);
 		progress_dialog.setMinimumDuration(0);
@@ -358,8 +336,7 @@ void MainWindow::handleGoto(QStringList args)
 		}
 		else
 		{
-			THROW(Exception,
-				"The region specified is not valid and can therefore not be used as a "
+			THROW(Exception, "The region specified is not valid and can therefore not be used as a "
 				"destination. If you meant to jump to a particular coordinate, be sure to "
 				"include the chromosome and start/end positions in the format (chrN:start-end), "
 				"or just the chromonose name: (chrN).");
