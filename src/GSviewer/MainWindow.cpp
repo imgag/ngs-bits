@@ -69,6 +69,8 @@ MainWindow::MainWindow(QString bind, QWidget* parent)
 	if (!bind.isEmpty())
 	{
 		connect(&api_, &CommandServer::commandReceived, this, &MainWindow::executeApiCommand);
+		ui_.actionEnable_Remote_Application_Control->setChecked(true);
+		api_.bind();
 	}
 }
 

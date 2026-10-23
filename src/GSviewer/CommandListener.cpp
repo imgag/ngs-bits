@@ -39,6 +39,7 @@ TcpListener::TcpListener(const quint16 port, QObject* parent)
 			connect(s, &QTcpSocket::disconnected, this, [this, s]
 			{
 				emit closedConnection(s);
+				s->deleteLater();
 			});
 			emit newConnection(s);
 		}
@@ -47,12 +48,18 @@ TcpListener::TcpListener(const quint16 port, QObject* parent)
 
 void TcpListener::bind()
 {
-	sock_.listen(QHostAddress::LocalHost, port_);
+	if (!sock_.isListening()) sock_.listen(QHostAddress::LocalHost, port_);
 }
 
 void TcpListener::terminate()
 {
-	sock_.close();
+	if (sock_.isListening()) sock_.close();
+
+	const auto sockets = sock_.findChildren<QTcpSocket *>(Qt::FindDirectChildrenOnly);
+	for (QTcpSocket *s : sockets) {
+		s->abort();
+		s->deleteLater();
+	}
 }
 
 LocalListener::LocalListener(const QString& path, QObject* parent)
@@ -66,7 +73,8 @@ LocalListener::LocalListener(const QString& path, QObject* parent)
 		{
 			connect(s, &QLocalSocket::disconnected, this, [this, s]
 			{
-				emit disconnect(s);
+				emit closedConnection(s);
+				s->deleteLater();
 			});
 			emit newConnection(s);
 		}
@@ -75,10 +83,16 @@ LocalListener::LocalListener(const QString& path, QObject* parent)
 
 void LocalListener::bind()
 {
-	sock_.listen(address_);
+	if (!sock_.isListening()) sock_.listen(address_);
 }
 
 void LocalListener::terminate()
 {
-	sock_.close();
+	if (sock_.isListening()) sock_.close();
+
+	const auto sockets = sock_.findChildren<QTcpSocket *>(Qt::FindDirectChildrenOnly);
+	for (QTcpSocket *s : sockets) {
+		s->abort();
+		s->deleteLater();
+	}
 }

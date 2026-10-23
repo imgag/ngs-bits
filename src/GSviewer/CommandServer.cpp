@@ -43,6 +43,7 @@ void CommandServer::newConnection(QIODevice* socket)
 			if (!line.isValidUtf8())
 			{
 				this->dispatchFailure(ApiCommand{QDateTime::currentDateTime(), cmd_id_++, "", splitQuoted("")}, "Invalid UTF-8 sequence received.");
+				pending->push_back(cmd_id_);
 				continue;
 			}
 
@@ -79,8 +80,8 @@ void CommandServer::newConnection(QIODevice* socket)
 
 void CommandServer::handleAccessToken(ApiCommand cmd)
 {
-	if (cmd.arguments.length() != 2) THROW(Exception, "Expected exactly 2 arguments. Got " + QString::number(cmd.arguments.length()));
-	if (cmd.arguments[1].length() < 2) THROW(Exception, "A URL of length <2 was received. This is very likely invalid.");
+	if (cmd.arguments.length() != 2) return dispatchFailure(cmd, "Expected exactly 2 arguments. Got " + QString::number(cmd.arguments.length()));
+	if (cmd.arguments[1].length() < 2) return dispatchFailure(cmd, "A URL of length <2 was received. This is very likely invalid.");
 
 	QUrl url = QUrl::fromUserInput(cmd.arguments[1].sliced(1, cmd.arguments[1].length() - 2).trimmed());
 
@@ -185,7 +186,9 @@ QStringList CommandServer::splitQuoted(QString str)
 		// Handle escaped string characters
 		if (c == '\\')
 		{
-			if (i >= str.size())
+			// This has the nice unintended consequence that a string terminated by an escaped quote doesn't cause errors.
+			// Instead, the escaped quote is simply emitted, the string then terminates normally due to the end of the input and all is well.
+			if (i >= str.size() - 1)
 			{
 				token.push_back("\\");
 				continue;
