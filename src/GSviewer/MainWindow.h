@@ -40,8 +40,8 @@ private:
 	void handleGoto(QStringList args);
 	void handleLoad(QStringList args);
 	void handleGenome(QStringList args);
-	void handleSleep(QStringList args);
-	void handleViewAsPairs(QStringList args);
+	void handleSleep();
+	void handleViewAsPairs();
 	void handleColorBy(QStringList args);
 	void handleScreenshot(QStringList args);
 	void handleGroupBy(QStringList args);

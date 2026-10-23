@@ -5,14 +5,11 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QDir>
-#include <QFileDialog>
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QProgressDialog>
-#include <QRegularExpression>
 #include <QStandardPaths>
-#include <QStyleFactory>
 #include <QTableWidget>
 #include <QUrl>
 #include <QVBoxLayout>
@@ -21,10 +18,7 @@
 #include "GenomeVisualizationWidget.h"
 #include "ParameterEditor.h"
 #include "Settings.h"
-#include "SharedData.h"
 #include "TranscriptCache.h"
-#include "htslib/hts.h"
-#include <RefGenomeService.h>
 #include <TrackGroupManager.h>
 
 MainWindow::MainWindow(QString bind, QWidget* parent)
@@ -83,11 +77,7 @@ void MainWindow::delayedInitialization()
 		timer.start();
 		{
 			QString gff_file = Settings::string("ensembl_gff");
-			QProgressDialog progress_dialog("loading gene/transcript Gff file: " + gff_file,
-				QString(),
-				0,
-				0,
-				this);
+			QProgressDialog progress_dialog("loading gene/transcript Gff file: " + gff_file, QString(), 0, 0, this);
 			progress_dialog.setWindowModality(Qt::ApplicationModal);
 			progress_dialog.setCancelButton(nullptr);
 			progress_dialog.setMinimumDuration(0);
@@ -137,11 +127,7 @@ void MainWindow::addNRegions()
 			int n_start = 0;
 			for (int start = 1; start <= length; start += 1024 * 1024)
 			{
-				const Sequence sequence = SharedData::genome().seq(chr,
-					start,
-					std::min(1024 * 1024,
-						length - start + 1),
-					false);
+				const Sequence sequence = SharedData::genome().seq(chr, start, std::min(1024 * 1024, length - start + 1), false);
 				for (int i = 0; i < sequence.size(); ++i)
 				{
 					if (sequence[i] == 'N' || sequence[i] == 'n')
@@ -228,8 +214,7 @@ void MainWindow::showSettings()
 
 void MainWindow::openDocumentation()
 {
-	QDesktopServices::openUrl(
-		QUrl("https://github.com/imgag/ngs-bits/blob/master/doc/GSviewer/index.md"));
+	QDesktopServices::openUrl(QUrl("https://github.com/imgag/ngs-bits/blob/master/doc/GSviewer/index.md"));
 }
 
 void MainWindow::on_actionEnable_Remote_Application_Control_changed()
@@ -268,11 +253,11 @@ void MainWindow::executeApiCommand(ApiCommand cmd)
 		}
 		else if (cmd.verb == "setSleepInterval")
 		{
-			handleSleep(cmd.arguments);
+			handleSleep(/* cmd.arguments */);
 		}
 		else if (cmd.verb == "viewaspairs")
 		{
-			handleViewAsPairs(cmd.arguments);
+			handleViewAsPairs(/* cmd.arguments */);
 		}
 		else if (cmd.verb == "colorBy")
 		{
@@ -307,7 +292,6 @@ void MainWindow::executeApiCommand(ApiCommand cmd)
 		api_.dispatchFailure(cmd, msg);
 
 		err("An invalid command was received", e.message());
-		// THROW(Exception, "An invalid command was received: " + e.message());
 
 		return;
 	}
@@ -348,12 +332,12 @@ void MainWindow::handleGoto(QStringList args)
 
 void MainWindow::handleLoad(QStringList args)
 {
-	for (auto arg : args)
+	for (auto &arg : args)
 	{
 		if (arg.trimmed().isEmpty())
 		{
 			THROW(Exception, "The URL is empty or invalid");
-		} // ui_.gvw->openFileDialog();
+		}
 		else
 		{
 			QUrl url = api_.parseUrl(arg);
@@ -370,12 +354,12 @@ void MainWindow::handleLoad(QStringList args)
 	}
 }
 
-void MainWindow::handleSleep(QStringList args)
+void MainWindow::handleSleep(/*QStringList args*/)
 {
 	return; // TODO: Consider whether implementation is truly necessary
 }
 
-void MainWindow::handleViewAsPairs(QStringList args)
+void MainWindow::handleViewAsPairs(/*QStringList args*/)
 {
 	for (auto track : ui_.gvw->bamTracks())
 	{
@@ -419,8 +403,6 @@ void MainWindow::handleGroupBy(QStringList args)
 
 void MainWindow::handleScreenshot(QStringList args)
 {
-	// THROW(Exception, "This command is not implemented yet. We're awaiting architectural changes before this is possible.");
-
 	if (args.length() > 1)
 	{
 		THROW(Exception, "Expected exactly 0 or 1 arguments. Got " + QString::number(args.length()));
