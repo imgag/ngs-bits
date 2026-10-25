@@ -132,13 +132,13 @@
 
         <TermRules term_name="target region read depth">
             <Rule operation="less than" cutoff="8.0" result="bad"/>
-            <Rule operation="greater equal" cutoff="8.0" result="medium"/>
+            <Rule operation="less equal" cutoff="8.0" result="medium"/>
             <Rule operation="greater than" cutoff="8.0" result="good"/>
         </TermRules>
 
         <TermRules term_name="housekeeping genes 10x percentage">
             <Rule operation="less than" cutoff="27.0" result="bad"/>
-            <Rule operation="greater equal" cutoff="27.0" result="medium"/>
+            <Rule operation="less equal" cutoff="50.0" result="medium"/>
             <Rule operation="greater than" cutoff="50.0" result="good"/>
         </TermRules>
 
