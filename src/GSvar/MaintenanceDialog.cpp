@@ -3,6 +3,7 @@
 #include "NGSD.h"
 #include "GenLabDB.h"
 #include "Settings.h"
+#include <QMap>
 #include <QMetaMethod>
 #include <QScrollBar>
 
@@ -852,6 +853,9 @@ void MaintenanceDialog::compareStructureOfTestAndProduction()
 {
 	NGSD db_p;
 	NGSD db_t(true);
+	qDebug() << "INIT START" << QDateTime::currentDateTime();
+	db_t.init();
+	qDebug() << "INIT START" << QDateTime::currentDateTime();
 
 	//check for missing tables
 	QStringList tables_p = db_p.tables();
@@ -935,6 +939,72 @@ void MaintenanceDialog::compareStructureOfTestAndProduction()
 				appendOutputLine("differing comment in "+table+"/"+field+" for production/test:");
 				appendOutputLine("  "+info_p.fieldInfo(field).tooltip);
 				appendOutputLine("  "+info_t.fieldInfo(field).tooltip);
+			}
+		}
+	}
+
+	struct IndexDefinition
+	{
+		bool unique;
+		QStringList columns;
+
+		bool operator==(const IndexDefinition& other) const
+		{
+			return unique==other.unique && columns==other.columns;
+		}
+
+		QString toString() const
+		{
+			return QString(unique ? "UNIQUE" : "NON-UNIQUE") + " (" + columns.join(", ") + ")";
+		}
+	};
+
+	//Read index definitions by name, preserving column order and uniqueness.
+	auto indexDefinitions = [](NGSD& db, const QString& table)
+	{
+		QMap<QString, IndexDefinition> definitions;
+		SqlQuery query = db.getQuery();
+
+		query.exec("SHOW INDEX FROM `" + table + "`");
+		while (query.next())
+		{
+			QString name = query.value("Key_name").toString();
+			IndexDefinition& definition = definitions[name];
+			definition.unique = query.value("Non_unique").toInt()==0;
+			int position = query.value("Seq_in_index").toInt();
+			while (definition.columns.size()<position)
+			{
+				definition.columns.append(QString());
+			}
+			definition.columns[position-1] = query.value("Column_name").toString();
+		}
+		return definitions;
+	};
+
+	//Compare index names and definitions.
+	foreach(QString table, tables_both)
+	{
+		const QMap<QString, IndexDefinition> indices_p = indexDefinitions(db_p, table);
+		const QMap<QString, IndexDefinition> indices_t = indexDefinitions(db_t, table);
+		for (auto it_p = indices_p.cbegin(); it_p!=indices_p.cend(); ++it_p)
+		{
+			auto it_t = indices_t.constFind(it_p.key());
+			if (it_t==indices_t.cend())
+			{
+				appendOutputLine("Missing index in test database: " + table + "/" + it_p.key() + " " + it_p.value().toString());
+			}
+			else if (!(it_p.value()==it_t.value()))
+			{
+				appendOutputLine("Differing index definition in " + table + "/" + it_p.key() + " for production/test:");
+				appendOutputLine("  " + it_p.value().toString());
+				appendOutputLine("  " + it_t.value().toString());
+			}
+		}
+		for (auto it_t = indices_t.cbegin(); it_t!=indices_t.cend(); ++it_t)
+		{
+			if (!indices_p.contains(it_t.key()))
+			{
+				appendOutputLine("Missing index in production database: " + table + "/" + it_t.key() + " " + it_t.value().toString());
 			}
 		}
 	}
