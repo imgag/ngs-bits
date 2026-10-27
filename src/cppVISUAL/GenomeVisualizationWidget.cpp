@@ -624,6 +624,37 @@ void GenomeVisualizationWidget::loadSession()
 	Settings::setPath("load_store_session_folder", QFileInfo(file_path).absolutePath());
 }
 
+void GenomeVisualizationWidget::synchroniseFrom(GenomeVisualizationWidget* widget)
+{
+	if (!widget) THROW(ArgumentException, "Cannot synchronise from a null genome viewer.");
+	if (widget == this) return;
+
+	//Snapshot before replacing the destination. Reuse session loading to recreate
+	//tracks with their own viewer connections and BAM cache, including all settings.
+	QByteArray xml;
+	QXmlStreamWriter writer(&xml);
+	writer.writeStartElement("GSviewerSession");
+	writer.writeStartElement("General");
+	writer.writeAttribute("gene_panel_height", QString::number(widget->ui_->scrollArea->height()));
+	writer.writeEndElement();
+	widget->ui_->track_group_manager->writeToXml(writer);
+	writer.writeEndElement();
+	QDomDocument document;
+	if (!document.setContent(xml)) THROW(ProgrammingException, "Cannot parse genome viewer snapshot.");
+	const BedLine source_region = widget->region();
+
+	clearParameterEditor();
+	ui_->track_group_manager->removeAll();
+	setRegion(source_region.chr(), source_region.start(), source_region.end());
+	updateCoordinateLabel("");
+	QStringList errors;
+	ui_->track_group_manager->loadFromXml(document.documentElement(), errors);
+	if (!errors.isEmpty())
+	{
+		QMessageBox::warning(this, "Synchronise views", "Error(s) while synchronising tracks:\n" + errors.join("\n"));
+	}
+}
+
 GenomeVisualizationWidget* GenomeVisualizationWidget::fromWidget(QWidget* widget)
 {
 	for (QWidget* parent = widget; parent; parent = parent->parentWidget())

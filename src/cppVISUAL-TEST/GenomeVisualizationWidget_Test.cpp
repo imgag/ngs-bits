@@ -2303,6 +2303,93 @@ private slots:
 		QVERIFY_THROWS_EXCEPTION(ArgumentException, SharedData::loadSettingsFromXml(legacy_general));
 	}
 
+	void synchroniseFromCopiesTracksAndSplitterOnce()
+	{
+		writeFile("synchronise.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\nread\t0\tchr22\t10\t60\t10M\t*\t0\t0\tAAAAAAAAAA\tIIIIIIIIII\n");
+		const QString bam_path = data_.filePath("synchronise.bam");
+		{
+			BamReader reader(data_.filePath("synchronise.sam"));
+			BamWriter writer(bam_path);
+			writer.writeHeader(reader);
+			BamAlignment alignment;
+			while (reader.getNextAlignment(alignment)) writer.writeAlignment(alignment);
+		}
+		QCOMPARE(sam_index_build(bam_path.toUtf8().constData(), 0), 0);
+		auto& source = *view_;
+		source.resize(1100, 800);
+		source.show();
+		source.loadFile(bam_path);
+		source.loadFile(data_.filePath("first.bed"));
+		auto* bed = source.findChild<BedTrack*>();
+		bed->parameters().setString("color", "red");
+		bed->setFixedHeight(70);
+		source.findChild<BamAlignmentTrack*>()->setFixedHeight(160);
+		source.findChild<BamCoverageTrack*>()->parameters().setInt("track height", 60);
+		auto* source_manager = source.findChild<TrackGroupManager*>();
+		source_manager->addEmptyTrackGroup();
+		QTest::qWait(60);
+		source_manager->setSizes({40, 100, 320, 110});
+		QCoreApplication::processEvents();
+		const QList<int> source_sizes = source_manager->sizes();
+
+		GenomeVisualizationWidget destination(nullptr);
+		destination.resize(source.size());
+		destination.loadFile(data_.filePath("second.bed"));
+		QPointer<TrackWidget> previous = destination.findChild<TrackWidget*>();
+		openEditor(previous);
+		destination.synchroniseFrom(&source); //The secondary view is still hidden when synchronised.
+		destination.show();
+		auto* destination_manager = destination.findChild<TrackGroupManager*>();
+		QTRY_COMPARE(destination_manager->sizes(), source_sizes);
+		QCOMPARE(destination.region(), source.region());
+		QCOMPARE(destination.findChildren<TrackWidget*>().count(), 3);
+		QVERIFY(!destination.findChild<QDockWidget*>("settings_dock")->findChild<ParameterEditor*>());
+		QCoreApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+		QVERIFY(previous.isNull());
+		for (int i = 0; i < source_manager->count() - 1; ++i)
+		{
+			auto* source_group = qobject_cast<TrackGroup*>(source_manager->widget(i));
+			auto* destination_group = qobject_cast<TrackGroup*>(destination_manager->widget(i));
+			QVERIFY(source_group && destination_group);
+			QString source_xml, destination_xml;
+			QXmlStreamWriter source_writer(&source_xml), destination_writer(&destination_xml);
+			source_group->writeToXml(source_writer);
+			destination_group->writeToXml(destination_writer);
+			QCOMPARE(destination_xml, source_xml); //Includes group/track order, names, heights and every setting.
+		}
+		QVERIFY(BamTrackDataManager::getOrCreate(&source, bam_path) != BamTrackDataManager::getOrCreate(&destination, bam_path));
+
+		destination.findChild<BedTrack*>()->parameters().setString("color", "blue");
+		QCOMPARE(bed->parameters().getString("color"), QByteArray("red"));
+		destination.setRegion(Chromosome("chr22"), 40, 100);
+		QCOMPARE(source.region().toString(true), QString("chr22:1-80"));
+		source_manager->setSizes({80, 150, 200, 100});
+		QCoreApplication::processEvents();
+		QCOMPARE(destination_manager->sizes(), source_sizes);
+		source.loadFile(data_.filePath("second.bed"));
+		QCOMPARE(destination.findChildren<TrackWidget*>().count(), 3);
+		destination.synchroniseFrom(&source);
+		QCOMPARE(destination.findChildren<TrackWidget*>().count(), 4); //Replace, rather than append on another call.
+		QCOMPARE(destination.region(), source.region());
+	}
+
+	void synchroniseFromEmptyOverviewAndSelf()
+	{
+		GenomeVisualizationWidget source(nullptr);
+		view_->loadFile(data_.filePath("first.bed"));
+		auto* original_track = view_->findChild<TrackWidget*>();
+		view_->synchroniseFrom(view_.data());
+		QCOMPARE(view_->findChild<TrackWidget*>(), original_track);
+		QVERIFY_THROWS_EXCEPTION(ArgumentException, view_->synchroniseFrom(nullptr));
+		QCOMPARE(view_->findChild<TrackWidget*>(), original_track);
+		view_->synchroniseFrom(&source);
+		QVERIFY(!view_->region().isValid());
+		QVERIFY(view_->findChildren<TrackWidget*>().isEmpty());
+		auto* manager = view_->findChild<TrackGroupManager*>();
+		QCOMPARE(manager->count(), source.findChild<TrackGroupManager*>()->count());
+		QVERIFY(manager->isEmptySession());
+	}
+
 	void sessionRestoresAndScalesTrackHeights()
 	{
 		view_->setRegion(Chromosome("chr22"), 1, 80);

@@ -52,7 +52,7 @@ public slots:
 	void saveSession();
 	// load session from file, triggers 'open file dialog' and loads the session
 	void loadSession();
-	// One-time synchronisation between two instances
+	//Copies the region, track groups, settings and heights once, reloading tracks independently.
 	void synchroniseFrom(GenomeVisualizationWidget* widget);
 
 protected:
