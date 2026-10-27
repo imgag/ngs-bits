@@ -33,7 +33,7 @@ CnvWidget::CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QShare
 	, ps_id_(ps_id)
 	, callset_id_("")
 	, cnvs_(cnvs)
-	, special_cols_()
+	, special_cols_(QStringList() << "cn_pathogenic" << "dosage_sensitive_disease_genes" << "clinvar_cnvs" << "hgmd_cnvs" << "omim")
 	, report_config_(rep_conf)
 	, somatic_report_config_(rep_conf_somatic)
 	, var_het_genes_(het_hit_genes)
@@ -75,7 +75,6 @@ CnvWidget::CnvWidget(QWidget* parent, const CnvList& cnvs, QString ps_id, QShare
 	//set up NGSD menu (before loading CNV - QC actions are inserted then)
 	ui->ngsd_btn->setMenu(new QMenu());
 	ui->ngsd_btn->menu()->addAction(QIcon(":/Icons/Edit.png"), "Edit quality", this, SLOT(editQuality()))->setEnabled(callset_id_!="");
-	ui->ngsd_btn->menu()->addSeparator();
 
 	ui->cnvs->setSelectionMode(QAbstractItemView::ExtendedSelection);
 
@@ -91,7 +90,9 @@ void CnvWidget::initGUI()
 	}
 	catch(Exception e)
 	{
-		addInfoLine("<font color='red'>Error parsing file:\n" + e.message() + "</font>");
+		ui->metadata_table->setVisible(false);
+		ui->metadata_label->setVisible(true);
+		ui->metadata_label->setText("<font color='red'>Error parsing file:\n" + e.message() + "</font>");
 		disableGUI();
 	}
 
@@ -160,62 +161,6 @@ void CnvWidget::cnvDoubleClicked(QTableWidgetItem* item)
 	}
 }
 
-void CnvWidget::addInfoLine(QString text)
-{
-	QLabel* label = new QLabel(text);
-	label->setTextInteractionFlags(Qt::TextBrowserInteraction);
-	ui->info_messages->layout()->addWidget(label);
-
-	if(text.contains("TrioMaternalContamination"))
-	{
-		QStringList information_list = text.split("|");
-		if(information_list.size() == 2)
-		{
-			QStringList mother_list = information_list.at(0).split(":");
-			QStringList father_list = information_list.at(1).split(":");
-			if(mother_list.size() == 2 && father_list.size() == 2)
-			{
-				bool is_double_mother(false);
-				bool is_double_father(false);
-
-				double mother = mother_list.at(1).toDouble(&is_double_mother);
-				double father = father_list.at(1).toDouble(&is_double_father);
-
-				if(is_double_mother && is_double_father)
-				{
-					double diff = std::abs(mother - father);
-					if(diff > 0.1)
-					{
-						label->setStyleSheet("QLabel { color : red;}");
-					}
-				}
-			}
-		}
-	}
-	else if (text.contains(":"))
-	{
-		QString metric = text.split(":")[0].trimmed();
-		while(metric.startsWith('#'))
-		{
-			metric = metric.mid(1).trimmed();
-		}
-
-		//special handling for trio output (metrics are prefixed with processed sample name)
-		if (cnvs_.type()==CnvListType::CLINCNV_GERMLINE_MULTI)
-		{
-			metric = metric.split(" ").mid(1).join(" ");
-		}
-
-		//add distribution menu entry (only once for each metric)
-		if (!metrics_done_.contains(metric))
-		{
-            ui->ngsd_btn->menu()->addAction("Show distribution: " + metric, this, SLOT(showQcMetricHistogram()))->setEnabled(ngsd_user_logged_in_ && ps_id_!="");
-			metrics_done_ << metric;
-		}
-	}
-
-}
-
 void CnvWidget::disableGUI()
 {
 	ui->cnvs->setEnabled(false);
@@ -225,19 +170,71 @@ void CnvWidget::disableGUI()
 
 void CnvWidget::updateGUI()
 {
-	//set special columns
-	special_cols_ = QStringList() << "cn_pathogenic" << "dosage_sensitive_disease_genes" << "clinvar_cnvs" << "hgmd_cnvs" << "omim";
-
-	//show comments
-	foreach(const QByteArray& comment, cnvs_.comments())
+	//show comments as label (or as table for multi-sample)
+	bool as_table = cnvs_.type()==CnvListType::CLINCNV_GERMLINE_MULTI;
+	ui->metadata_table->setVisible(as_table);
+	ui->metadata_label->setVisible(!as_table);
+	QMap<QString, QMap<QString, QString>> sample_metadata; //for table
+	QByteArrayList comments; //for label
+	foreach(QByteArray comment, cnvs_.comments())
 	{
-		if (cnvs_.type()==CnvListType::CLINCNV_GERMLINE_SINGLE || cnvs_.type()==CnvListType::CLINCNV_GERMLINE_MULTI)
+		if (comment.startsWith("##GENOME_BUILD=GRCh38")) continue;
+		if (comment.startsWith("##COMMAND=")) continue;
+		if (comment.startsWith("##was it outlier after clustering:")) continue;
+		if (comment.startsWith("##fraction of outliers:")) continue;
+		if (comment.startsWith("##") && comment.contains(":"))
 		{
-			if (comment.contains("Analysis finished on")) continue;
-			if (comment.contains("was it outlier after clustering")) continue;
-			if (comment.contains("fraction of outliers")) continue;
+			comment = comment.mid(2);
+
+			//split line (sample name, metric and value)
+			QString sample = "";
+			if (cnvs_.type()==CnvListType::CLINCNV_GERMLINE_MULTI)
+			{
+				sample = comment.split(' ')[0];
+				comment = comment.split(' ').mid(1).join(' ').trimmed();
+			}
+			int idx = comment.indexOf(':');
+			QByteArray metric = comment.left(idx).trimmed();
+			QByteArray value = comment.mid(idx+1).trimmed();
+
+			//add distribution menu entry (only once for each metric)
+			if (ngsd_user_logged_in_ && ps_id_!="" && !metrics_done_.contains(metric) && Helper::isNumeric(value))
+			{
+				ui->ngsd_btn->menu()->addAction("Show distribution: " + metric, this, SLOT(showQcMetricHistogram()));
+				metrics_done_ << metric;
+			}
+
+			if (as_table)
+			{
+				sample_metadata[sample].insert(metric, value);
+			}
+			else
+			{
+				comments << comment.trimmed();
+			}
 		}
-		addInfoLine(comment);
+	}
+	if (as_table)
+	{
+		ui->metadata_table->setRowCount(sample_metadata.count());
+		int r = 0;
+		for (auto it=sample_metadata.begin(); it!=sample_metadata.end(); ++it)
+		{
+			ui->metadata_table->setItem(r, 0, GUIHelper::createTableItem(it.key()));
+			ui->metadata_table->setItem(r, 1, GUIHelper::createTableItem(it.value().value("gender of sample")));
+			ui->metadata_table->setItem(r, 2, GUIHelper::createTableItem(it.value().value("ClinCNV version")));
+			ui->metadata_table->setItem(r, 3, GUIHelper::createTableItem(it.value().value("high-quality cnvs")));
+			ui->metadata_table->setItem(r, 4, GUIHelper::createTableItem(it.value().value("mean correlation to reference samples")));
+			ui->metadata_table->setItem(r, 5, GUIHelper::createTableItem(it.value().value("number of iterations")));
+			++r;
+		}
+		ui->metadata_table->resizeColumnsToContents();
+		ui->metadata_table->resizeRowsToContents();
+		GUIHelper::resizeTableHeight(ui->metadata_table);
+	}
+	else
+	{
+		ui->metadata_label->setText(comments.join("\n"));
 	}
 
 	//determine column order of annotations
