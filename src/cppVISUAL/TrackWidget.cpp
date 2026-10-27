@@ -23,6 +23,7 @@
 
 TrackWidget::TrackWidget(QWidget* parent, QString file_path, QString display_name, QString type)
 	: QWidget(parent)
+	, viewer_(GenomeVisualizationWidget::fromWidget(parent))
 	, file_path_(file_path)
 	, settings_(type.toUtf8(), {}, {})
 	, display_name_(display_name)
@@ -178,7 +179,7 @@ void TrackWidget::drawLabel(QPainter& painter)
 
 bool TrackWidget::drawOverviewMessage(QPainter& painter)
 {
-	if (SharedData::region().isValid()) return false;
+	if (viewer_->region().isValid()) return false;
 	const Viewport viewport = getViewport();
 	painter.setPen(Qt::gray);
 	painter.drawText(QRect(viewport.x0, 0, std::max(0, viewport.usable_width), height()), Qt::AlignCenter,
@@ -210,15 +211,15 @@ Viewport TrackWidget::getViewport() const
 {
 	int label_width = SharedData::settings().label_width;
 	int usable_width = width() - label_width - 4;
-	float pixels_per_base = SharedData::region().isValid() ? (float)usable_width / SharedData::region().length() : 0.0f;
+	float pixels_per_base = viewer_->region().isValid() ? (float)usable_width / viewer_->region().length() : 0.0f;
 
-	return {usable_width, label_width + 2, pixels_per_base, SharedData::region().start()};
+	return {usable_width, label_width + 2, pixels_per_base, viewer_->region().start()};
 }
 
 QVector<QPair<BedLine, Viewport>> TrackWidget::plotViewports() const
 {
 	const Viewport viewport = getViewport();
-	if (SharedData::region().isValid()) return {{SharedData::region(), viewport}};
+	if (viewer_->region().isValid()) return {{viewer_->region(), viewport}};
 	QVector<QPair<BedLine, Viewport>> plots;
 	if (viewport.usable_width <= 0) return plots;
 	const BedFile& regions = SharedData::wholeGenomeRegions();

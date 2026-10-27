@@ -85,7 +85,7 @@ IgvTrack::IgvTrack(QWidget* parent, QString file_path, QString name, QSharedPoin
 	});
 	updateGeometry();
 	update();
-	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(regionChanged()));
+	connect(viewer_, &GenomeVisualizationWidget::regionChanged, this, &IgvTrack::regionChanged);
 }
 
 IgvTrack* IgvTrack::createTrack(QWidget* parent, QString file_path, QString name)
@@ -249,7 +249,7 @@ void IgvTrack::drawHeatMap(QPainter& painter, const QVector<int>& idxes, const B
 		float px = viewport.genomePosToScreen(pos);
 		float endx = viewport.genomePosToScreen(pos + 1);
 		float dx = endx - px;
-		if (!SharedData::region().isValid()) dx = std::max(1.0f, dx);
+		if (!viewer_->region().isValid()) dx = std::max(1.0f, dx);
 
 		double t = std::clamp(value, 0.0, 1.0);
 
@@ -305,7 +305,7 @@ QRectF IgvTrack::barRect(const IgvFileLine& line, const Viewport& viewport) cons
 	int pos = (line.start() + line.end()) / 2;
 	float px = viewport.genomePosToScreen(pos);
 	float endx = viewport.genomePosToScreen(pos + 1);
-	if (!SharedData::region().isValid()) endx = std::max(px + 1.0f, endx);
+	if (!viewer_->region().isValid()) endx = std::max(px + 1.0f, endx);
 	int py = valueToY(std::clamp(line.value(), fast_settings_.min, fast_settings_.max));
 	return QRectF(px, py, endx - px, valueToY(fast_settings_.min) - py).normalized();
 }
@@ -363,7 +363,7 @@ void IgvTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 		if (fast_settings_.draw_mode != "line plot" && (pos < region.start() || pos > region.end())) continue;
 		float px = viewport.genomePosToScreen(pos);
 		float endx = viewport.genomePosToScreen(pos + 1);
-		if (!SharedData::region().isValid() && fast_settings_.draw_mode == "heatmap") endx = std::max(px + 1.0f, endx);
+		if (!viewer_->region().isValid() && fast_settings_.draw_mode == "heatmap") endx = std::max(px + 1.0f, endx);
 
 		if (fast_settings_.draw_mode == "points" || fast_settings_.draw_mode == "line plot")
 		{

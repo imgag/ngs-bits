@@ -109,7 +109,7 @@ void TrackGroup::loadTracksFromFile()
 	QString file_path =  QFileDialog::getOpenFileName(QApplication::activeWindow(), "Open file(s)", "", "NGS files(*.bam *.cram *.bed *.bed.gz *.bedpe *.bedpe.gz *.vcf *.vcf.gz *.igv);;All files(*.*)");
 	if (file_path.isEmpty()) return;
 
-	QVector<TrackWidget*> widgets = FileLoader::loadTracks(file_path, nullptr);
+	QVector<TrackWidget*> widgets = FileLoader::loadTracks(file_path, this);
 	addTrackWidgets(widgets);
 }
 
@@ -125,7 +125,7 @@ void TrackGroup::loadTracksFromUrl()
 	}
 	try
 	{
-		addTrackWidgets(FileLoader::loadTracks(url, nullptr));
+		addTrackWidgets(FileLoader::loadTracks(url, this));
 	}
 	catch (const Exception& e)
 	{
@@ -133,10 +133,10 @@ void TrackGroup::loadTracksFromUrl()
 	}
 }
 
-TrackGroup* TrackGroup::fromFile(QString filename)
+TrackGroup* TrackGroup::fromFile(QString filename, QWidget* parent)
 {
-	TrackGroup* tr = new TrackGroup;
-	tr->addTrackWidgets(FileLoader::loadTracks(filename, nullptr));
+	TrackGroup* tr = new TrackGroup(parent);
+	tr->addTrackWidgets(FileLoader::loadTracks(filename, tr));
 	return tr;
 }
 
@@ -202,7 +202,9 @@ void TrackGroup::clearLayoutAndDelete()
 
 void TrackGroup::dragEnterEvent(QDragEnterEvent* event)
 {
-	if (event->mimeData()->hasFormat("application/track-name"))
+	if (event->mimeData()->hasFormat("application/track-name")
+		&& qobject_cast<TrackWidget*>(event->source())
+		&& GenomeVisualizationWidget::fromWidget(qobject_cast<TrackWidget*>(event->source())) == GenomeVisualizationWidget::fromWidget(this))
 	{
 		event->acceptProposedAction();
 	}
@@ -238,6 +240,7 @@ void TrackGroup::dropEvent(QDropEvent* event)
 {
 	TrackWidget* track = qobject_cast<TrackWidget*>(event->source());
 	if (!track) return;
+	if (GenomeVisualizationWidget::fromWidget(track) != GenomeVisualizationWidget::fromWidget(this)) return;
 
 	QWidget* old_content_widget = track->parentWidget();
 	if (!old_content_widget)

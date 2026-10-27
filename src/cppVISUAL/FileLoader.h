@@ -16,7 +16,7 @@ class CPPVISUALSHARED_EXPORT FileLoader
 {
 public:
 	// factory function that loads depending on the extension of the file
-	static QVector<TrackWidget*> loadTracks(QString file_path, QWidget* parent = nullptr);
+	static QVector<TrackWidget*> loadTracks(QString file_path, QWidget* parent);
 	// loads bed file
 	static QSharedPointer<BedFile> loadBedFile(QString file_path);
 	// loads bam File

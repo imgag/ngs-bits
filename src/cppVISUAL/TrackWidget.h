@@ -2,6 +2,7 @@
 #define TRACKWIDGET_H
 
 #include "cppVISUAL_global.h"
+#include "GenomeVisualizationWidget.h"
 #include "ParameterList.h"
 #include "BedFile.h"
 #include <QMouseEvent>
@@ -30,6 +31,7 @@ class CPPVISUALSHARED_EXPORT TrackWidget
 	Q_OBJECT
 
 public:
+	//The parent must belong to the viewer that owns this track.
 	TrackWidget(QWidget* parent, QString file_path, QString display_name, QString type);
 	QSize minimumSizeHint() const override;
 	ParameterList& parameters() { return settings_; }
@@ -59,6 +61,7 @@ public slots:
 	void regionChanged();
 
 protected:
+	GenomeVisualizationWidget* viewer_;
 	virtual QList<Parameter> getParameters() const { return {}; }
 	virtual QHash<QByteArray, QVariant> getParameterDefaults() const { return {}; }
 	//Call in the derived constructor body, where virtual dispatch reaches its overrides.

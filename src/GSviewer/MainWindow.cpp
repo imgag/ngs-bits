@@ -16,6 +16,8 @@
 #include "AboutDialog.h"
 #include "ColorNames.h"
 #include "GenomeVisualizationWidget.h"
+#include "BamAlignmentTrack.h"
+#include "SharedData.h"
 #include "ParameterEditor.h"
 #include "Settings.h"
 #include "TranscriptCache.h"
@@ -315,7 +317,7 @@ void MainWindow::handleGoto(QStringList args)
 		BedLine region = BedLine::fromString(locus);
 		if (region.isValid())
 		{
-			SharedData::setRegion(region.chr(), region.start(), region.end());
+			ui_.gvw->setRegion(region.chr(), region.start(), region.end());
 			return;
 		}
 		else
@@ -421,7 +423,7 @@ void MainWindow::handleScreenshot(QStringList args)
 
 	track->render(&img, QPoint(), QRegion(), QWidget::DrawWindowBackground | QWidget::DrawChildren);
 
-	qDebug() << "Capturing screenshot" << SharedData::region().toString(true);
+	qDebug() << "Capturing screenshot" << ui_.gvw->region().toString(true);
 
 	if (args.length() > 0 && !args[0].isEmpty()) img.save(args[0]);
 
@@ -432,7 +434,7 @@ void MainWindow::handleScreenshot(QStringList args)
 		if (!dir.mkpath(".")) THROW(ProgrammingException, "Unable to create intermediate directory for screenshots");
 
 		const QString destination = dir.filePath(
-			SharedData::region().toString(true).replace(':', '-') + ".png");
+			ui_.gvw->region().toString(true).replace(':', '-') + ".png");
 
 		img.save(destination);
 	}

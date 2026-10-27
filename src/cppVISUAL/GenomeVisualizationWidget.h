@@ -6,8 +6,7 @@
 #include <QWidget>
 #include <QPointer>
 #include "DelayedInitializationTimer.h"
-#include <BamCoverageTrack.h>
-#include <BamAlignmentTrack.h>
+class BamAlignmentTrack;
 
 namespace Ui
 {
@@ -31,8 +30,14 @@ public:
 	void addBedTrack(QSharedPointer<BedFile> regions, QString file_path, QString name);
 
 	QList<BamAlignmentTrack*> bamTracks();
+	//Returns the owning viewer of a panel/track. A viewer parent is required.
+	static GenomeVisualizationWidget* fromWidget(QWidget* widget);
+	//Invalid in the whole-genome overview. Each viewer owns its position.
+	const BedLine& region() const { return region_; }
 
 public slots:
+	//An invalid chromosome selects the whole-genome overview.
+	void setRegion(const Chromosome& chr, int start, int end);
 	//Shows 'open file' dialog
 	void openFileDialog();
 	//Shows 'open URL' dialog
@@ -83,8 +88,11 @@ protected slots:
 signals:
 	//Emitted when the displayed region has changed.
 	void regionChanged(const BedLine& reg);
+	void updateGenomicCoordinate(QString coordinate);
 
 private:
+	BedLine region_;
+	void mouseMoved(int x, int width);
 	Ui::GenomeVisualizationWidget* ui_;
 	DelayedInitializationTimer timer_;
 	QPointer<TrackWidget> selected_track_;

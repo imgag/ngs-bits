@@ -51,7 +51,7 @@ BamCoverageTrack::~BamCoverageTrack()
 
 BamCoverageTrack* BamCoverageTrack::createTrack(QWidget* parent, QString file_path, QString name)
 {
-	QSharedPointer<BamTrackData> data = BamTrackDataManager::getOrCreate(file_path);
+	QSharedPointer<BamTrackData> data = BamTrackDataManager::getOrCreate(GenomeVisualizationWidget::fromWidget(parent), file_path);
 	if (data)
 	{
 		auto track = new BamCoverageTrack(parent, file_path, name);
@@ -81,7 +81,7 @@ void BamCoverageTrack::setTrackData(QSharedPointer<BamTrackData> track_data)
 
 void BamCoverageTrack::reloadTrack()
 {
-	BamTrackDataManager::reload(file_path_);
+	BamTrackDataManager::reload(viewer_, file_path_);
 }
 
 void BamCoverageTrack::dataReady()
@@ -95,7 +95,7 @@ void BamCoverageTrack::storeCoverage()
 	max_coverage_ = 10;
 	coverage_.clear();
 
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	if (!region.isValid() || region.length() > fast_settings_.visibility_range) return;
 	coverage_.fill(BaseCoverage(), region.length());
 	if (!track_data_) return;
@@ -190,7 +190,7 @@ void BamCoverageTrack::paintEvent(QPaintEvent*)
 {
 	QPainter painter(this);
 	painter.fillRect(rect(), Qt::white);
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	drawLabel(painter);
 	if (drawOverviewMessage(painter)) return;
 	if (region.length() > fast_settings_.visibility_range) drawZoomInText(painter);
@@ -218,7 +218,7 @@ void BamCoverageTrack::drawCurrentMaxText(QPainter& painter)
 
 void BamCoverageTrack::drawCoverage(QPainter& painter)
 {
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	const Viewport& viewport = getViewport();
 
 	int draw_height = height();
@@ -297,7 +297,7 @@ void BamCoverageTrack::drawCoverage(QPainter& painter)
 
 QString BamCoverageTrack::getCoverageText(const BaseCoverage& cov, int coverage_idx)
 {
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	int coverage_pos = region.start() + coverage_idx;
 
 	QString info = QString("Pos: %1:%2\nDepth: %3\n")
@@ -348,7 +348,7 @@ void BamCoverageTrack::handlePopupRequest(QPointF local_pos, QPointF global_pos)
 	const Viewport& viewport = getViewport();
 	if (viewport.isOutOfDrawRegion(local_pos.x())) return;
 
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	int x = viewport.screenXToGenomePos(local_pos.x()) - region.start();
 	if (x < 0 || x >= coverage_.length()) return;
 
@@ -364,7 +364,7 @@ void BamCoverageTrack::mousePressEvent(QMouseEvent* event)
 
 bool BamCoverageTrack::isCurrentRegionValid()
 {
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	return region.isValid() && region.length() <= fast_settings_.visibility_range;
 }
 
