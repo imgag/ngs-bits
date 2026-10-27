@@ -1379,9 +1379,6 @@ QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analy
 
 		//convert to canonical path
 		file = QFileInfo(file).absoluteFilePath();
-
-		qDebug() << "final path: " << file;
-
 		if (!file.endsWith(".gz", Qt::CaseInsensitive))
 		{
 			QString gz_file_version = file+".gz";
@@ -5286,8 +5283,6 @@ QString NGSD::analysisJobGSvarFile(int job_id)
 	{
 		THROW(ProgrammingException, "Unknown analysis type '" + job.type + "'!");
 	}
-
-	qDebug() << output; //TODO fallback to GZ?!
 
 	return output;
 }
