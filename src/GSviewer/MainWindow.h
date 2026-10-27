@@ -30,6 +30,10 @@ private slots:
 	//APICommands
 	void executeApiCommand(ApiCommand cmd);
 
+	void hideSecondarySplit();
+	void showSecondarySplit();
+	void toggleSecondarySplit();
+
 private:
 	Ui::MainWindow ui_;
 	DelayedInitializationTimer init_timer_;

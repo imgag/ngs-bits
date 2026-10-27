@@ -52,6 +52,8 @@ public slots:
 	void saveSession();
 	// load session from file, triggers 'open file dialog' and loads the session
 	void loadSession();
+	// One-time synchronisation between two instances
+	void synchroniseFrom(GenomeVisualizationWidget* widget);
 
 protected:
 	bool eventFilter(QObject* watched, QEvent* event) override;
