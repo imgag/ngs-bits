@@ -36,6 +36,7 @@ public:
 	int alignmentSessionHeight() const;
 	//Adds tracks and connects their signals to this group.
 	void addTrackWidgets(QVector<TrackWidget*> widgets);
+	void addTrackWidget(TrackWidget* track);
 
 signals:
 	void addTrackGroupAbove();

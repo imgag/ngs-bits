@@ -93,13 +93,18 @@ void TrackGroup::connectTrackSignals(TrackWidget* track)
 	connect(track, &TrackWidget::settingsRequested, this, &TrackGroup::settingsRequested);
 }
 
+void TrackGroup::addTrackWidget(TrackWidget* track)
+{
+	connectTrackSignals(track);
+	layout_->insertWidget(layout_->count() - 1, track);
+	layout_->update();
+}
+
 void TrackGroup::addTrackWidgets(QVector<TrackWidget*> widgets)
 {
 	foreach (TrackWidget* widget, widgets)
 	{
-		connectTrackSignals(widget);
-		layout_->insertWidget(layout_->count() - 1, widget);
-		layout_->update();
+		addTrackWidget(widget);
 	}
 	updateEmptyState();
 }

@@ -337,11 +337,12 @@ void MainWindow::handleGoto(QStringList args)
 
 	if (args.length() != 2) return ui_.gvw_r->hide();
 
+	ui_.gvw_r->show();
+
 	region = BedLine::fromString(args[1]);
 	if (!region.isValid()) THROW(Exception, INVALID_LOCUS_ERROR_MESSAGE);
 
 	ui_.gvw_r->setRegion(region.chr(), region.start(), region.end());
-	ui_.gvw_r->show();
 }
 
 void MainWindow::handleLoad(QStringList args)
@@ -489,7 +490,6 @@ void MainWindow::hideSecondarySplit()
 
 void MainWindow::showSecondarySplit()
 {
-
 	ui_.gvw_r->synchroniseFrom(ui_.gvw_l);
 	ui_.gvw_r->show();
 }

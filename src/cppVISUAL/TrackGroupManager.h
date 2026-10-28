@@ -24,7 +24,7 @@ public:
 	//returns if this is a empty session: only track groups, but no tracks
 	bool isEmptySession() const;
 	//adds an empty TrackGroup
-	void addEmptyTrackGroup();
+	TrackGroup* addEmptyTrackGroup();
 	void addTrack(TrackWidget* track);
 	//resizes the gene panel to the given height. All TrackGroups maintain their relative heights.
 	void resizeGenePanel(int height=80);

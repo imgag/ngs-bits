@@ -316,17 +316,14 @@ TrackWidget* TrackWidget::fromXml(const QDomElement& track_element, QWidget* par
 	QString file_path = track_element.attribute("file_name");
 	QString display_name = track_element.attribute("display_name");
 
-	//create track
-	TrackWidget* track = nullptr;
-	if (type == BedTrack::type()) track = BedTrack::createTrack(parent, file_path, display_name);
-	else if (type == VcfTrack::type()) track = VcfTrack::createTrack(parent, file_path, display_name);
-	else if (type == SvTrack::type()) track = SvTrack::createTrack(parent, file_path, display_name);
-	else if (type == BamAlignmentTrack::type()) track = BamAlignmentTrack::createTrack(parent, file_path, display_name);
-	else if (type == BamCoverageTrack::type()) track = BamCoverageTrack::createTrack(parent, file_path, display_name);
-	else if (type == IgvTrack::type()) track = IgvTrack::createTrack(parent, file_path, display_name);
-	else if (type == SegTrack::type()) track = SegTrack::createTrack(parent, file_path, display_name);
-	else errors << ("Unsupported track type '"+type+"' for " + file_path);
-	if (!track) return nullptr;
+	bool ok = false;
+	auto height = track_element.attribute("height").toInt(&ok);
+
+	if (!ok || height <= 0) errors << "Missing or invalid track height for " + file_path;
+
+	auto track = TrackWidget::load(LoadContext {
+		type, file_path, display_name, errors, height
+	}, parent);
 
 	//load settings
 	for (QDomElement item = track_element.firstChildElement("Settings"); !item.isNull(); item = item.nextSiblingElement("Settings"))
@@ -352,41 +349,41 @@ TrackWidget* TrackWidget::fromXml(const QDomElement& track_element, QWidget* par
 			bool ok = false;
 			switch (parameter.type())
 			{
-				case ParameterType::INT:
+			case ParameterType::INT:
+			{
+				const int number = value.toInt(&ok);
+				if (!ok) THROW(ArgumentException, "Invalid integer '" + value + "'.");
+				track->settings_.setInt(key, number);
+				break;
+			}
+			case ParameterType::DOUBLE:
+			{
+				const double number = value.toDouble(&ok);
+				if (!ok) THROW(ArgumentException, "Invalid double '" + value + "'.");
+				track->settings_.setDouble(key, number);
+				break;
+			}
+			case ParameterType::BOOL:
+			{
+				const QString boolean = value.trimmed().toLower();
+				if (boolean != "yes" && boolean != "no" && boolean != "true" && boolean != "false" && boolean != "1" && boolean != "0")
 				{
-					const int number = value.toInt(&ok);
-					if (!ok) THROW(ArgumentException, "Invalid integer '" + value + "'.");
-					track->settings_.setInt(key, number);
-					break;
+					THROW(ArgumentException, "Invalid boolean '" + value + "'.");
 				}
-				case ParameterType::DOUBLE:
-				{
-					const double number = value.toDouble(&ok);
-					if (!ok) THROW(ArgumentException, "Invalid double '" + value + "'.");
-					track->settings_.setDouble(key, number);
-					break;
-				}
-				case ParameterType::BOOL:
-				{
-					const QString boolean = value.trimmed().toLower();
-					if (boolean != "yes" && boolean != "no" && boolean != "true" && boolean != "false" && boolean != "1" && boolean != "0")
-					{
-						THROW(ArgumentException, "Invalid boolean '" + value + "'.");
-					}
-					track->settings_.setBool(key, boolean == "yes" || boolean == "true" || boolean == "1");
-					break;
-				}
-				case ParameterType::STRING:
-				{
-					track->settings_.setString(key, values.first());
-					break;
-				}
-				case ParameterType::STRINGLIST:
-				{
-					track->settings_.setStringList(key, values);
-					break;
-				}
-				default: THROW(ProgrammingException, "Unhandled parameter type.");
+				track->settings_.setBool(key, boolean == "yes" || boolean == "true" || boolean == "1");
+				break;
+			}
+			case ParameterType::STRING:
+			{
+				track->settings_.setString(key, values.first());
+				break;
+			}
+			case ParameterType::STRINGLIST:
+			{
+				track->settings_.setStringList(key, values);
+				break;
+			}
+			default: THROW(ProgrammingException, "Unhandled parameter type.");
 			}
 		}
 		catch (const Exception& e)
@@ -395,18 +392,45 @@ TrackWidget* TrackWidget::fromXml(const QDomElement& track_element, QWidget* par
 		}
 	}
 
-	bool ok = false;
-	const int height = track_element.attribute("height").toInt(&ok);
-	if (ok && height > 0)
-	{
-		track->session_height_ = height;
-		//Variant tracks grow with the number of overlapping variants at the current zoom level.
-		if (type != VcfTrack::type() && type != SvTrack::type())
-		{
-			const int restored_height = type == BedTrack::type() ? std::max(height, track->minimumHeight()) : height;
-			track->setFixedHeight(restored_height);
-		}
-	}
-	else errors << "Missing or invalid track height for " + file_path;
 	return track;
+}
+
+TrackWidget* TrackWidget::load(const LoadContext cx, QWidget* parent)
+{
+	auto type = cx.track_type;
+	auto file_path = cx.file_path;
+	auto display_name = cx.display_name;
+	auto errors = cx.errors;
+
+	//create track
+	TrackWidget* track = nullptr;
+	if (type == BedTrack::type()) track = BedTrack::createTrack(parent, file_path, display_name);
+	else if (type == VcfTrack::type()) track = VcfTrack::createTrack(parent, file_path, display_name);
+	else if (type == SvTrack::type()) track = SvTrack::createTrack(parent, file_path, display_name);
+	else if (type == BamAlignmentTrack::type()) track = BamAlignmentTrack::createTrack(parent, file_path, display_name);
+	else if (type == BamCoverageTrack::type()) track = BamCoverageTrack::createTrack(parent, file_path, display_name);
+	else if (type == IgvTrack::type()) track = IgvTrack::createTrack(parent, file_path, display_name);
+	else if (type == SegTrack::type()) track = SegTrack::createTrack(parent, file_path, display_name);
+	else errors << ("Unsupported track type '"+type+"' for " + file_path);
+	if (!track) return nullptr;
+
+	track->session_height_ = cx.height;
+	//Variant tracks grow with the number of overlapping variants at the current zoom level.
+	if (type != VcfTrack::type() && type != SvTrack::type())
+	{
+		const int restored_height = type == BedTrack::type() ? std::max(cx.height, track->minimumHeight()) : cx.height;			track->setFixedHeight(restored_height);
+	}
+
+	return track;
+}
+
+LoadContext TrackWidget::loadContext(QStringList& errors) const
+{
+	return LoadContext {
+		type_,
+		file_path_,
+		display_name_,
+		errors,
+		session_height_
+	};
 }

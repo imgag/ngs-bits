@@ -27,11 +27,12 @@ void TrackGroupManager::reloadTracks()
 	}
 }
 
-void TrackGroupManager::addEmptyTrackGroup()
+TrackGroup* TrackGroupManager::addEmptyTrackGroup()
 {
 	TrackGroup* new_track_group = new TrackGroup(viewer_);
 	insertWidget(0, new_track_group);
 	connectSignals(new_track_group);
+	return new_track_group;
 }
 
 void TrackGroupManager::addTrack(TrackWidget* track)
