@@ -305,6 +305,7 @@ VariantScores::Result VariantScores::score_GSvar_v3(const VariantList& variants,
 	for (int i=0; i<variants.count(); ++i)
 	{
 		const Variant& v = variants[i];
+
 		//skip pre-filtered variants
 		if(!cascade_result.passing(i))
 		{
