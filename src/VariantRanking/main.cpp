@@ -121,3 +121,12 @@ int main(int argc, char *argv[])
 	ConcreteTool tool(argc, argv);
 	return tool.execute();
 }
+
+/*
+//TODO Marc
+- splicing prediction or variant effect
+- score by transcript, not by gene
+	- extra score for MANE?
+- check for recurring variants in top 10 that are not flagged as causal
+- only one model: match variant genotype with gene inheritance mode
+*/
