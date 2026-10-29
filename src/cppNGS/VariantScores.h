@@ -15,8 +15,6 @@ public:
 	struct Parameters
 	{
 		bool use_ngsd_classifications = true;
-		bool use_blacklist = false;
-		bool use_clinvar = true;
 	};
 
 	//Scoring result
@@ -24,7 +22,7 @@ public:
 	{
 		//Algorithm name
 		QString algorithm;
-		//Scores per variant. Scores below 0 indicate that no score was calculated for the variant. -1 means that the variant did not pass the pre-filtering. -2 means that the variant was blacklisted.
+		//Scores per variant. Scores below 0 indicate that no score was calculated for the variant. -1 means that the variant did not pass the pre-filtering.
 		QList<double> scores;
 		//Score explanations per variant.
 		QList<QStringList> score_explanations;
@@ -51,12 +49,8 @@ public:
 
 private:
 	//Returns the variant blackist from the settings file.
-	static QList<Variant> loadBlacklist();
 	static QByteArrayList prefilters(const Parameters& parameters);
-
-	static Result score_GSvar_v1(const VariantList& variants, const QHash<Phenotype, BedFile>& phenotype_rois, const Parameters& parameters);
-	static Result score_GSvar_v2_dominant(const VariantList& variants, const QHash<Phenotype, BedFile>& phenotype_rois, const Parameters& parameters);
-	static Result score_GSvar_v2_recessive(const VariantList& variants, const QHash<Phenotype, BedFile>& phenotype_rois, const Parameters& parameters);
+	static Result score_GSvar_v3(const VariantList& variants, const QHash<Phenotype, BedFile>& phenotype_rois, const Parameters& parameters);
 };
 
 //Helper struct for scoring

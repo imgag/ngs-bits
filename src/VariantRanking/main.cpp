@@ -23,11 +23,11 @@ public:
 		addEnum("algorithm", "Algorithm used for ranking.", false, VariantScores::algorithms());
 		//optional
 		addFlag("add_explanation", "Add a third output column with an explanation how that score was calculated.");
-		addFlag("use_blacklist", "Use variant blacklist from settings.ini file.");
 		addFlag("skip_ngsd_classifications", "Do not use variant classifications from NGSD.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("debug", "Adds debug output to STDOUT.");
 
+		changeLog(2026, 11,  2, "Implementation of v3.");
 		changeLog(2023,  5,  5, "Implementation of v2.");
 		changeLog(2020, 11, 20, "Implementation of v1.");
 	}
@@ -73,7 +73,7 @@ public:
 			//pheno > genes > roi
 			BedFile roi;
 			GeneSet genes = db.phenotypeToGenes(term_id, true);
-            for (const QByteArray& gene : genes)
+			for (const QByteArray& gene : std::as_const(genes))
 			{
 				if (!gene2region_cache.contains(gene))
 				{
@@ -94,7 +94,6 @@ public:
 
 		//rank
 		VariantScores::Parameters parameters;
-		parameters.use_blacklist = getFlag("use_blacklist");
 		parameters.use_ngsd_classifications = !getFlag("skip_ngsd_classifications");
 		VariantScores::Result result = VariantScores::score(algorithm, variants, phenotype_rois, parameters);
 		VariantScores::annotate(variants, result, add_explanation);
