@@ -26,6 +26,7 @@ public:
 		addFlag("use_blacklist", "Use variant blacklist from settings.ini file.");
 		addFlag("skip_ngsd_classifications", "Do not use variant classifications from NGSD.");
 		addFlag("test", "Uses the test database instead of on the production database.");
+		addFlag("debug", "Adds debug output to STDOUT.");
 
 		changeLog(2023,  5,  5, "Implementation of v2.");
 		changeLog(2020, 11, 20, "Implementation of v1.");
@@ -38,11 +39,20 @@ public:
 		QString algorithm = getEnum("algorithm");
 		bool add_explanation = getFlag("add_explanation");
 		NGSD db(getFlag("test"));
+		bool debug = getFlag("debug");
+		QTextStream out(stdout);
 
 		//load variants
+		QElapsedTimer timer;
+		timer.start();
 		QString in = getInfile("in");
 		VariantList variants;
 		variants.load(in);
+		if (debug)
+		{
+			out << "Loading GSvar took: " << Helper::elapsedTime(timer) << Qt::endl;
+			timer.restart();
+		}
 
 		//get HPO regions from NGSD
 		QHash<QByteArray, BedFile> gene2region_cache;
@@ -76,6 +86,11 @@ public:
 
 			phenotype_rois[db.phenotype(term_id)] = roi;
 		}
+		if (debug)
+		{
+			out << "Getting HPO regions from NGSD took: " << Helper::elapsedTime(timer) << Qt::endl;
+			timer.restart();
+		}
 
 		//rank
 		VariantScores::Parameters parameters;
@@ -83,9 +98,19 @@ public:
 		parameters.use_ngsd_classifications = !getFlag("skip_ngsd_classifications");
 		VariantScores::Result result = VariantScores::score(algorithm, variants, phenotype_rois, parameters);
 		VariantScores::annotate(variants, result, add_explanation);
+		if (debug)
+		{
+			out << "Ranking took: " << Helper::elapsedTime(timer) << Qt::endl;
+			timer.restart();
+		}
 
 		//store result
 		variants.store(getOutfile("out"));
+		if (debug)
+		{
+			out << "Storing GSvar took: " << Helper::elapsedTime(timer) << Qt::endl;
+			timer.restart();
+		}
 	}
 };
 
