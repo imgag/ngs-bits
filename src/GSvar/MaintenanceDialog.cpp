@@ -991,7 +991,7 @@ void MaintenanceDialog::compareStructureOfTestAndProduction()
 			auto it_t = indices_t.constFind(it_p.key());
 			if (it_t==indices_t.cend())
 			{
-				appendOutputLine("Missing index in test database: " + table + "/" + it_p.key() + " " + it_p.value().toString());
+				appendOutputLine("Missing index in test database: " + table + "/" + it_p.key() + ": " + it_p.value().toString());
 			}
 			else if (!(it_p.value()==it_t.value()))
 			{
@@ -1004,7 +1004,7 @@ void MaintenanceDialog::compareStructureOfTestAndProduction()
 		{
 			if (!indices_p.contains(it_t.key()))
 			{
-				appendOutputLine("Missing index in production database: " + table + "/" + it_t.key() + " " + it_t.value().toString());
+				appendOutputLine("Missing index in production database: " + table + "/" + it_t.key() + ": " + it_t.value().toString());
 			}
 		}
 	}

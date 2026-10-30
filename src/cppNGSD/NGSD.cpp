@@ -1379,9 +1379,6 @@ QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analy
 
 		//convert to canonical path
 		file = QFileInfo(file).absoluteFilePath();
-
-		qDebug() << "final path: " << file;
-
 		if (!file.endsWith(".gz", Qt::CaseInsensitive))
 		{
 			QString gz_file_version = file+".gz";
@@ -3844,6 +3841,26 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 	return referenceCache().tableInfo(const_cast<NGSD&>(*this), table);
 }
 
+QMap<QString, TableIndex> NGSD::tableIndices(const QString &table) const
+{
+	QMap<QString, TableIndex> output;
+
+	SqlQuery query = getQuery();
+	query.exec("SHOW INDEX FROM `" + table + "`");
+	while (query.next())
+	{
+		QString name = query.value("Key_name").toString();
+		TableIndex& definition = output[name];
+		definition.unique = query.value("Non_unique").toInt()==0;
+		int position = query.value("Seq_in_index").toInt();
+		while (definition.columns.size()<position)
+		{
+			definition.columns.append(QString());
+		}
+		definition.columns[position-1] = query.value("Column_name").toString();
+	}
+	return output;
+}
 
 DBTable NGSD::createTable(QString table, QString query, int pk_col_index)
 {
@@ -5266,8 +5283,6 @@ QString NGSD::analysisJobGSvarFile(int job_id)
 	{
 		THROW(ProgrammingException, "Unknown analysis type '" + job.type + "'!");
 	}
-
-	qDebug() << output; //TODO fallback to GZ?!
 
 	return output;
 }

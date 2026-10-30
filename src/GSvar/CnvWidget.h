@@ -63,7 +63,6 @@ private:
 	void initGUI();
 	void updateGUI();
 	void disableGUI();
-	void addInfoLine(QString text);
 	void updateStatus(int shown);
 	void editGermlineReportConfiguration(int row);
 	void editSomaticReportConfiguration(int row);
@@ -83,7 +82,7 @@ private:
 	QSharedPointer<SomaticReportConfiguration> somatic_report_config_;
 
 	GeneSet var_het_genes_;
-	QSet<QString> metrics_done_;
+	QSet<QByteArray> metrics_done_;
     bool ngsd_user_logged_in_;
 	bool rc_enabled_;
 	bool is_somatic_ = false;

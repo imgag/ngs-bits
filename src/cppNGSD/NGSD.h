@@ -218,6 +218,23 @@ class CPPNGSDSHARED_EXPORT TableInfo
 		QList<TableFieldInfo> field_infos_;
 };
 
+//Information about a SQL table index
+struct TableIndex
+{
+	bool unique;
+	QStringList columns;
+
+	bool operator==(const TableIndex& other) const
+	{
+		return unique==other.unique && columns==other.columns;
+	}
+
+	QString toString() const
+	{
+		return QString(unique ? "UNIQUE" : "NON-UNIQUE") + " (" + columns.join(", ") + ")";
+	}
+};
+
 ///Analysis job sample
 struct CPPNGSDSHARED_EXPORT AnalysisJobSample
 {
@@ -737,6 +754,9 @@ public:
 	QStringList tables() const;
 	///Returns information about all fields of a table.
 	const TableInfo& tableInfo(const QString& table) const;
+	///Returns information about all indices of a table.
+	QMap<QString, TableIndex> tableIndices(const QString& table) const;
+
 	///Checks if the value is valid for the table/field when used in an SQL query. Returns a non-empty error list in case it is not. 'check_unique' must not be used for existing entries.
 	QStringList checkValue(const QString& table, const QString& field, const QString& value, bool check_unique) const;
 	///Escapes SQL special characters in a text
