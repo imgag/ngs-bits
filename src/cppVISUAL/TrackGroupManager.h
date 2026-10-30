@@ -4,6 +4,7 @@
 #include "BedFile.h"
 #include "TrackGroup.h"
 #include "cppVISUAL_global.h"
+#include "GenomeVisualizationWidget.h"
 #include <QSplitter>
 #include <QtXml/QDomElement>
 #include <QXmlStreamWriter>
@@ -15,7 +16,7 @@ class CPPVISUALSHARED_EXPORT TrackGroupManager:
 {
 	Q_OBJECT
 public:
-	TrackGroupManager(QWidget* parent =nullptr);
+	TrackGroupManager(QWidget* parent);
 	// calls reloadTracks for all TrackGroups
 	void reloadTracks();
 	//removes all track groups
@@ -23,7 +24,7 @@ public:
 	//returns if this is a empty session: only track groups, but no tracks
 	bool isEmptySession() const;
 	//adds an empty TrackGroup
-	void addEmptyTrackGroup();
+	TrackGroup* addEmptyTrackGroup();
 	void addTrack(TrackWidget* track);
 	//resizes the gene panel to the given height. All TrackGroups maintain their relative heights.
 	void resizeGenePanel(int height=80);
@@ -55,6 +56,7 @@ public slots:
 	void addTrackGroupBelow();
 
 private:
+	GenomeVisualizationWidget* viewer_;
 	void resizeEvent(QResizeEvent* event) override;
 	QList<int> session_group_heights_;
 	int session_gene_height_ = 0;

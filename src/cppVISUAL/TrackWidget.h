@@ -2,12 +2,22 @@
 #define TRACKWIDGET_H
 
 #include "cppVISUAL_global.h"
+#include "GenomeVisualizationWidget.h"
 #include "ParameterList.h"
 #include "BedFile.h"
 #include <QMouseEvent>
 #include <QWidget>
 #include <QXmlStreamWriter>
 #include <QDomElement>
+
+//A structure for loading track states from various different sources
+struct LoadContext {
+	QString track_type;
+	QString file_path;
+	QString display_name;
+	QStringList& errors;
+	int height;
+};
 
 //struct for pixel x coordiante <> genome position calculations
 struct CPPVISUALSHARED_EXPORT Viewport
@@ -30,6 +40,7 @@ class CPPVISUALSHARED_EXPORT TrackWidget
 	Q_OBJECT
 
 public:
+	//The parent must belong to the viewer that owns this track.
 	TrackWidget(QWidget* parent, QString file_path, QString display_name, QString type);
 	QSize minimumSizeHint() const override;
 	ParameterList& parameters() { return settings_; }
@@ -40,11 +51,14 @@ public:
 	virtual void reloadTrack() = 0;
 	//Adds the Track submenu to the root context menu. Derived classes add element submenus first.
 	virtual void populateContextMenu(QMenu&, const QPoint&);
+	//Returns the track type as a string
+	LoadContext loadContext(QStringList& errors) const;
 
 	//writes properties in XML
 	void writeToXml(QXmlStreamWriter&);
 	//creates TrackWidget based on the given XML specification
 	static TrackWidget* fromXml(const QDomElement&, QWidget* parent, QStringList &errors);
+	static TrackWidget* load(const LoadContext cx, QWidget* parent);
 
 	//determines a display name from file path or URL
 	static QString getDisplayNameFromFilePath(QString file_path);
@@ -59,6 +73,7 @@ public slots:
 	void regionChanged();
 
 protected:
+	GenomeVisualizationWidget* viewer_;
 	virtual QList<Parameter> getParameters() const { return {}; }
 	virtual QHash<QByteArray, QVariant> getParameterDefaults() const { return {}; }
 	//Call in the derived constructor body, where virtual dispatch reaches its overrides.

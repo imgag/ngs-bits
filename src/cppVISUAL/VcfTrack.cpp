@@ -129,7 +129,7 @@ VcfTrack::VcfTrack(QWidget* parent, QString file_path, QString name)
 	setMinimumHeight(70);
 	connect(&settings_, &ParameterList::parameterChanged, this, &VcfTrack::refreshRegion);
 	connect(SharedData::instance(), &SharedData::settingsChanged, this, &VcfTrack::updateLayout);
-	connect(SharedData::instance(), &SharedData::regionChanged, this, &VcfTrack::refreshRegion);
+	connect(viewer_, &GenomeVisualizationWidget::regionChanged, this, &VcfTrack::refreshRegion);
 	updateLayout();
 }
 
@@ -206,7 +206,7 @@ VcfTrack::Variant VcfTrack::parseVariant(const QByteArray& line) const
 QVector<VcfTrack::Variant> VcfTrack::queryRegion(const TabixIndexedFile& tabix) const
 {
 	QVector<Variant> variants;
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	if (!region.isValid() || region.length() > fast_settings_.max_visibility) return variants;
 	for (const QByteArray& line : tabix.getMatchingLines(region.chr(), region.start(), region.end(), true)) variants << parseVariant(line);
 	return variants;
@@ -270,7 +270,7 @@ void VcfTrack::loadSource()
 	if (!header_found) THROW(FileParseException, "Missing VCF column header.");
 	if (tabix) variants = queryRegion(*tabix);
 	setVariants(std::move(variants));
-	loaded_region_ = tabix && SharedData::region().length() <= fast_settings_.max_visibility ? SharedData::region() : BedLine();
+	loaded_region_ = tabix && viewer_->region().length() <= fast_settings_.max_visibility ? viewer_->region() : BedLine();
 	tabix_ = std::move(tabix);
 }
 
@@ -278,7 +278,7 @@ void VcfTrack::refreshRegion()
 {
 	if (tabix_)
 	{
-		const auto& region = SharedData::region();
+		const auto& region = viewer_->region();
 		if (!region.isValid() || region.length() > fast_settings_.max_visibility)
 		{
 			setVariants({});
@@ -349,7 +349,7 @@ void VcfTrack::updateLayout()
 	rows_ = 0;
 	sample_index_ = samples_.indexOf(fast_settings_.sample);
 	const Viewport viewport = getViewport();
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	if (chr_index_ && region.isValid() && region.length() <= fast_settings_.max_visibility && viewport.usable_width > 0)
 	{
 		QVector<double> row_ends;
@@ -405,7 +405,7 @@ void VcfTrack::paintEvent(QPaintEvent*)
 	if (drawOverviewMessage(painter)) return;
 	const Viewport viewport = getViewport();
 	painter.setClipRect(QRect(viewport.x0, 0, std::max(0, viewport.usable_width), height()));
-	if (SharedData::region().length() > fast_settings_.max_visibility)
+	if (viewer_->region().length() > fast_settings_.max_visibility)
 	{
 		painter.setPen(Qt::gray);
 		painter.drawText(QRect(viewport.x0, 0, std::max(0, viewport.usable_width), height()), Qt::AlignCenter,

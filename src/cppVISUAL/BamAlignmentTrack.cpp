@@ -66,7 +66,7 @@ BamAlignmentTrack::~BamAlignmentTrack()
 
 BamAlignmentTrack* BamAlignmentTrack::createTrack(QWidget* parent, QString file_path, QString name)
 {
-	QSharedPointer<BamTrackData> data = BamTrackDataManager::getOrCreate(file_path);
+	QSharedPointer<BamTrackData> data = BamTrackDataManager::getOrCreate(GenomeVisualizationWidget::fromWidget(parent), file_path);
 	if (data)
 	{
 		auto track = new BamAlignmentTrack(parent, file_path, name);
@@ -100,7 +100,7 @@ void BamAlignmentTrack::fullLoad()
 
 bool BamAlignmentTrack::isCurrentRegionValid()
 {
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	return region.isValid() && region.length() <= fast_settings_.visibility_range;
 }
 
@@ -254,7 +254,7 @@ void BamAlignmentTrack::calculateGroupedRows()
 	const bool by_orientation = fast_settings_.group_by == "pair orientation";
 	const QStringList labels = by_phase ? QStringList{"phase 1", "phase 2", "unphased"}
 		: by_orientation ? QStringList{"RF", "FF", "RR", "FR"} : QStringList{"differing", "same"};
-	const Chromosome& chromosome = SharedData::region().chr();
+	const Chromosome& chromosome = viewer_->region().chr();
 	const auto differing_mate = [&chromosome](const BamAlignmentWrapper& alignment)
 	{
 		// Reads without a mate chromosome stay in the default (same) group.
@@ -319,7 +319,7 @@ QSize BamAlignmentTrack::sizeHint() const
 
 void BamAlignmentTrack::reloadTrack()
 {
-	BamTrackDataManager::reload(file_path_);
+	BamTrackDataManager::reload(viewer_, file_path_);
 }
 
 void BamAlignmentTrack::paintEvent(QPaintEvent*)
@@ -333,7 +333,7 @@ void BamAlignmentTrack::paintEvent(QPaintEvent*)
 	painter.fillRect(rect(), Qt::white);
 	drawLabel(painter);
 	if (drawOverviewMessage(painter)) return;
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	if (region.length() > fast_settings_.visibility_range) drawZoomInText(painter);
 	else
 	{
@@ -383,7 +383,7 @@ void BamAlignmentTrack::drawAlignmentAndMismatches(QPainter& painter, const BamA
 		return;
 	}
 
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 
 	if (getAlignmentEnd(al) < region.start() ||
 		getAlignmentStart(al) > region.end()) return;
@@ -469,7 +469,7 @@ QColor BamAlignmentTrack::insertSizeColor(const BamAlignmentWrapper& al_w)
 	if (!al_w.isPaired() || !mate_chr.isValid()) return track_data_->isPairedEnd() ? QColor(0, 0, 0) : QColor(202, 202, 202, 150);
 	if (!al_w.isMateMapped()) return QColor(202, 202, 202, 150);
 
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	if (mate_chr == region.chr())
 	{
 		InsertSizeStats i_stats = track_data_->getInsertSizeStats();
@@ -495,7 +495,7 @@ QColor BamAlignmentTrack::getAlignmentColor(const BamAlignmentWrapper& al_w)
 
 void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapper& al_w, int row_y)
 {
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	Viewport viewport = getViewport();
 	int last_x = -1.0f;
 
@@ -584,7 +584,7 @@ void BamAlignmentTrack::drawAlignment(QPainter& painter, const BamAlignmentWrapp
 
 void BamAlignmentTrack::drawInsertions(QPainter& painter, const BamAlignmentWrapper& al, int row_y)
 {
-	const auto& region = SharedData::region();
+	const auto& region = viewer_->region();
 	const Viewport viewport = getViewport();
 	const bool show_length = viewport.pixels_per_base >= cached_char_size_.width();
 	const QFontMetricsF metrics(cached_font_);
@@ -795,8 +795,8 @@ void BamAlignmentTrack::addAlignmentOptionsToCtxtMenu(QMenu& context_menu, const
 
 		if (mate_chr.isValid())
 		{
-			connect(go_to_mate_action, &QAction::triggered, this, [mate_chr, mate_start](){
-				SharedData::setRegion(mate_chr, mate_start - 100, mate_start + 100);
+			connect(go_to_mate_action, &QAction::triggered, this, [this, mate_chr, mate_start](){
+				viewer_->setRegion(mate_chr, mate_start - 100, mate_start + 100);
 			});
 		}
 

@@ -48,20 +48,20 @@ BedTrack::BedTrack(QWidget* parent, QString file_path, QString name)
 	:TrackWidget(parent, file_path, name, type())
 {
 	initializeSettings(&fast_settings_);
-	setMinimumHeight(SharedData::region().isValid() ? 25 : 50);
+	setMinimumHeight(viewer_->region().isValid() ? 25 : 50);
 	connect(&settings_, &ParameterList::parameterChanged, this, [this]()
 	{
 		updateGeometry();
 		update();
 	});
-	connect(SharedData::instance(), &SharedData::regionChanged, this, [this]()
+	connect(viewer_, &GenomeVisualizationWidget::regionChanged, this, [this]()
 	{
-		setMinimumHeight(SharedData::region().isValid() ? 25 : 50);
+		setMinimumHeight(viewer_->region().isValid() ? 25 : 50);
 		if (tabix_)
 		{
 			try
 			{
-				setBedData(queryBed(*tabix_, SharedData::region()));
+				setBedData(queryBed(*tabix_, viewer_->region()));
 				return;
 			}
 			catch (const Exception& e)
@@ -127,7 +127,7 @@ bool BedTrack::load()
 		{
 			auto tabix = std::make_unique<TabixIndexedFile>();
 			tabix->load(file_path_.toUtf8());
-			setBedData(queryBed(*tabix, SharedData::region()));
+			setBedData(queryBed(*tabix, viewer_->region()));
 			tabix_ = std::move(tabix);
 			return true;
 		}
@@ -150,7 +150,7 @@ void BedTrack::paintEvent(QPaintEvent* /*event*/)
 {
 	const int row_height = rowHeight();
 	const QColor color = fast_settings_.color == "transcript blue" ? QColor("#0000B2") : ColorNames::color(QString::fromUtf8(fast_settings_.color));
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	const Viewport& viewport = getViewport();
 
 	//fill background
@@ -284,7 +284,7 @@ int BedTrack::rowHeight() const
 
 QSize BedTrack::sizeHint() const
 {
-	if (!SharedData::region().isValid()) return QSize(parentWidget() ? parentWidget()->width() : 200, 50);
+	if (!viewer_->region().isValid()) return QSize(parentWidget() ? parentWidget()->width() : 200, 50);
 	int rowCount = 1;
 
 	if (fast_settings_.draw_mode == "expanded")
@@ -300,7 +300,7 @@ void BedTrack::calculateRows()
 	row_idxes_.clear();
 	num_rows_ = 0;
 	if (!chr_index_) return;
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	if (!region.isValid()) return;
 	visible_indices_ = chr_index_->matchingIndices(region.chr(), region.start(), region.end());
 	QVector<int> row_end_positions;
@@ -352,7 +352,7 @@ void BedTrack::handlePopupRequest(QPointF local_pos, QPointF global_pos)
 {
 	int row = local_pos.y() / rowHeight();
 	const Viewport& viewport = getViewport();
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 
 	if (!region.isValid() || !chr_index_ || viewport.usable_width <= 0 || region.length() <= 0 || viewport.isOutOfDrawRegion(local_pos.x())) return;
 	int x = viewport.screenXToGenomePos(local_pos.x());

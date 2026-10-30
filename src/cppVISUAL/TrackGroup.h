@@ -29,13 +29,14 @@ public:
 	//Reads Track elements from session XML
 	void loadFromXml(const QDomElement& dom_element, QStringList& errors);
 	//Creates a track group from a file
-	static TrackGroup* fromFile(QString filename);
+	static TrackGroup* fromFile(QString filename, QWidget* parent);
 	//returns the number of tracks
 	int trackCount();
 	//Saved alignment heights determine how additional viewport space is shared.
 	int alignmentSessionHeight() const;
 	//Adds tracks and connects their signals to this group.
 	void addTrackWidgets(QVector<TrackWidget*> widgets);
+	void addTrackWidget(TrackWidget* track);
 
 signals:
 	void addTrackGroupAbove();

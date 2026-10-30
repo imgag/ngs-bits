@@ -16,6 +16,8 @@
 #include "AboutDialog.h"
 #include "ColorNames.h"
 #include "GenomeVisualizationWidget.h"
+#include "BamAlignmentTrack.h"
+#include "SharedData.h"
 #include "ParameterEditor.h"
 #include "Settings.h"
 #include "TranscriptCache.h"
@@ -30,18 +32,25 @@ MainWindow::MainWindow(QString bind, QWidget* parent)
 	ui_.setupUi(this);
 
 	// signals and slots
-	connect(ui_.actionLoadFile, &QAction::triggered, ui_.gvw, &GenomeVisualizationWidget::openFileDialog);
-	connect(ui_.actionLoadURL, &QAction::triggered, ui_.gvw, &GenomeVisualizationWidget::openUrlDialog);
-	connect(ui_.actionReloadTracks, &QAction::triggered, ui_.gvw, &GenomeVisualizationWidget::reloadTracks);
-	connect(ui_.actionClearSession, &QAction::triggered, ui_.gvw, &GenomeVisualizationWidget::clearSession);
-	connect(ui_.actionStore_session, &QAction::triggered, ui_.gvw, &GenomeVisualizationWidget::saveSession);
-	connect(ui_.actionLoadSession, &QAction::triggered, ui_.gvw, &GenomeVisualizationWidget::loadSession);
+	connect(ui_.actionLoadFile, &QAction::triggered, ui_.gvw_l, &GenomeVisualizationWidget::openFileDialog);
+	connect(ui_.actionLoadURL, &QAction::triggered, ui_.gvw_l, &GenomeVisualizationWidget::openUrlDialog);
+
+	connect(ui_.actionReloadTracks, &QAction::triggered, ui_.gvw_l, &GenomeVisualizationWidget::reloadTracks);
+	connect(ui_.actionReloadTracks, &QAction::triggered, ui_.gvw_r, &GenomeVisualizationWidget::reloadTracks);
+
+	connect(ui_.actionClearSession, &QAction::triggered, ui_.gvw_l, &GenomeVisualizationWidget::clearSession);
+	connect(ui_.actionClearSession, &QAction::triggered, this, &MainWindow::hideSecondarySplit);
+
+	connect(ui_.actionStore_session, &QAction::triggered, ui_.gvw_l, &GenomeVisualizationWidget::saveSession);
+	connect(ui_.actionLoadSession, &QAction::triggered, ui_.gvw_l, &GenomeVisualizationWidget::loadSession);
 	connect(ui_.actionOpen_documentation, &QAction::triggered, this, &MainWindow::openDocumentation);
 	connect(ui_.actionSettings, &QAction::triggered, this, &MainWindow::showSettings);
 	connect(ui_.actionAbout, &QAction::triggered, this, &MainWindow::showAboutDialog);
 	connect(ui_.actionExit, &QAction::triggered, this, &MainWindow::close);
 	connect(ui_.actionAddNRegions, &QAction::triggered, this, &MainWindow::addNRegions);
 	connect(ui_.actionShowNamedColors, &QAction::triggered, this, &MainWindow::showNamedColors);
+
+	ui_.gvw_r->hide();
 
 	//Set environment variable containing SSL certificates - needed for HTTPS to work for BamReader/htslib
 	QByteArray curl_ca_bundle = Settings::string("curl_ca_bundle", true).trimmed().toUtf8();
@@ -159,7 +168,8 @@ void MainWindow::addNRegions()
 		const QString file_path = folder + "/N_regions.bed";
 		regions->store(file_path);
 
-		ui_.gvw->addBedTrack(regions, file_path, "N regions");
+		ui_.gvw_l->addBedTrack(regions, file_path, "N regions");
+		ui_.gvw_r->addBedTrack(regions, file_path, "N regions");
 	}
 	catch (const Exception& e)
 	{
@@ -235,7 +245,7 @@ void MainWindow::executeApiCommand(ApiCommand cmd)
 	{
 		if (cmd.verb == "new")
 		{
-			ui_.gvw->clearSession();
+			ui_.gvw_l->clearSession();
 		}
 		else if (cmd.verb == "echo")
 		{
@@ -308,24 +318,31 @@ void MainWindow::stub()
 {
 }
 
+static const auto INVALID_LOCUS_ERROR_MESSAGE =  "The region specified is not valid and can therefore not be used as a "
+												"destination. If you meant to jump to a particular coordinate, be sure to "
+												"include the chromosome and start/end positions in the format (chrN:start-end), "
+												"or just the chromonose name: (chrN).";
+
 void MainWindow::handleGoto(QStringList args)
 {
-	for (QString& locus : args)
+	if (args.length() < 1 || args.length() > 2)
 	{
-		BedLine region = BedLine::fromString(locus);
-		if (region.isValid())
-		{
-			SharedData::setRegion(region.chr(), region.start(), region.end());
-			return;
-		}
-		else
-		{
-			THROW(Exception, "The region specified is not valid and can therefore not be used as a "
-				"destination. If you meant to jump to a particular coordinate, be sure to "
-				"include the chromosome and start/end positions in the format (chrN:start-end), "
-				"or just the chromonose name: (chrN).");
-		}
+		THROW(Exception, "Expected exactly 1-2 arguments. Got " + QString::number(args.length()));
 	}
+
+	BedLine region = BedLine::fromString(args[0]);
+	if (!region.isValid()) THROW(Exception, INVALID_LOCUS_ERROR_MESSAGE);
+
+	ui_.gvw_l->setRegion(region.chr(), region.start(), region.end());
+
+	if (args.length() != 2) return ui_.gvw_r->hide();
+
+	ui_.gvw_r->show();
+
+	region = BedLine::fromString(args[1]);
+	if (!region.isValid()) THROW(Exception, INVALID_LOCUS_ERROR_MESSAGE);
+
+	ui_.gvw_r->setRegion(region.chr(), region.start(), region.end());
 }
 
 void MainWindow::handleLoad(QStringList args)
@@ -342,11 +359,13 @@ void MainWindow::handleLoad(QStringList args)
 
 			if (url.isLocalFile())
 			{
-				ui_.gvw->loadFile(url.toLocalFile());
+				ui_.gvw_l->loadFile(url.toLocalFile());
+				if (!ui_.gvw_r->isHidden()) ui_.gvw_r->loadFile(url.toLocalFile());
 			}
 			else
 			{
-				ui_.gvw->loadFile(url.toString());
+				ui_.gvw_l->loadFile(url.toString());
+				if (!ui_.gvw_r->isHidden()) ui_.gvw_r->loadFile(url.toString());
 			}
 		}
 	}
@@ -359,9 +378,17 @@ void MainWindow::handleSleep(/*QStringList args*/)
 
 void MainWindow::handleViewAsPairs(/*QStringList args*/)
 {
-	for (auto track : ui_.gvw->bamTracks())
+	for (auto track : ui_.gvw_l->bamTracks())
 	{
 		track->parameters().setBool("view as pairs", true);
+	}
+
+	if (!ui_.gvw_r->isHidden())
+	{
+		for (auto track : ui_.gvw_r->bamTracks())
+		{
+			track->parameters().setBool("view as pairs", true);
+		}
 	}
 }
 
@@ -376,9 +403,17 @@ void MainWindow::handleColorBy(QStringList args)
 
 	auto rename = RENAME_COLORBY.contains(args[0]) ? RENAME_COLORBY.value(args[0]) : args[0];
 
-	for (auto track : ui_.gvw->bamTracks())
+	for (auto track : ui_.gvw_l->bamTracks())
 	{
 		track->parameters().setString("color by", rename.toUtf8());
+	}
+
+	if (!ui_.gvw_r->isHidden())
+	{
+		for (auto track : ui_.gvw_r->bamTracks())
+		{
+			track->parameters().setString("color by", rename.toUtf8());
+		}
 	}
 }
 
@@ -393,9 +428,17 @@ void MainWindow::handleGroupBy(QStringList args)
 
 	auto rename = RENAME_GROUPBY.contains(args[0]) ? RENAME_GROUPBY.value(args[0]) : args[0];
 
-	for (auto track : ui_.gvw->bamTracks())
+	for (auto track : ui_.gvw_l->bamTracks())
 	{
 		track->parameters().setString("group by", rename.toUtf8());
+	}
+
+	if (!ui_.gvw_r->isHidden())
+	{
+		for (auto track : ui_.gvw_r->bamTracks())
+		{
+			track->parameters().setString("group by", rename.toUtf8());
+		}
 	}
 }
 
@@ -405,6 +448,8 @@ void MainWindow::handleScreenshot(QStringList args)
 	{
 		THROW(Exception, "Expected exactly 0 or 1 arguments. Got " + QString::number(args.length()));
 	}
+
+	// TODO: refactor to capture both panels if open.
 
 	auto track = findChild<TrackGroupManager*>();
 
@@ -421,7 +466,7 @@ void MainWindow::handleScreenshot(QStringList args)
 
 	track->render(&img, QPoint(), QRegion(), QWidget::DrawWindowBackground | QWidget::DrawChildren);
 
-	qDebug() << "Capturing screenshot" << SharedData::region().toString(true);
+	qDebug() << "Capturing screenshot" << ui_.gvw_l->region().toString(true);
 
 	if (args.length() > 0 && !args[0].isEmpty()) img.save(args[0]);
 
@@ -432,10 +477,26 @@ void MainWindow::handleScreenshot(QStringList args)
 		if (!dir.mkpath(".")) THROW(ProgrammingException, "Unable to create intermediate directory for screenshots");
 
 		const QString destination = dir.filePath(
-			SharedData::region().toString(true).replace(':', '-') + ".png");
+			ui_.gvw_l->region().toString(true).replace(':', '-') + ".png");
 
 		img.save(destination);
 	}
+}
+
+void MainWindow::hideSecondarySplit()
+{
+	ui_.gvw_r->hide();
+}
+
+void MainWindow::showSecondarySplit()
+{
+	ui_.gvw_r->synchroniseFrom(ui_.gvw_l);
+	ui_.gvw_r->show();
+}
+
+void MainWindow::toggleSecondarySplit()
+{
+	ui_.gvw_r->setHidden(!ui_.gvw_r->isHidden());
 }
 
 void MainWindow::showAboutDialog()

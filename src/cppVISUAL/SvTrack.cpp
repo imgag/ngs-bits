@@ -35,7 +35,7 @@ SvTrack::SvTrack(QWidget* parent, QString file_path, QString name)
 	initializeSettings(&fast_settings_);
 	connect(&settings_, &ParameterList::parameterChanged, this, &SvTrack::updateLayout);
 	connect(SharedData::instance(), &SharedData::settingsChanged, this, &SvTrack::updateLayout);
-	connect(SharedData::instance(), &SharedData::regionChanged, this, &SvTrack::updateLayout);
+	connect(viewer_, &GenomeVisualizationWidget::regionChanged, this, &SvTrack::updateLayout);
 	updateLayout();
 }
 
@@ -96,7 +96,7 @@ void SvTrack::updateLayout()
 {
 	placements_.clear();
 	pressed_variant_ = -1;
-	const auto& region = SharedData::region();
+	const auto& region = viewer_->region();
 	const Viewport viewport = getViewport();
 	const QFontMetricsF metrics(font());
 	const double label_height = std::ceil(metrics.height());

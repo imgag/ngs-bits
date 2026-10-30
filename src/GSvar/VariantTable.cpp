@@ -292,13 +292,11 @@ void VariantTable::customContextMenu(QPoint pos)
 
 	if (action==a_visualize)
 	{
-		//set region
-		SharedData::setRegion(variant.chr(), variant.start(), variant.end());
-		
 		try
 		{
 			//load BAMs
 			GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this);
+			widget->setRegion(variant.chr(), variant.start(), variant.end());
 			foreach(const FileLocation& loc, GlobalServiceProvider::fileLocationProvider().getBamFiles(false))
 			{
 				widget->loadFile(loc.filename);

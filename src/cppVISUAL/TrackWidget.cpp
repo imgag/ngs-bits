@@ -23,6 +23,7 @@
 
 TrackWidget::TrackWidget(QWidget* parent, QString file_path, QString display_name, QString type)
 	: QWidget(parent)
+	, viewer_(GenomeVisualizationWidget::fromWidget(parent))
 	, file_path_(file_path)
 	, settings_(type.toUtf8(), {}, {})
 	, display_name_(display_name)
@@ -178,7 +179,7 @@ void TrackWidget::drawLabel(QPainter& painter)
 
 bool TrackWidget::drawOverviewMessage(QPainter& painter)
 {
-	if (SharedData::region().isValid()) return false;
+	if (viewer_->region().isValid()) return false;
 	const Viewport viewport = getViewport();
 	painter.setPen(Qt::gray);
 	painter.drawText(QRect(viewport.x0, 0, std::max(0, viewport.usable_width), height()), Qt::AlignCenter,
@@ -210,15 +211,15 @@ Viewport TrackWidget::getViewport() const
 {
 	int label_width = SharedData::settings().label_width;
 	int usable_width = width() - label_width - 4;
-	float pixels_per_base = SharedData::region().isValid() ? (float)usable_width / SharedData::region().length() : 0.0f;
+	float pixels_per_base = viewer_->region().isValid() ? (float)usable_width / viewer_->region().length() : 0.0f;
 
-	return {usable_width, label_width + 2, pixels_per_base, SharedData::region().start()};
+	return {usable_width, label_width + 2, pixels_per_base, viewer_->region().start()};
 }
 
 QVector<QPair<BedLine, Viewport>> TrackWidget::plotViewports() const
 {
 	const Viewport viewport = getViewport();
-	if (SharedData::region().isValid()) return {{SharedData::region(), viewport}};
+	if (viewer_->region().isValid()) return {{viewer_->region(), viewport}};
 	QVector<QPair<BedLine, Viewport>> plots;
 	if (viewport.usable_width <= 0) return plots;
 	const BedFile& regions = SharedData::wholeGenomeRegions();
@@ -315,17 +316,14 @@ TrackWidget* TrackWidget::fromXml(const QDomElement& track_element, QWidget* par
 	QString file_path = track_element.attribute("file_name");
 	QString display_name = track_element.attribute("display_name");
 
-	//create track
-	TrackWidget* track = nullptr;
-	if (type == BedTrack::type()) track = BedTrack::createTrack(parent, file_path, display_name);
-	else if (type == VcfTrack::type()) track = VcfTrack::createTrack(parent, file_path, display_name);
-	else if (type == SvTrack::type()) track = SvTrack::createTrack(parent, file_path, display_name);
-	else if (type == BamAlignmentTrack::type()) track = BamAlignmentTrack::createTrack(parent, file_path, display_name);
-	else if (type == BamCoverageTrack::type()) track = BamCoverageTrack::createTrack(parent, file_path, display_name);
-	else if (type == IgvTrack::type()) track = IgvTrack::createTrack(parent, file_path, display_name);
-	else if (type == SegTrack::type()) track = SegTrack::createTrack(parent, file_path, display_name);
-	else errors << ("Unsupported track type '"+type+"' for " + file_path);
-	if (!track) return nullptr;
+	bool ok = false;
+	auto height = track_element.attribute("height").toInt(&ok);
+
+	if (!ok || height <= 0) errors << "Missing or invalid track height for " + file_path;
+
+	auto track = TrackWidget::load(LoadContext {
+		type, file_path, display_name, errors, height
+	}, parent);
 
 	//load settings
 	for (QDomElement item = track_element.firstChildElement("Settings"); !item.isNull(); item = item.nextSiblingElement("Settings"))
@@ -351,41 +349,41 @@ TrackWidget* TrackWidget::fromXml(const QDomElement& track_element, QWidget* par
 			bool ok = false;
 			switch (parameter.type())
 			{
-				case ParameterType::INT:
+			case ParameterType::INT:
+			{
+				const int number = value.toInt(&ok);
+				if (!ok) THROW(ArgumentException, "Invalid integer '" + value + "'.");
+				track->settings_.setInt(key, number);
+				break;
+			}
+			case ParameterType::DOUBLE:
+			{
+				const double number = value.toDouble(&ok);
+				if (!ok) THROW(ArgumentException, "Invalid double '" + value + "'.");
+				track->settings_.setDouble(key, number);
+				break;
+			}
+			case ParameterType::BOOL:
+			{
+				const QString boolean = value.trimmed().toLower();
+				if (boolean != "yes" && boolean != "no" && boolean != "true" && boolean != "false" && boolean != "1" && boolean != "0")
 				{
-					const int number = value.toInt(&ok);
-					if (!ok) THROW(ArgumentException, "Invalid integer '" + value + "'.");
-					track->settings_.setInt(key, number);
-					break;
+					THROW(ArgumentException, "Invalid boolean '" + value + "'.");
 				}
-				case ParameterType::DOUBLE:
-				{
-					const double number = value.toDouble(&ok);
-					if (!ok) THROW(ArgumentException, "Invalid double '" + value + "'.");
-					track->settings_.setDouble(key, number);
-					break;
-				}
-				case ParameterType::BOOL:
-				{
-					const QString boolean = value.trimmed().toLower();
-					if (boolean != "yes" && boolean != "no" && boolean != "true" && boolean != "false" && boolean != "1" && boolean != "0")
-					{
-						THROW(ArgumentException, "Invalid boolean '" + value + "'.");
-					}
-					track->settings_.setBool(key, boolean == "yes" || boolean == "true" || boolean == "1");
-					break;
-				}
-				case ParameterType::STRING:
-				{
-					track->settings_.setString(key, values.first());
-					break;
-				}
-				case ParameterType::STRINGLIST:
-				{
-					track->settings_.setStringList(key, values);
-					break;
-				}
-				default: THROW(ProgrammingException, "Unhandled parameter type.");
+				track->settings_.setBool(key, boolean == "yes" || boolean == "true" || boolean == "1");
+				break;
+			}
+			case ParameterType::STRING:
+			{
+				track->settings_.setString(key, values.first());
+				break;
+			}
+			case ParameterType::STRINGLIST:
+			{
+				track->settings_.setStringList(key, values);
+				break;
+			}
+			default: THROW(ProgrammingException, "Unhandled parameter type.");
 			}
 		}
 		catch (const Exception& e)
@@ -394,18 +392,45 @@ TrackWidget* TrackWidget::fromXml(const QDomElement& track_element, QWidget* par
 		}
 	}
 
-	bool ok = false;
-	const int height = track_element.attribute("height").toInt(&ok);
-	if (ok && height > 0)
-	{
-		track->session_height_ = height;
-		//Variant tracks grow with the number of overlapping variants at the current zoom level.
-		if (type != VcfTrack::type() && type != SvTrack::type())
-		{
-			const int restored_height = type == BedTrack::type() ? std::max(height, track->minimumHeight()) : height;
-			track->setFixedHeight(restored_height);
-		}
-	}
-	else errors << "Missing or invalid track height for " + file_path;
 	return track;
+}
+
+TrackWidget* TrackWidget::load(const LoadContext cx, QWidget* parent)
+{
+	auto type = cx.track_type;
+	auto file_path = cx.file_path;
+	auto display_name = cx.display_name;
+	auto errors = cx.errors;
+
+	//create track
+	TrackWidget* track = nullptr;
+	if (type == BedTrack::type()) track = BedTrack::createTrack(parent, file_path, display_name);
+	else if (type == VcfTrack::type()) track = VcfTrack::createTrack(parent, file_path, display_name);
+	else if (type == SvTrack::type()) track = SvTrack::createTrack(parent, file_path, display_name);
+	else if (type == BamAlignmentTrack::type()) track = BamAlignmentTrack::createTrack(parent, file_path, display_name);
+	else if (type == BamCoverageTrack::type()) track = BamCoverageTrack::createTrack(parent, file_path, display_name);
+	else if (type == IgvTrack::type()) track = IgvTrack::createTrack(parent, file_path, display_name);
+	else if (type == SegTrack::type()) track = SegTrack::createTrack(parent, file_path, display_name);
+	else errors << ("Unsupported track type '"+type+"' for " + file_path);
+	if (!track) return nullptr;
+
+	track->session_height_ = cx.height;
+	//Variant tracks grow with the number of overlapping variants at the current zoom level.
+	if (type != VcfTrack::type() && type != SvTrack::type())
+	{
+		const int restored_height = type == BedTrack::type() ? std::max(cx.height, track->minimumHeight()) : cx.height;			track->setFixedHeight(restored_height);
+	}
+
+	return track;
+}
+
+LoadContext TrackWidget::loadContext(QStringList& errors) const
+{
+	return LoadContext {
+		type_,
+		file_path_,
+		display_name_,
+		errors,
+		session_height_
+	};
 }
