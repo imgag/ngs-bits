@@ -475,9 +475,14 @@ void MainWindow::lazyLoadIGVfiles(QString current_file)
 
 void MainWindow::openGSvarUrl(const QUrl url)
 {
+	while(!LoginManager::active())
+	{
+		LoginDialog dlg(this);
+		dlg.exec();
+	}
+
 	qDebug() << url.toString();
 	QMessageBox::warning(this, "Opening URL", "URL: " + url.toString());
-
 }
 
 void MainWindow::checkServerAvailability()
