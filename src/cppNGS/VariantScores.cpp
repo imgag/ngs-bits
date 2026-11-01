@@ -1,7 +1,6 @@
 #include "VariantScores.h"
 #include "Exceptions.h"
 #include "Helper.h"
-#include "GeneSet.h"
 #include "FilterCascade.h"
 #include <math.h>
 
@@ -279,7 +278,7 @@ VariantScores::Result VariantScores::score_GSvar_v3(const VariantList& variants,
 	FilterResult cascade_result = cascade.apply(variants);
 
 	//determine number of hits per gene
-	QHash<QString, int> gene_hits_het; //TODO use?
+	QHash<QByteArray, int> gene_hits_het;
 	for (int i=0; i<variants.count(); ++i)
 	{
 		//skip pre-filtered variants
@@ -290,15 +289,15 @@ VariantScores::Result VariantScores::score_GSvar_v3(const VariantList& variants,
 		QByteArray v_genotype = v.annotations()[i_genotye].trimmed();
 		if (v_genotype!="het") continue;
 
-		//determine gene set (there are typically several transcripts per gene)
-		GeneSet genes;
+		//skip mosaic variants
+		if (v.filters().contains("mosaic")) continue;
+
+		//count genes - only once - there are usually several transcripts per gene and variant
+		QSet<QByteArray> genes_done;
 		for (const VariantTranscript& transcript : v.transcriptAnnotations(i_coding))
 		{
-			genes << transcript.gene;
-		}
-		for (const QByteArray& gene : std::as_const(genes))
-		{
-			gene_hits_het[gene] += 1;
+			if (genes_done.contains(transcript.gene)) continue;
+			gene_hits_het[transcript.gene] += 1;
 		}
 	}
 
@@ -306,6 +305,7 @@ VariantScores::Result VariantScores::score_GSvar_v3(const VariantList& variants,
 	{
 		const Variant& v = variants[i];
 
+		//TODO try without pre-filtering
 		//skip pre-filtered variants
 		if(!cascade_result.passing(i))
 		{
@@ -333,14 +333,13 @@ VariantScores::Result VariantScores::score_GSvar_v3(const VariantList& variants,
 		}
 
 		//rarity: NGSD count
-		QByteArray ngsd_het = v.annotations()[i_ngsd_het].trimmed();
 		bool ok = false;
-		double ngsd_het2 = ngsd_het.toInt(&ok);
-		if (ok && ngsd_het2<=2)
+		double ngsd_het = v.annotations()[i_ngsd_het].trimmed().toInt(&ok);
+		if (ok && ngsd_het<=2)
 		{
 			scores.add("NGSD", 1.0);
 		}
-		else if (ok && ngsd_het2<=5)
+		else if (ok && ngsd_het<=5)
 		{
 			scores.add("NGSD", 0.5);
 		}
@@ -359,6 +358,7 @@ VariantScores::Result VariantScores::score_GSvar_v3(const VariantList& variants,
 			scores.add("HPO", pheno_score);
 		}
 
+		//TODO count only if disease/phenotype match?
 		//disease association: HGMD variant
 		if (i_hgmd!=-1) //optional because of license
 		{
@@ -382,6 +382,7 @@ VariantScores::Result VariantScores::score_GSvar_v3(const VariantList& variants,
 			}
 		}
 
+		//TODO count only if disease/phenotype match?
 		//disease association: ClinVar variant
 		double clinvar_score = 0.0;
 		QByteArrayList clinvar = v.annotations()[i_clinvar].trimmed().split(';');
@@ -416,6 +417,7 @@ VariantScores::Result VariantScores::score_GSvar_v3(const VariantList& variants,
 			}
 		}
 
+		//TODO count only if disease/phenotype match?
 		//disease association: OMIM (gene-specific) - format: 612316_[GENE=ATAD3A_PHENOS=...]&616101_[GENE=TMEM240_PHENOS=...]
 		if (i_omim!=-1) //optional because of license
 		{
@@ -461,6 +463,8 @@ VariantScores::Result VariantScores::score_GSvar_v3(const VariantList& variants,
 				scores.add("impact", 1.0, transcript.gene);
 			}
 		}
+		//TODO score SpliceAI score as "impact" as well
+		//TODO score "relevant transcripts" higher than others
 
 		//gnomAD o/e lof, inheritance (gene-specific) - format: SAMD11 (inh=n/a oe_syn=1.70 oe_mis=1.51 oe_lof=0.90), NOC2L (inh=n/a oe_syn=1.60 oe_mis=1.25 oe_lof=1.03)
 		QByteArray v_genotype = v.annotations()[i_genotye].trimmed();
@@ -483,16 +487,21 @@ VariantScores::Result VariantScores::score_GSvar_v3(const VariantList& variants,
 				if (entry.startsWith("inh="))
 				{
 					QByteArray mode = entry.split('=')[1].trimmed();
+					bool is_dom = mode.contains("AD") || mode.contains("XLD");
+					bool is_rec = mode.contains("AR") || mode.contains("XLR");
 
-					if (v_genotype=="hom" && (mode.contains("AR") || mode.contains("XLR")))
+					if (v_genotype=="hom" && is_rec)
 					{
 						scores.add("gene_inheritance", 0.5, gene);
 					}
-					else if (v_genotype=="het" && (mode.contains("AD") || mode.contains("XLD")))
+					else if (v_genotype=="het" && is_rec && gene_hits_het[gene]>=2)
+					{
+						scores.add("gene_inheritance", 0.5, gene); //TODO lower score?
+					}
+					else if (v_genotype=="het" && is_dom)
 					{
 						scores.add("gene_inheritance", 0.5, gene);
 					}
-					//TODO comp-het?
 				}
 				if (entry.startsWith("oe_lof="))
 				{
