@@ -1,5 +1,4 @@
 #include "TestFramework.h"
-#include "TestFrameworkNGS.h"
 #include "VariantScores.h"
 
 TEST_CLASS(VariantScores_Test)
@@ -13,7 +12,7 @@ private:
 
 	TEST_METHOD(description)
 	{
-		foreach(QString algorithm, VariantScores::algorithms())
+		foreach(QByteArray algorithm, VariantScores::algorithms())
 		{
 			IS_FALSE(VariantScores::description(algorithm).isEmpty());
 		}
@@ -29,7 +28,7 @@ private:
 		result.algorithm = "GSvar_v3";
 		result.scores << 1.5;
 		result.ranks << 1;
-		result.score_explanations << QStringList{"criterion: 1.5"};
+		result.score_explanations << QByteArrayList{"criterion: 1.5"};
 
 		I_EQUAL(VariantScores::annotate(variants, result, true), 1);
 		S_EQUAL(variants.annotations().at(0).name(), "GSvar_rank");
@@ -62,7 +61,6 @@ private:
 		I_EQUAL(variants.count(), result.scores.count());
 		I_EQUAL(variants.count(), result.score_explanations.count());
 		I_EQUAL(variants.count(), result.ranks.count());
-		I_EQUAL(result.warnings.count(), 0);
 		for(int i=0; i<variants.count(); ++i)
 		{
 			QString var_str = variants[i].toString();
@@ -120,10 +118,10 @@ private:
 			if (result.scores[i]>=0)
 			{
 				double score_sum = 0.0;
-				QStringList explanations = result.score_explanations[i];
-				foreach(QString explanation, explanations)
+				QByteArrayList explanations = result.score_explanations[i];
+				foreach(QByteArray explanation, explanations)
 				{
-					QStringList tmp = (explanation+":").split(":");
+					QByteArrayList tmp = (explanation+":").split(':');
 					score_sum += Helper::toDouble(tmp[1], explanation, variants[i].toString());
 				}
 

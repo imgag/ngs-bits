@@ -8,9 +8,9 @@ VariantScores::VariantScores()
 {
 }
 
-QStringList VariantScores::algorithms()
+QByteArrayList VariantScores::algorithms()
 {
-	static QStringList algorithms;
+	static QByteArrayList algorithms;
 	if (algorithms.isEmpty())
 	{
 		algorithms << "GSvar_v3";
@@ -18,7 +18,7 @@ QStringList VariantScores::algorithms()
 	return algorithms;
 }
 
-QString VariantScores::description(QString algorithm)
+QByteArray VariantScores::description(QByteArray algorithm)
 {
 	if (!algorithms().contains(algorithm))
 	{
@@ -33,7 +33,7 @@ QString VariantScores::description(QString algorithm)
 	THROW(ArgumentException, "VariantScores::description: Not implemented algorithm '" + algorithm + "'!");
 }
 
-VariantScores::Result VariantScores::score(QString algorithm, const VariantList& variants, const QHash<Phenotype, BedFile>& phenotype_rois, const Parameters& parameters)
+VariantScores::Result VariantScores::score(QByteArray algorithm, const VariantList& variants, const QHash<Phenotype, BedFile>& phenotype_rois, const Parameters& parameters)
 {
 	if (!algorithms().contains(algorithm))
 	{
@@ -118,7 +118,7 @@ int VariantScores::annotate(VariantList& variants, const VariantScores::Result& 
 		}
 		variants[i].annotations()[i_score] = score_str;
 		variants[i].annotations()[i_rank] = rank_str;
-		if (add_explanations) variants[i].annotations()[i_score_exp] = result.score_explanations[i].join(" ").toUtf8();
+		if (add_explanations) variants[i].annotations()[i_score_exp] = result.score_explanations[i].join(" ");
 	}
 
 	return c_scored;
@@ -203,15 +203,15 @@ double CategorizedScores::score(QByteArrayList& best_genes) const
 	return output + max_gene;
 }
 
-QStringList CategorizedScores::explainations(const QByteArray& gene) const
+QByteArrayList CategorizedScores::explainations(const QByteArray& gene) const
 {
-	QStringList output;
+	QByteArrayList output;
 
 	//gene-independent scores
 	const QHash<QByteArray, double>& tmp = operator[]("*");
 	for (auto it=tmp.begin(); it!=tmp.end(); ++it)
 	{
-		output << it.key() + ":" + QString::number(it.value(), 'f', 1);
+		output << it.key() + ":" + QByteArray::number(it.value(), 'f', 1);
 	}
 
 	//gene-specific scores
@@ -220,23 +220,23 @@ QStringList CategorizedScores::explainations(const QByteArray& gene) const
 		const QHash<QByteArray, double>& tmp2 = operator[](gene);
 		for (auto it=tmp2.begin(); it!=tmp2.end(); ++it)
 		{
-			output << it.key() + ":" + QString::number(it.value(), 'f', 1);
+			output << it.key() + ":" + QByteArray::number(it.value(), 'f', 1);
 		}
 	}
 
-	output.sort(Qt::CaseInsensitive);
+	std::sort(output.begin(), output.end());
 
 	return output;
 }
 
-QStringList CategorizedScores::explainations(const QByteArrayList& best_genes) const
+QByteArrayList CategorizedScores::explainations(const QByteArrayList& best_genes) const
 {
 	if  (best_genes.isEmpty())
 	{
 		return explainations("");
 	}
 
-	QStringList output;
+	QByteArrayList output;
     for (const QByteArray& gene : best_genes)
 	{
 		if (best_genes.count()>1) output << "[" + gene + "]";
@@ -265,7 +265,7 @@ VariantScores::Result VariantScores::score_GSvar_v3(const VariantList& variants,
 	int i_genotye = affected_cols[0];
 
 	//prepare ROI for fast lookup
-	if (phenotype_rois.count()==0) output.warnings << "No phenotype region(s) set!";
+	if (phenotype_rois.count()==0) THROW(ProgrammingException, "No phenotype ROIs set!");
 	QHash<Phenotype, QSharedPointer<ChromosomalIndex<BedFile>>> phenotype_rois_indices;
 	for(auto it=phenotype_rois.cbegin(); it!=phenotype_rois.cend(); ++it)
 	{
@@ -310,7 +310,7 @@ VariantScores::Result VariantScores::score_GSvar_v3(const VariantList& variants,
 		if(!cascade_result.passing(i))
 		{
 			output.scores << -1.0;
-			output.score_explanations << QStringList();
+			output.score_explanations << QByteArrayList();
 			continue;
 		}
 
@@ -525,3 +525,13 @@ VariantScores::Result VariantScores::score_GSvar_v3(const VariantList& variants,
 
 	return output;
 }
+/*
+//TODO Marc:
+- splicing prediction or variant effect
+- score by transcript, not by gene
+	- extra score for MANE or relevant transcripts?
+- use HPO<>gene set instead of regions
+- check for recurring variants in top 10 that are not flagged as causal
+- add option to write only score/rank/description to speed up scoring
+- check if GZ imput is faster
+*/

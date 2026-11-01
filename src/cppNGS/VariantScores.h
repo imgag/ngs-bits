@@ -21,28 +21,26 @@ public:
 	struct Result
 	{
 		//Algorithm name
-		QString algorithm;
+		QByteArray algorithm;
 		//Scores per variant. Scores below 0 indicate that no score was calculated for the variant. -1 means that the variant did not pass the pre-filtering.
 		QList<double> scores;
 		//Score explanations per variant.
-		QList<QStringList> score_explanations;
+		QList<QByteArrayList> score_explanations;
 		//Ranks per variant. Ranks below 0 indicate that no rank was calculated for the variant.
 		QList<int> ranks;
-		//General warnings.
-		QStringList warnings;
 	};
 
 	//Default constructor
 	VariantScores();
 
 	//Returns the list of algorithms
-	static QStringList algorithms();
+	static QByteArrayList algorithms();
 
 	//Returns the algorithm description.
-	static QString description(QString algorithm);
+	static QByteArray description(QByteArray algorithm);
 
 	//Returns a variant scores. Throws an error if the input is invalid.
-	static Result score(QString algorithm, const VariantList& variants, const QHash<Phenotype, BedFile>& phenotype_rois, const Parameters& parameters);
+	static Result score(QByteArray algorithm, const VariantList& variants, const QHash<Phenotype, BedFile>& phenotype_rois, const Parameters& parameters);
 
 	//Annotates a variant list with the scoring result. Returns the number of variants that were scored.
 	static int annotate(VariantList& variants, const Result& result, bool add_explanations = false);
@@ -67,9 +65,9 @@ public:
 	double score(QByteArrayList& best_genes) const;
 
 	//Returns the explanations for the given gene. If an empty gene is given, only the gene-independent scores are returned.
-	QStringList explainations(const QByteArray& gene) const;
+	QByteArrayList explainations(const QByteArray& gene) const;
 	//Returns the explanations for the given genes.
-	QStringList explainations(const QByteArrayList& best_genes) const;
+	QByteArrayList explainations(const QByteArrayList& best_genes) const;
 };
 
 #endif // VARIANTSCORES_H
