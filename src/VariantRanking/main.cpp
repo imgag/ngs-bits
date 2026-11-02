@@ -20,7 +20,9 @@ public:
 		addInfile("in", "Input variant list in GSvar format.", false);
 		addString("hpo_ids", "Comma-separated list of HPO identifiers.", false);
 		addOutfile("out", "Output variant list in GSvar format with rank/score columns.", false);
-		addEnum("algorithm", "Algorithm used for ranking.", false, VariantScores::algorithms());
+		QStringList algoriths;
+		foreach(QByteArray algorithm,VariantScores::algorithms()) algoriths << algorithm;
+		addEnum("algorithm", "Algorithm used for ranking.", false, algoriths);
 		//optional
 		addFlag("add_explanation", "Add a third output column with an explanation how that score was calculated.");
 		addFlag("skip_ngsd_classifications", "Do not use variant classifications from NGSD.");
@@ -36,7 +38,7 @@ public:
 	{
 		//init
 		QStringList hpo_ids = getString("hpo_ids").split(",");
-		QString algorithm = getEnum("algorithm");
+		QByteArray algorithm = getEnum("algorithm").toUtf8();
 		bool add_explanation = getFlag("add_explanation");
 		NGSD db(getFlag("test"));
 		bool debug = getFlag("debug");
