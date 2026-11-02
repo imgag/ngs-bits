@@ -52,7 +52,7 @@ private:
 
 		//load variants
 		VariantList variants;
-		variants.load(TESTDATA("data_in/VariantScores_in1.GSvar")); //TODO update
+		variants.load(TESTDATA("data_in/VariantScores_in1.GSvar.gz"));
 
 		//rank
 		VariantScores::Parameters parameters;
