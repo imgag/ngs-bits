@@ -6757,7 +6757,7 @@ void MainWindow::variantRanking()
 	if (!LoginManager::active()) return;
 
 	//determine title
-	QString algorithm = sender()->objectName();
+	QByteArray algorithm = sender()->objectName().toUtf8();
 	QString title = "Ranking variants with algorithm '" + algorithm + "'";
 
 	//init
@@ -6812,12 +6812,6 @@ void MainWindow::variantRanking()
 		ui_.filters->setFilter("GSvar score/rank");
 
 		QApplication::restoreOverrideCursor();
-
-		//show warnings
-		if (result.warnings.count()>0)
-		{
-			QMessageBox::warning(this, title, "Please note the following warnings:\n" + result.warnings.join("\n"));
-		}
 	}
 	catch(Exception& e)
 	{
