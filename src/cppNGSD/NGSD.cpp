@@ -1150,18 +1150,25 @@ QString NGSD::processedSampleName(const QString& ps_id, bool throw_if_fails)
 
 QString NGSD::sampleId(const QString& filename, bool throw_if_fails)
 {
-	QStringList parts = QFileInfo(filename).baseName().append('_').split('_');
+	QString ps = filename.trimmed();
+
+	//filename > use basename
+	if (ps.contains("/") || ps.contains("\\") || ps.contains(".")) ps = QFileInfo(filename).baseName();
+
+	QStringList parts = ps.split('_');
+	if (parts.count()>1) parts.takeLast();
+	QString sample = parts.join('_');
 
 	//get sample ID
 	SqlQuery query = getQuery(); //use binding (user input)
 	query.prepare("SELECT id FROM sample WHERE name=:0");
-	query.bindValue(0, parts[0]);
+	query.bindValue(0, sample);
 	query.exec();
 	if (query.size()==0)
 	{
 		if(throw_if_fails)
 		{
-			THROW(DatabaseException, "Sample name '" + parts[0] + "' not found in NGSD!");
+			THROW(DatabaseException, "Sample name '" + sample + "' not found in NGSD!");
 		}
 		else
 		{
@@ -1174,10 +1181,14 @@ QString NGSD::sampleId(const QString& filename, bool throw_if_fails)
 
 QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 {
-	QStringList parts = QFileInfo(filename.trimmed()).baseName().append('_').split('_');
-	QString sample = parts[0];
-	QString ps_num = parts[1];
-	if (ps_num.size()>2) ps_num = ps_num.left(2);
+	QString ps = filename.trimmed();
+
+	//filename > use basename
+	if (ps.contains("/") || ps.contains("\\") || ps.contains(".")) ps = QFileInfo(filename).baseName();
+
+	QStringList parts = ps.split('_');
+	QString ps_num = parts.takeLast();
+	QString sample = parts.join('_');
 
 	//get sample ID
 	SqlQuery query = getQuery(); //use binding (user input)
