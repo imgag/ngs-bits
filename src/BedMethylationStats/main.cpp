@@ -174,7 +174,7 @@ public:
 			// extract methylation
 			for (const QByteArray& prefix : std::as_const(prefixes))
 			{
-				QByteArrayList lines = bed_files[prefix].getMatchingLines(chr, start, end);
+				QByteArrayList lines = bed_files[prefix].getMatchingLines(chr, start, end, true);
 				sample_stats.insert(computeImprintingStats(lines, prefix));
 			}
 

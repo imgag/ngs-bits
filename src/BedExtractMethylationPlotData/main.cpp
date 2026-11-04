@@ -212,8 +212,8 @@ public:
 			QByteArray identifier = line.at(idx_name).toUtf8();
 
 			// extract methylation (index)
-			double avg_hp1 = averageMethylation(bed_files["hp1"].getMatchingLines(chr, highlight_start, highlight_end));
-			double avg_hp2 = averageMethylation(bed_files["hp2"].getMatchingLines(chr, highlight_start, highlight_end));
+			double avg_hp1 = averageMethylation(bed_files["hp1"].getMatchingLines(chr, highlight_start, highlight_end, true));
+			double avg_hp2 = averageMethylation(bed_files["hp2"].getMatchingLines(chr, highlight_start, highlight_end, true));
 			bool switch_haplotypes = (!std::isnan(avg_hp2)) && (std::isnan(avg_hp1) || avg_hp1 < avg_hp2);
 
 			for (const QByteArray& prefix : std::as_const(prefixes))
