@@ -218,7 +218,7 @@ public:
 
 			for (const QByteArray& prefix : std::as_const(prefixes))
 			{
-				QByteArrayList lines = bed_files[prefix].getMatchingLines(chr, gene_start, gene_end);
+				QByteArrayList lines = bed_files[prefix].getMatchingLines(chr, gene_start, gene_end, true);
 				for (const QByteArray& line : std::as_const(lines))
 				{
 					QByteArrayList parts = line.split('\t');
@@ -264,8 +264,8 @@ public:
 					bool switch_haplotypes = false;
 					if (correctly_phased)
 					{
-						double avg_hp1 = averageMethylation(cohort_bed_files[s]["hp1"].getMatchingLines(chr, highlight_start, highlight_end));
-						double avg_hp2 = averageMethylation(cohort_bed_files[s]["hp2"].getMatchingLines(chr, highlight_start, highlight_end));
+						double avg_hp1 = averageMethylation(cohort_bed_files[s]["hp1"].getMatchingLines(chr, highlight_start, highlight_end, true));
+						double avg_hp2 = averageMethylation(cohort_bed_files[s]["hp2"].getMatchingLines(chr, highlight_start, highlight_end, true));
 						switch_haplotypes = (!std::isnan(avg_hp2)) && (std::isnan(avg_hp1) || avg_hp1 < avg_hp2);
 					}
 
@@ -273,7 +273,7 @@ public:
 					for (const QByteArray& prefix : std::as_const(prefixes))
 					{
 						if (!correctly_phased && (prefix != "all")) continue;
-						QByteArrayList lines = cohort_bed_files[s][prefix].getMatchingLines(chr, gene_start, gene_end);
+						QByteArrayList lines = cohort_bed_files[s][prefix].getMatchingLines(chr, gene_start, gene_end, true);
 						for (const QByteArray& line : std::as_const(lines))
 						{
 							QByteArrayList parts = line.split('\t');

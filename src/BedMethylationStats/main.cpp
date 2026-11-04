@@ -207,7 +207,7 @@ public:
 					for (const QByteArray& prefix : std::as_const(prefixes))
 					{
 						//extract methylation
-						QByteArrayList lines = cohort_bed_files[s][prefix].getMatchingLines(chr, start, end);
+						QByteArrayList lines = cohort_bed_files[s][prefix].getMatchingLines(chr, start, end, true);
 						// calaculate sample statistics
 						cohort_sample_stats.insert(computeImprintingStats(lines, prefix));
 					}
