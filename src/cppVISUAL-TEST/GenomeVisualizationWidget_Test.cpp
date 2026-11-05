@@ -1116,7 +1116,7 @@ private slots:
 			"unassigned\t0\tchr22\t10\t60\t10M\t=\t10\t0\tAAAAAAAAAA\tIIIIIIIIII\n"
 			"phase2\t0\tchr22\t10\t60\t10M\t=\t10\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:2\n"
 			"phase1\t0\tchr22\t10\t60\t10M\t=\t10\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:1\n"
-			"unsupported\t0\tchr22\t40\t60\t10M\t=\t40\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:3\n");
+			"phase3\t0\tchr22\t40\t60\t10M\t=\t40\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:3\n");
 		{
 			BamReader reader(data_.filePath("phase.sam"));
 			BamWriter writer(data_.filePath("phase.bam"));
@@ -1151,12 +1151,12 @@ private slots:
 			track->parameters().setString("group by", "phase");
 			checkRead(1, 15, "phase1");
 			checkRead(4, 15, "phase2");
-			checkRead(7, 15, "unassigned");
-			checkRead(7, 45, "unsupported");
+			checkRead(7, 45, "phase3");
+			checkRead(10, 15, "unassigned");
 			QImage grouped(track->size(), QImage::Format_ARGB32);
 			track->render(&grouped);
-			for (int y : {0, 42, 84}) QCOMPARE(grouped.pixelColor(x0 + 1, y), QColor(Qt::gray)); // Label boxes.
-			for (int y : {35, 77})
+			for (int y : {0, 42, 84, 126}) QCOMPARE(grouped.pixelColor(x0 + 1, y), QColor(Qt::gray)); // Label boxes.
+			for (int y : {35, 77, 119})
 			{
 				int gray = 0, white = 0;
 				for (int x = x0 + 90; x < x0 + 310; ++x)
@@ -1200,6 +1200,75 @@ private slots:
 		checkRead(1, 15, "assigned-mate");
 		checkRead(1, 35, "assigned-mate");
 		checkRead(4, 15, "phase2");
+		checkRead(7, 15, "conflict");
+		checkRead(7, 35, "conflict");
+	}
+
+	void bamNamedPhaseGroupingAndHitTesting()
+	{
+		writeFile("named-phase.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n"
+			"unassigned\t0\tchr22\t10\t60\t10M\t*\t0\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:Z:Unassigned\n"
+			"hap2\t0\tchr22\t10\t60\t10M\t*\t0\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:Z:AGAP9_hap2\n"
+			"hap1\t0\tchr22\t10\t60\t10M\t*\t0\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:Z:AGAP9_hap1\n"
+			"hap3\t0\tchr22\t10\t60\t10M\t*\t0\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:Z:AGAP9_hap3\n"
+			"missing\t0\tchr22\t40\t60\t10M\t*\t0\t0\tAAAAAAAAAA\tIIIIIIIIII\n");
+		{
+			BamReader reader(data_.filePath("named-phase.sam"));
+			BamWriter writer(data_.filePath("named-phase.bam"));
+			writer.writeHeader(reader);
+			BamAlignment al;
+			while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+		}
+		QCOMPARE(sam_index_build(data_.filePath("named-phase.bam").toUtf8().constData(), 0), 0);
+		QScopedPointer<BamAlignmentTrack> track(BamAlignmentTrack::createTrack(view_.data(), data_.filePath("named-phase.bam"), ""));
+		QVERIFY(track);
+		track->parameters().setString("group by", "phase");
+		track->parameters().setString("color by", "none");
+		track->resize(SharedData::settings().label_width + 4 + 320, 240);
+		track->show();
+		const int x0 = SharedData::settings().label_width + 2;
+		auto checkRead = [&](int row, int pos, const QString& name)
+		{
+			QTest::mouseClick(track.data(), Qt::LeftButton, Qt::NoModifier, QPoint(x0 + (pos - 1) * 4 + 2, row * 14 + 6));
+			auto* popup = track->findChild<QDialog*>();
+			QVERIFY(popup);
+			QVERIFY(popup->findChild<QLabel*>()->text().contains("Name: " + name + "<br/>"));
+			delete popup;
+		};
+		for (bool pairs : {false, true})
+		{
+			track->parameters().setBool("view as pairs", pairs);
+			checkRead(1, 15, "hap1");
+			checkRead(4, 15, "hap2");
+			checkRead(7, 15, "hap3");
+			checkRead(10, 15, "unassigned");
+			checkRead(10, 45, "missing");
+		}
+
+		//Named tags follow the same mate-inheritance and conflict rules as integer tags.
+		writeFile("named-phase-pairs.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n"
+			"inherited\t65\tchr22\t10\t60\t10M\t=\t30\t30\tAAAAAAAAAA\tIIIIIIIIII\tHP:Z:Unassigned\n"
+			"conflict\t65\tchr22\t10\t60\t10M\t=\t30\t30\tAAAAAAAAAA\tIIIIIIIIII\tHP:Z:AGAP9_hap1\n"
+			"hap2\t0\tchr22\t10\t60\t10M\t*\t0\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:Z:AGAP9_hap2\n"
+			"inherited\t129\tchr22\t30\t60\t10M\t=\t10\t-30\tAAAAAAAAAA\tIIIIIIIIII\tHP:Z:AGAP9_hap1\n"
+			"conflict\t129\tchr22\t30\t60\t10M\t=\t10\t-30\tAAAAAAAAAA\tIIIIIIIIII\tHP:Z:AGAP9_hap2\n");
+		{
+			BamReader reader(data_.filePath("named-phase-pairs.sam"));
+			BamWriter writer(data_.filePath("named-phase-pairs.bam"));
+			writer.writeHeader(reader);
+			BamAlignment al;
+			while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+		}
+		QCOMPARE(sam_index_build(data_.filePath("named-phase-pairs.bam").toUtf8().constData(), 0), 0);
+		track.reset(BamAlignmentTrack::createTrack(view_.data(), data_.filePath("named-phase-pairs.bam"), ""));
+		QVERIFY(track);
+		track->parameters().setString("group by", "phase");
+		track->parameters().setBool("view as pairs", true);
+		track->resize(SharedData::settings().label_width + 4 + 320, 240);
+		track->show();
+		checkRead(1, 15, "inherited");
+		checkRead(1, 35, "inherited");
+		checkRead(4, 15, "hap2");
 		checkRead(7, 15, "conflict");
 		checkRead(7, 35, "conflict");
 	}
