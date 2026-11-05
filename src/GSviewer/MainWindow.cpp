@@ -223,19 +223,19 @@ void MainWindow::executeApiCommand(ApiCommand cmd)
 		{
 			handleScreenshot(cmd.arguments);
 		}
-		else if (cmd.verb == "collapse" || cmd.verb == "genome" || cmd.verb == "setSleepInterval")
+		else if (cmd.verb == "collapse" || cmd.verb == "genome" || cmd.verb == "setSleepInterval" || cmd.verb == "maxPanelHeight")
 		{
 			//nothing to do
 		}
 		else
 		{
-			api_.dispatchFailure(cmd, "Unknown command: " + cmd.verb);
+			api_.dispatchFailure(cmd, "Error: Unknown command: " + cmd.verb);
 			return;
 		}
 	}
 	catch (Exception e)
 	{
-		QString msg = QString("ERR: %1").arg(e.message());
+		QString msg = QString("Error: %1").arg(e.message());
 		qDebug() << "An error occurred while processing '" << cmd.verb << "' command: " << e.message();
 		api_.dispatchFailure(cmd, msg);
 		return;
