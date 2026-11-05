@@ -114,7 +114,8 @@ QSharedPointer<SegFile> FileLoader::loadSegFile(QString file_path)
 			continue;
 		}
 		bool ok_start = false, ok_end = false, ok_value = false;
-		const int start = columns[2].toInt(&ok_start);
+		int start = columns[2].toInt(&ok_start);
+		if (ok_start && start == 0) start = 1;
 		const int end = columns[3].toInt(&ok_end);
 		const double value = columns[5].toDouble(&ok_value);
 		const Chromosome chr(columns[1]);
