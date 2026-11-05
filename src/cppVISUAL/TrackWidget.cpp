@@ -63,14 +63,14 @@ void TrackWidget::populateContextMenu(QMenu& context_menu, const QPoint&)
 	QAction* remove = menu.addAction("Remove Track");
 	connect(remove, &QAction::triggered, this, &TrackWidget::trackDeleted);
 
-	QAction* rename = menu.addAction("Rename Track...");
+	QAction* rename = menu.addAction("Rename Track");
 	connect(rename, &QAction::triggered,this, &TrackWidget::handleTrackRename);
 }
 
 void TrackWidget::handleTrackRename()
 {
 	bool ok;
-	QString new_name = QInputDialog::getText(this, "Enter Track Name", "", QLineEdit::Normal, display_name_, &ok);
+	QString new_name = QInputDialog::getText(this, "Rename track", "name:", QLineEdit::Normal, display_name_, &ok);
 
 	if (ok && !new_name.isEmpty() && new_name != display_name_)
 	{
@@ -88,7 +88,7 @@ bool TrackWidget::event(QEvent* event)
 		const QRect header_rect(0, 0, SharedData::settings().label_width, height());
 		if (header_rect.contains(help_event->pos()))
 		{
-			QToolTip::showText(help_event->globalPos(), display_name_, this, header_rect);
+			QToolTip::showText(help_event->globalPos(), Helper::removeUrlArguments(file_path_), this, header_rect);
 		}
 		else
 		{
@@ -164,7 +164,6 @@ void TrackWidget::mouseReleaseEvent(QMouseEvent* event)
 
 void TrackWidget::drawLabel(QPainter& painter)
 {
-
 	int label_width = SharedData::settings().label_width;
 	painter.save();
 	painter.setPen(Qt::black);
@@ -255,7 +254,7 @@ void TrackWidget::showInfoPopup(QPointF global_pos, QString info)
 	popup->show();
 }
 
-QString TrackWidget::getDisplayNameFromFilePath(QString file_path)
+QString TrackWidget::getDisplayNameFromFilePath(QString file_path, bool remove_extension)
 {
 	QString output;
 
@@ -263,16 +262,19 @@ QString TrackWidget::getDisplayNameFromFilePath(QString file_path)
 
 	if (Helper::isHttpUrl(file_path))
 	{
-		QString base_url = file_path.split('?')[0]; //remove arguments like tokens
-		if (base_url.contains("/"))
-		{
-			output = base_url.split("/").last();
-		}
-		output = base_url;
+		QString base_url = Helper::removeUrlArguments(file_path);
+		output = base_url.split("/").last();
 	}
 	else //local file
 	{
 		output = QFileInfo(file_path).fileName();
+	}
+
+	if (remove_extension)
+	{
+		QStringList parts = output.split('.');
+		if (parts.count()>1) parts.takeLast();
+		output = parts.join('.');
 	}
 
 	return output.isEmpty() ? file_path : output;

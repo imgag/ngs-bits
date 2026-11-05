@@ -69,6 +69,7 @@ BamAlignmentTrack* BamAlignmentTrack::createTrack(QWidget* parent, QString file_
 	QSharedPointer<BamTrackData> data = BamTrackDataManager::getOrCreate(GenomeVisualizationWidget::fromWidget(parent), file_path);
 	if (data)
 	{
+		if (name.isEmpty()) name = getDisplayNameFromFilePath(file_path, true) + " alignments";
 		auto track = new BamAlignmentTrack(parent, file_path, name);
 		track->setTrackData(data);
 		return track;

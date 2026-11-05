@@ -61,7 +61,7 @@ public:
 	static TrackWidget* load(const LoadContext cx, QWidget* parent);
 
 	//determines a display name from file path or URL
-	static QString getDisplayNameFromFilePath(QString file_path);
+	static QString getDisplayNameFromFilePath(QString file_path, bool remove_extension=false);
 
 signals:
 	void trackDeleted();

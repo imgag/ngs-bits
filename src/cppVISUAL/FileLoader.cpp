@@ -20,12 +20,12 @@ QVector<TrackWidget*> FileLoader::loadTracks(QString file_path, QWidget* parent)
 	QVector<TrackWidget*> output;
 	if (filename.endsWith(".bedpe", Qt::CaseInsensitive) || filename.endsWith(".bedpe.gz", Qt::CaseInsensitive))
 	{
-		output << SvTrack::createTrack(parent, file_path, filename);
+		output << SvTrack::createTrack(parent, file_path);
 		return output;
 	}
 	if (filename.endsWith(".vcf", Qt::CaseInsensitive) || filename.endsWith(".vcf.gz", Qt::CaseInsensitive))
 	{
-		output << VcfTrack::createTrack(parent, file_path, filename);
+		output << VcfTrack::createTrack(parent, file_path);
 		return output;
 	}
 	if (filename.endsWith(".seg", Qt::CaseInsensitive))
@@ -35,18 +35,18 @@ QVector<TrackWidget*> FileLoader::loadTracks(QString file_path, QWidget* parent)
 	}
 	if (filename.endsWith(".bed", Qt::CaseInsensitive) || filename.endsWith(".bed.gz", Qt::CaseInsensitive))
 	{
-		output << BedTrack::createTrack(parent, file_path, filename);
+		output << BedTrack::createTrack(parent, file_path);
 		return output;
 	}
 	if (filename.endsWith(".bam") || filename.endsWith(".cram"))
 	{
-		output << BamCoverageTrack::createTrack(parent, file_path, filename + " coverage");
-		output << BamAlignmentTrack::createTrack(parent, file_path, filename);
+		output << BamCoverageTrack::createTrack(parent, file_path);
+		output << BamAlignmentTrack::createTrack(parent, file_path);
 		return output;
 	}
 	if (filename.endsWith(".igv"))
 	{
-		output << IgvTrack::createTrack(parent, file_path, filename);
+		output << IgvTrack::createTrack(parent, file_path);
 		return output;
 	}
 

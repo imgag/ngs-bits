@@ -93,11 +93,10 @@ IgvTrack* IgvTrack::createTrack(QWidget* parent, QString file_path, QString name
 	QSharedPointer<IgvFile> igv_file = FileLoader::loadIgvFile(file_path);
 	if (!igv_file) return nullptr;
 
-	QString display_name = name;
-	if (display_name.isEmpty()) display_name = getTrackNameFromIgvFile(igv_file);
-	if (display_name.isEmpty()) display_name = getDisplayNameFromFilePath(file_path);
+	if (name.isEmpty()) name = getTrackNameFromIgvFile(igv_file);
+	if (name.isEmpty()) name = getDisplayNameFromFilePath(file_path);
 
-	IgvTrack* track = new IgvTrack(parent, file_path, display_name, igv_file);
+	IgvTrack* track = new IgvTrack(parent, file_path, name, igv_file);
 	track->setIgvFile(igv_file);
 	return track;
 }

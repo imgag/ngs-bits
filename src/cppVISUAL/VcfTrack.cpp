@@ -579,5 +579,6 @@ bool VcfTrack::event(QEvent* event)
 
 VcfTrack* VcfTrack::createTrack(QWidget* parent, QString file_path, QString name)
 {
+	if (name.isEmpty()) name = getDisplayNameFromFilePath(file_path);
 	return new VcfTrack(parent, file_path, name);
 }

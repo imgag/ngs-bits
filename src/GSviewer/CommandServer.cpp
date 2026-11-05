@@ -1,32 +1,42 @@
 #include "CommandServer.h"
-
-#include <QFile>
-#include <QLocalServer>
-#include <QLocalSocket>
-#include <QMessageBox>
+#include "Exceptions.h"
 #include <QRegularExpression>
 #include <QUrlQuery>
-#include <Exceptions.h>
 #include <deque>
+#include <QTcpSocket>
 
-using namespace Qt::StringLiterals;
-
-CommandServer::CommandServer(QString socket_path, QObject* parent)
+CommandServer::CommandServer(QObject* parent)
 	: QObject{parent}
+	, server_(this)
 {
-	sock_ = CommandListener::fromString(socket_path, this);
-
-	connect(sock_.get(), &CommandListener::newConnection, this, &CommandServer::newConnection);
+	connect(&server_, &QTcpServer::newConnection, this, [this]
+			{
+				while (auto* s = server_.nextPendingConnection())
+				{
+					connect(s, &QTcpSocket::disconnected, this, [s]
+							{
+								s->deleteLater();
+							});
+					emit newConnection(s);
+				}
+			});
 }
 
-void CommandServer::bind()
+void CommandServer::open(int port)
 {
-	sock_->bind();
+	bool ok = server_.listen(QHostAddress::LocalHost, port);
+	if (!ok) THROW(ArgumentException, "Could not open port " + QString::number(port));
 }
 
-void CommandServer::terminate()
+void CommandServer::close()
 {
-	sock_->terminate();
+	server_.close();
+}
+
+int CommandServer::port() const
+{
+	if (!server_.isListening()) return -1;
+	return server_.serverPort();
 }
 
 void CommandServer::newConnection(QIODevice* socket)
@@ -37,19 +47,17 @@ void CommandServer::newConnection(QIODevice* socket)
 	{
 		while (socket->canReadLine())
 		{
-			auto line = socket->readLine();
+			QByteArray line = socket->readLine();
 
 			if (!line.isValidUtf8())
 			{
-				this->dispatchFailure(ApiCommand{QDateTime::currentDateTime(), cmd_id_++, "", splitQuoted("")}, "Invalid UTF-8 sequence received.");
+				this->dispatchFailure(ApiCommand{QDateTime::currentDateTime(), cmd_id_++, "", QStringList()}, "Invalid UTF-8 sequence received.");
 				pending->push_back(cmd_id_);
 				continue;
 			}
 
-			ApiCommand cmd = parseCommand(QString::fromUtf8(line));
-
+			ApiCommand cmd = parseCommand(line);
 			pending->push_back(cmd.id);
-
 			if (cmd.verb == "SetAccessToken")
 			{
 				handleAccessToken(cmd);
@@ -84,7 +92,7 @@ void CommandServer::handleAccessToken(ApiCommand cmd)
 
 	QUrl url = QUrl::fromUserInput(cmd.arguments[1].sliced(1, cmd.arguments[1].length() - 2).trimmed());
 
-	if (url.scheme().isEmpty()) url.setScheme("http");
+	if (url.scheme().isEmpty()) url.setScheme("https");
 
 	access_tokens_.insert(url.host(), cmd.arguments[0].trimmed());
 
@@ -93,36 +101,14 @@ void CommandServer::handleAccessToken(ApiCommand cmd)
 
 ApiCommand CommandServer::parseCommand(QString cmd)
 {
-	QRegularExpression split("\\s+");
+	//split command and args
+	cmd = cmd.simplified();
+	int i_sep = cmd.indexOf(' ');
+	if (i_sep <= -1) i_sep = cmd.length();
+	QString verb = cmd.sliced(0, i_sep).trimmed();
+	QString arguments = cmd.sliced(i_sep).trimmed();
 
-	auto verb_start = cmd.indexOf(split);
-
-	if (verb_start <= -1)
-	{
-		verb_start = cmd.length();
-	}
-
-	auto verb = cmd.sliced(0, verb_start).trimmed();
-	auto arguments = cmd.sliced(verb_start).trimmed();
-
-	if (verb == "debug")
-	{
-		QElapsedTimer duration;
-		duration.start();
-
-		qDebug() << "Received DEBUG command";
-
-		auto cmd = parseCommand(arguments);
-
-		return cmd;
-	}
-
-	return ApiCommand{
-		QDateTime::currentDateTime(),
-		cmd_id_++,
-		verb,
-		splitQuoted(arguments),
-	};
+	return ApiCommand{ QDateTime::currentDateTime(), cmd_id_++, verb, splitQuoted(arguments) };
 }
 
 void CommandServer::dispatchResponse(ApiCommand cmd)
@@ -172,7 +158,7 @@ QUrl CommandServer::parseUrl(QString str)
 	return url;
 }
 
-QStringList CommandServer::splitQuoted(QString str)
+QStringList CommandServer::splitQuoted(QString str) //TODO Marc easier with Qt?
 {
 	QStringList split;
 

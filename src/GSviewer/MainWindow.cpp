@@ -20,27 +20,25 @@
 #include "SharedData.h"
 #include "ParameterEditor.h"
 #include "Settings.h"
-#include "TranscriptCache.h"
 #include <TrackGroupManager.h>
+#include "TrackWidget.h"
+#include "TranscriptCache.h"
 
-MainWindow::MainWindow(QString bind, QWidget* parent)
+MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent)
 	, ui_()
 	, init_timer_(this, true)
-	, api_(bind, this)
+	, api_(this)
 {
 	ui_.setupUi(this);
 
 	// signals and slots
 	connect(ui_.actionLoadFile, &QAction::triggered, ui_.gvw_l, &GenomeVisualizationWidget::openFileDialog);
 	connect(ui_.actionLoadURL, &QAction::triggered, ui_.gvw_l, &GenomeVisualizationWidget::openUrlDialog);
-
 	connect(ui_.actionReloadTracks, &QAction::triggered, ui_.gvw_l, &GenomeVisualizationWidget::reloadTracks);
 	connect(ui_.actionReloadTracks, &QAction::triggered, ui_.gvw_r, &GenomeVisualizationWidget::reloadTracks);
-
 	connect(ui_.actionClearSession, &QAction::triggered, ui_.gvw_l, &GenomeVisualizationWidget::clearSession);
 	connect(ui_.actionClearSession, &QAction::triggered, this, &MainWindow::hideSecondarySplit);
-
 	connect(ui_.actionStore_session, &QAction::triggered, ui_.gvw_l, &GenomeVisualizationWidget::saveSession);
 	connect(ui_.actionLoadSession, &QAction::triggered, ui_.gvw_l, &GenomeVisualizationWidget::loadSession);
 	connect(ui_.actionOpen_documentation, &QAction::triggered, this, &MainWindow::openDocumentation);
@@ -48,7 +46,7 @@ MainWindow::MainWindow(QString bind, QWidget* parent)
 	connect(ui_.actionAbout, &QAction::triggered, this, &MainWindow::showAboutDialog);
 	connect(ui_.actionExit, &QAction::triggered, this, &MainWindow::close);
 	connect(ui_.actionAddNRegions, &QAction::triggered, this, &MainWindow::addNRegions);
-	connect(ui_.actionShowNamedColors, &QAction::triggered, this, &MainWindow::showNamedColors);
+	connect(&api_, &CommandServer::commandReceived, this, &MainWindow::executeApiCommand);
 
 	ui_.gvw_r->hide();
 
@@ -62,19 +60,16 @@ MainWindow::MainWindow(QString bind, QWidget* parent)
 		}
 		if (!qputenv("CURL_CA_BUNDLE", curl_ca_bundle))
 		{
-			qDebug() << "Could not set CURL_CA_BUNDLE variable, access to BAM/CRAM files over "
-						"HTTPS may not be possible";
+			qDebug() << "Could not set CURL_CA_BUNDLE variable, access to BAM/CRAM files over HTTPS may not be possible";
 		}
 	}
+}
 
-	// API
+void MainWindow::openPort(int port)
+{
+	if (port<1 || port>65535) THROW(ArgumentException, "Invalid port provided: " + QString::number(port));
 
-	if (!bind.isEmpty())
-	{
-		connect(&api_, &CommandServer::commandReceived, this, &MainWindow::executeApiCommand);
-		ui_.actionEnable_Remote_Application_Control->setChecked(true);
-		api_.bind();
-	}
+	api_.open(port);
 }
 
 void MainWindow::delayedInitialization()
@@ -96,13 +91,6 @@ void MainWindow::delayedInitialization()
 			SharedData::setTranscripts(TranscriptCache::load(gff_file));
 		}
 		qDebug() << "Parsing transcripts took: " << Helper::elapsedTime(timer);
-
-		bool enable_api = Settings::boolean("enable_remote_application_control", true);
-
-		if (enable_api)
-		{
-			ui_.actionEnable_Remote_Application_Control->setChecked(true);
-		}
 	}
 	catch (Exception e)
 	{
@@ -177,35 +165,6 @@ void MainWindow::addNRegions()
 	}
 }
 
-void MainWindow::showNamedColors()
-{
-	QDialog dialog(this);
-	dialog.setWindowTitle("Named colors");
-	dialog.resize(380, 600);
-	auto* layout = new QVBoxLayout(&dialog);
-	const QStringList names = ColorNames::names();
-	auto* table = new QTableWidget(names.size(), 2, &dialog);
-	table->setHorizontalHeaderLabels({"Name", "Color"});
-	table->verticalHeader()->hide();
-	table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-	table->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	for (int row = 0; row < names.size(); ++row)
-	{
-		const QColor color = ColorNames::color(names[row]);
-		table->setItem(row, 0, new QTableWidgetItem(names[row]));
-		auto* swatch = new QTableWidgetItem(color.name());
-		swatch->setBackground(color);
-		swatch->setForeground(color.lightness() < 128 ? Qt::white : Qt::black);
-		swatch->setTextAlignment(Qt::AlignCenter);
-		table->setItem(row, 1, swatch);
-	}
-	layout->addWidget(table);
-	auto* buttons = new QDialogButtonBox(QDialogButtonBox::Close, &dialog);
-	connect(buttons, &QDialogButtonBox::rejected, &dialog, &QDialog::reject);
-	layout->addWidget(buttons);
-	dialog.exec();
-}
-
 void MainWindow::showSettings()
 {
 	QDialog dialog(this);
@@ -225,20 +184,6 @@ void MainWindow::openDocumentation()
 	QDesktopServices::openUrl(QUrl("https://github.com/imgag/ngs-bits/blob/master/doc/GSviewer/index.md"));
 }
 
-void MainWindow::on_actionEnable_Remote_Application_Control_changed()
-{
-	bool should_enable = ui_.actionEnable_Remote_Application_Control->isChecked();
-
-	if (should_enable)
-	{
-		api_.bind();
-	}
-	else
-	{
-		api_.terminate();
-	}
-}
-
 void MainWindow::executeApiCommand(ApiCommand cmd)
 {
 	try
@@ -246,6 +191,9 @@ void MainWindow::executeApiCommand(ApiCommand cmd)
 		if (cmd.verb == "new")
 		{
 			ui_.gvw_l->clearSession();
+
+			ui_.gvw_r->clearSession();
+			ui_.gvw_r->hide();
 		}
 		else if (cmd.verb == "echo")
 		{
@@ -259,13 +207,9 @@ void MainWindow::executeApiCommand(ApiCommand cmd)
 		{
 			handleLoad(cmd.arguments);
 		}
-		else if (cmd.verb == "setSleepInterval")
-		{
-			handleSleep(/* cmd.arguments */);
-		}
 		else if (cmd.verb == "viewaspairs")
 		{
-			handleViewAsPairs(/* cmd.arguments */);
+			handleViewAsPairs();
 		}
 		else if (cmd.verb == "colorBy")
 		{
@@ -279,70 +223,46 @@ void MainWindow::executeApiCommand(ApiCommand cmd)
 		{
 			handleScreenshot(cmd.arguments);
 		}
-		else if (cmd.verb == "collapse" || cmd.verb == "genome")
+		else if (cmd.verb == "collapse" || cmd.verb == "genome" || cmd.verb == "setSleepInterval")
 		{
-			stub();
+			//nothing to do
 		}
 		else
 		{
-			QString msg = QString("UNKOWN COMMAND: %1").arg(cmd.verb); // Absichtlicher Tippfehler. Das kommmt aus IGV so
-			qDebug() << "Unrecognised verb" << cmd.verb;
-
-			api_.dispatchFailure(cmd, msg);
+			api_.dispatchFailure(cmd, "Unknown command: " + cmd.verb);
 			return;
 		}
 	}
 	catch (Exception e)
 	{
 		QString msg = QString("ERR: %1").arg(e.message());
-		qDebug() << "An error occurred" << cmd.verb;
-
+		qDebug() << "An error occurred while processing '" << cmd.verb << "' command: " << e.message();
 		api_.dispatchFailure(cmd, msg);
-
-		err("An invalid command was received", e.message());
-
 		return;
 	}
 
 	api_.dispatchResponse(cmd);
 }
 
-void MainWindow::err(QString header, QString text)
-{
-	auto* box = new QMessageBox(QMessageBox::Warning, header, text, QMessageBox::Ok, this);
-	box->setAttribute(Qt::WA_DeleteOnClose);
-	box->open(); // window-modal, returns immediately
-}
-
-void MainWindow::stub()
-{
-}
-
-static const auto INVALID_LOCUS_ERROR_MESSAGE =  "The region specified is not valid and can therefore not be used as a "
-												"destination. If you meant to jump to a particular coordinate, be sure to "
-												"include the chromosome and start/end positions in the format (chrN:start-end), "
-												"or just the chromonose name: (chrN).";
-
 void MainWindow::handleGoto(QStringList args)
 {
-	if (args.length() < 1 || args.length() > 2)
-	{
-		THROW(Exception, "Expected exactly 1-2 arguments. Got " + QString::number(args.length()));
-	}
+	if (args.length() < 1 || args.length() > 2) THROW(Exception, "Goto command expectes 1 or 2 arguments. Got " + QString::number(args.length()));
 
 	BedLine region = BedLine::fromString(args[0]);
-	if (!region.isValid()) THROW(Exception, INVALID_LOCUS_ERROR_MESSAGE);
-
+	if (!region.isValid()) THROW(Exception, "Invalid chromosomal region provided: " + args[0]);
 	ui_.gvw_l->setRegion(region.chr(), region.start(), region.end());
 
-	if (args.length() != 2) return ui_.gvw_r->hide();
-
-	ui_.gvw_r->show();
-
-	region = BedLine::fromString(args[1]);
-	if (!region.isValid()) THROW(Exception, INVALID_LOCUS_ERROR_MESSAGE);
-
-	ui_.gvw_r->setRegion(region.chr(), region.start(), region.end());
+	if (args.length() != 2)
+	{
+		ui_.gvw_r->hide();
+	}
+	else
+	{
+		ui_.gvw_r->show();
+		region = BedLine::fromString(args[1]);
+		if (!region.isValid()) THROW(Exception, "Invalid chromosomal region provided: " + args[1]);
+		ui_.gvw_r->setRegion(region.chr(), region.start(), region.end());
+	}
 }
 
 void MainWindow::handleLoad(QStringList args)
@@ -371,12 +291,7 @@ void MainWindow::handleLoad(QStringList args)
 	}
 }
 
-void MainWindow::handleSleep(/*QStringList args*/)
-{
-	return; // TODO: Consider whether implementation is truly necessary
-}
-
-void MainWindow::handleViewAsPairs(/*QStringList args*/)
+void MainWindow::handleViewAsPairs()
 {
 	for (auto track : ui_.gvw_l->bamTracks())
 	{
@@ -396,10 +311,7 @@ static const QHash<QString, QString> RENAME_COLORBY = {{"UNEXPECTED_PAIR", "inse
 
 void MainWindow::handleColorBy(QStringList args)
 {
-	if (args.length() < 1 || args.length() > 2)
-	{
-		THROW(Exception, "Expected exactly 1-2 arguments. Got " + QString::number(args.length()));
-	}
+	if (args.length()!=1) THROW(Exception, "ColorBy command expects 1 argument. Got " + QString::number(args.length()));
 
 	auto rename = RENAME_COLORBY.contains(args[0]) ? RENAME_COLORBY.value(args[0]) : args[0];
 
@@ -417,70 +329,40 @@ void MainWindow::handleColorBy(QStringList args)
 	}
 }
 
-static const QHash<QString, QString> RENAME_GROUPBY = {{}};
-
 void MainWindow::handleGroupBy(QStringList args)
 {
-	if (args.length() < 1 || args.length() > 2)
-	{
-		THROW(Exception, "Expected exactly 1-2 arguments. Got " + QString::number(args.length()));
-	}
-
-	auto rename = RENAME_GROUPBY.contains(args[0]) ? RENAME_GROUPBY.value(args[0]) : args[0];
+	if (args.length()!=1) THROW(Exception, "GroupBy command expects 1 argument. Got " + QString::number(args.length()));
 
 	for (auto track : ui_.gvw_l->bamTracks())
 	{
-		track->parameters().setString("group by", rename.toUtf8());
+		track->parameters().setString("group by", args[0].toUtf8());
 	}
 
 	if (!ui_.gvw_r->isHidden())
 	{
 		for (auto track : ui_.gvw_r->bamTracks())
 		{
-			track->parameters().setString("group by", rename.toUtf8());
+			track->parameters().setString("group by", args[0].toUtf8());
 		}
 	}
 }
 
 void MainWindow::handleScreenshot(QStringList args)
 {
-	if (args.length() > 1)
-	{
-		THROW(Exception, "Expected exactly 0 or 1 arguments. Got " + QString::number(args.length()));
-	}
+	if (args.length()!=1) THROW(Exception, "Snapshot command expects 1 argument. Got " + QString::number(args.length()));
 
 	// TODO: refactor to capture both panels if open.
 
 	auto track = findChild<TrackGroupManager*>();
-
 	track->ensurePolished();
-
 	if (track->layout()) track->layout()->activate();
 	if (track->size().isEmpty()) track->resize(track->sizeHint());
 
-	qreal dpr = 1.0;
-
-	QImage img(track->size() * dpr, QImage::Format_ARGB32_Premultiplied);
-	img.setDevicePixelRatio(dpr);
+	QImage img(track->size(), QImage::Format_ARGB32_Premultiplied);
+	img.setDevicePixelRatio(1.0);
 	img.fill(Qt::transparent);
-
 	track->render(&img, QPoint(), QRegion(), QWidget::DrawWindowBackground | QWidget::DrawChildren);
-
-	qDebug() << "Capturing screenshot" << ui_.gvw_l->region().toString(true);
-
-	if (args.length() > 0 && !args[0].isEmpty()) img.save(args[0]);
-
-	else
-	{
-		const QDir dir(QDir(QStandardPaths::writableLocation(QStandardPaths::PicturesLocation)).filePath("GSviewer Screenshots"));
-
-		if (!dir.mkpath(".")) THROW(ProgrammingException, "Unable to create intermediate directory for screenshots");
-
-		const QString destination = dir.filePath(
-			ui_.gvw_l->region().toString(true).replace(':', '-') + ".png");
-
-		img.save(destination);
-	}
+	img.save(args[0]);
 }
 
 void MainWindow::hideSecondarySplit()
@@ -503,7 +385,12 @@ void MainWindow::showAboutDialog()
 {
 	AboutDialog dlg(this);
 	dlg.setIcon(QPixmap(":/Icons/Icon.png"));
-	dlg.setDescription("A free viewer for sequencing data.<br>Check the <a href='https://github.com/imgag/ngs-bits/blob/master/doc/GSviewer/index.md'>GitHub page</a> for details.");
+	dlg.setDescription("A free viewer for sequencing data.<br>It it similar to IGV, but specifically designed for visusalizing human data.<br>Check the <a href='https://github.com/imgag/ngs-bits/blob/master/doc/GSviewer/index.md'>GitHub page</a> for details.");
 	dlg.addLibVersionLine("htslib version: " + QString(hts_version()));
+
+	//API status
+	int port = api_.port();
+	dlg.setAddInfo(port==-1 ? "API enabled: no" : "API enabled: yes<br>API port: " + QString::number(port));
+
 	dlg.exec();
 }

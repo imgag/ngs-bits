@@ -54,6 +54,7 @@ BamCoverageTrack* BamCoverageTrack::createTrack(QWidget* parent, QString file_pa
 	QSharedPointer<BamTrackData> data = BamTrackDataManager::getOrCreate(GenomeVisualizationWidget::fromWidget(parent), file_path);
 	if (data)
 	{
+		if (name.isEmpty()) name = getDisplayNameFromFilePath(file_path, true) + " coverage";
 		auto track = new BamCoverageTrack(parent, file_path, name);
 		track->setTrackData(data);
 		return track;
@@ -63,8 +64,7 @@ BamCoverageTrack* BamCoverageTrack::createTrack(QWidget* parent, QString file_pa
 
 QSize BamCoverageTrack::sizeHint() const
 {
-	return QSize(parentWidget() ? parentWidget()->width() : 200,
-				 fast_settings_.track_height + SPACING_BELOW);
+	return QSize(parentWidget() ? parentWidget()->width() : 200, fast_settings_.track_height + SPACING_BELOW);
 }
 
 void BamCoverageTrack::setTrackData(QSharedPointer<BamTrackData> track_data)
