@@ -206,6 +206,70 @@ private slots:
 		QVERIFY(context->isHidden());
 	}
 
+	void viewersInitializeFromCachedTranscripts()
+	{
+		const TranscriptList original_transcripts = SharedData::transcripts();
+		const int original_padding = SharedData::settings().transcript_padding;
+		const auto restore = qScopeGuard([&]()
+		{
+			SharedData::setTranscripts(original_transcripts);
+			SharedData::parameters().setInt("transcript padding", original_padding);
+		});
+		SharedData::parameters().setInt("transcript padding", 1);
+		Transcript trans;
+		trans.setName("ENST_CACHED");
+		trans.setGene("CACHED");
+		trans.setSource(Transcript::ENSEMBL);
+		trans.setStrand(Transcript::PLUS);
+		trans.setRegions(BedFile(Chromosome("chr22"), 10, 70));
+		TranscriptList transcripts;
+		transcripts.append(trans);
+		SharedData::setTranscripts(transcripts);
+
+		//Opening another visualization must work without another transcriptsChanged signal.
+		GenomeVisualizationWidget first(nullptr);
+		GenomeVisualizationWidget second(nullptr);
+		auto search = [](GenomeVisualizationWidget& viewer, const QString& query)
+		{
+			viewer.findChild<QLineEdit*>("search")->setText(query);
+			QVERIFY(QMetaObject::invokeMethod(&viewer, "search", Qt::DirectConnection));
+		};
+		for (auto* viewer : {&first, &second})
+		{
+			auto* selector = viewer->findChild<QComboBox*>("chr_selector");
+			QVERIFY(selector);
+			QCOMPARE(selector->count(), SharedData::genome().chromosomes().count() + 1);
+			QCOMPARE(selector->currentText(), QString("All"));
+			selector->setCurrentText("chr22");
+			QCOMPARE(viewer->region().toString(true), QString("chr22:1-100"));
+			for (const QString& query : {QString("cached"), QString("enst_cached")})
+			{
+				viewer->setRegion(Chromosome("chrX"), 1, 80);
+				search(*viewer, query);
+				QCOMPARE(viewer->region().toString(true), QString("chr22:9-71"));
+			}
+		}
+
+		//Replacing the shared transcripts must remove stale gene and transcript names.
+		trans.setName("ENST_NEW");
+		trans.setGene("NEW");
+		trans.setRegions(BedFile(Chromosome("chr22"), 20, 80));
+		transcripts.clear();
+		transcripts.append(trans);
+		SharedData::setTranscripts(transcripts);
+		for (auto* viewer : {&first, &second})
+		{
+			viewer->setRegion(Chromosome("chrX"), 1, 80);
+			for (const QString& query : {QString("CACHED"), QString("ENST_CACHED")})
+			{
+				search(*viewer, query);
+				QCOMPARE(viewer->region().toString(true), QString("chrX:1-80"));
+			}
+			search(*viewer, "NEW");
+			QCOMPARE(viewer->region().toString(true), QString("chr22:19-81"));
+		}
+	}
+
 	void independentViewPositionsAndBamCaches()
 	{
 		GenomeVisualizationWidget second(nullptr);
