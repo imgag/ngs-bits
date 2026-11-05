@@ -7241,15 +7241,12 @@ bool MainWindow::openSampleWithFilters(const QString &ps_name, const QString& fi
 
 void MainWindow::parseArguments(const QStringList &arguments, const QUrl &url)
 {
-	// User needs to be logined in before doing anything
-	if (!LoginManager::active()) return;
-
-	if (arguments.count()==1 && url.isEmpty()) return;
+	if (arguments.count()<=1 && url.isEmpty()) return;
 	QString ps_name;
 	QString filter_name;
 	QString roi_name;
 	QString run_id;
-	QString action;
+	QString action = "load";
 
 	// Parse command-line arguments
 	for (int i = 1; i < arguments.count(); ++i)
@@ -7262,38 +7259,43 @@ void MainWindow::parseArguments(const QStringList &arguments, const QUrl &url)
 	}
 
 	// Command line argument can be a gsvar:// URL
-	QUrl gsvar_url = QUrl::fromPercentEncoding(ps_name.toUtf8());
-	if (gsvar_url.isValid() && !gsvar_url.isEmpty())
-	{
-		action = "load";
-	}
-	else
-	{
-		gsvar_url = url;
-	}
+	QUrl gsvar_url = url;
+	const QUrl argument_url(ps_name);
+	if (argument_url.scheme() == "gsvar") gsvar_url = argument_url;
 
-	// Processing the action
-	if (!gsvar_url.isEmpty()) action = gsvar_url.host();
-
-	if (action =="load")
+	if (!gsvar_url.isEmpty())
 	{
-		ps_name = QUrl::fromPercentEncoding(gsvar_url.path().mid(1).toUtf8());
+		if (!gsvar_url.isValid() || gsvar_url.scheme() != "gsvar")
+		{
+			QMessageBox::warning(this, "Invalid URL", "The provided GSvar URL is invalid.");
+			return;
+		}
+		action = gsvar_url.host();
+		ps_name = gsvar_url.path(QUrl::FullyDecoded).mid(1);
 
 		QUrlQuery query(gsvar_url);
-		filter_name = query.queryItemValue("filter");
-		roi_name = query.queryItemValue("roi");
+		if (query.hasQueryItem("filter")) filter_name = query.queryItemValue("filter", QUrl::FullyDecoded);
+		if (query.hasQueryItem("roi")) roi_name = query.queryItemValue("roi", QUrl::FullyDecoded);
+	}
 
+	// Processing the action. Local files can also be opened without an NGSD login.
+	if (action =="load")
+	{
 		if (!ps_name.isEmpty()) openSampleWithFilters(ps_name, filter_name, roi_name);
+		else if (gsvar_url.isEmpty())
+		{
+			if (!filter_name.isEmpty() && !ui_.filters->setFilter(filter_name)) QMessageBox::warning(this, "Setting a filter", "Filter name '" + filter_name + "' not found. Ignoring it!");
+			if (!roi_name.isEmpty() && !ui_.filters->setTargetRegionByDisplayName(roi_name)) QMessageBox::warning(this, "Setting a target region", "Target region name '" + roi_name + "' not found. Ignoring it!");
+		}
 	}
 	else if (action == "sample")
 	{
-		ps_name = QUrl::fromPercentEncoding(gsvar_url.path().mid(1).toUtf8());
-		if (!ps_name.isEmpty()) openProcessedSampleTab(ps_name);
+		if (LoginManager::active() && !ps_name.isEmpty()) openProcessedSampleTab(ps_name);
 	}
 	else if (action == "run")
 	{
-		run_id = QUrl::fromPercentEncoding(gsvar_url.path().mid(1).toUtf8());
-		if (!run_id.isEmpty()) openRunTab(run_id);
+		run_id = ps_name;
+		if (LoginManager::active() && !run_id.isEmpty()) openRunTab(run_id);
 	}
 	else QMessageBox::warning(this, "Unsupported action", "The provided action '" + action + "' is not supported.");
 }

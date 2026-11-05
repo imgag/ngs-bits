@@ -48,12 +48,12 @@ MultiInstanceHandler::MultiInstanceHandler(QObject* parent)
 
 					// Process the URL after this callback finishes
 					QMetaObject::invokeMethod(
-					this,
-					[this, url]()
-					{
-						emit urlReceived(url);
-					},
-					Qt::QueuedConnection);
+						this,
+						[this, url]()
+						{
+							emit urlReceived(url);
+						},
+						Qt::QueuedConnection);
 				}
 			});
 
@@ -73,11 +73,23 @@ bool MultiInstanceHandler::anotherInstanceExists()
 
 bool MultiInstanceHandler::startServer()
 {
-	if (!server_->listen(SERVER_NAME))
+	if (server_->isListening()) return true;
+	if (server_->listen(SERVER_NAME)) return true;
+
+#ifdef Q_OS_UNIX
+	// A crashed server can leave its socket file behind. Only remove it when
+	// connecting is explicitly refused, so a live or inaccessible server is kept.
+	if (server_->serverError() == QAbstractSocket::AddressInUseError)
 	{
-		return server_->listen(SERVER_NAME);
+		QLocalSocket socket;
+		socket.connectToServer(SERVER_NAME);
+		if (!socket.waitForConnected(1000) && socket.error() == QLocalSocket::ConnectionRefusedError)
+		{
+			if (QLocalServer::removeServer(SERVER_NAME)) return server_->listen(SERVER_NAME);
+		}
 	}
-	return server_->isListening();
+#endif
+	return false;
 }
 
 void MultiInstanceHandler::stopServer()
