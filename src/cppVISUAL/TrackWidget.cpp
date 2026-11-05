@@ -79,7 +79,6 @@ void TrackWidget::handleTrackRename()
 	}
 }
 
-
 bool TrackWidget::event(QEvent* event)
 {
 	if (event->type() == QEvent::ToolTip)
@@ -88,7 +87,10 @@ bool TrackWidget::event(QEvent* event)
 		const QRect header_rect(0, 0, SharedData::settings().label_width, height());
 		if (header_rect.contains(help_event->pos()))
 		{
-			QToolTip::showText(help_event->globalPos(), Helper::removeUrlArguments(file_path_), this, header_rect);
+			QStringList text;
+			text << ("name: " + display_name_);
+			text << ("location: " + Helper::removeUrlArguments(file_path_));
+			QToolTip::showText(help_event->globalPos(), text.join("\n"), this, header_rect);
 		}
 		else
 		{
