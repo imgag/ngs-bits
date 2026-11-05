@@ -79,7 +79,6 @@ void TrackWidget::handleTrackRename()
 	}
 }
 
-
 bool TrackWidget::event(QEvent* event)
 {
 	if (event->type() == QEvent::ToolTip)
@@ -88,7 +87,10 @@ bool TrackWidget::event(QEvent* event)
 		const QRect header_rect(0, 0, SharedData::settings().label_width, height());
 		if (header_rect.contains(help_event->pos()))
 		{
-			QToolTip::showText(help_event->globalPos(), Helper::removeUrlArguments(file_path_), this, header_rect);
+			QStringList text;
+			text << ("name: " + display_name_);
+			text << ("location: " + Helper::removeUrlArguments(file_path_));
+			QToolTip::showText(help_event->globalPos(), text.join("\n"), this, header_rect);
 		}
 		else
 		{
@@ -417,8 +419,8 @@ TrackWidget* TrackWidget::load(const LoadContext cx, QWidget* parent)
 	if (!track) return nullptr;
 
 	track->session_height_ = cx.height;
-	//Variant tracks grow with the number of overlapping variants at the current zoom level.
-	if (type != VcfTrack::type() && type != SvTrack::type())
+	//Variant and IGV tracks calculate their height from the displayed content and settings.
+	if (type != VcfTrack::type() && type != SvTrack::type() && type != IgvTrack::type())
 	{
 		const int restored_height = type == BedTrack::type() ? std::max(cx.height, track->minimumHeight()) : cx.height;			track->setFixedHeight(restored_height);
 	}
