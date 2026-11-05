@@ -2115,6 +2115,7 @@ void MainWindow::openSettingsDialog(QString page_name, QString section)
 	if (dlg.exec()==QDialog::Accepted)
 	{
 		dlg.storeSettings();
+		IgvSessionManager::get(0).setApp(viewerApp());
 	}
 }
 
