@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1380</width>
-    <height>206</height>
+    <height>238</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -271,7 +271,7 @@
        </widget>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="1,0,1,0,1,0,1,0,1,0,1,0,1,0,1">
+       <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0">
         <property name="spacing">
          <number>3</number>
         </property>
@@ -898,8 +898,13 @@
           </item>
           <item row="0" column="0" colspan="2">
            <widget class="QLabel" name="label_5">
+            <property name="font">
+             <font>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#222222;&quot;&gt;Databases&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Databases</string>
             </property>
            </widget>
           </item>
@@ -1158,8 +1163,13 @@
           </item>
           <item row="0" column="0" colspan="2">
            <widget class="QLabel" name="label_15">
+            <property name="font">
+             <font>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#222222;&quot;&gt;Frequencies&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Frequencies</string>
             </property>
            </widget>
           </item>
@@ -1298,8 +1308,13 @@
           </item>
           <item row="0" column="0" colspan="2">
            <widget class="QLabel" name="label">
+            <property name="font">
+             <font>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#222222;&quot;&gt;Pathogenicity&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>Pathogenicity</string>
             </property>
            </widget>
           </item>
@@ -1608,22 +1623,27 @@
           </item>
           <item row="0" column="0" colspan="2">
            <widget class="QLabel" name="label_22">
+            <property name="font">
+             <font>
+              <bold>true</bold>
+             </font>
+            </property>
             <property name="text">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;span style=&quot; font-weight:600; color:#222222;&quot;&gt;NGSD&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>NGSD</string>
             </property>
            </widget>
           </item>
          </layout>
         </item>
         <item>
-         <widget class="Line" name="line_3">
+         <widget class="Line" name="line_somatic">
           <property name="orientation">
            <enum>Qt::Orientation::Vertical</enum>
           </property>
          </widget>
         </item>
         <item>
-         <layout class="QGridLayout" name="gridLayout_9">
+         <layout class="QGridLayout" name="layout_somatic">
           <property name="spacing">
            <number>3</number>
           </property>
@@ -1859,7 +1879,7 @@
           <item row="7" column="0">
            <widget class="QLabel" name="label_genome_nexus">
             <property name="text">
-             <string>Genome Nexus</string>
+             <string>Genome Nexus:</string>
             </property>
            </widget>
           </item>
@@ -1876,14 +1896,14 @@
          </layout>
         </item>
         <item>
-         <widget class="Line" name="line_8">
+         <widget class="Line" name="line_rna">
           <property name="orientation">
            <enum>Qt::Orientation::Vertical</enum>
           </property>
          </widget>
         </item>
         <item>
-         <layout class="QGridLayout" name="gridLayout_8">
+         <layout class="QGridLayout" name="layout_rna">
           <property name="spacing">
            <number>3</number>
           </property>

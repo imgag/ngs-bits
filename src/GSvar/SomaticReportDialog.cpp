@@ -647,7 +647,7 @@ void SomaticReportDialog::createIgvScreenshot()
 		session.execute(commands, false);
 		session.waitForDone();
 
-		if (!QFileInfo::exists(screenshot_filename))
+		if (!QFile::exists(screenshot_filename))
         {
 			THROW(Exception, "IGV screenshot was not created!")
         }

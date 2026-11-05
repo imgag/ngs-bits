@@ -6,6 +6,7 @@
 
 TrackGroupManager::TrackGroupManager(QWidget* parent)
 	: QSplitter(Qt::Vertical, parent)
+	, viewer_(GenomeVisualizationWidget::fromWidget(parent))
 {
 	setChildrenCollapsible(false);
 	setHandleWidth(2);
@@ -26,18 +27,19 @@ void TrackGroupManager::reloadTracks()
 	}
 }
 
-void TrackGroupManager::addEmptyTrackGroup()
+TrackGroup* TrackGroupManager::addEmptyTrackGroup()
 {
-	TrackGroup* new_track_group = new TrackGroup();
+	TrackGroup* new_track_group = new TrackGroup(viewer_);
 	insertWidget(0, new_track_group);
 	connectSignals(new_track_group);
+	return new_track_group;
 }
 
 void TrackGroupManager::addTrack(TrackWidget* track)
 {
 	const bool empty_session = isEmptySession();
 	if (empty_session) removeAll();
-	auto* group = new TrackGroup();
+	auto* group = new TrackGroup(viewer_);
 	group->addTrackWidgets({track});
 	connectSignals(group);
 	insertWidget(0, group);
@@ -75,7 +77,7 @@ void TrackGroupManager::mousePressEvent(QMouseEvent* event)
 
 		is_dragging_ = true;
 		drag_start_x_ = x;
-		drag_start_region_ = SharedData::region();
+		drag_start_region_ = viewer_->region();
 	}
 }
 
@@ -111,7 +113,7 @@ void TrackGroupManager::updateDragRegion(int mouse_x)
 	int new_start = drag_start_region_.start() - std::lround(diff);
 	int new_end = drag_start_region_.end() - std::lround(diff);
 
-	SharedData::setRegion(drag_start_region_.chr(), new_start, new_end);
+	viewer_->setRegion(drag_start_region_.chr(), new_start, new_end);
 }
 
 void TrackGroupManager::loadFile(QString filename)
@@ -121,7 +123,7 @@ void TrackGroupManager::loadFile(QString filename)
 	if (empty_session) removeAll();
 
 	//add new track group with file contents
-	TrackGroup* new_track_group = TrackGroup::fromFile(filename);
+	TrackGroup* new_track_group = TrackGroup::fromFile(filename, viewer_);
 	if (new_track_group)
 	{
 		connectSignals(new_track_group);
@@ -140,7 +142,7 @@ void TrackGroupManager::addTrackGroupAbove()
 		int idx = indexOf(senderWidget);
 		if (idx >= 0)
 		{
-			TrackGroup* new_track_group = new TrackGroup();
+			TrackGroup* new_track_group = new TrackGroup(viewer_);
 			insertWidget(idx, new_track_group);
 			connectSignals(new_track_group);
 		}
@@ -155,7 +157,7 @@ void TrackGroupManager::addTrackGroupBelow()
 		int idx = indexOf(senderWidget);
 		if (idx >= 0)
 		{
-			TrackGroup* new_track_group = new TrackGroup();
+			TrackGroup* new_track_group = new TrackGroup(viewer_);
 			insertWidget(std::min(idx + 1, count() - 1), new_track_group);
 			connectSignals(new_track_group);
 		}
@@ -190,7 +192,7 @@ void TrackGroupManager::loadFromXml(const QDomElement& dom_element, QStringList&
 	QDomNodeList elements = dom_element.elementsByTagName("TrackGroup");
 	for (int i =0; i < elements.count(); ++i)
 	{
-		TrackGroup* track_group = new TrackGroup();
+		TrackGroup* track_group = new TrackGroup(viewer_);
 		track_group->loadFromXml(elements.at(i).toElement(), errors);
 		connectSignals(track_group);
 		insertWidget(count() - 1, track_group);

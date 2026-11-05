@@ -364,8 +364,6 @@ void ImportDialog::sendImportDataToServer(QString table, QHash<QString, QString>
 
 	buffer.close();
 
-	qDebug().noquote() << QString::fromUtf8(xml_data);
-
 	HttpRequestHandler handler;
 	handler.setHeader("content-type", "text/xml; charset=utf-8");
 

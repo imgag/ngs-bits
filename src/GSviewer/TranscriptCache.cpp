@@ -41,7 +41,11 @@ QByteArray decode(QByteArrayView value)
 	result.reserve(value.size());
 	for (qsizetype i = 0; i < value.size(); ++i)
 	{
-		if (value[i] != '%') { result += value[i]; continue; }
+		if (value[i] != '%')
+		{
+			result += value[i];
+			continue;
+		}
 		const QByteArrayView escape = value.sliced(i, std::min(qsizetype(3), value.size() - i));
 		if (escape == "%25") result += '%';
 		else if (escape == "%09") result += '\t';
@@ -55,9 +59,7 @@ QByteArray decode(QByteArrayView value)
 
 int transcriptFlags(const Transcript& t)
 {
-	return int(t.isPreferredTranscript()) | (int(t.isGencodeBasicTranscript()) << 1)
-		| (int(t.isGencodePrimaryTranscript()) << 2) | (int(t.isEnsemblCanonicalTranscript()) << 3)
-		| (int(t.isManeSelectTranscript()) << 4) | (int(t.isManePlusClinicalTranscript()) << 5);
+	return int(t.isPreferredTranscript()) | (int(t.isGencodeBasicTranscript()) << 1) | (int(t.isGencodePrimaryTranscript()) << 2) | (int(t.isEnsemblCanonicalTranscript()) << 3) | (int(t.isManeSelectTranscript()) << 4) | (int(t.isManePlusClinicalTranscript()) << 5);
 }
 
 TranscriptList loadGff(const QString& filename)
@@ -97,7 +99,8 @@ bool loadCache(const QString& filename, const QJsonObject& expected_metadata, Tr
 		QByteArray row = file.readLine();
 		if (row.endsWith('\n')) row.chop(1);
 		if (Helper::fastSplit(row, '\t', columns) != 14) THROW(FileParseException, "Invalid transcript cache column count.");
-		auto number = [&](int column) { return Helper::toInt(columns[column], "transcript cache column " + QString::number(column)); };
+		auto number = [&](int column)
+		{ return Helper::toInt(columns[column], "transcript cache column " + QString::number(column)); };
 		Transcript t;
 		t.setGene(decode(columns[0]));
 		t.setGeneId(decode(columns[1]));
@@ -111,8 +114,7 @@ bool loadCache(const QString& filename, const QJsonObject& expected_metadata, Tr
 		const int strand = number(8);
 		const int biotype = number(9);
 		const int flags = number(12);
-		if (!chr.isValid() || (strand != Transcript::PLUS && strand != Transcript::MINUS)
-			|| biotype < Transcript::IG_C_GENE || biotype > Transcript::PROTEIN_CODING_CDS_NOT_DEFINED || (flags & ~63))
+		if (!chr.isValid() || (strand != Transcript::PLUS && strand != Transcript::MINUS) || biotype < Transcript::IG_C_GENE || biotype > Transcript::PROTEIN_CODING_CDS_NOT_DEFINED || (flags & ~63))
 		{
 			THROW(FileParseException, "Invalid transcript cache metadata.");
 		}

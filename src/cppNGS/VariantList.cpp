@@ -651,9 +651,17 @@ VariantAnnotationDescription VariantList::annotationDescriptionByName(const QStr
 	return annotationDescriptions()[index];
 }
 
+bool VariantList::annotationExists(const QString &name) const
+{
+	for(int i=0; i<annotations().count(); ++i)
+	{
+		if (annotations()[i].name().compare(name, Qt::CaseInsensitive)==0) return true;
+	}
+	return false;
+}
+
 int VariantList::annotationIndexByName(const QString& name, bool exact_match, bool error_on_mismatch) const
 {
-
 	//find matches
 	QList<int> matches;
 	for(int i=0; i<annotations().count(); ++i)

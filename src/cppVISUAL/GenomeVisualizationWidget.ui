@@ -308,9 +308,6 @@
             <property name="bottomMargin">
              <number>0</number>
             </property>
-            <item>
-             <widget class="GenePanel" name="gene_panel" native="true"/>
-            </item>
            </layout>
           </widget>
          </widget>
@@ -432,12 +429,6 @@
   </layout>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>GenePanel</class>
-   <extends>QWidget</extends>
-   <header location="global">GenePanel.h</header>
-   <container>1</container>
-  </customwidget>
   <customwidget>
    <class>ChromosomePanel</class>
    <extends>QWidget</extends>

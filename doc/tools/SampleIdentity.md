@@ -14,7 +14,7 @@
 	                           Default value: ''
 	  -min_depth <int>         Minimum depth to use a SNP for the sample comparison.
 	                           Default value: '15'
-	  -min_snps <int>          Minimum SNPs required to comare samples.
+	  -min_snps <int>          Minimum SNPs required to compare samples.
 	                           Default value: '40'
 	  -min_identity <int>      Minimum identity percentage to show sample pairs in output.
 	                           Default value: '95'

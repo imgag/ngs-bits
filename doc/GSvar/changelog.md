@@ -1,5 +1,13 @@
 # GSvar change log
 
+## 2026_06-219 (21.10.2026)
+
+- general: enabled "visualize" entry in small variants context menu to allow quick visualization of variant locus.
+- general: several speed improvements
+- analysis time plot: analysis time data can now be copied to clipboard.
+- QC plots: can now be filtered by processed sample quality and improved copy to clipboard.
+- sample search: setting processed sample quality automatically is now possible from sample search as well
+
 ## 2026_06-127 (08.09.2026)
 
 - general: improved Mendelian error rate calculation to avoid false warning for ONT trios
@@ -1243,6 +1251,7 @@
 --
 
 [back to main page](index.md)
+
 
 
 

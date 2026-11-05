@@ -41,7 +41,14 @@
      <number>1</number>
     </property>
     <item>
-     <widget class="GenomeVisualizationWidget" name="gvw" native="true"/>
+     <layout class="QHBoxLayout" name="splitter">
+      <item>
+       <widget class="GenomeVisualizationWidget" name="gvw_l" native="true"/>
+      </item>
+      <item>
+       <widget class="GenomeVisualizationWidget" name="gvw_r" native="true"/>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>

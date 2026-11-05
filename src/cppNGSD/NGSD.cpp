@@ -1150,18 +1150,25 @@ QString NGSD::processedSampleName(const QString& ps_id, bool throw_if_fails)
 
 QString NGSD::sampleId(const QString& filename, bool throw_if_fails)
 {
-	QStringList parts = QFileInfo(filename).baseName().append('_').split('_');
+	QString ps = filename.trimmed();
+
+	//filename > use basename
+	if (ps.contains("/") || ps.contains("\\") || ps.contains(".")) ps = QFileInfo(filename).baseName();
+
+	QStringList parts = ps.split('_');
+	if (parts.count()>1) parts.takeLast();
+	QString sample = parts.join('_');
 
 	//get sample ID
 	SqlQuery query = getQuery(); //use binding (user input)
 	query.prepare("SELECT id FROM sample WHERE name=:0");
-	query.bindValue(0, parts[0]);
+	query.bindValue(0, sample);
 	query.exec();
 	if (query.size()==0)
 	{
 		if(throw_if_fails)
 		{
-			THROW(DatabaseException, "Sample name '" + parts[0] + "' not found in NGSD!");
+			THROW(DatabaseException, "Sample name '" + sample + "' not found in NGSD!");
 		}
 		else
 		{
@@ -1174,10 +1181,14 @@ QString NGSD::sampleId(const QString& filename, bool throw_if_fails)
 
 QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 {
-	QStringList parts = QFileInfo(filename.trimmed()).baseName().append('_').split('_');
-	QString sample = parts[0];
-	QString ps_num = parts[1];
-	if (ps_num.size()>2) ps_num = ps_num.left(2);
+	QString ps = filename.trimmed();
+
+	//filename > use basename
+	if (ps.contains("/") || ps.contains("\\") || ps.contains(".")) ps = QFileInfo(filename).baseName();
+
+	QStringList parts = ps.split('_');
+	QString ps_num = parts.takeLast();
+	QString sample = parts.join('_');
 
 	//get sample ID
 	SqlQuery query = getQuery(); //use binding (user input)
@@ -1296,7 +1307,7 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 	{
 		output += ps_name + ".GSvar";
 		// choose between available files: prefer the *.gz
-		if (QFileInfo(output+".gz").exists()) output += ".gz";
+		if (QFile::exists(output+".gz")) output += ".gz";
 	}
 	else if (type==PathType::VCF) output += ps_name + "_var_annotated.vcf.gz";
 	else if (type==PathType::VCF_CF_DNA) output += ps_name + "_var.vcf";
@@ -1358,9 +1369,6 @@ QString NGSD::processedSamplePath(const QString& processed_sample_id, PathType t
 
 QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analysis_type)
 {
-	//init
-	QStringList project_types = getEnum("project", "type");
-
 	//convert to platform-specific canonical path
 	QStringList output = getValues("SELECT gsvar_file FROM secondary_analysis WHERE type='" + analysis_type + "' AND gsvar_file LIKE '%" + processed_sample_name + "%'");
 	for (int i=0; i<output.count(); ++i)
@@ -1382,9 +1390,11 @@ QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analy
 
 		//convert to canonical path
 		file = QFileInfo(file).absoluteFilePath();
-
-		qDebug() << "final path: " << file;
-
+		if (!file.endsWith(".gz", Qt::CaseInsensitive))
+		{
+			QString gz_file_version = file+".gz";
+			if (QFile(gz_file_version).exists()) file = gz_file_version;
+		}
 		output[i] = file;
 	}
 
@@ -3842,6 +3852,26 @@ const TableInfo& NGSD::tableInfo(const QString& table) const
 	return referenceCache().tableInfo(const_cast<NGSD&>(*this), table);
 }
 
+QMap<QString, TableIndex> NGSD::tableIndices(const QString &table) const
+{
+	QMap<QString, TableIndex> output;
+
+	SqlQuery query = getQuery();
+	query.exec("SHOW INDEX FROM `" + table + "`");
+	while (query.next())
+	{
+		QString name = query.value("Key_name").toString();
+		TableIndex& definition = output[name];
+		definition.unique = query.value("Non_unique").toInt()==0;
+		int position = query.value("Seq_in_index").toInt();
+		while (definition.columns.size()<position)
+		{
+			definition.columns.append(QString());
+		}
+		definition.columns[position-1] = query.value("Column_name").toString();
+	}
+	return output;
+}
 
 DBTable NGSD::createTable(QString table, QString query, int pk_col_index)
 {

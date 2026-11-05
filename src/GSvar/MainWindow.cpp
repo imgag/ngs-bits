@@ -400,10 +400,11 @@ MainWindow::MainWindow(QWidget *parent)
 	connect(ui_.vars, SIGNAL(alamutTriggered(QAction*)), this, SLOT(openAlamut(QAction*)));
 
 	//Set environment variable containing SSL certificates - needed for HTTPS to work for BamReader/htslib
-	QString curl_ca_bundle = Settings::string("curl_ca_bundle", true);
+	QByteArray curl_ca_bundle = Settings::string("curl_ca_bundle", true).trimmed().toUtf8();
 	if (!curl_ca_bundle.isEmpty())
 	{
-		if (!qputenv("CURL_CA_BUNDLE", curl_ca_bundle.toUtf8()))
+		if(!QFile::exists(curl_ca_bundle)) THROW(FileAccessException, "CURL_CA_BUNDLE file does not exist: "+curl_ca_bundle);
+		if (!qputenv("CURL_CA_BUNDLE", curl_ca_bundle))
 		{
 			Log::error("Could not set CURL_CA_BUNDLE variable, access to BAM/CRAM files over HTTPS may not be possible");
 		}
@@ -2785,10 +2786,12 @@ void MainWindow::loadFile(QString filename, bool show_only_error_issues)
 			res_.clear();
 		}
 
-		//determine valid filter entries from filter column (and add new filters low_mappability/mosaic to make outdated GSvar files work as well)
+		//determine valid filter entries from filter column form input file (and some defaults to make outdated GSvar files work as well)
 		QStringList valid_filter_entries = variants_.filters().keys();
-		if (!valid_filter_entries.contains("low_mappability")) valid_filter_entries << "low_mappability";
-		if (!valid_filter_entries.contains("mosaic")) valid_filter_entries << "mosaic";
+		foreach  (QString entry, QStringList() << "low_conf_region" << "low_mappability" << "mosaic" << "off-target" << "sr_low_mappability" << "dragen_mrjd" << "targeted")
+		{
+			if (!valid_filter_entries.contains(entry)) valid_filter_entries << entry;
+		}
 		ui_.filters->setValidFilterEntries(valid_filter_entries);
 
 		//update data structures
@@ -4240,7 +4243,7 @@ void MainWindow::on_actionOpenProcessedSampleTabByName_triggered()
 	if (ctrl_pressed) //batch mode
 	{
 		QStringList ps_list = QInputDialog::getMultiLineText(this, "Open processed samples", "Processed samples (one per line)").split("\n");
-		for (QString ps: ps_list)
+		for (QString ps: std::as_const(ps_list))
 		{
 			ps = ps.trimmed();
 			if (ps.isEmpty() || ps[0]=='#') continue;

@@ -270,6 +270,11 @@
 								<xs:restriction base="xs:int"/>
 							</xs:simpleType>
 						</xs:attribute>
+						<xs:attribute name="scheduled_for_resequencing" type="xs:boolean" use="optional">
+							<xs:annotation>
+							        <xs:documentation>sample is scheduled for resequening and will be replaced by the new or merged sample</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
 					</xs:complexType>
 				</xs:element>
 				<xs:element name="NormalSample" minOccurs="0">
@@ -347,6 +352,11 @@
 									<xs:minInclusive value="0"/>
 								</xs:restriction>
 							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="scheduled_for_resequencing" type="xs:boolean" use="optional">
+							<xs:annotation>
+							        <xs:documentation>sample is scheduled for resequening and will be replaced by the new or merged sample</xs:documentation>
+							</xs:annotation>
 						</xs:attribute>
 					</xs:complexType>
 				</xs:element>

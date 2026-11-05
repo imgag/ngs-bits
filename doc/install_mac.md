@@ -42,7 +42,7 @@ Having installed Qt Creator, make sure your Qt installation has been correctly f
 GSvar uses MariaDB as a storage. You don't have to install MySQL/MariaDB server on your machine, you can simply run it in a Docker container instead:
 
 	> docker run -d --name my-own-mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=mypass123 mysql:5.7
-	> docker run --name my-own-phpmyadmin -d --link my-own-mysql:db -p 8081:80 phpmyadmin/phpmyadmin
+	> docker run --name my-own-phpmyadmin -d --link my-own-mysql:db -p 8081:80 phpmyadmin
 
 PhpMyAdmin can now be accessed from a browser at (use `root` as the username and the password from the above):
 

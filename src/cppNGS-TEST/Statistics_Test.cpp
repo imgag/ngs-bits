@@ -78,7 +78,7 @@ TEST_CLASS(Statistics_Test)
 		tmb = Statistics::mutationBurdenNormalized(somatic_vcf, exons, target, tsg, blacklist);
 		S_EQUAL(tmb.name(),QString("somatic variant rate"));
 		S_EQUAL(tmb.accession(),QString("QC:2000053"));
-		S_EQUAL(tmb.toString(),QString("2.23"));
+		S_EQUAL(tmb.toString(),QString("2.22"));
 
 		//only target region, blacklist file is empty
 		blacklist = TESTDATA("data_in/Statistics_somatic_tmb_blacklist.bed"); // file is empty

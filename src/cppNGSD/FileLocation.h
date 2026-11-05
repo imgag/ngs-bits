@@ -120,9 +120,9 @@ struct FileLocation
 		QString output = QFileInfo(filename).fileName();
 
 		//remove HTTP GET arguments
-		if (remove_http_get_args && isHttpUrl() && output.contains('?'))
+		if (remove_http_get_args)
 		{
-			output = output.split('?')[0];
+			output = Helper::removeUrlArguments(output);
 		}
 
 		return output;

@@ -2,7 +2,6 @@
 #include "Settings.h"
 #include "Exceptions.h"
 #include "Helper.h"
-#include "Log.h"
 #include "LoginManager.h"
 #include "GSvarHelper.h"
 #include "GUIHelper.h"
@@ -2936,7 +2935,6 @@ QString ClinvarUploadDialog::getHGVS()
 	}
 	else if(clinvar_upload_data_.variant_type2 == VariantType::CNVS)
 	{
-		Chromosome chr = Chromosome(ui_.cb_chr_cnv2->currentText());
 		hgvs_var2 = ui_.le_start_cnv2->text() + "_" + ui_.le_end_cnv2->text() + ((ui_.le_cn_cnv2->text().toInt() < ui_.le_rcn_cnv2->text().toInt())?"del":"dup");
 	}
 	else if(clinvar_upload_data_.variant_type2 == VariantType::SVS)

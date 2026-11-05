@@ -13,10 +13,12 @@ LIBS += -L$$PWD/../../bin -lcppVISUAL
 RESOURCES += GSviewer.qrc
 
 SOURCES += main.cpp \
+    CommandServer.cpp \
     TranscriptCache.cpp \
     MainWindow.cpp
 
 HEADERS += MainWindow.h \
+    CommandServer.h \
     TranscriptCache.h
 
 FORMS += MainWindow.ui

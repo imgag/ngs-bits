@@ -64,7 +64,12 @@ HttpRequest RequestParser::parse(QByteArray *request) const
 		}
 	}
 
-	parsed_request.setBody(getRequestBody(*request).trimmed());	
+	const QByteArray separator = "\r\n\r\n";
+	const int header_end = request->indexOf(separator);
+
+	if (header_end == -1) THROW(Exception, "HTTP header terminator not found");
+
+	parsed_request.setBody(request->mid(header_end + separator.size()));
 	parsed_request.setContentType(ContentType::TEXT_HTML); // default type, if the header is not found
 
 	if (parsed_request.getHeaders().contains("content-type"))
@@ -90,20 +95,32 @@ HttpRequest RequestParser::parse(QByteArray *request) const
 
 				for (int p = 0; p < boundary_start_positions.count(); p++)
 				{
-					int boundary_end_position;
-					if (p<boundary_start_positions.count()-1)
+					const int item_start = boundary_start_positions[p] + boundary.length();
+					int item_end;
+
+					if (p+1 < boundary_start_positions.count())
 					{
-						boundary_end_position = boundary_start_positions[p+1] - (boundary_start_positions[p]+boundary.length());
+						item_end = boundary_start_positions[p+1];
 					}
 					else
 					{
-						boundary_end_position = (boundary_start_positions[p]+boundary.length()) - (form_body.length());
+						item_end = form_body.length();
 					}
-					QByteArray multipart_item = form_body.mid(boundary_start_positions[p]+boundary.length(), boundary_end_position);                  
+
+					// The CRLF immediately before the next boundary belongs
+					// to the multipart framing, not to the part's content.
+					if (item_end >= 2 && form_body.mid(item_end - 2, 2) == "\r\n") item_end -= 2;
+
+					const int item_length = item_end - item_start;
+					if (item_length < 0) THROW(Exception, "Invalid multipart boundary positions");
+
+					QByteArray multipart_item = form_body.mid(item_start, item_length);
+
+					// The closing boundary is followed by "--".
+					if (multipart_item.startsWith("--")) continue;
 
 					if (multipart_item!="--")
                     {
-
                         if (!multipart_item.toLower().contains("content-type"))
 						{
 							// Parse form paramenters (i.e. form fields)
@@ -291,15 +308,23 @@ RequestMethod RequestParser::inferRequestMethod(const QByteArray& input) const
 
 QList<int> RequestParser::getBoundaryStartPositions(const QByteArray& form, const QString& boundary) const
 {
-    QList<int> boundary_start_positions;
-    QRegularExpression boundary_reg_exp(QRegularExpression::escape(boundary));
-	QRegularExpressionMatchIterator i = boundary_reg_exp.globalMatch(form);
-	while (i.hasNext())
+	QList<int> positions;
+	const QByteArray marker = boundary.toUtf8();
+	int pos = 0;
+
+	while ((pos = form.indexOf(marker, pos)) != -1)
 	{
-		QRegularExpressionMatch match = i.next();
-		if (match.hasMatch()) boundary_start_positions.append(match.capturedStart());
+		const int marker_end = pos + marker.size();
+		const bool at_body_start = (pos == 0);
+		const bool preceded_by_crlf = (pos >= 2 && form.mid(pos - 2, 2) == "\r\n");
+		const bool followed_by_crlf = (form.mid(marker_end, 2) == "\r\n");
+		const bool closing_boundary = (form.mid(marker_end, 2) == "--");
+		if ((at_body_start || preceded_by_crlf) && (followed_by_crlf || closing_boundary)) positions.append(pos);
+
+		pos = marker_end;
 	}
-	return boundary_start_positions;
+
+	return positions;
 }
 
 QString RequestParser::getMultipartFileName(const QByteArray& multipart_item) const
@@ -315,16 +340,18 @@ QString RequestParser::getMultipartFileName(const QByteArray& multipart_item) co
 	return QString::fromLatin1(multipart_item.mid(start, end - start));
 }
 
-QByteArray RequestParser::getMultipartFileContent(QByteArray& multipart_item) const
+QByteArray RequestParser::getMultipartFileContent(const QByteArray& multipart_item) const
 {
-	int content_start = multipart_item.indexOf(empty_line.toUtf8());
-	if (content_start > -1)
-	{
-		// Remove Headers before the content
-		multipart_item.remove(0, content_start+empty_line.length());
-		// Remove \r\n characters before the last boundary
-		if (multipart_item.length() > 2) multipart_item.remove(multipart_item.length()-2, 2);
-		return multipart_item;
-	}
-	return QByteArray();
+	const QByteArray separator = empty_line.toUtf8();
+	const int content_start = multipart_item.indexOf(separator);
+
+	if (content_start == -1) return QByteArray();
+
+	QByteArray content = multipart_item.mid(content_start + separator.size());
+
+	// Remove the CRLF framing immediately before the next boundary,
+	// but only if it is actually present.
+	if (content.endsWith("\r\n")) content.chop(2);
+
+	return content;
 }
