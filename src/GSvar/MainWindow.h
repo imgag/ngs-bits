@@ -520,7 +520,7 @@ protected:
     /// Removes a user's session on the server (in client-server mode)
     void performLogout();
 	//Returns the path to the genome viewer app
-	QString viewerApp();
+	QString viewerApp(bool only_igv=false);
 
 private:
 	//GUI

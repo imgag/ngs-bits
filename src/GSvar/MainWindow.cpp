@@ -1669,7 +1669,7 @@ void MainWindow::delayedInitialization()
 	{
 	   virus_genome = ClientHelper::serverApiUrl() + "genome/somatic_viral.fa";
 	}
-	IGVSession* igv_virus = IgvSessionManager::create(this, "Virus IGV", viewerApp(), Settings::string("igv_host"), virus_genome);
+	IGVSession* igv_virus = IgvSessionManager::create(this, "Virus IGV", viewerApp(true), Settings::string("igv_host"), virus_genome);
 	connect(igv_virus, SIGNAL(started()), this, SLOT(changeIgvIconToActive()));
 	connect(igv_virus, SIGNAL(finished()), this, SLOT(changeIgvIconToNormal()));
 
@@ -7196,9 +7196,9 @@ void MainWindow::performLogout()
     LoginManager::logout();
 }
 
-QString MainWindow::viewerApp()
+QString MainWindow::viewerApp(bool only_igv)
 {
-	if (Settings::boolean("igv_use_gsviewer_instead", true))
+	if (!only_igv && Settings::boolean("igv_use_gsviewer_instead", true))
 	{
 		return QCoreApplication::applicationDirPath() + QDir::separator() + "GSviewer.exe";
 	}
