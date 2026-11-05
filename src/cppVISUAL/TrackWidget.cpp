@@ -419,8 +419,8 @@ TrackWidget* TrackWidget::load(const LoadContext cx, QWidget* parent)
 	if (!track) return nullptr;
 
 	track->session_height_ = cx.height;
-	//Variant tracks grow with the number of overlapping variants at the current zoom level.
-	if (type != VcfTrack::type() && type != SvTrack::type())
+	//Variant and IGV tracks calculate their height from the displayed content and settings.
+	if (type != VcfTrack::type() && type != SvTrack::type() && type != IgvTrack::type())
 	{
 		const int restored_height = type == BedTrack::type() ? std::max(cx.height, track->minimumHeight()) : cx.height;			track->setFixedHeight(restored_height);
 	}

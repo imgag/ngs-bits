@@ -859,6 +859,125 @@ private slots:
 		QVERIFY(empty_index.matchingIndices(Chromosome("chr22"), 1, 10).isEmpty());
 	}
 
+	void igvMultipleDatasets()
+	{
+		writeFile("multiple.igv", "Chromosome\tStart\tEnd\tFeature\tFirst\tSecond\tThird\n"
+			"chr22\t20\t21\tfeature\t0.75\t0.25\tinvalid\n"
+			"chr22\t40\t41\tfeature\tinvalid\t0.25\t0.5\n"
+			"chr22\t60\t61\tfeature\t0.75\t0.25\n"
+			"chr22\t70\t71\tfeature\tnan\tinf\tinvalid\n");
+		auto file = FileLoader::loadIgvFile(data_.filePath("multiple.igv"));
+		QVERIFY(file);
+		QCOMPARE(file->datasetNames(), QByteArrayList({"First", "Second", "Third"}));
+		QCOMPARE(file->datasetCount(), 3);
+		QCOMPARE(file->count(), 3);
+		QCOMPARE((*file)[0].value(), 0.75);
+		QCOMPARE((*file)[0].value(1), 0.25);
+		QVERIFY(std::isnan((*file)[0].value(2)));
+		QVERIFY(std::isnan((*file)[1].value()));
+		QCOMPARE((*file)[1].value(2), 0.5);
+		QVERIFY(std::isnan((*file)[2].value(2)));
+
+		//Use two series to check rendering and hit testing of the second dataset in every mode.
+		IgvTrack track(view_.data(), "", "Multiple datasets");
+		const int x0 = SharedData::settings().label_width + 2;
+		track.resize(x0 + 2 + 800, 100);
+		track.setIgvFile(QSharedPointer<IgvFile>::create(QVector<IgvFileLine>{
+			{Chromosome("chr22"), 21, 21, QVector<double>{0.75, 0.25}},
+			{Chromosome("chr22"), 61, 61, QVector<double>{0.75, 0.25}}},
+			QByteArrayList{"Chromosome\tStart\tEnd\tFeature\tFirst\tSecond"}));
+		QCOMPARE(track.sizeHint().height(), 200);
+		track.resize(track.width(), track.sizeHint().height());
+		track.show();
+		QImage image(track.size(), QImage::Format_ARGB32);
+		for (const QByteArray& mode : QByteArrayList{"points", "line plot", "bar chart", "heatmap"})
+		{
+			track.parameters().setString("draw mode", mode);
+			track.render(&image);
+			const int blue_x = x0 + (mode == "line plot" ? 300 : 205);
+			const int second_x = blue_x;
+			const int first_y = 27;
+			const int second_y = mode == "bar chart" ? 180 : 173;
+			const QColor first = image.pixelColor(blue_x, first_y);
+			const QColor second = image.pixelColor(second_x, second_y);
+			QVERIFY2(first.blue() > first.red(), mode.constData());
+			QVERIFY2(second.blue() > second.red(), mode.constData());
+			if (mode != "heatmap") QCOMPARE(first, second);
+			QTest::mouseClick(&track, Qt::LeftButton, Qt::NoModifier,
+				QPoint(mode == "line plot" ? x0 + 200 : second_x, second_y));
+			auto* popup = track.findChild<QDialog*>();
+			QVERIFY2(popup, mode.constData());
+			const QString text = popup->findChild<QLabel*>()->text();
+			QVERIFY(text.contains("First: 0.75"));
+			QVERIFY(text.contains("Second: 0.25"));
+			delete popup;
+		}
+
+		//Missing data must not connect the two valid points of the first series.
+		track.setIgvFile(file);
+		QCOMPARE(track.sizeHint().height(), 300);
+		track.resize(track.width(), track.sizeHint().height());
+		image = QImage(track.size(), QImage::Format_ARGB32);
+		track.parameters().setString("draw mode", "line plot");
+		track.render(&image);
+		QCOMPARE(image.pixelColor(x0 + 300, 27), QColor(Qt::white));
+		QVERIFY(image.pixelColor(x0 + 300, 173).blue() > image.pixelColor(x0 + 300, 173).red());
+
+		//An out-of-range value in the upper row must not draw into or receive clicks in the lower row.
+		track.setIgvFile(QSharedPointer<IgvFile>::create(QVector<IgvFileLine>{
+			{Chromosome("chr22"), 21, 21, QVector<double>{-1.0, 0.75}},
+			{Chromosome("chr22"), 61, 61, QVector<double>{-1.0, 0.75}}}, QByteArrayList{}));
+		track.resize(track.width(), track.sizeHint().height());
+		image = QImage(track.size(), QImage::Format_ARGB32);
+		for (const QByteArray& mode : QByteArrayList{"points", "line plot"})
+		{
+			track.parameters().setString("draw mode", mode);
+			track.render(&image);
+			QCOMPARE(image.pixelColor(x0 + (mode == "points" ? 205 : 300), 188), QColor(Qt::white));
+			QTest::mouseClick(&track, Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 205, 188));
+			QVERIFY(!track.findChild<QDialog*>());
+		}
+	}
+
+	void igvDatasetRowHeightAndLabels()
+	{
+		writeFile("row-height.igv", "Chromosome\tStart\tEnd\tFeature\tFirst\tSecond\nchr22\t20\t21\tfeature\t0.75\t0.25\n");
+		QScopedPointer<IgvTrack> track(IgvTrack::createTrack(view_.data(), data_.filePath("row-height.igv")));
+		QVERIFY(track);
+		track->parameters().setInt("track height", 80);
+		QCOMPARE(track->sizeHint().height(), 160);
+		const int label_width = SharedData::settings().label_width;
+		track->resize(label_width + 804, track->sizeHint().height());
+		QImage image(track->size(), QImage::Format_ARGB32);
+		track->render(&image);
+		//Each dataset name belongs in the left label area at the start of its row.
+		for (int row = 0; row < 2; ++row)
+		{
+			IgvTrack reference(view_.data(), "", row == 0 ? "First" : "Second");
+			reference.parameters().setInt("track height", 80);
+			reference.resize(track->width(), 80);
+			QImage expected(reference.size(), QImage::Format_ARGB32);
+			reference.render(&expected);
+			QCOMPARE(image.copy(0, row * 80, label_width - 2, 80), expected.copy(0, 0, label_width - 2, 80));
+		}
+
+		QString xml;
+		QXmlStreamWriter writer(&xml);
+		track->writeToXml(writer);
+		QDomDocument document;
+		QVERIFY(document.setContent(xml));
+		QStringList errors;
+		QScopedPointer<TrackWidget> restored(TrackWidget::fromXml(document.documentElement(), view_.data(), errors));
+		QVERIFY(errors.isEmpty());
+		QVERIFY(restored);
+		QCOMPARE(restored->sizeHint().height(), 160);
+		//Restoring the session must allow subsequent changes to the per-row height.
+		restored->parameters().setInt("track height", 120);
+		QCOMPARE(restored->sizeHint().height(), 240);
+		restored->resize(track->width(), restored->sizeHint().height());
+		QCOMPARE(restored->height(), 240);
+	}
+
 	void igvPopupUsesRenderedPositionAndBarHeight()
 	{
 		view_->setRegion(Chromosome("chr22"), 1, 80);

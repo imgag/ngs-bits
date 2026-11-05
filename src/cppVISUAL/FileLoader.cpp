@@ -68,7 +68,7 @@ QSharedPointer<IgvFile> FileLoader::loadIgvFile(QString file_path)
 
 	if (!isValidIgvFile(bedfile))
 	{
-		QMessageBox::critical(QApplication::activeWindow(), "Error", file_path + " is not a valid IGV file (header does not contain 5 columns)");
+		QMessageBox::critical(QApplication::activeWindow(), "Error", file_path + " is not a valid IGV file (header must contain at least 5 columns)");
 		return nullptr;
 	}
 
@@ -78,10 +78,18 @@ QSharedPointer<IgvFile> FileLoader::loadIgvFile(QString file_path)
 	{
 		const BedLine& line = (*bedfile)[i];
 		if (line.annotations().count() < 2) continue;
-		bool ok = false;
-		double value = line.annotations()[1].toDouble(&ok);
-		if (!ok) continue;
-		lines.append(IgvFileLine(line.chr(), line.start(), line.end(), value));
+		QVector<double> values;
+		bool has_value = false;
+		for (int column = 1; column < line.annotations().count(); ++column)
+		{
+			bool ok = false;
+			double value = line.annotations()[column].toDouble(&ok);
+			if (!ok || !std::isfinite(value)) value = std::numeric_limits<double>::quiet_NaN();
+			else has_value = true;
+			values.append(value);
+		}
+		if (!has_value) continue;
+		lines.append(IgvFileLine(line.chr(), line.start(), line.end(), std::move(values)));
 	}
 	return QSharedPointer<IgvFile>::create(std::move(lines), bedfile->headers());
 }
