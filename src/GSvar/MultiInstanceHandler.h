@@ -5,6 +5,7 @@
 #include <QLocalServer>
 #include <QSharedPointer>
 
+//Multi-instance handler for Windows
 class MultiInstanceHandler : public QObject
 {
 	Q_OBJECT

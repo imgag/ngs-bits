@@ -15,7 +15,6 @@
 #include <QMessageBox>
 #include <QStandardPaths>
 #include <VariantHgvsAnnotator.h>
-#include <QProcess>
 
 const GeneSet& GSvarHelper::impritingGenes()
 {
@@ -856,23 +855,17 @@ QString GSvarHelper::setQuality(QStringList ps_ngsd_ids)
 
 bool GSvarHelper::registerGSvarUrlScheme()
 {
-	// Currently gsvar:// URLs are supported only on Windows
-	if (Helper::isWindows())
-	{
-		const QString app_path = QDir::toNativeSeparators(QCoreApplication::applicationFilePath());
-		QSettings registry("HKEY_CURRENT_USER\\Software\\Classes\\gsvar", QSettings::NativeFormat);
-		registry.setValue("Default", "URL:GSvar Protocol");
-		registry.setValue("URL Protocol", "");
+	const QString app_path = QDir::toNativeSeparators(QCoreApplication::applicationFilePath());
+	QSettings registry("HKEY_CURRENT_USER\\Software\\Classes\\gsvar", QSettings::NativeFormat);
+	registry.setValue("Default", "URL:GSvar Protocol");
+	registry.setValue("URL Protocol", "");
 
-		QSettings cmd("HKEY_CURRENT_USER\\Software\\Classes\\gsvar\\shell\\open\\command", QSettings::NativeFormat);
-		cmd.setValue("Default", QString("\"%1\" \"%2\"").arg(app_path, "%1"));
-		registry.sync();
-		cmd.sync();
+	QSettings cmd("HKEY_CURRENT_USER\\Software\\Classes\\gsvar\\shell\\open\\command", QSettings::NativeFormat);
+	cmd.setValue("Default", QString("\"%1\" \"%2\"").arg(app_path, "%1"));
+	registry.sync();
+	cmd.sync();
 
-		return registry.status() == QSettings::NoError && cmd.status() == QSettings::NoError;
-	}
-
-	return true;
+	return registry.status() == QSettings::NoError && cmd.status() == QSettings::NoError;
 }
 
 GSvarHelper::GSvarHelper()

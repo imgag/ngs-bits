@@ -9,8 +9,7 @@ MultiInstanceHandler::MultiInstanceHandler(QObject* parent)
 	: QObject(parent)
 	, server_(QSharedPointer<QLocalServer>::create())
 {
-	connect(server_.data(), &QLocalServer::newConnection,
-	this, [this]()
+	connect(server_.data(), &QLocalServer::newConnection, this, [this]()
 	{
 		while (server_->hasPendingConnections())
 		{
@@ -22,8 +21,7 @@ MultiInstanceHandler::MultiInstanceHandler(QObject* parent)
 			// a parent that will clean it up with this handler
 			socket->setParent(this);
 
-			connect(socket, &QLocalSocket::readyRead,
-			this, [this, socket]()
+			connect(socket, &QLocalSocket::readyRead, this, [this, socket]()
 			{
 				while (socket->canReadLine())
 				{
@@ -75,20 +73,6 @@ bool MultiInstanceHandler::startServer()
 {
 	if (server_->isListening()) return true;
 	if (server_->listen(SERVER_NAME)) return true;
-
-#ifdef Q_OS_UNIX
-	// A crashed server can leave its socket file behind. Only remove it when
-	// connecting is explicitly refused, so a live or inaccessible server is kept.
-	if (server_->serverError() == QAbstractSocket::AddressInUseError)
-	{
-		QLocalSocket socket;
-		socket.connectToServer(SERVER_NAME);
-		if (!socket.waitForConnected(1000) && socket.error() == QLocalSocket::ConnectionRefusedError)
-		{
-			if (QLocalServer::removeServer(SERVER_NAME)) return server_->listen(SERVER_NAME);
-		}
-	}
-#endif
 	return false;
 }
 

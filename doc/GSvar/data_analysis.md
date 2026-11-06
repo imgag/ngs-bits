@@ -163,6 +163,21 @@ Here you can also see:
 Steps are marked in red if they are done, but on the old reference genome HG19:
 ![alt text](data_analysis_progress.png)
 
+## Opening GSvar via URL
+
+GSvar supports custom `gsvar://` URLs, allowing users to open specific data directly in the application.
+
+The following URL types are currently supported:
+
+| URL | Description |
+|---|---|
+| `gsvar://load/<processed_sample>?filter=<filter_name>&roi=<target_region_name>` | Opens a processed sample and applies the specified filter and region of interest (ROI). |
+| `gsvar://sample/<processed_sample>` | Opens a tab displaying the specified processed sample info. |
+| `gsvar://run/<sequencing_run>` | Opens a tab displaying the specified sequencing run. |
+
+**Platform availability:** This feature is currently supported only in the Windows version of GSvar.
+
+
 
 --
 
