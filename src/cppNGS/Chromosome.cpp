@@ -1,7 +1,6 @@
 #include "Chromosome.h"
+#include <QReadWriteLock>
 #include <deque>
-#include <mutex>
-#include <shared_mutex>
 #include <unordered_map>
 
 struct Chromosome::Pool
@@ -18,7 +17,8 @@ struct Chromosome::Pool
 	Records other;
 	QHash<QByteArray, int> special_numbers;
 	int next_num = 1004;
-	std::shared_mutex mutex;
+	//Avoid std::shared_mutex failures with the MinGW/winpthreads runtime.
+	QReadWriteLock mutex;
 
 	Pool()
 	{
@@ -60,12 +60,12 @@ const Chromosome::Data* Chromosome::getDataPointer(QByteArrayView chr)
 	if (common != common_records.end()) return last = common->second;
 
 	{
-		std::shared_lock<std::shared_mutex> lock(pool->mutex);
+		QReadLocker lock(&pool->mutex);
 		const auto found = pool->other.find(chr);
 		if (found != pool->other.end()) return last = found->second;
 	}
 
-	std::unique_lock<std::shared_mutex> lock(pool->mutex);
+	QWriteLocker lock(&pool->mutex);
 	//Another thread may have inserted this spelling while we changed locks.
 	const auto found = pool->other.find(chr);
 	if (found != pool->other.end()) return last = found->second;
@@ -115,7 +115,7 @@ Chromosome::Chromosome()
 }
 
 Chromosome::Chromosome(const QString& chr)
-	: data_(getDataPointer(chr.trimmed().toUtf8()))
+	: data_(getDataPointer(chr.toUtf8()))
 {
 }
 
