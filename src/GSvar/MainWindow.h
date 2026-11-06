@@ -15,7 +15,6 @@
 #include "ImportDialog.h"
 #include "RepeatLocusList.h"
 #include "Background/BackgroundJobDialog.h"
-#include "MultiInstanceHandler.h"
 
 ///Tab type
 enum class TabType
@@ -48,8 +47,6 @@ public:
 
     /// Gets the list of files needed to initialize IGV, reduces the delay before the fist call to IGV
     void lazyLoadIGVfiles(QString current_file);
-
-	void openGSvarUrl(const QUrl url);
 
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
@@ -506,9 +503,6 @@ public slots:
 	//Set application style
 	void setStyle(QString name);
 
-	//Opens the given 'gsvar://' URL in the main instance and puts the window on the top
-	void processGSvarUrl(QUrl url);
-
     ///close the app and logout (if in client-sever mode)
 	void closeAndLogout();
 
@@ -526,9 +520,7 @@ protected:
     /// Removes a user's session on the server (in client-server mode)
     void performLogout();
 	//Returns the path to the genome viewer app
-	QString viewerApp();
-	bool openSampleWithFilters(const QString& ps_name, const QString& filter_name, const QString& roi_name);
-	void parseArguments(const QStringList& arguments, const QUrl& url = QUrl());
+	QString viewerApp(bool only_igv=false);
 
 private:
 	//GUI
@@ -588,10 +580,7 @@ private:
 	QString displayed_maintenance_message_id_;
 
     //current server version (if in client-server mode)
-	QString server_version_;
-
-	// Handling of 'gsvar://' URLs
-	MultiInstanceHandler multi_instance_handler_;
+    QString server_version_; 
 };
 
 #endif // MAINWINDOW_H

@@ -253,8 +253,50 @@ void BamAlignmentTrack::calculateGroupedRows()
 
 	const bool by_phase = fast_settings_.group_by == "phase";
 	const bool by_orientation = fast_settings_.group_by == "pair orientation";
-	const QStringList labels = by_phase ? QStringList{"phase 1", "phase 2", "unphased"}
-		: by_orientation ? QStringList{"RF", "FF", "RR", "FR"} : QStringList{"differing", "same"};
+	QStringList labels = by_orientation ? QStringList{"RF", "FF", "RR", "FR"} : QStringList{"differing", "same"};
+	const int count = fast_settings_.view_as_pairs ? read_pairs_.count() : alns.count();
+	QVector<QByteArray> phases;
+	QHash<QByteArray, int> phase_groups;
+	if (by_phase)
+	{
+		phases.resize(count);
+		QSet<QByteArray> phase_ids;
+		for (int i = 0; i < count; ++i)
+		{
+			const auto& al = alns[fast_settings_.view_as_pairs ? read_pairs_[i].first : i];
+			if (!isAlignmentVisible(al)) continue;
+			QByteArray phase = al.phase();
+			if (fast_settings_.view_as_pairs && read_pairs_[i].second != -1)
+			{
+				const auto& mate_phase = alns[read_pairs_[i].second].phase();
+				// Use the assigned mate when the other is unassigned; conflicting mates are unassigned.
+				if (phase.isEmpty()) phase = mate_phase;
+				else if (!mate_phase.isEmpty() && mate_phase != phase) phase.clear();
+			}
+			phases[i] = phase;
+			if (!phase.isEmpty()) phase_ids.insert(phase);
+		}
+		auto sorted_phases = phase_ids.values();
+		std::sort(sorted_phases.begin(), sorted_phases.end(), [](const QByteArray& a, const QByteArray& b)
+		{
+			bool a_numeric = false, b_numeric = false;
+			const qlonglong a_number = a.toLongLong(&a_numeric);
+			const qlonglong b_number = b.toLongLong(&b_numeric);
+			if (a_numeric != b_numeric) return a_numeric;
+			if (a_numeric && a_number != b_number) return a_number < b_number;
+			return a < b;
+		});
+		labels.clear();
+		for (const auto& phase : sorted_phases)
+		{
+			phase_groups.insert(phase, labels.count());
+			bool numeric = false;
+			phase.toLongLong(&numeric);
+			labels.append(numeric ? "phase " + QString::fromUtf8(phase) : QString::fromUtf8(phase));
+		}
+		phase_groups.insert(QByteArray(), labels.count());
+		labels.append("unphased");
+	}
 	const Chromosome& chromosome = viewer_->region().chr();
 	const auto differing_mate = [&chromosome](const BamAlignmentWrapper& alignment)
 	{
@@ -266,7 +308,6 @@ void BamAlignmentTrack::calculateGroupedRows()
 		RowPacker group;
 		// Reserve a label row, plus a separator row between non-empty groups.
 		const int offset = row_packer_.rowCount() == 0 ? 1 : row_packer_.rowCount() + 2;
-		const int count = fast_settings_.view_as_pairs ? read_pairs_.count() : alns.count();
 		for (int i = 0; i < count; ++i)
 		{
 			const auto& al = alns[fast_settings_.view_as_pairs ? read_pairs_[i].first : i];
@@ -274,15 +315,7 @@ void BamAlignmentTrack::calculateGroupedRows()
 			int read_group;
 			if (by_phase)
 			{
-				int read_phase = al.phase();
-				if (fast_settings_.view_as_pairs && read_pairs_[i].second != -1)
-				{
-					const int mate_phase = alns[read_pairs_[i].second].phase();
-					// Use the assigned mate when the other is unassigned; conflicting mates are unassigned.
-					if (read_phase == 0) read_phase = mate_phase;
-					else if (mate_phase != 0 && mate_phase != read_phase) read_phase = 0;
-				}
-				read_group = read_phase == 1 ? 0 : read_phase == 2 ? 1 : 2;
+				read_group = phase_groups.value(phases[i]);
 			}
 			else if (by_orientation)
 			{

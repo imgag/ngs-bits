@@ -119,10 +119,10 @@ struct FileLocation
 	{
 		QString output = QFileInfo(filename).fileName();
 
-		//remove HTTP GET arguments
+		//remove HTTP GET arguments (we do not use the helper function because the 'https:' prefix can already be removed
 		if (remove_http_get_args)
 		{
-			output = Helper::removeUrlArguments(output);
+			output = output.split('?')[0];
 		}
 
 		return output;
@@ -418,7 +418,7 @@ struct FileLocation
 			case PathType::METHYLATION_COHORT_IMAGE:
 				return "cohort plot of a given methylation locus";
 			case PathType::PARAPHASE_EVIDENCE:
-				return "Mapping of pseudo gene regions (Paraphase)";
+				return "BAM of pseudo gene regions (Paraphase)";
 		}
 		THROW(ProgrammingException, "Unhandled path type '" + QString::number((int)pathtype) + "' in typeToHumanReadableString()!");
 	}

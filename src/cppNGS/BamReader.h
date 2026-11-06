@@ -240,6 +240,13 @@ class CPPNGSSHARED_EXPORT BamAlignment
 
 		//Returns a string tag. If the tag is not present, an empty string is returned. If the tag is not a string, i.e. type Z, an exception is thrown.
 		QByteArray tag(const QByteArray& tag) const;
+		//Returns the BAM storage type of a tag, or '\0' if it is absent.
+		char tagType(const QByteArray& tag) const
+		{
+			if (!containsTags()) THROW(ProgrammingException, "BamAlignment does not contain tags, but tagType(QByteArray) used!");
+			const uint8_t* data = bam_aux_get(aln_, tag.constData());
+			return data == nullptr ? '\0' : *data;
+		}
 		//Adds a tag to the alignment.
 		void addTag(const QByteArray& tag, char type, const QByteArray& data);
 		//Returns a integer tag. If the tag is not present, 0 is returned.
