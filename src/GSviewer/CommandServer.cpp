@@ -4,6 +4,7 @@
 #include <QUrlQuery>
 #include <deque>
 #include <QTcpSocket>
+#include <QProcess>
 
 CommandServer::CommandServer(QObject* parent)
 	: QObject{parent}
@@ -107,8 +108,7 @@ ApiCommand CommandServer::parseCommand(QString cmd)
 	if (i_sep <= -1) i_sep = cmd.length();
 	QString verb = cmd.sliced(0, i_sep).trimmed();
 	QString arguments = cmd.sliced(i_sep).trimmed();
-
-	return ApiCommand{ QDateTime::currentDateTime(), cmd_id_++, verb, splitQuoted(arguments) };
+	return ApiCommand{ QDateTime::currentDateTime(), cmd_id_++, verb, QProcess::splitCommand(arguments) };
 }
 
 void CommandServer::dispatchResponse(ApiCommand cmd)
@@ -156,75 +156,4 @@ QUrl CommandServer::parseUrl(QString str)
 	}
 
 	return url;
-}
-
-QStringList CommandServer::splitQuoted(QString str) //TODO Marc easier with Qt?
-{
-	QStringList split;
-
-	bool is_quoted = false;
-	QString token;
-	for (qsizetype i = 0; i < str.size(); i++)
-	{
-		const QChar c = str[i];
-
-		// Handle escaped string characters
-		if (c == '\\')
-		{
-			// This has the nice unintended consequence that a string terminated by an escaped quote doesn't cause errors.
-			// Instead, the escaped quote is simply emitted, the string then terminates normally due to the end of the input and all is well.
-			if (i >= str.size() - 1)
-			{
-				token.push_back("\\");
-				continue;
-			}
-
-			const QChar next = str.at(++i);
-
-			if (next == '"')
-			{
-				token.push_back('"');
-			}
-			else if (next == '\\')
-			{
-				token.push_back('\\');
-			}
-			else if (next == 'n')
-			{
-				token.push_back('\n');
-			}
-			else
-			{
-				token.push_back('\\');
-				token.push_back(next);
-			}
-		}
-		else if (c.isSpace() && !is_quoted)
-		{
-			if (!token.trimmed().isEmpty()) split << token.trimmed();
-
-			token.clear();
-		}
-		else if (c == '"')
-		{
-			is_quoted = !is_quoted;
-
-			if (!is_quoted)
-			{
-				split << token.trimmed();
-				token.clear();
-			}
-		}
-		else
-		{
-			token.push_back(c);
-		}
-	}
-
-	if (!token.trimmed().isEmpty())
-	{
-		split << token.trimmed();
-	}
-
-	return split;
 }
