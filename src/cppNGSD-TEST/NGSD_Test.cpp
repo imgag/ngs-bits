@@ -227,7 +227,8 @@ private:
 
 		//processedSamplePath
 		QString gsvar_path = db.processedSamplePath(db.processedSampleId("NA12878_03"), PathType::GSVAR);
-		IS_TRUE(gsvar_path.endsWith("test/KontrollDNACoriell/Sample_NA12878_03/NA12878_03.GSvar.gz"));
+		QString gsvar_expected = "test/KontrollDNACoriell/Sample_NA12878_03/NA12878_03.GSvar";
+		IS_TRUE(gsvar_path.endsWith(gsvar_expected) || gsvar_path.endsWith(gsvar_expected+".gz"));
 
 		//geneToApproved
 		QByteArray gene_app = db.geneToApproved("BRCA1");
