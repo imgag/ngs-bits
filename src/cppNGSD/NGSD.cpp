@@ -4048,6 +4048,12 @@ void NGSD::init(QString password)
 			foreach(QString table, tables)
 			{
 				query.exec("DELETE FROM " + table);
+			}
+			//ALTER TABLE is expensive, so only reset counters that have advanced.
+			//Check metadata after deleting rows, including tables that were already empty.
+			QStringList reset_tables = getValues("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND AUTO_INCREMENT>1");
+			foreach(QString table, reset_tables)
+			{
 				query.exec("ALTER TABLE " + table  + " AUTO_INCREMENT = 1");
 			}
 			query.exec("SET FOREIGN_KEY_CHECKS = 1;");
