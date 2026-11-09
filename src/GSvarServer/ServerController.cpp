@@ -979,12 +979,21 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 
 			if (chr_pos==-1 || start_pos==-1 || end_pos==-1 || ref_pos==-1 || obs_pos==-1)
             {
-                return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not identify key columns in GSvar file: " + ps_url_id));
+				return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not identify key columns in GSvar file: " + url.filename_with_path));
 			}
 			continue;
 		}
 
+		// Processing malformed lines
+		if (line.trimmed().isEmpty()) continue;
 		QStringList line_columns = line.split("\t");
+		const int max_index = std::max({chr_pos, start_pos, end_pos, ref_pos, obs_pos});
+		if (chr_pos==-1 || line_columns.size() <= max_index)
+		{
+			return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Malformed line in GSvar file: " + url.filename_with_path));
+		}
+
+		// Now we can start parsing the line
 		QString variant_in = (line_columns[chr_pos] + ":" + line_columns[start_pos] + "-" + line_columns[end_pos] + " " + line_columns[ref_pos] + ">" + line_columns[obs_pos]).toLower().trimmed();
 		bool is_current_variant_changed = false;
 
