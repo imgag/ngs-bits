@@ -265,7 +265,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.actionEncrypt->setEnabled(Helper::runningInQtCreator());
 
 	//handle 'gsvar://' URLs in the operating system
-	if (Helper::isWindows())
+	if (Helper::isWindows() && !Helper::runningInQtCreator())
 	{
 		if (!GSvarHelper::registerGSvarUrlScheme()) Log::error("Failed to register 'gsvar://' URL scheme");
 		if (!multi_instance_handler_.startServer()) Log::error("Failed to start the server for handling multiple instances: " + multi_instance_handler_.errorString());
