@@ -470,6 +470,7 @@ void ImportDialog::import()
 		else if (type_==PROCESSED_SAMPLES)
 		{
 			//add entries
+			ui_.import_btn->setEnabled(false);
 			for (int r=0; r<ui_.table->rowCount(); ++r)
 			{
 				QHash<QString, QString> import_data;
@@ -491,12 +492,12 @@ void ImportDialog::import()
 				for (int e = 0; e < process_id_list.size(); ++e) import_data.insert(db_extra_fields_[e], process_id_list[e]);
 				sendImportDataToServer("processed_sample", import_data);
 			}
-			ui_.warnings->appendPlainText("Import successful!");
-			ui_.import_btn->setEnabled(false);
+			ui_.warnings->appendPlainText("Import successful!");			
 		}
 		else if (type_==SAMPLES)
 		{
 			//add entries
+			ui_.import_btn->setEnabled(false);
 			for (int r=0; r<ui_.table->rowCount(); ++r)
 			{
 				++row_num;
@@ -549,11 +550,11 @@ void ImportDialog::import()
 			if (skipped>0)
 			{
 				ui_.warnings->appendPlainText("Skipped " + QString::number(skipped) + " rows!");
-			}
-			ui_.import_btn->setEnabled(false);
+			}			
 		}
 		else if (type_==USERS)
 		{
+			ui_.import_btn->setEnabled(false);
 			QHash<QString, QString> initial_user_password_pairs;
 			//add entries
 			for (int r=0; r<ui_.table->rowCount(); ++r)
@@ -629,11 +630,8 @@ void ImportDialog::import()
 			if (skipped>0)
 			{
 				ui_.warnings->appendPlainText("Skipped " + QString::number(skipped) + " rows!");
-			}
-			ui_.import_btn->setEnabled(false);
+			}			
 		}
-
-
 		else
 		{
 			THROW(ProgrammingException, "Unhandled type in ImportDialog::process");
