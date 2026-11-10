@@ -1374,20 +1374,6 @@ QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analy
 	for (int i=0; i<output.count(); ++i)
 	{
 		QString file = output[i];
-
-		//get folder of secondary analysis
-		QString gsvar_file = QFileInfo(file).fileName();
-		QString secondary_folder_name = QFileInfo(file).dir().dirName();
-
-		//get first sample (determines path)
-		QStringList parts = secondary_folder_name.split("_");
-		QString first_sample = parts[1] + "_" + parts[2];
-		QDir sample_folder = QFileInfo(processedSamplePath(processedSampleId(first_sample), PathType::SAMPLE_FOLDER)).dir();
-		QString project_folder = QFileInfo(sample_folder.absolutePath()).absolutePath();
-
-		//concat path
-		file = project_folder + QDir::separator() + secondary_folder_name + QDir::separator() + gsvar_file;
-
 		//convert to canonical path
 		file = QFileInfo(file).absoluteFilePath();
 		if (!file.endsWith(".gz", Qt::CaseInsensitive))
@@ -5300,6 +5286,9 @@ QString NGSD::analysisJobGSvarFile(int job_id)
 	{
 		THROW(ProgrammingException, "Unknown analysis type '" + job.type + "'!");
 	}
+
+	QString gz_output = output+".gz";
+	if (QFile::exists(gz_output)) return gz_output;
 
 	return output;
 }
