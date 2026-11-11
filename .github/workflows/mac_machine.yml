@@ -1,10 +1,6 @@
 name: Qt 6.10.3 on MacOS 26 (arm64, M1)
-on: [push, pull_request]
-# Cancel superseded runs on the same branch/PR
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
+on: [push, pull_request]
 jobs:
   mac-build-and-test:
     runs-on: macos-26
