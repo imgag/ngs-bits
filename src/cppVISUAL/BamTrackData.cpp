@@ -66,6 +66,7 @@ void BamTrackData::bindReadFilters(ParameterList& parameters)
 
 void BamTrackData::updateRegion()
 {
+	if (!viewer_) return;
 	if (!bam_reader_)
 	{
 		qWarning() << "Bam Reader is not set For BamTrackData" << Qt::endl;
@@ -73,7 +74,7 @@ void BamTrackData::updateRegion()
 	}
 
 	const int max_len = visibility_range_;
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 
 	if (!region.isValid())
 	{

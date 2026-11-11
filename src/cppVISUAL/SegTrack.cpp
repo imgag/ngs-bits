@@ -52,7 +52,7 @@ SegTrack::SegTrack(QWidget* parent, QString file_path, QString name, QSharedPoin
 	initializeSettings(&fast_settings_);
 	if (file_) setSegFile(file_);
 	connect(&settings_, &ParameterList::parameterChanged, this, &TrackWidget::regionChanged);
-	connect(SharedData::instance(), &SharedData::regionChanged, this, &TrackWidget::regionChanged);
+	connect(viewer_, &GenomeVisualizationWidget::regionChanged, this, &TrackWidget::regionChanged);
 }
 
 QList<Parameter> SegTrack::getParameters() const

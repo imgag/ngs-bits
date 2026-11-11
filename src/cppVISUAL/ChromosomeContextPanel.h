@@ -2,6 +2,7 @@
 #define CHROMOSOMECONTEXTPANEL_H
 
 #include "cppVISUAL_global.h"
+#include "GenomeVisualizationWidget.h"
 
 #include <QPainter>
 #include <QWidget>
@@ -28,6 +29,7 @@ protected:
 	void mouseReleaseEvent(QMouseEvent*) override;
 
 private:
+	GenomeVisualizationWidget* viewer_;
 	void drawLineWithArrow(QPainter*, QPoint start, QPoint end);
 	void drawArrowsAndSize(QPainter*, int label_width, int total_width);
 	void drawTicks(QPainter*, int label_width, int total_width);

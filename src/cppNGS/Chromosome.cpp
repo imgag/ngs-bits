@@ -1,77 +1,66 @@
 #include "Chromosome.h"
+#include <QReadWriteLock>
 #include <deque>
-#include <mutex>
-#include <shared_mutex>
-#include <unordered_map>
 
 struct Chromosome::Pool
 {
-	struct Hash
-	{
-		size_t operator()(QByteArrayView str) const noexcept { return ::qHash(str); }
-	};
-	using Records = std::unordered_map<QByteArrayView, const Data*, Hash>;
-
 	//deque keeps records (and the strings used as map keys) at stable addresses.
 	std::deque<Data> data;
-	Records common;
-	Records other;
+	QHash<QByteArrayView, const Data*> common;
+	QHash<QByteArrayView, const Data*> other;
 	QHash<QByteArray, int> special_numbers;
 	int next_num = 1004;
-	std::shared_mutex mutex;
+	QReadWriteLock mutex;
 
 	Pool()
 	{
-		common.reserve(55);
 		addCommon(QByteArray(""), QByteArray(""), 0);
 		for (int num = 1; num <= 22; ++num)
 		{
-			const QByteArray name = QByteArray::number(num);
+			QByteArray name = QByteArray::number(num);
 			addCommon(name, name, num);
 			addCommon("chr" + name, name, num);
 		}
-		for (const auto& entry : {std::pair<const char*, int>{"X", 1001}, {"Y", 1002}, {"MT", 1003}, {"M", 1003}})
+		for (const auto& entry : {QPair<QByteArray, int>{"X", 1001}, {"Y", 1002}, {"MT", 1003}, {"M", 1003}})
 		{
-			const QByteArray name(entry.first);
-			const QByteArray normalized = entry.second == 1003 ? QByteArray("MT") : name;
-			addCommon(name, normalized, entry.second);
-			addCommon("chr" + name, normalized, entry.second);
+			QByteArray normalized = entry.second == 1003 ? QByteArray("MT") : entry.first;
+			addCommon(entry.first, normalized, entry.second);
+			addCommon("chr" + entry.first, normalized, entry.second);
 		}
 	}
 
 	void addCommon(const QByteArray& original, const QByteArray& normalized, int num)
 	{
 		data.push_back({original, normalized, num});
-		common.emplace(QByteArrayView(data.back().original), &data.back());
+		common.emplace(original, &data.back());
 	}
 };
 
 const Chromosome::Data* Chromosome::getDataPointer(QByteArrayView chr)
 {
 	chr = chr.trimmed();
-	//Keep records alive even during static destruction in other translation units.
-	//Initialization is thread-safe; the common map is immutable after publication.
+
+	//construct pool of data (shared)
 	static Pool* const pool = new Pool;
-	thread_local const Data* last = nullptr;
-	if (last != nullptr && QByteArrayView(last->original) == chr) return last;
 
-	const Pool::Records& common_records = pool->common;
-	const auto common = common_records.find(chr);
-	if (common != common_records.end()) return last = common->second;
+	//search in common chr names (immutable)
+	const auto common = pool->common.constFind(chr);
+	if (common != pool->common.cend()) return common.value();
 
+	//search in other chr names (can be changed)
 	{
-		std::shared_lock<std::shared_mutex> lock(pool->mutex);
-		const auto found = pool->other.find(chr);
-		if (found != pool->other.end()) return last = found->second;
+		QReadLocker lock(&pool->mutex);
+		const auto found = pool->other.constFind(chr);
+		if (found != pool->other.cend()) return found.value();
 	}
 
-	std::unique_lock<std::shared_mutex> lock(pool->mutex);
-	//Another thread may have inserted this spelling while we changed locks.
-	const auto found = pool->other.find(chr);
-	if (found != pool->other.end()) return last = found->second;
+	//not in other => get write lock
+	QWriteLocker lock(&pool->mutex);
+	const auto found = pool->other.constFind(chr); //Another thread may have inserted this spelling while we changed locks.
+	if (found != pool->other.cend()) return found.value();
 
-	//Copy the input: callers may supply temporary strings or non-owning views.
-	const QByteArray original = chr.toByteArray();
+	//insert new chr spelling
+	QByteArray original = chr.toByteArray();
 	QByteArray normalized = original.toUpper();
 	if (normalized.startsWith("CHR")) normalized = normalized.mid(3);
 	if (normalized == "M") normalized = "MT";
@@ -83,7 +72,7 @@ const Chromosome::Data* Chromosome::getDataPointer(QByteArrayView chr)
 	else if (!normalized.isEmpty())
 	{
 		bool ok = false;
-		const uint value = normalized.toUInt(&ok);
+		int value = normalized.toInt(&ok);
 		if (!normalized.startsWith('0') && ok && value > 0 && value <= 1000)
 		{
 			num = value;
@@ -106,7 +95,7 @@ const Chromosome::Data* Chromosome::getDataPointer(QByteArrayView chr)
 	pool->data.push_back({original, normalized, num});
 	const Data* result = &pool->data.back();
 	pool->other.emplace(QByteArrayView(result->original), result);
-	return last = result;
+	return result;
 }
 
 Chromosome::Chromosome()
@@ -115,7 +104,7 @@ Chromosome::Chromosome()
 }
 
 Chromosome::Chromosome(const QString& chr)
-	: data_(getDataPointer(chr.trimmed().toUtf8()))
+	: data_(getDataPointer(chr.toUtf8()))
 {
 }
 

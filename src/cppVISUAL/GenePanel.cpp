@@ -38,10 +38,11 @@ int splicedPosition(const BedFile& regions, int genome_pos, bool plus)
 
 GenePanel::GenePanel(QWidget *parent)
 	: QWidget(parent)
+	, viewer_(GenomeVisualizationWidget::fromWidget(parent))
 {
 	setContextMenuPolicy(Qt::CustomContextMenu);
 	connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenu(QPoint)));
-	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
+	connect(viewer_, &GenomeVisualizationWidget::regionChanged, this, &GenePanel::updateRegion);
 	connect(SharedData::instance(), &SharedData::transcriptsChanged, this, &GenePanel::updateRegion);
 	connect(SharedData::instance(), &SharedData::settingsChanged, this, &GenePanel::updateRegion);
 	updateTranscriptLayout();
@@ -100,7 +101,7 @@ void GenePanel::changeEvent(QEvent* event)
 
 void GenePanel::updateTranscriptLayout()
 {
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	char_size_ = characterSize(font());
 	if (!region.isValid())
 	{
@@ -153,7 +154,7 @@ void GenePanel::updateCodingAminoAcids(TranscriptPosition& position)
 
 	//Concatenate CDS exons before translating, so split codons retain their frame.
 	const Sequence coding_sequence = codingSequence(trans);
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	int prefix = 0;
 	for (int i = 0; i < trans.codingRegions().count(); ++i)
 	{
@@ -188,7 +189,7 @@ void GenePanel::paintEvent(QPaintEvent* /*event*/)
 	int h = height();
 	int w = width();
 	int label_width = SharedData::settings().label_width;
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	QPainter painter(this);
 	painter.setRenderHint(QPainter::Antialiasing, true);
 	int y_content_start = 2;
@@ -291,7 +292,7 @@ void GenePanel::mouseReleaseEvent(QMouseEvent* event)
 			for (const TranscriptPosition& position : trans_positions_)
 			{
 				if (!position.rect.contains(event->pos())) continue;
-				const int genome_pos = SharedData::region().start() + (int)((event->pos().x() - x0) / pixels_per_base_);
+				const int genome_pos = viewer_->region().start() + (int)((event->pos().x() - x0) / pixels_per_base_);
 				auto* popup = new QDialog(this, Qt::Popup);
 				popup->setAttribute(Qt::WA_DeleteOnClose);
 				auto* label = new QLabel(transcriptText(position.trans, genome_pos), popup);
@@ -400,7 +401,7 @@ double GenePanel::baseStartX(int pos, bool restrict_to_content_area) const
 	int w = width();
 	int label_width = SharedData::settings().label_width;
 
-	double x = label_width + 2 + (pos-SharedData::region().start())*pixels_per_base_;
+	double x = label_width + 2 + (pos-viewer_->region().start())*pixels_per_base_;
 
 	if (restrict_to_content_area)
 	{
@@ -415,7 +416,7 @@ double GenePanel::baseEndX(int pos, bool restrict_to_content_area) const
 	int w = width();
 	int label_width = SharedData::settings().label_width;
 
-	double x = label_width + 2 + ((pos+1)-SharedData::region().start())*pixels_per_base_;
+	double x = label_width + 2 + ((pos+1)-viewer_->region().start())*pixels_per_base_;
 
 	if (restrict_to_content_area)
 	{

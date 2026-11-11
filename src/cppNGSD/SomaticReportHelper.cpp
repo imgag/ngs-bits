@@ -1272,15 +1272,15 @@ RtfTable SomaticReportHelper::signatureTable()
 
 void SomaticReportHelper::signatureTableHelper(RtfTable &table, QString file, const QMap<QByteArray, QByteArray>& descriptions, const QByteArray& type)
 {
-	if (file.trimmed().isEmpty())
+	VersatileFile stream(file);
+
+	if (file.trimmed().isEmpty() || ! stream.exists())
 	{
 		RtfTableRow row;
 		row.addCell(doc_.maxWidth(), "Die Mutationssignaturen des Typs " + type + " konnten nicht berechnet werden.");
 		table.addRow(row);
 		return;
 	}
-
-	VersatileFile stream(file);
 
 	try
 	{

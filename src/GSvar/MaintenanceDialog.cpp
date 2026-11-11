@@ -943,11 +943,49 @@ void MaintenanceDialog::compareStructureOfTestAndProduction()
 		}
 	}
 
-	//Compare indices
+	struct IndexDefinition
+	{
+		bool unique;
+		QStringList columns;
+
+		bool operator==(const IndexDefinition& other) const
+		{
+			return unique==other.unique && columns==other.columns;
+		}
+
+		QString toString() const
+		{
+			return QString(unique ? "UNIQUE" : "NON-UNIQUE") + " (" + columns.join(", ") + ")";
+		}
+	};
+
+	//Read index definitions by name, preserving column order and uniqueness.
+	auto indexDefinitions = [](NGSD& db, const QString& table)
+	{
+		QMap<QString, IndexDefinition> definitions;
+		SqlQuery query = db.getQuery();
+
+		query.exec("SHOW INDEX FROM `" + table + "`");
+		while (query.next())
+		{
+			QString name = query.value("Key_name").toString();
+			IndexDefinition& definition = definitions[name];
+			definition.unique = query.value("Non_unique").toInt()==0;
+			int position = query.value("Seq_in_index").toInt();
+			while (definition.columns.size()<position)
+			{
+				definition.columns.append(QString());
+			}
+			definition.columns[position-1] = query.value("Column_name").toString();
+		}
+		return definitions;
+	};
+
+	//Compare index names and definitions.
 	foreach(QString table, tables_both)
 	{
-		const QMap<QString, TableIndex> indices_p = db_p.tableIndices(table);
-		const QMap<QString, TableIndex> indices_t = db_t.tableIndices(table);
+		const QMap<QString, IndexDefinition> indices_p = indexDefinitions(db_p, table);
+		const QMap<QString, IndexDefinition> indices_t = indexDefinitions(db_t, table);
 		for (auto it_p = indices_p.cbegin(); it_p!=indices_p.cend(); ++it_p)
 		{
 			auto it_t = indices_t.constFind(it_p.key());

@@ -12,8 +12,9 @@
 
 ChromosomePanel::ChromosomePanel(QWidget* parent)
 	: QWidget(parent)
+	, viewer_(GenomeVisualizationWidget::fromWidget(parent))
 {
-	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
+	connect(viewer_, &GenomeVisualizationWidget::regionChanged, this, &ChromosomePanel::updateRegion);
 	connect(SharedData::instance(), &SharedData::settingsChanged, this, &ChromosomePanel::updateRegion);
 	connect(SharedData::instance(), &SharedData::bookmarksChanged, this, &ChromosomePanel::updateRegion);
 }
@@ -27,7 +28,7 @@ void ChromosomePanel::updateRegion()
 
 int ChromosomePanel::genomicCoordinateAt(int x) const
 {
-	if (!SharedData::region().isValid()) return 0;
+	if (!viewer_->region().isValid()) return 0;
 	const int x0 = SharedData::settings().label_width + 2;
 	const int usable_width = width() - x0 - 2;
 	if (usable_width <= 0 || x < x0 || x >= x0 + usable_width) return 0;
@@ -37,7 +38,7 @@ int ChromosomePanel::genomicCoordinateAt(int x) const
 	int end = 0;
 	for (int i = 0; i < bands.count(); ++i)
 	{
-		if (bands[i].chr() != SharedData::region().chr()) continue;
+		if (bands[i].chr() != viewer_->region().chr()) continue;
 		if (start < 0 || bands[i].start() < start) start = bands[i].start();
 		end = std::max(end, bands[i].end());
 	}
@@ -75,7 +76,7 @@ void ChromosomePanel::paintEvent(QPaintEvent* /*event*/)
 	int h = height();
 	int w = width();
 	int label_width = SharedData::settings().label_width;
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	band_y_ = region.chr().isX() ? 8 : 2;
 	const int drawing_height = std::max(0, h - (band_y_ - 2));
 	text_height_ = .5 * drawing_height;
@@ -170,7 +171,7 @@ void ChromosomePanel::drawBookmarks(QPainter& painter, int total_length)
 	{
 		const QJsonObject bookmark = QJsonDocument::fromJson(entry.toUtf8()).object();
 		if (!bookmark.value("show_in_chromosome_view").toBool(false)) continue;
-		if (Chromosome(bookmark.value("chr").toString()) != SharedData::region().chr()) continue;
+		if (Chromosome(bookmark.value("chr").toString()) != viewer_->region().chr()) continue;
 		const int start = bookmark.value("start").toInt();
 		const int end = bookmark.value("end").toInt();
 		if (start < 1 || end < start || start > total_length) continue;
@@ -247,7 +248,7 @@ void ChromosomePanel::mouseMoveEvent(QMouseEvent* event)
 
 void ChromosomePanel::mousePressEvent(QMouseEvent* event)
 {
-	if (event->button() == Qt::LeftButton && SharedData::region().isValid())
+	if (event->button() == Qt::LeftButton && viewer_->region().isValid())
 	{
 		int x = event->pos().x();
 		is_dragging_ = true;
@@ -261,7 +262,7 @@ void ChromosomePanel::mouseReleaseEvent(QMouseEvent* event)
 	int y = event->pos().y();
 	int w = width();
 	int label_width = SharedData::settings().label_width;
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 
 	if (event->button() == Qt::LeftButton && is_dragging_)
 	{
@@ -271,14 +272,14 @@ void ChromosomePanel::mouseReleaseEvent(QMouseEvent* event)
 			if (y >= band_y_ && y < y_end && abs(x - drag_start_x_) < 5)
 			{
 				int coordinate = std::floor((double)(x-label_width - 2) / pixels_per_base_);
-				SharedData::setRegion(region.chr(), coordinate - region.length()/2, coordinate + region.length()/2);
+				viewer_->setRegion(region.chr(), coordinate - region.length()/2, coordinate + region.length()/2);
 			}
 
 			else if (abs(x - drag_start_x_) >= 5)
 			{
 				int start = std::floor((double)(drag_start_x_ -label_width - 2) / pixels_per_base_);
 				int end = std::floor((double)(x -label_width - 2) / pixels_per_base_);
-				SharedData::setRegion(region.chr(), std::min(start, end), std::max(start, end));
+				viewer_->setRegion(region.chr(), std::min(start, end), std::max(start, end));
 			}
 		}
 	}
@@ -362,7 +363,7 @@ void ChromosomePanel::drawBands(QPainter* painter, const BedFile& bands, QVector
 void ChromosomePanel::drawRegion(QPainter* painter, int total_length)
 {
 	int label_width = SharedData::settings().label_width;
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	int total_width = (width() - label_width - 4);
 
 

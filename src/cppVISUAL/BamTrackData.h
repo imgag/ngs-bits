@@ -2,6 +2,7 @@
 #define BAMTRACKDATA_H
 
 #include "SharedData.h"
+#include "GenomeVisualizationWidget.h"
 #include "BamReader.h"
 #include "ParameterList.h"
 #include "cppVISUAL_global.h"
@@ -103,8 +104,8 @@ struct CPPVISUALSHARED_EXPORT BamAlignmentWrapper
 	bool isValid() const { return (st_ >= 0 && en_ >= 0); }
 
 	int insertSize() const { return insert_size_; }
-	// Diploid haplotype from HP: 1, 2, or 0 for unassigned.
-	int phase() const { return phase_; }
+	// Numeric or named haplotype from HP; empty for unassigned reads.
+	const QByteArray& phase() const { return phase_; }
 	bool isSecondaryAlignment() const { return is_secondary_; }
 	bool isSupplementaryAlignment() const { return is_supplementary_; }
 	const QByteArray& cigar() const { return cigar_; }
@@ -121,7 +122,7 @@ private:
 	bool mate_is_mapped_;
 	int mate_start_;
 	int insert_size_ = -1;
-	int phase_ = 0;
+	QByteArray phase_;
 	bool is_secondary_ = false;
 	bool is_supplementary_ = false;
 	QByteArray cigar_;
@@ -144,8 +145,17 @@ private:
 		pair_orientation_ = left_reverse == right_reverse ? (left_reverse ? 3 : 2) : (left_reverse ? 1 : 0);
 		name_ = al.name();
 		insert_size_ = al.insertSize();
-		const int hp = al.tagi("HP");
-		phase_ = hp == 1 || hp == 2 ? hp : 0;
+		const char hp_type = al.tagType("HP");
+		if (hp_type == 'Z')
+		{
+			phase_ = al.tag("HP").trimmed();
+			if (phase_ == "0" || phase_.compare("Unassigned", Qt::CaseInsensitive) == 0 || phase_.compare("unphased", Qt::CaseInsensitive) == 0) phase_.clear();
+		}
+		else if (hp_type == 'c' || hp_type == 'C' || hp_type == 's' || hp_type == 'S' || hp_type == 'i' || hp_type == 'I')
+		{
+			const int hp = al.tagi("HP");
+			if (hp > 0) phase_ = QByteArray::number(hp);
+		}
 		is_secondary_ = al.isSecondaryAlignment();
 		is_supplementary_ = al.isSupplementaryAlignment();
 		cigar_ = al.cigarDataAsString();
@@ -164,11 +174,12 @@ class CPPVISUALSHARED_EXPORT BamTrackData : public QObject
 {
 	Q_OBJECT
 public:
-	BamTrackData(QString file_path)
-		: file_path_(file_path)
+	BamTrackData(GenomeVisualizationWidget* viewer, QString file_path)
+		: viewer_(viewer)
+		, file_path_(file_path)
 		, visibility_range_(SharedData::settings().bam_max_visibility_region)
 	{
-		connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
+		connect(viewer_, &GenomeVisualizationWidget::regionChanged, this, &BamTrackData::updateRegion);
 		connect(SharedData::instance(), &SharedData::settingsChanged, this, [this]()
 		{
 			computeInsertSizeStats();
@@ -231,6 +242,7 @@ public slots:
 	void updateRegion();
 
 private:
+	QPointer<GenomeVisualizationWidget> viewer_;
 	QString file_path_;
 	int visibility_range_;
 	QHash<QByteArray, QVariant> read_filters_{{"show soft-clipped bases", false}, {"show secondary alignments", true}, {"min MQ", 0}};

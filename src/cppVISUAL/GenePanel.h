@@ -2,6 +2,7 @@
 #define GENEPANEL_H
 
 #include "cppVISUAL_global.h"
+#include "GenomeVisualizationWidget.h"
 #include <QWidget>
 #include <QMouseEvent>
 #include "Transcript.h"
@@ -21,6 +22,7 @@ private slots:
 	void updateRegion();
 
 private:
+	GenomeVisualizationWidget* viewer_;
 	//only show GENCODE primary data
 	bool show_only_gencode_primary = true;
 	//strand for which the bases are shown

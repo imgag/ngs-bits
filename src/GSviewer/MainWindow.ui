@@ -41,7 +41,14 @@
      <number>1</number>
     </property>
     <item>
-     <widget class="GenomeVisualizationWidget" name="gvw" native="true"/>
+     <layout class="QHBoxLayout" name="splitter">
+      <item>
+       <widget class="GenomeVisualizationWidget" name="gvw_l" native="true"/>
+      </item>
+      <item>
+       <widget class="GenomeVisualizationWidget" name="gvw_r" native="true"/>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
@@ -69,8 +76,6 @@
     </property>
     <addaction name="actionOpen_documentation"/>
     <addaction name="separator"/>
-    <addaction name="actionEnable_Remote_Application_Control"/>
-    <addaction name="separator"/>
     <addaction name="actionSettings"/>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
@@ -92,23 +97,11 @@
     </property>
     <addaction name="actionAddNRegions"/>
    </widget>
-   <widget class="QMenu" name="menuDebug">
-    <property name="title">
-     <string>Debug</string>
-    </property>
-    <addaction name="actionShowNamedColors"/>
-   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuSession"/>
    <addaction name="menuTools"/>
-   <addaction name="menuDebug"/>
    <addaction name="menuHelp"/>
   </widget>
-  <action name="actionShowNamedColors">
-   <property name="text">
-    <string>Show named colors</string>
-   </property>
-  </action>
   <action name="actionLoadFile">
    <property name="text">
     <string>Load file</string>
@@ -147,14 +140,6 @@
   <action name="actionLoadURL">
    <property name="text">
     <string>Load URL</string>
-   </property>
-  </action>
-  <action name="actionEnable_Remote_Application_Control">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Enable Remote Application Control</string>
    </property>
   </action>
   <action name="actionAddNRegions">
