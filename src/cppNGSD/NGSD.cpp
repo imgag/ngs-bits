@@ -654,7 +654,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 			for(auto it=relations.begin(); it!=relations.end(); ++it)
 			{
 				QStringList samples;
-				foreach (QString id: it.value())
+				for (QString id: it.value())
 				{
 					samples << sampleName(id);
 				}
