@@ -1,4 +1,4 @@
-name: Qt 6.10.2 on Ubuntu 26.04 - Linux
+name: Qt 6.10.2 on Ubuntu 26.04 (default)
 
 on: [push, pull_request]
 

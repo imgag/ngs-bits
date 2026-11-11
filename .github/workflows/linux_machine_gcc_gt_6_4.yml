@@ -1,4 +1,4 @@
-name: Qt 6.4.2 on Ubuntu 24.04 - Linux
+name: Qt 6.4.2 on Ubuntu 24.04
 
 on: [push, pull_request]
 
@@ -55,8 +55,7 @@ jobs:
     # CONFIG+=ccache makes qmake prefix the compiler with ccache.
     - name: Build
       run: |
-        make THREADS=$(nproc) QMAKE_BIN="qmake6 CONFIG+=ccache" \
-          build_libs_release build_tools_release build_gui_release build_server_release
+        make THREADS=$(nproc) QMAKE_BIN="qmake6 CONFIG+=ccache" build_libs_release build_tools_release build_gui_release build_server_release
         ccache -s
 
     - name: Generate and trust SSL certificate
