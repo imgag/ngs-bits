@@ -619,6 +619,52 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		}
 	}
 
+	//add related samples
+	if(p.add_related)
+	{
+		QStringList new_col;
+		for (int r=0; r<output.rowCount(); ++r)
+		{
+			QMap<QString, QSet<QString>> relations;
+			QString s_id = getValue("SELECT sample_id FROM processed_sample WHERE id="+ output.row(r).id()).toString();
+			SqlQuery query = getQuery();
+			query.exec("SELECT sample1_id, relation, sample2_id FROM sample_relations WHERE (sample1_id="+s_id+" OR sample2_id="+s_id+") AND relation in ('parent-child', 'siblings', 'cousins', 'twins', 'twins (monozygotic)')");
+			while(query.next())
+			{
+				QString s1 = query.value("sample1_id").toString();
+				QString s2 = query.value("sample2_id").toString();
+				QString relation = query.value("relation").toString();
+
+				//change relations depending of s1/s2 order
+				if (relation=="parent-child")
+				{
+					if (s1==s_id) relation = "child";
+					else relation = "parents";
+				}
+
+				//make sure s2 is the other sample
+				if (s2==s_id) s2 = s1;
+
+				if (relation=="twins (monozygotic)") relation = "twins (monozygotic)";
+				else if (relation.endsWith("s")) relation = relation.left(relation.length()-1);
+
+				relations[relation] << s2;
+			}
+			QStringList parts;
+			for(auto it=relations.begin(); it!=relations.end(); ++it)
+			{
+				QStringList samples;
+				foreach (QString id: it.value())
+				{
+					samples << sampleName(id);
+				}
+				parts << (it.key() + ":" + samples.join("/"));
+			}
+			new_col << parts.join(", ");
+		}
+		output.addColumn(new_col, "related_samples");
+	}
+
 	if (p.add_qc)
 	{
 		//reorder columns to put sample and processed sample quality at the start of the qc block:
