@@ -31,7 +31,8 @@ public:
 	double bam_insert_size_upper_percentile{};
 };
 
-//Singleton for data shared by all widgets for visualization.
+//Singleton for reference data and settings shared by all viewers.
+//The displayed region and cursor coordinates belong to GenomeVisualizationWidget.
 //Also emits signals if the data changes, so that widgets can react accordingly.
 class CPPVISUALSHARED_EXPORT SharedData
 	: public QObject
@@ -52,7 +53,7 @@ public:
 	{
 		return instance()->transcripts_;
 	}
-	//Sets transcripts and creates/updates indices. Do this after initializing GenomeVisualizationWidget!
+	//Sets transcripts and creates/updates indices, notifying existing viewers.
 	static void setTranscripts(const TranscriptList& transcripts);
 
 	//Returns indices of transcripts in a region
@@ -75,26 +76,13 @@ public:
 	//Requires all global settings and applies them atomically after validation.
 	static void loadSettingsFromXml(const QDomElement& general);
 
-	//Return the currently displayed region (invalid for the whole-genome overview).
-	static const BedLine& region()
-	{
-		return  instance()->region_;
-	}
-	//An invalid chromosome selects the whole-genome overview.
-	static void setRegion(const Chromosome& chr, int start, int end);
-
 	//Returns the instance (creates it on first call). This method is public only to connect signal/slots. For all other purposes, use other methods.
 	static SharedData* instance();
-
-	//Updates genomic coordinate in status bar
-	static void mouseMoved(int x, int width);
 
 signals:
 	void transcriptsChanged();
 	void settingsChanged();
-	void regionChanged();
 	void bookmarksChanged();
-	void updateGenomicCoordinate(QString);
 
 protected:
 	explicit SharedData(QObject* parent = nullptr);
@@ -105,7 +93,6 @@ protected:
 	ChromosomalIndex<TranscriptList> transcripts_index_;
 	ParameterList settings_;
 	GlobalSettings fast_settings_;
-	BedLine region_;
 
 private:
 	static QList<Parameter> getParameters();

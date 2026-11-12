@@ -14,8 +14,9 @@ constexpr unsigned int ARROW_AREA_HEIGHT = 10;
 
 ChromosomeContextPanel::ChromosomeContextPanel(QWidget* parent)
 	: QWidget(parent)
+	, viewer_(GenomeVisualizationWidget::fromWidget(parent))
 {
-	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(updateRegion()));
+	connect(viewer_, &GenomeVisualizationWidget::regionChanged, this, &ChromosomeContextPanel::updateRegion);
 	connect(SharedData::instance(), &SharedData::settingsChanged, this, &ChromosomeContextPanel::updateRegion);
 	connect(SharedData::instance(), &SharedData::bookmarksChanged, this, &ChromosomeContextPanel::updateRegion);
 }
@@ -33,7 +34,7 @@ void ChromosomeContextPanel::paintEvent(QPaintEvent*)
 	int total_width = width() - label_width - 4;
 
 	QPainter painter(this);
-	if (!SharedData::region().isValid()) return;
+	if (!viewer_->region().isValid()) return;
 
 	drawArrowsAndSize(&painter, label_width, total_width);
 	drawTicks(&painter, label_width, total_width);
@@ -43,7 +44,7 @@ void ChromosomeContextPanel::paintEvent(QPaintEvent*)
 
 void ChromosomeContextPanel::drawBookmarks(QPainter* painter, int label_width, int total_width)
 {
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	if (!region.isValid() || region.length() <= 0 || total_width <= 0) return;
 	const double pixels_per_base = double(total_width) / region.length();
 	const QRectF bounds(label_width + 2, height() - 4, total_width, 4);
@@ -95,7 +96,7 @@ bool ChromosomeContextPanel::event(QEvent* event)
 
 void ChromosomeContextPanel::drawArrowsAndSize(QPainter* painter, int label_width, int total_width)
 {
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	int x_start = label_width + 2;
 	int x_end	= x_start + total_width;
 	int y = ARROW_AREA_HEIGHT / 2;
@@ -142,7 +143,7 @@ void ChromosomeContextPanel::drawLineWithArrow(QPainter* painter, QPoint start, 
 
 void ChromosomeContextPanel::drawTicks(QPainter* painter, int label_width, int total_width)
 {
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	int range = region.length();
 	int interval = tickInterval(range, 22);
 	if (interval <= 0) return;
@@ -219,7 +220,7 @@ int ChromosomeContextPanel::tickInterval(int range, int max_ticks)
 
 void ChromosomeContextPanel::mousePressEvent(QMouseEvent* event)
 {
-	if (event->button() == Qt::LeftButton && SharedData::region().isValid())
+	if (event->button() == Qt::LeftButton && viewer_->region().isValid())
 	{
 		is_dragging_ = true;
 		drag_start_x_ = event->pos().x();
@@ -242,7 +243,7 @@ void ChromosomeContextPanel::mouseReleaseEvent(QMouseEvent* event)
 	int y = event->pos().y();
 	int w = width();
 	int label_width = SharedData::settings().label_width;
-	const BedLine& region = SharedData::region();
+	const BedLine& region = viewer_->region();
 	int total_width = width() - label_width - 4;
 	if (event->button() == Qt::LeftButton && is_dragging_)
 	{
@@ -252,14 +253,14 @@ void ChromosomeContextPanel::mouseReleaseEvent(QMouseEvent* event)
 			if (y >= 2 && y < y_end && abs(x - drag_start_x_) < 5)
 			{
 				int coordinate = ((double)(x - label_width - 2) / total_width) * region.length() + region.start();
-				SharedData::setRegion(region.chr(), coordinate - region.length()/2, coordinate + region.length()/2);
+				viewer_->setRegion(region.chr(), coordinate - region.length()/2, coordinate + region.length()/2);
 			}
 
 			else if (abs(x - drag_start_x_) >= 5)
 			{
 				int start = ((double)(drag_start_x_ -label_width - 2) / total_width) * region.length() + region.start();
 				int end = ((double)(x -label_width - 2) / total_width) * region.length() + region.start();
-				SharedData::setRegion(region.chr(), std::min(start, end), std::max(start, end));
+				viewer_->setRegion(region.chr(), std::min(start, end), std::max(start, end));
 			}
 		}
 	}

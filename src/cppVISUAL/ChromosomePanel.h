@@ -3,6 +3,7 @@
 
 #include "QtGui/qevent.h"
 #include "cppVISUAL_global.h"
+#include "GenomeVisualizationWidget.h"
 #include "BedFile.h"
 #include <QWidget>
 #include <QVector>
@@ -24,6 +25,7 @@ private slots:
 	void updateRegion();
 
 private:
+	GenomeVisualizationWidget* viewer_;
 	//members needed for paint event - updated when resizing occurs
 	double pixels_per_base_;
 	float chr_height_;

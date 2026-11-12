@@ -1,86 +1,73 @@
 name: Qt 6.10.3 on MacOS 26 (arm64, M1)
 
 on: [push, pull_request]
-
 jobs:
   mac-build-and-test:
     runs-on: macos-26
+    env:
+      QT_VERSION: 6.10.3
+      # Stop brew from auto-updating / cleaning up on every `brew install`
+      HOMEBREW_NO_AUTO_UPDATE: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1
     steps:
     - name: Checkout repository
       uses: actions/checkout@v6
       with:
         submodules: recursive
-    - name: Update submodules
-      run: git submodule update --recursive --init
-    - name: Adjust the number of threads used during the build
-      run: sed -i '' 's/-j5/-j1/g' Makefile
+
+    - name: Use all CPU cores for the build
+      run: sed -i '' "s/-j5/-j$(sysctl -n hw.ncpu)/g" Makefile
       shell: bash
+
     - name: Select Xcode
       run: sudo xcode-select -s /Applications/Xcode_26.0.app
-    - name: Remove unused Homebrew taps
+
+    - name: Install Homebrew dependencies
+      run: brew install lzlib libxml2 mariadb-connector-c
+
+    # ---- Qt: prebuilt modules from aqt, cached between runs ----
+    - name: Cache Qt
+      id: cache-qt
+      uses: actions/cache@v6
+      with:
+        path: ~/Qt
+        key: qt-${{ runner.os }}-${{ runner.arch }}-${{ env.QT_VERSION }}-charts-httpserver-websockets
+
+    - name: Install Qt + Charts, HttpServer, WebSockets
+      if: steps.cache-qt.outputs.cache-hit != 'true'
       run: |
-        brew uninstall bicep || true
-        brew untap aws/tap || true
-        brew untap azure/bicep || true
-        brew uninstall packer
-        brew untap hashicorp/tap || true
-    - name: Update Homebrew
-      run: brew update
-    - name: Setup other dependencies
-      run: brew install lzlib libxml2 mariadb-connector-c aqtinstall
-    # Install Qt 6.10.3 via aqt with explicit mirror
-    - name: Install Qt 6.10.3 core
-      run: aqt install-qt mac desktop 6.10.3 clang_64 -O $HOME/Qt
+        pipx install aqtinstall
+        aqt install-qt mac desktop "$QT_VERSION" clang_64 -O "$HOME/Qt" -m qtcharts qthttpserver qtwebsockets
+
     - name: Add Qt to PATH
-      run: echo "$HOME/Qt/6.10.3/macos/bin" >> $GITHUB_PATH
-    # Build Qt Charts from source
-    - name: Build Qt Charts
-      run: |
-        curl -L -o QtCharts-6.10.3.tar.xz https://download.qt.io/archive/qt/6.10/6.10.3/submodules/qtcharts-everywhere-src-6.10.3.tar.xz
-        tar -xf QtCharts-6.10.3.tar.xz
-        cd qtcharts-everywhere-src-6.10.3
-        mkdir build && cd build
-        cmake .. \
-          -DCMAKE_PREFIX_PATH=$HOME/Qt/6.10.3/macos \
-          -DCMAKE_INSTALL_PREFIX=$HOME/Qt/6.10.3/macos
-        cmake --build . --parallel $(sysctl -n hw.ncpu)
-        cmake --install .
-    # Build Qt HttpServer from source
-    - name: Build Qt Http Server
-      run: |
-        curl -L -o QtHttpServer-6.10.3.tar.xz https://download.qt.io/archive/qt/6.10/6.10.3/submodules/qthttpserver-everywhere-src-6.10.3.tar.xz
-        tar -xf QtHttpServer-6.10.3.tar.xz
-        cd qthttpserver-everywhere-src-6.10.3
-        mkdir build && cd build
-        cmake .. \
-          -DCMAKE_PREFIX_PATH=$HOME/Qt/6.10.3/macos \
-          -DCMAKE_INSTALL_PREFIX=$HOME/Qt/6.10.3/macos
-        cmake --build . --parallel $(sysctl -n hw.ncpu)
-        cmake --install .
-    # Build Qt WebSockets from source
-    - name: Build Qt Web Sockets
-      run: |
-        curl -L -o QtWebSockets-6.10.3.tar.xz https://download.qt.io/archive/qt/6.10/6.10.3/submodules/qtwebsockets-everywhere-src-6.10.3.tar.xz
-        tar -xf QtWebSockets-6.10.3.tar.xz
-        cd qtwebsockets-everywhere-src-6.10.3
-        mkdir build && cd build
-        cmake .. \
-          -DCMAKE_PREFIX_PATH=$HOME/Qt/6.10.3/macos \
-          -DCMAKE_INSTALL_PREFIX=$HOME/Qt/6.10.3/macos
-        cmake --build . --parallel $(sysctl -n hw.ncpu)
-        cmake --install .
-    # Build project dependencies
+      run: echo "$HOME/Qt/$QT_VERSION/macos/bin" >> "$GITHUB_PATH"
+
+    # ---- Compiler cache for the project's own build ----
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1.2.24
+      with:
+        key: ${{ runner.os }}-${{ runner.arch }}-macos-26
+        max-size: 2G
+
+     # THREADS and QMAKE_BIN are Makefile variables, so they can be overridden
+    # here instead of sed-ing the Makefile. CONFIG+=ccache makes qmake prefix
+    # the compiler with ccache.
     - name: Build project dependencies
-      run: make build_3rdparty build_libs_release build_tools_release build_gui_release build_server_release
-    - name: Create a folder for SSL
-      run: mkdir -p $HOME/ssl
-      shell: bash
+      run: |
+        make THREADS=$(sysctl -n hw.ncpu) QMAKE_BIN="qmake6 CONFIG+=ccache" build_3rdparty build_libs_release build_tools_release build_gui_release build_server_release
+        ccache -s
+
     - name: Generate SSL certificate-key pair
-      run: openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=DE/ST=BW/L=Tuebingen/O=test-certificate/CN=localhost" -keyout $HOME/ssl/test-key.key -out $HOME/ssl/test-cert.crt
+      run: |
+        mkdir -p "$HOME/ssl"
+        openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=DE/ST=BW/L=Tuebingen/O=test-certificate/CN=localhost" -keyout "$HOME/ssl/test-key.key" -out "$HOME/ssl/test-cert.crt"
+
     - name: Create a settings.ini file for tests
       run: .github/workflows/settings_win_mac.sh
       shell: bash
+
     - name: Download test files
       run: make download_test_files
+
     - name: Run tests
-      run: make -k test_lib test_tools
+      run: make -k -j$(sysctl -n hw.ncpu) test_lib test_tools

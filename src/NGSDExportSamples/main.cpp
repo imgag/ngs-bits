@@ -72,9 +72,11 @@ public:
 		addFlag("add_lab_columns", "Adds columns input, molarity, operator, processing method and batch number.");
 		addFlag("add_study_column", "Add a column with studies of the sample.");
 		addFlag("add_patient_id", "Add a column with the patient identifer.");
+		addFlag("add_related", "Add a column related sample names.");
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addEnum("preset", "Presets for different common searches. Note: presets are applied after argument parsing and thus override command line argument.", true, QStringList() << "none" << "germline", "none");
 
+		changeLog(2026, 11, 11, "Added 'add_related' flag.");
 		changeLog(2026,  9, 21, "Removed 'no_bad_samples' flag and added 'ps_quality' parameter.");
 		changeLog(2026,  9, 21, "Added 'add_patient_id' flag.");
 		changeLog(2026,  9,  7, "Added 'platform' parameter.");
@@ -168,6 +170,7 @@ public:
 		params.add_lab_columns = getFlag("add_lab_columns");
 		params.add_study_column = getFlag("add_study_column");
 		params.add_patient_id = getFlag("add_patient_id");
+		params.add_related = getFlag("add_related");
 
 		//apply presets
 		if (getEnum("preset")=="germline")

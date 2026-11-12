@@ -23,7 +23,7 @@ class CPPVISUALSHARED_EXPORT SvTrack : public TrackWidget
 public:
 	SvTrack(QWidget* parent, QString file_path, QString name);
 	static QByteArray type() { return "SvTrack"; }
-	static SvTrack* createTrack(QWidget* parent, QString file_path, QString name);
+	static SvTrack* createTrack(QWidget* parent, QString file_path, QString name = "");
 	void reloadTrack() override;
 	QSize sizeHint() const override;
 

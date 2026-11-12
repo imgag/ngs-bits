@@ -13,7 +13,7 @@ QList<Parameter> IgvTrack::getParameters() const
 	config.append(Parameter("draw mode", "Type of graph.", ParameterType::STRING, {{ConstraintType::ALLOWED_VALUES, QByteArray("heatmap\tbar chart\tpoints\tline plot")}}));
 	config.append(Parameter("min", "Y axis minimum of plot.", ParameterType::DOUBLE, {{ConstraintType::DISPLAY_DIGITS, 2}}));
 	config.append(Parameter("max", "Y axis maximum of plot.", ParameterType::DOUBLE, {{ConstraintType::DISPLAY_DIGITS, 2}}));
-	config.append(Parameter("track height", "Track height in pixels.", ParameterType::INT, {{ConstraintType::MIN, 1}}));
+	config.append(Parameter("track height", "Height of each dataset row in pixels.", ParameterType::INT, {{ConstraintType::MIN, 1}}));
 	return config;
 }
 
@@ -85,7 +85,7 @@ IgvTrack::IgvTrack(QWidget* parent, QString file_path, QString name, QSharedPoin
 	});
 	updateGeometry();
 	update();
-	connect(SharedData::instance(), SIGNAL(regionChanged()), this, SLOT(regionChanged()));
+	connect(viewer_, &GenomeVisualizationWidget::regionChanged, this, &IgvTrack::regionChanged);
 }
 
 IgvTrack* IgvTrack::createTrack(QWidget* parent, QString file_path, QString name)
@@ -93,11 +93,10 @@ IgvTrack* IgvTrack::createTrack(QWidget* parent, QString file_path, QString name
 	QSharedPointer<IgvFile> igv_file = FileLoader::loadIgvFile(file_path);
 	if (!igv_file) return nullptr;
 
-	QString display_name = name;
-	if (display_name.isEmpty()) display_name = getTrackNameFromIgvFile(igv_file);
-	if (display_name.isEmpty()) display_name = getDisplayNameFromFilePath(file_path);
+	if (name.isEmpty()) name = getTrackNameFromIgvFile(igv_file);
+	if (name.isEmpty()) name = getDisplayNameFromFilePath(file_path);
 
-	IgvTrack* track = new IgvTrack(parent, file_path, display_name, igv_file);
+	IgvTrack* track = new IgvTrack(parent, file_path, name, igv_file);
 	track->setIgvFile(igv_file);
 	return track;
 }
@@ -111,7 +110,8 @@ void IgvTrack::reloadTrack()
 
 QSize IgvTrack::sizeHint() const
 {
-	return QSize(parentWidget() ? parentWidget()->width() : 200, fast_settings_.track_height);
+	const int count = igv_file_ ? std::max(1, igv_file_->datasetCount()) : 1;
+	return QSize(parentWidget() ? parentWidget()->width() : 200, count * fast_settings_.track_height);
 }
 
 void IgvTrack::setIgvFile(QSharedPointer<IgvFile> igv_file)
@@ -121,6 +121,7 @@ void IgvTrack::setIgvFile(QSharedPointer<IgvFile> igv_file)
 		auto index = std::make_unique<ChromosomalIndex<IgvFile>>(*igv_file);
 		igv_file_ = igv_file;
 		chr_index_ = std::move(index);
+		updateGeometry();
 		update();
 	}
 }
@@ -133,7 +134,8 @@ void IgvTrack::paintEvent(QPaintEvent*)
 	painter.fillRect(rect(), Qt::white);
 
 	//draw label
-	drawLabel(painter);
+	if (igv_file_ && igv_file_->datasetCount() > 1) drawDatasetLabels(painter);
+	else drawLabel(painter);
 
 	//draw chart
 	if (igv_file_ && chr_index_)
@@ -144,12 +146,39 @@ void IgvTrack::paintEvent(QPaintEvent*)
 	if (fast_settings_.draw_mode != "heatmap") drawScaleText(painter);
 }
 
+void IgvTrack::drawDatasetLabels(QPainter& painter)
+{
+	const int label_width = SharedData::settings().label_width;
+	const int count = igv_file_->datasetCount();
+	painter.save();
+	painter.setPen(Qt::black);
+	painter.drawLine(label_width, 0, label_width, height());
+	for (int dataset = 0; dataset < count; ++dataset)
+	{
+		QRect cell = datasetRect(dataset);
+		cell.setWidth(std::max(0, label_width - 2));
+		painter.save();
+		painter.setClipRect(cell, Qt::IntersectClip);
+		painter.drawText(cell, Qt::AlignLeft | Qt::AlignTop, painter.fontMetrics().elidedText(QString::fromUtf8(igv_file_->datasetNames()[dataset]), Qt::ElideRight, cell.width()));
+		painter.restore();
+	}
+	painter.restore();
+}
+
 void IgvTrack::drawScaleText(QPainter& painter)
 {
 	Viewport viewport = getViewport();
 	painter.setPen(Qt::black);
-	QRect rec(viewport.x0, 0, width(), height());
-	painter.drawText(rec, Qt::AlignLeft, "[" + QString::number(fast_settings_.min) + "," + QString::number(fast_settings_.max) + "]");
+	const int count = igv_file_ ? igv_file_->datasetCount() : 1;
+	for (int dataset = 0; dataset < count; ++dataset)
+	{
+		QRect rec = datasetRect(dataset);
+		rec.setLeft(viewport.x0);
+		painter.save();
+		painter.setClipRect(rec, Qt::IntersectClip);
+		painter.drawText(rec, Qt::AlignLeft | Qt::AlignTop, "[" + QString::number(fast_settings_.min) + "," + QString::number(fast_settings_.max) + "]");
+		painter.restore();
+	}
 }
 
 void IgvTrack::drawPlot(QPainter& painter, const BedLine& region, const Viewport& viewport)
@@ -160,12 +189,6 @@ void IgvTrack::drawPlot(QPainter& painter, const BedLine& region, const Viewport
 	painter.save();
 	painter.setClipRect(QRectF(viewport.x0, 0, viewport.usable_width, height()), Qt::IntersectClip);
 
-	//draw reference lines
-	painter.setPen(QPen(Qt::lightGray, 1, Qt::DashLine));
-	drawReferenceLine(painter, fast_settings_.min, viewport);
-	drawReferenceLine(painter, .5 * (fast_settings_.min + fast_settings_.max), viewport);
-	drawReferenceLine(painter, fast_settings_.max, viewport);
-
 	//get matching indices
 	int padding = region.length() / 3;
 	int start = std::max(0, region.start() - padding);
@@ -173,14 +196,24 @@ void IgvTrack::drawPlot(QPainter& painter, const BedLine& region, const Viewport
 	QVector<int> idxes = chr_index_->matchingIndices(region.chr(), start, end);
 
 	//draw chart
-	if (fast_settings_.draw_mode == "heatmap") drawHeatMap(painter, idxes, region, viewport);
-	else if (fast_settings_.draw_mode == "bar chart") drawBarChart(painter, idxes, region, viewport);
-	else if (fast_settings_.draw_mode == "points") drawPoints(painter, idxes, region, viewport);
-	else if (fast_settings_.draw_mode == "line plot") drawLinePlot(painter, idxes, viewport);
+	for (int dataset = 0; dataset < igv_file_->datasetCount(); ++dataset)
+	{
+		painter.save();
+		painter.setClipRect(datasetRect(dataset), Qt::IntersectClip);
+		painter.setPen(QPen(Qt::lightGray, 1, Qt::DashLine));
+		drawReferenceLine(painter, fast_settings_.min, viewport, dataset);
+		drawReferenceLine(painter, .5 * (fast_settings_.min + fast_settings_.max), viewport, dataset);
+		drawReferenceLine(painter, fast_settings_.max, viewport, dataset);
+		if (fast_settings_.draw_mode == "heatmap") drawHeatMap(painter, idxes, region, viewport, dataset);
+		else if (fast_settings_.draw_mode == "bar chart") drawBarChart(painter, idxes, region, viewport, dataset);
+		else if (fast_settings_.draw_mode == "points") drawPoints(painter, idxes, region, viewport, dataset);
+		else if (fast_settings_.draw_mode == "line plot") drawLinePlot(painter, idxes, viewport, dataset);
+		painter.restore();
+	}
 	painter.restore();
 }
 
-void IgvTrack::drawPoints(QPainter& painter, const QVector<int>& idxes, const BedLine& region, const Viewport& viewport)
+void IgvTrack::drawPoints(QPainter& painter, const QVector<int>& idxes, const BedLine& region, const Viewport& viewport, int dataset)
 {
 	painter.setRenderHint(QPainter::Antialiasing, false);
 	painter.setPen(QPen(QColor("#0000B2"), 2));
@@ -188,7 +221,8 @@ void IgvTrack::drawPoints(QPainter& painter, const QVector<int>& idxes, const Be
 	foreach (int idx, idxes)
 	{
 		const IgvFileLine& bd = (*igv_file_)[idx];
-		const double value = bd.value();
+		const double value = bd.value(dataset);
+		if (!std::isfinite(value)) continue;
 
 		int pos = (bd.start() + bd.end()) / 2;
 
@@ -198,12 +232,12 @@ void IgvTrack::drawPoints(QPainter& painter, const QVector<int>& idxes, const Be
 		float p2 = viewport.genomePosToScreen(pos + 1);
 
 		float px = (p1 + p2) / 2.f;
-		int py = valueToY(value);
+		int py = valueToY(value, dataset);
 		painter.drawPoint(QPoint(static_cast<int>(px), py));
 	}
 }
 
-void IgvTrack::drawLinePlot(QPainter& painter, const QVector<int>& idxes, const Viewport& viewport)
+void IgvTrack::drawLinePlot(QPainter& painter, const QVector<int>& idxes, const Viewport& viewport, int dataset)
 {
 	painter.setRenderHint(QPainter::Antialiasing, true);
 	painter.setPen(QPen(Qt::blue, 2, Qt::SolidLine));
@@ -213,17 +247,18 @@ void IgvTrack::drawLinePlot(QPainter& painter, const QVector<int>& idxes, const 
 		const IgvFileLine& bd1 = (*igv_file_)[idxes[i - 1]];
 		const IgvFileLine& bd2 = (*igv_file_)[idxes[i]];
 
-		const double value1 = bd1.value();
-		const double value2 = bd2.value();
+		const double value1 = bd1.value(dataset);
+		const double value2 = bd2.value(dataset);
+		if (!std::isfinite(value1) || !std::isfinite(value2)) continue;
 
 		int pos = (bd1.start() + bd1.end()) / 2;
 		int pos2 = (bd2.start() + bd2.end()) / 2;
 
 		int px1 = viewport.genomePosToScreen(pos);
-		int py1 = valueToY(value1);
+		int py1 = valueToY(value1, dataset);
 
 		int px2 = viewport.genomePosToScreen(pos2);
-		int py2 = valueToY(value2);
+		int py2 = valueToY(value2, dataset);
 
 		painter.drawLine(px1, py1, px2, py2);
 	}
@@ -232,15 +267,19 @@ void IgvTrack::drawLinePlot(QPainter& painter, const QVector<int>& idxes, const 
 static const QColor HEATMAP_COL1 = QColor(122, 122, 214, 90);
 static const QColor HEATMAP_COL2 = QColor(0, 0, 255, 255);
 
-void IgvTrack::drawHeatMap(QPainter& painter, const QVector<int>& idxes, const BedLine& region, const Viewport& viewport)
+void IgvTrack::drawHeatMap(QPainter& painter, const QVector<int>& idxes, const BedLine& region, const Viewport& viewport, int dataset)
 {
 	painter.setRenderHint(QPainter::Antialiasing);
 
-	painter.fillRect(viewport.x0, 0, viewport.usable_width, fast_settings_.track_height, Qt::gray);
+	const QRect row = datasetRect(dataset);
+	const int row_height = row.height();
+	const int row_top = row.top();
+	painter.fillRect(QRectF(viewport.x0, row_top, viewport.usable_width, row_height), Qt::gray);
 	foreach (int idx, idxes)
 	{
 		const IgvFileLine& bd = (*igv_file_)[idx];
-		const double value = bd.value();
+		const double value = bd.value(dataset);
+		if (!std::isfinite(value)) continue;
 
 		int pos = (bd.start() + bd.end()) / 2;
 
@@ -249,7 +288,7 @@ void IgvTrack::drawHeatMap(QPainter& painter, const QVector<int>& idxes, const B
 		float px = viewport.genomePosToScreen(pos);
 		float endx = viewport.genomePosToScreen(pos + 1);
 		float dx = endx - px;
-		if (!SharedData::region().isValid()) dx = std::max(1.0f, dx);
+		if (!viewer_->region().isValid()) dx = std::max(1.0f, dx);
 
 		double t = std::clamp(value, 0.0, 1.0);
 
@@ -262,11 +301,11 @@ void IgvTrack::drawHeatMap(QPainter& painter, const QVector<int>& idxes, const B
 
 		painter.setPen(color);
 		painter.setBrush(color);
-		painter.drawRect(QRectF(px, 0, dx, fast_settings_.track_height));
+		painter.drawRect(QRectF(px, row_top, dx, row_height));
 	}
 }
 
-void IgvTrack::drawBarChart(QPainter& painter, const QVector<int>& idxes, const BedLine& region, const Viewport& viewport)
+void IgvTrack::drawBarChart(QPainter& painter, const QVector<int>& idxes, const BedLine& region, const Viewport& viewport, int dataset)
 {
 	painter.setRenderHint(QPainter::Antialiasing);
 	painter.setPen(Qt::blue);
@@ -276,38 +315,44 @@ void IgvTrack::drawBarChart(QPainter& painter, const QVector<int>& idxes, const 
 	foreach (int idx, idxes)
 	{
 		const IgvFileLine& bd = (*igv_file_)[idx];
+		if (!std::isfinite(bd.value(dataset))) continue;
 		int pos = (bd.start() + bd.end()) / 2;
 
 		if (pos < region.start() || pos > region.end()) continue;
-		painter.drawRect(barRect(bd, viewport));
+		painter.drawRect(barRect(bd, viewport, dataset));
 	}
 }
 
 
-void IgvTrack::drawReferenceLine(QPainter& painter, double value, const Viewport& viewport)
+void IgvTrack::drawReferenceLine(QPainter& painter, double value, const Viewport& viewport, int dataset)
 {
-	int y = valueToY(value);
+	int y = valueToY(value, dataset);
 	painter.drawLine(viewport.x0, y, viewport.x0 + viewport.usable_width, y);
 }
 
-int IgvTrack::valueToY(double value) const
+QRect IgvTrack::datasetRect(int dataset) const
 {
-	constexpr int margin = 4;
-	if (qFuzzyCompare(fast_settings_.max, fast_settings_.min)) return margin;
-
-	int usable_height = fast_settings_.track_height - 2 * margin;
-	double normalized_val = (value - fast_settings_.min) / (fast_settings_.max - fast_settings_.min);
-	return margin + (int)((1.0 - normalized_val) * usable_height);
+	return QRect(0, dataset * fast_settings_.track_height, width(), fast_settings_.track_height);
 }
 
-QRectF IgvTrack::barRect(const IgvFileLine& line, const Viewport& viewport) const
+int IgvTrack::valueToY(double value, int dataset) const
+{
+	const QRect row = datasetRect(dataset);
+	const int margin = std::min(4, row.height() / 2);
+	if (qFuzzyCompare(fast_settings_.max, fast_settings_.min)) return row.top() + margin;
+	int usable_height = row.height() - 2 * margin;
+	double normalized_val = (value - fast_settings_.min) / (fast_settings_.max - fast_settings_.min);
+	return row.top() + margin + (int)((1.0 - normalized_val) * usable_height);
+}
+
+QRectF IgvTrack::barRect(const IgvFileLine& line, const Viewport& viewport, int dataset) const
 {
 	int pos = (line.start() + line.end()) / 2;
 	float px = viewport.genomePosToScreen(pos);
 	float endx = viewport.genomePosToScreen(pos + 1);
-	if (!SharedData::region().isValid()) endx = std::max(px + 1.0f, endx);
-	int py = valueToY(std::clamp(line.value(), fast_settings_.min, fast_settings_.max));
-	return QRectF(px, py, endx - px, valueToY(fast_settings_.min) - py).normalized();
+	if (!viewer_->region().isValid()) endx = std::max(px + 1.0f, endx);
+	int py = valueToY(std::clamp(line.value(dataset), fast_settings_.min, fast_settings_.max), dataset);
+	return QRectF(px, py, endx - px, valueToY(fast_settings_.min, dataset) - py).normalized();
 }
 
 void IgvTrack::mousePressEvent(QMouseEvent* event)
@@ -363,23 +408,33 @@ void IgvTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 		if (fast_settings_.draw_mode != "line plot" && (pos < region.start() || pos > region.end())) continue;
 		float px = viewport.genomePosToScreen(pos);
 		float endx = viewport.genomePosToScreen(pos + 1);
-		if (!SharedData::region().isValid() && fast_settings_.draw_mode == "heatmap") endx = std::max(px + 1.0f, endx);
+		if (!viewer_->region().isValid() && fast_settings_.draw_mode == "heatmap") endx = std::max(px + 1.0f, endx);
 
-		if (fast_settings_.draw_mode == "points" || fast_settings_.draw_mode == "line plot")
+		for (int dataset = 0; dataset < igv_file_->datasetCount(); ++dataset)
 		{
-			float center_x = fast_settings_.draw_mode == "points" ? (px + endx) / 2.f : static_cast<int>(px);
-			int py = valueToY(bd.value());
-			if (std::abs(center_x - local_pos.x()) <= 6 && std::abs(py - local_pos.y()) <= 6) candidates.push_back(idx);
-		}
-		else if (fast_settings_.draw_mode == "bar chart")
-		{
-			// For bar charts, anywhere within the bar height counts
-			if (barRect(bd, viewport).adjusted(-0.5, -0.5, 0.5, 0.5).contains(local_pos)) candidates.push_back(idx);
-		}
-		else if (fast_settings_.draw_mode == "heatmap")
-		{
-			// For heatmaps, the whole vertical span of the track represents the data
-			if (local_pos.x() >= px - 0.5 && local_pos.x() <= endx + 0.5) candidates.push_back(idx);
+			if (!datasetRect(dataset).contains(local_pos)) continue;
+			if (!std::isfinite(bd.value(dataset))) continue;
+			bool hit = false;
+			if (fast_settings_.draw_mode == "points" || fast_settings_.draw_mode == "line plot")
+			{
+				float center_x = fast_settings_.draw_mode == "points" ? (px + endx) / 2.f : static_cast<int>(px);
+				int py = valueToY(bd.value(dataset), dataset);
+				hit = std::abs(center_x - local_pos.x()) <= 6 && std::abs(py - local_pos.y()) <= 6;
+			}
+			else if (fast_settings_.draw_mode == "bar chart")
+			{
+				// For bar charts, anywhere within the bar height counts.
+				hit = barRect(bd, viewport, dataset).adjusted(-0.5, -0.5, 0.5, 0.5).contains(local_pos);
+			}
+			else if (fast_settings_.draw_mode == "heatmap")
+			{
+				hit = local_pos.x() >= px - 0.5 && local_pos.x() <= endx + 0.5;
+			}
+			if (hit)
+			{
+				candidates.push_back(idx);
+				break;
+			}
 		}
 	}
 
@@ -389,11 +444,17 @@ void IgvTrack::handlePopupRequest(QPoint local_pos, QPointF global_pos)
 	foreach (int idx, candidates)
 	{
 		const IgvFileLine& bd = (*igv_file_)[idx];
-		info += QString("Region: %1:%2-%3\nValue: %4")
+		if (!info.isEmpty()) info += "\n\n";
+		info += QString("Region: %1:%2-%3")
 					.arg(bd.chr().str())
 					.arg(bd.start())
-					.arg(bd.end())
-					.arg(bd.value(), 0, 'g', 15);
+					.arg(bd.end());
+		for (int dataset = 0; dataset < igv_file_->datasetCount(); ++dataset)
+		{
+			const QString label = igv_file_->datasetCount() == 1 ? QString("Value") : QString::fromUtf8(igv_file_->datasetNames()[dataset]);
+			const double value = bd.value(dataset);
+			info += "\n" + label + ": " + (std::isfinite(value) ? QString::number(value, 'g', 15) : QString("N/A"));
+		}
 	}
 	showInfoPopup(global_pos, info);
 }

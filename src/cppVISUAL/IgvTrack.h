@@ -57,19 +57,21 @@ private:
 
 	// draw functions
 	void drawPlot(QPainter&, const BedLine& region, const Viewport& viewport);
-	void drawPoints(QPainter&, const QVector<int>& idxes, const BedLine& region, const Viewport& viewport);
-	void drawLinePlot(QPainter&, const QVector<int>& idxes, const Viewport& viewport);
-	void drawHeatMap(QPainter&, const QVector<int>& idxes, const BedLine& region, const Viewport& viewport);
-	void drawBarChart(QPainter&, const QVector<int>& idxes, const BedLine& region, const Viewport& viewport);
-	void drawReferenceLine(QPainter&, double value, const Viewport& viewport);
+	void drawPoints(QPainter&, const QVector<int>& idxes, const BedLine& region, const Viewport& viewport, int dataset);
+	void drawLinePlot(QPainter&, const QVector<int>& idxes, const Viewport& viewport, int dataset);
+	void drawHeatMap(QPainter&, const QVector<int>& idxes, const BedLine& region, const Viewport& viewport, int dataset);
+	void drawBarChart(QPainter&, const QVector<int>& idxes, const BedLine& region, const Viewport& viewport, int dataset);
+	void drawReferenceLine(QPainter&, double value, const Viewport& viewport, int dataset);
 	void drawScaleText(QPainter&);
+	void drawDatasetLabels(QPainter&);
 
 	// handles right click by user
 	void handlePopupRequest(QPoint local_pos, QPointF global_pos);
 
 	// utility functons
-	int valueToY(double value) const;
-	QRectF barRect(const IgvFileLine& line, const Viewport& viewport) const;
+	QRect datasetRect(int dataset) const;
+	int valueToY(double value, int dataset) const;
+	QRectF barRect(const IgvFileLine& line, const Viewport& viewport, int dataset) const;
 
 	// file functions
 	static QString getTrackNameFromIgvFile(QSharedPointer<IgvFile> igv_file);

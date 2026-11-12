@@ -69,6 +69,8 @@ public:
 	const QString getName() const;
 	//port number where an IGV instance is running
 	int getPort() const;
+	//sets the executable used to launch the viewer
+	void setApp(const QString& app);
 
 	//checks if a corresponding instance of IGV app is running
 	bool isIgvRunning();

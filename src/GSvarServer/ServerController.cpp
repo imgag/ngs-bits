@@ -18,6 +18,7 @@
 #include "Statistics.h"
 #include "ToolBase.h"
 #include "FileLocationProviderLocal.h"
+#include "VersatileTextStream.h"
 
 ServerController::ServerController()
 {
@@ -942,10 +943,11 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
         return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Changes for the GSvar file in " + ps_url_id + "could not be parsed: " + e.message()));
 	}
 
-	QString tmp = url.filename_with_path + "_" + ps_url_id + ".tmp";
-	QSharedPointer<QFile> in_file = Helper::openFileForReading(url.filename_with_path);
-	QTextStream in_stream(in_file.data());
-	QSharedPointer<QFile> out_file = Helper::openFileForWriting(tmp);
+
+	VersatileTextStream in_stream(url.filename_with_path); // reading the original file
+
+	QString tmp = url.filename_with_path + "_" + ps_url_id + ".tmp"; // temporary uncompressed and changed version of the original file
+	QSharedPointer<QFile> out_file = Helper::openFileForWriting(tmp);	
 	QTextStream out_stream(out_file.data());
 
 	QList<QString> column_names;
@@ -977,12 +979,21 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 
 			if (chr_pos==-1 || start_pos==-1 || end_pos==-1 || ref_pos==-1 || obs_pos==-1)
             {
-                return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not identify key columns in GSvar file: " + ps_url_id));
+				return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Could not identify key columns in GSvar file: " + url.filename_with_path));
 			}
 			continue;
 		}
 
+		// Processing malformed lines
+		if (line.trimmed().isEmpty()) continue;
 		QStringList line_columns = line.split("\t");
+		const int max_index = std::max({chr_pos, start_pos, end_pos, ref_pos, obs_pos});
+		if (chr_pos==-1 || line_columns.size() <= max_index)
+		{
+			return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Malformed line in GSvar file: " + url.filename_with_path));
+		}
+
+		// Now we can start parsing the line
 		QString variant_in = (line_columns[chr_pos] + ":" + line_columns[start_pos] + "-" + line_columns[end_pos] + " " + line_columns[ref_pos] + ">" + line_columns[obs_pos]).toLower().trimmed();
 		bool is_current_variant_changed = false;
 
@@ -1023,31 +1034,39 @@ HttpResponse ServerController::saveProjectFile(const HttpRequest& request)
 		{
 			out_stream << line_columns.join("\t") << "\n";
 		}
-	}
-	in_file.data()->close();
+	}	
 	out_stream.flush();
 	out_file.data()->close();
 
 	//file was changed => update it on server
 	if (is_file_changed)
 	{
-		//remove original file
-		QString filename_orig = in_file.data()->fileName();
-		QString filename_backup = filename_orig + ".gsvarserver.bak";
-		if (!QFile::rename(filename_orig, filename_backup))
-        {
-			Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename file from : " + filename_orig + " to " + filename_backup));
+		QString filename_orig = url.filename_with_path; // original name of the compressed file
+		QString tmp_gz = tmp + ".gz"; // temporary compressed file name
+
+		QProcess bgzip;
+		bgzip.setStandardOutputFile(tmp_gz, QIODevice::Truncate);
+		bgzip.start("bgzip", QStringList() << "-@" << QString::number(Settings::integer("threads")) << "-l" << "9" << "-c" << tmp);
+		bool bgzip_ok = bgzip.waitForStarted() && bgzip.waitForFinished(-1) && bgzip.exitStatus()==QProcess::NormalExit && bgzip.exitCode()==0;
+		QFile::remove(tmp);
+		if (!bgzip_ok)
+		{
+			QString error = bgzip.error()==QProcess::FailedToStart ? "bgzip could not be started (is it installed and in PATH?)" : QString::fromUtf8(bgzip.readAllStandardError()).trimmed();
+			Log::error(EndpointManager::formatResponseMessage(request, "Could not compress the changed GSvar file " + tmp + " with bgzip: " + error));
+			QFile::remove(tmp_gz);
+
+			return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Failed to compress GSvar file: " + error));
 		}
 
-		//rename changed copy to original file
-		if (!QFile::rename(tmp, filename_orig))
-		{
-			Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename file from : " + tmp + " to " + filename_orig));
+		//backup the orignal file before replacing it
+		QString filename_backup = filename_orig + ".gsvarserver.bak";
+		if (!QFile::rename(filename_orig, filename_backup)) Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename file from : " + filename_orig + " to " + filename_backup));
 
-			if (!QFile::rename(filename_backup, filename_orig))
-			{
-				Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename file from : " + filename_backup + " to " + filename_orig));
-			}
+		//rename the changed and compressed copy to original file name
+		if (!QFile::rename(tmp_gz, filename_orig))
+		{
+			Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename file from : " + tmp_gz + " to " + filename_orig));
+			if (!QFile::rename(filename_backup, filename_orig)) Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename file from : " + filename_backup + " to " + filename_orig));
 		}
 		else
 		{

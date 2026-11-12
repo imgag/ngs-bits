@@ -164,6 +164,7 @@ void SampleSearchWidget::search()
 		params.add_lab_columns = ui_.add_lab_columns->isChecked();
 		params.add_study_column = ui_.add_study_column->isChecked();
 		params.add_patient_id = ui_.add_patient_id->isChecked();
+		params.add_related = ui_.add_related->isChecked();
 
 		NGSD db;
 		if (db.getUserRole(LoginManager::userId())=="user_restricted")

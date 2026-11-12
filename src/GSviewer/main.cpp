@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 #include "Application.h"
+#include "Helper.h"
 #include <QStyleFactory>
 #include <QCommandLineParser>
 #include "Exceptions.h"
@@ -12,18 +13,23 @@ int main(int argc, char* argv[])
 	{
 		a.setStyle(QStyleFactory::create("windowsvista"));
 
+		//define CLI
 		QCommandLineParser args;
-
 		args.addHelpOption();
 		args.addVersionOption();
-
-		QCommandLineOption port("port", "The port or socket path GSviewer should receive commands on.", "<PORT | PATH>");
-		args.addOption(port);
-
+		args.addOption(QCommandLineOption("port", "The port GSviewer should receive commands on. The commands are a sub-set of the IGV batch commands.", "port"));
 		args.process(a);
 
-		MainWindow w(args.value("port"));
+		//start app
+		MainWindow w;
 		w.showMaximized();
+
+		//open port if requested
+		QString port_str = args.value("port");
+		if (!port_str.isEmpty())
+		{
+			w.openPort(Helper::toInt(port_str, "CLI parameter 'port'"));
+		}
 
 		return a.exec();
 	}
