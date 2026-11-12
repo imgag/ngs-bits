@@ -518,10 +518,17 @@ VariantScores::Result VariantScores::score_GSvar_v3(const VariantList& variants,
 			}
 		}
 
+		//homozygous (really rare for rare variants)
+		if (v_genotype=="hom")
+		{
+			scores.add("genotype_hom", 1.0);
+		}
+
 		QByteArrayList best_genes;
 		output.scores << scores.score(best_genes);
 		output.score_explanations << scores.explainations(best_genes);
 	}
+
 
 	return output;
 }
