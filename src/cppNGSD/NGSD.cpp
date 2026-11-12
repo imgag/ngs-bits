@@ -619,6 +619,52 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 		}
 	}
 
+	//add related samples
+	if(p.add_related)
+	{
+		QStringList new_col;
+		for (int r=0; r<output.rowCount(); ++r)
+		{
+			QMap<QString, QSet<QString>> relations;
+			QString s_id = getValue("SELECT sample_id FROM processed_sample WHERE id="+ output.row(r).id()).toString();
+			SqlQuery query = getQuery();
+			query.exec("SELECT sample1_id, relation, sample2_id FROM sample_relations WHERE (sample1_id="+s_id+" OR sample2_id="+s_id+") AND relation in ('parent-child', 'siblings', 'cousins', 'twins', 'twins (monozygotic)')");
+			while(query.next())
+			{
+				QString s1 = query.value("sample1_id").toString();
+				QString s2 = query.value("sample2_id").toString();
+				QString relation = query.value("relation").toString();
+
+				//change relations depending of s1/s2 order
+				if (relation=="parent-child")
+				{
+					if (s1==s_id) relation = "child";
+					else relation = "parents";
+				}
+
+				//make sure s2 is the other sample
+				if (s2==s_id) s2 = s1;
+
+				if (relation=="twins (monozygotic)") relation = "twins (monozygotic)";
+				else if (relation.endsWith("s")) relation = relation.left(relation.length()-1);
+
+				relations[relation] << s2;
+			}
+			QStringList parts;
+			for(auto it=relations.begin(); it!=relations.end(); ++it)
+			{
+				QStringList samples;
+				for (QString id: it.value())
+				{
+					samples << sampleName(id);
+				}
+				parts << (it.key() + ":" + samples.join("/"));
+			}
+			new_col << parts.join(", ");
+		}
+		output.addColumn(new_col, "related_samples");
+	}
+
 	if (p.add_qc)
 	{
 		//reorder columns to put sample and processed sample quality at the start of the qc block:
@@ -1374,20 +1420,6 @@ QStringList NGSD::secondaryAnalyses(QString processed_sample_name, QString analy
 	for (int i=0; i<output.count(); ++i)
 	{
 		QString file = output[i];
-
-		//get folder of secondary analysis
-		QString gsvar_file = QFileInfo(file).fileName();
-		QString secondary_folder_name = QFileInfo(file).dir().dirName();
-
-		//get first sample (determines path)
-		QStringList parts = secondary_folder_name.split("_");
-		QString first_sample = parts[1] + "_" + parts[2];
-		QDir sample_folder = QFileInfo(processedSamplePath(processedSampleId(first_sample), PathType::SAMPLE_FOLDER)).dir();
-		QString project_folder = QFileInfo(sample_folder.absolutePath()).absolutePath();
-
-		//concat path
-		file = project_folder + QDir::separator() + secondary_folder_name + QDir::separator() + gsvar_file;
-
 		//convert to canonical path
 		file = QFileInfo(file).absoluteFilePath();
 		if (!file.endsWith(".gz", Qt::CaseInsensitive))
@@ -4048,6 +4080,12 @@ void NGSD::init(QString password)
 			foreach(QString table, tables)
 			{
 				query.exec("DELETE FROM " + table);
+			}
+			//ALTER TABLE is expensive, so only reset counters that have advanced.
+			//Check metadata after deleting rows, including tables that were already empty.
+			QStringList reset_tables = getValues("SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE() AND AUTO_INCREMENT>1");
+			foreach(QString table, reset_tables)
+			{
 				query.exec("ALTER TABLE " + table  + " AUTO_INCREMENT = 1");
 			}
 			query.exec("SET FOREIGN_KEY_CHECKS = 1;");
@@ -5294,6 +5332,9 @@ QString NGSD::analysisJobGSvarFile(int job_id)
 	{
 		THROW(ProgrammingException, "Unknown analysis type '" + job.type + "'!");
 	}
+
+	QString gz_output = output+".gz";
+	if (QFile::exists(gz_output)) return gz_output;
 
 	return output;
 }

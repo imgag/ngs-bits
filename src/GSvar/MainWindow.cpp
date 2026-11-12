@@ -12,6 +12,7 @@
 #include <QDir>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QUrlQuery>
 #include <QTime>
 #include <QNetworkProxy>
 #include "ExternalToolDialog.h"
@@ -263,8 +264,16 @@ MainWindow::MainWindow(QWidget *parent)
 	}
 	ui_.actionEncrypt->setEnabled(Helper::runningInQtCreator());
 
+	//handle 'gsvar://' URLs in the operating system
+	if (Helper::isWindows() && !Helper::runningInQtCreator())
+	{
+		if (!GSvarHelper::registerGSvarUrlScheme()) Log::error("Failed to register 'gsvar://' URL scheme");
+		if (!multi_instance_handler_.startServer()) Log::error("Failed to start the server for handling multiple instances: " + multi_instance_handler_.errorString());
+		connect(&multi_instance_handler_, &MultiInstanceHandler::urlReceived, this, &MainWindow::openGSvarUrl);
+	}
+
 	//signals and slots
-    connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(closeAndLogout()));
+	connect(ui_.actionExit, SIGNAL(triggered()), this, SLOT(closeAndLogout()));
 
         connect(ui_.filters, SIGNAL(filtersChanged()), this, SLOT(refreshVariantTable()));
 	connect(ui_.vars, SIGNAL(itemSelectionChanged()), this, SLOT(updateVariantDetails()));
@@ -1679,7 +1688,11 @@ void MainWindow::delayedInitialization()
 	updateNGSDSupport();
 	registerCustomContextMenuActions();
 
-	//parse arguments
+	handleCliArguments();
+}
+
+void MainWindow::handleCliArguments()
+{
 	for (int i=1; i<QApplication::arguments().count(); ++i)
 	{
 		QString arg = QApplication::arguments().at(i);
@@ -1718,11 +1731,6 @@ void MainWindow::delayedInitialization()
 				if (db.processedSampleId(arg, false)!="")
 				{
 					openProcessedSampleFromNGSD(arg, false);
-					opened = true;
-				}
-				else if (db.sampleId(arg, false)!="")
-				{
-					openSampleFromNGSD(arg);
 					opened = true;
 				}
 			}
@@ -2229,7 +2237,7 @@ void MainWindow::on_actionOpenByName_triggered()
 	openProcessedSampleFromNGSD(ps_name, dlg.searchMulti());
 }
 
-void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool search_multi)
+bool MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool search_multi)
 {
 	checkClientUpdates();
 	try
@@ -2295,7 +2303,7 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 			//show selection dialog (analysis name instead of file name)
 			bool ok = false;
 			QString name = QInputDialog::getItem(this, "Several analyses of the sample present", "select analysis:", names, 0, false, &ok);
-			if (!ok) return;
+			if (!ok) return false;
 
 			int index = names.indexOf(name);
 			foreach(QString ps_id, analysis_info_list[index].ps_sample_id_list)
@@ -2309,40 +2317,12 @@ void MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		}
 
 		loadFile(file);
+		return true;
 	}
 	catch (Exception& e)
 	{
 		GUIHelper::showException(this, e, "Error opening processed sample by name");
-	}
-}
-
-void MainWindow::openSampleFromNGSD(QString sample_name)
-{
-	try
-	{
-		NGSD db;
-		QStringList processed_samples = db.getValues("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND ps.quality!='bad' AND ps.id NOT IN (SELECT processed_sample_id FROM merged_processed_samples) AND s.name=:0", sample_name);
-		if (processed_samples.isEmpty())
-		{
-			THROW(ArgumentException, "No high-quality processed sample found for sample name '" + sample_name + "'");
-		}
-
-		if (processed_samples.count()==1)
-		{
-			openProcessedSampleFromNGSD(processed_samples[0], false);
-		}
-		else
-		{
-			bool ok = false;
-			QString ps = QInputDialog::getItem(this, "Several processed samples found for sample '" + sample_name + "'", "select processed sample:", processed_samples, 0, false, &ok);
-			if (!ok) return;
-
-			openProcessedSampleFromNGSD(ps, false);
-		}
-	}
-	catch (Exception& e)
-	{
-		QMessageBox::warning(this, "Error opening sample from NGSD", e.message());
+		return false;
 	}
 }
 
@@ -6100,7 +6080,8 @@ void MainWindow::showMatchingCnvsAndSvs(BedLine v_reg)
 
 void MainWindow::closeAndLogout()
 {
-    if (ClientHelper::isClientServerMode()) performLogout();
+	multi_instance_handler_.stopServer();
+	if (ClientHelper::isClientServerMode()) performLogout();
         close();
 }
 
@@ -6172,6 +6153,69 @@ void MainWindow::setStyle(QString name)
 	}
 
 	QApplication::setStyle(style);
+}
+
+void MainWindow::openGSvarUrl(QUrl url)
+{
+	if (url.isEmpty()) return;
+	if (!LoginManager::active()) return;
+
+	QString title = "GSvar URL handling";
+
+	try
+	{
+		//make sure GSvar is shown
+		showNormal();
+		raise();
+		activateWindow();
+
+		//check if URL is valid
+		QString arg2 = url.path(QUrl::FullyDecoded).mid(1).trimmed();
+		if (!url.isValid() || url.scheme() != "gsvar" || arg2.isEmpty())
+		{
+			THROW(ArgumentException, "The provided GSvar URL is invalid:\n"+url.toString());
+		}
+
+		//process action
+		QString action = url.host();
+		if (action == "load")
+		{
+			if (openProcessedSampleFromNGSD(arg2, false))
+			{
+				QUrlQuery query(url);
+				if (query.hasQueryItem("filter"))
+				{
+					QString filter_name = query.queryItemValue("filter", QUrl::FullyDecoded);
+					if (!filter_name.isEmpty())
+					{
+						if (!ui_.filters->setFilter(filter_name)) QMessageBox::warning(this, title, "Filter name '" + filter_name + "' not found. Ignoring it!");
+					}
+				}
+				if (query.hasQueryItem("roi"))
+				{
+					QString roi_name = query.queryItemValue("roi", QUrl::FullyDecoded);
+					if (!roi_name.isEmpty())
+					{
+						if (!ui_.filters->setTargetRegionByDisplayName(roi_name)) QMessageBox::warning(this, title, "Target region name '" + roi_name + "' not found. Ignoring it!");
+					}
+				}
+			}
+		}
+		else if (action == "sample")
+		{
+			openProcessedSampleTab(arg2);
+		}
+		else if (action == "run")
+		{
+			openRunTab(arg2);
+		}
+		else THROW(ArgumentException, "The provided action '" + action + "' is not supported.");
+
+	}
+	catch (Exception& e)
+	{
+		QMessageBox::warning(this, title, e.message());
+	}
 }
 
 void MainWindow::on_actionVirusDetection_triggered()
