@@ -4,6 +4,12 @@ on: [push, pull_request]
 jobs:
   gcc-build-and-test:
     runs-on: ubuntu-26.04
+    env:
+      GENOME_URL: https://megsap.de/download/genome/GRCh38.fa.gz
+      GENOME_FA_GZ: genome/GRCh38.fa.gz
+      GENOME_FA: genome/GRCh38.fa
+      GENOME_FAI_URL: https://megsap.de/download/genome/GRCh38.fa.fai
+      GENOME_FAI: genome/GRCh38.fa.fai
     services:
       mysql:
         image: mysql:5.7
@@ -29,6 +35,38 @@ jobs:
         sudo rm -f /var/lib/man-db/auto-update
         sudo apt-get update
         sudo apt-get -y install --no-install-recommends wget make g++ git qt6-base-dev qmake6 libqt6sql6 libqt6sql6-mysql libqt6charts6-dev libbz2-dev libqt6svg6-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev ca-certificates libtool pkg-config libxml2-16 libxml2-dev libssl-dev libdeflate-dev qt6-httpserver-dev qt6-websockets-dev unzip tabix
+
+    # ---- Reference genome (kept gzipped) ----
+    # Every branch restores the cache; branches and PRs automatically fall back
+    # to the cache saved on master. Only runs on master save a new cache.
+    # Bump "-v2" in the key (in both Linux workflows) to force a fresh download.
+    - name: Restore reference genome from cache
+      id: genome-cache
+      uses: actions/cache/restore@v6
+      with:
+        path: |
+          ${{ env.GENOME_FA_GZ }}
+          ${{ env.GENOME_FAI }}
+        key: genome-GRCh38-v2
+
+    - name: Download reference genome and index
+      if: steps.genome-cache.outputs.cache-hit != 'true'
+      run: |
+        mkdir -p "$(dirname "$GENOME_FA_GZ")"
+        curl -fSL --retry 5 --retry-all-errors -o "$GENOME_FA_GZ" "$GENOME_URL"
+        curl -fSL --retry 5 --retry-all-errors -o "$GENOME_FAI" "$GENOME_FAI_URL"
+
+    - name: Save reference genome to cache (master only)
+      if: steps.genome-cache.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master'
+      uses: actions/cache/save@v6
+      with:
+        path: |
+          ${{ env.GENOME_FA_GZ }}
+          ${{ env.GENOME_FAI }}
+        key: ${{ steps.genome-cache.outputs.cache-primary-key }}
+
+    - name: Unpack reference genome
+      run: gzip -dc "$GENOME_FA_GZ" > "$GENOME_FA"
 
     - name: Create settings for running tests
       run: .github/workflows/settings.sh

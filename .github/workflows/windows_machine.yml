@@ -8,6 +8,11 @@ jobs:
       # Compiler cache (MSYS2's ccache understands Windows paths)
       CCACHE_DIR: ${{ github.workspace }}\.ccache
       CCACHE_MAXSIZE: 2G
+      GENOME_URL: https://megsap.de/download/genome/GRCh38.fa.gz
+      GENOME_FA_GZ: genome/GRCh38.fa.gz
+      GENOME_FA: genome_wm/GRCh38.fa
+      GENOME_FAI_URL: https://megsap.de/download/genome/GRCh38.fa.fai
+      GENOME_FAI: genome/GRCh38.fa.fai
     defaults:
       run:
         shell: msys2 {0}
@@ -61,6 +66,29 @@ jobs:
         run: |
           make THREADS=$(nproc) QMAKE_BIN="qmake6 CONFIG+=ccache" build_libs_release build_tools_release build_gui_release build_server_release
           ccache -s
+
+      # ---- Reference genome + index, from the cache saved on master ----
+      # The Ubuntu 26.04 workflow saves this cache on master; this workflow only
+      # restores it. enableCrossOsArchive lets Windows restore a Linux-made cache.
+      - name: Restore reference genome from cache
+        id: genome-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            ${{ env.GENOME_FA_GZ }}
+            ${{ env.GENOME_FAI }}
+          key: genome-GRCh38-v2
+          enableCrossOsArchive: true
+
+      - name: Download reference genome and index (cache miss)
+        if: steps.genome-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$(dirname "$GENOME_FA_GZ")"
+          curl -fSL --retry 5 --retry-all-errors -o "$GENOME_FA_GZ" "$GENOME_URL"
+          curl -fSL --retry 5 --retry-all-errors -o "$GENOME_FAI" "$GENOME_FAI_URL"
+
+      - name: Unpack reference genome       
+        run: gzip -dc "$GENOME_FA_GZ" > "$GENOME_FA"
 
       - name: Create a settings.ini file for tests
         run: .github/workflows/settings_win_mac.sh
