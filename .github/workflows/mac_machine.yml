@@ -11,7 +11,7 @@ jobs:
       HOMEBREW_NO_INSTALL_CLEANUP: 1     
       GENOME_URL: https://megsap.de/download/genome/GRCh38.fa.gz
       GENOME_FA_GZ: genome/GRCh38.fa.gz
-      GENOME_FA: genome_wm/GRCh38.fa
+      GENOME_FA: genome/GRCh38.fa
       GENOME_FAI_URL: https://megsap.de/download/genome/GRCh38.fa.fai
       GENOME_FAI: genome/GRCh38.fa.fai
     steps:
