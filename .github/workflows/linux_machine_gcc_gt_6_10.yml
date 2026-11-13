@@ -66,7 +66,6 @@ jobs:
         key: ${{ steps.genome-cache.outputs.cache-primary-key }}
 
     - name: Unpack reference genome
-      # Keeps the .gz next to it; writes genome/GRCh38.fa
       run: gzip -dc "$GENOME_FA_GZ" > "$GENOME_FA"
 
     - name: Create settings for running tests

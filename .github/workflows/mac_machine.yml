@@ -8,7 +8,12 @@ jobs:
       QT_VERSION: 6.10.3
       # Stop brew from auto-updating / cleaning up on every `brew install`
       HOMEBREW_NO_AUTO_UPDATE: 1
-      HOMEBREW_NO_INSTALL_CLEANUP: 1
+      HOMEBREW_NO_INSTALL_CLEANUP: 1     
+      GENOME_URL: https://megsap.de/download/genome/GRCh38.fa.gz
+      GENOME_FA_GZ: genome/GRCh38.fa.gz
+      GENOME_FA: genome/GRCh38.fa
+      GENOME_FAI_URL: https://megsap.de/download/genome/GRCh38.fa.fai
+      GENOME_FAI: genome/GRCh38.fa.fai
     steps:
     - name: Checkout repository
       uses: actions/checkout@v6
@@ -49,7 +54,7 @@ jobs:
         key: ${{ runner.os }}-${{ runner.arch }}-macos-26
         max-size: 2G
 
-     # THREADS and QMAKE_BIN are Makefile variables, so they can be overridden
+    # THREADS and QMAKE_BIN are Makefile variables, so they can be overridden
     # here instead of sed-ing the Makefile. CONFIG+=ccache makes qmake prefix
     # the compiler with ccache.
     - name: Build project dependencies
@@ -61,6 +66,28 @@ jobs:
       run: |
         mkdir -p "$HOME/ssl"
         openssl req -new -newkey rsa:4096 -days 365 -nodes -x509 -subj "/C=DE/ST=BW/L=Tuebingen/O=test-certificate/CN=localhost" -keyout "$HOME/ssl/test-key.key" -out "$HOME/ssl/test-cert.crt"
+
+    # ---- Reference genome + index, from the cache saved on master ----
+    # The Ubuntu 26.04 workflow saves this cache on master; this workflow only
+    # restores it. Linux-made caches restore on macOS without extra options.
+    - name: Restore reference genome from cache
+      id: genome-cache
+      uses: actions/cache/restore@v6
+      with:
+        path: |
+          ${{ env.GENOME_FA_GZ }}
+          ${{ env.GENOME_FAI }}
+        key: genome-GRCh38-v2
+
+    - name: Download reference genome and index (cache miss)
+      if: steps.genome-cache.outputs.cache-hit != 'true'
+      run: |
+        mkdir -p "$(dirname "$GENOME_FA_GZ")"
+        curl -fSL --retry 5 --retry-all-errors -o "$GENOME_FA_GZ" "$GENOME_URL"
+        curl -fSL --retry 5 --retry-all-errors -o "$GENOME_FAI" "$GENOME_FAI_URL"
+
+    - name: Unpack reference genome    
+      run: gzip -dc "$GENOME_FA_GZ" > "$GENOME_FA"
 
     - name: Create a settings.ini file for tests
       run: .github/workflows/settings_win_mac.sh

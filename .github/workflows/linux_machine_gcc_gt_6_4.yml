@@ -56,7 +56,6 @@ jobs:
         curl -fSL --retry 5 --retry-all-errors -o "$GENOME_FAI" "$GENOME_FAI_URL"
 
     - name: Unpack reference genome
-      # Keeps the .gz next to it; writes genome/GRCh38.fa
       run: gzip -dc "$GENOME_FA_GZ" > "$GENOME_FA"
 
     - name: Create settings for running tests
