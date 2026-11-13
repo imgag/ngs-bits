@@ -463,8 +463,7 @@ VariantScores::Result VariantScores::score_GSvar_v3(const VariantList& variants,
 				scores.add("impact", 1.0, transcript.gene);
 			}
 		}
-		//TODO score SpliceAI score as "impact" as well
-		//TODO score "relevant transcripts" higher than others
+		//TODO score SpliceAI score as "impact" as well - use 0.2, 0.5 and 0.8 as cutoff
 
 		//gnomAD o/e lof, inheritance (gene-specific) - format: SAMD11 (inh=n/a oe_syn=1.70 oe_mis=1.51 oe_lof=0.90), NOC2L (inh=n/a oe_syn=1.60 oe_mis=1.25 oe_lof=1.03)
 		QByteArray v_genotype = v.annotations()[i_genotye].trimmed();
@@ -534,7 +533,6 @@ VariantScores::Result VariantScores::score_GSvar_v3(const VariantList& variants,
 }
 /*
 //TODO Marc:
-- splicing prediction or variant effect
 - score by transcript, not by gene
 	- extra score for MANE or relevant transcripts?
 - use HPO<>gene set instead of regions
