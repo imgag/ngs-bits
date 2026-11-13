@@ -6,8 +6,10 @@ jobs:
     runs-on: ubuntu-26.04
     env:
       GENOME_URL: https://megsap.de/download/genome/GRCh38.fa.gz
-      GENOME_FA_GZ: genome/GRCh38.fa.gz   # relative to the repository checkout
+      GENOME_FA_GZ: genome/GRCh38.fa.gz
       GENOME_FA: genome/GRCh38.fa
+      GENOME_FAI_URL: https://megsap.de/download/genome/GRCh38.fa.fai
+      GENOME_FAI: genome/GRCh38.fa.fai
     services:
       mysql:
         image: mysql:5.7
@@ -37,28 +39,34 @@ jobs:
     # ---- Reference genome (kept gzipped) ----
     # Every branch restores the cache; branches and PRs automatically fall back
     # to the cache saved on master. Only runs on master save a new cache.
-    # Bump "-v1" in the key to force a fresh download (e.g. if the file changes).
+    # Bump "-v2" in the key (in both Linux workflows) to force a fresh download.
     - name: Restore reference genome from cache
       id: genome-cache
       uses: actions/cache/restore@v6
       with:
-        path: ${{ env.GENOME_FA_GZ }}
-        key: genome-GRCh38-v1
+        path: |
+          ${{ env.GENOME_FA_GZ }}
+          ${{ env.GENOME_FAI }}
+        key: genome-GRCh38-v2
 
-    - name: Download reference genome
+    - name: Download reference genome and index
       if: steps.genome-cache.outputs.cache-hit != 'true'
       run: |
         mkdir -p "$(dirname "$GENOME_FA_GZ")"
         curl -fSL --retry 5 --retry-all-errors -o "$GENOME_FA_GZ" "$GENOME_URL"
+        curl -fSL --retry 5 --retry-all-errors -o "$GENOME_FAI" "$GENOME_FAI_URL"
 
     - name: Save reference genome to cache (master only)
       if: steps.genome-cache.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master'
       uses: actions/cache/save@v6
       with:
-        path: ${{ env.GENOME_FA_GZ }}
+        path: |
+          ${{ env.GENOME_FA_GZ }}
+          ${{ env.GENOME_FAI }}
         key: ${{ steps.genome-cache.outputs.cache-primary-key }}
-        
+
     - name: Unpack reference genome
+      # Keeps the .gz next to it; writes genome/GRCh38.fa
       run: gzip -dc "$GENOME_FA_GZ" > "$GENOME_FA"
 
     - name: Create settings for running tests
