@@ -31,6 +31,7 @@ public:
 		changeLog(2019, 12, 13, "Added support for gzipped VCF files.");
 		changeLog(2019, 12, 11, "Added check for invalid characters in INFO column.");
 		changeLog(2018, 12, 3, "Initial implementation.");
+		changeLog(2026, 11, 13, "Flush the results, even when the tool crashes.");
 	}
 
 	virtual void main()
@@ -55,6 +56,7 @@ public:
 		//check
 		if (!VcfFile::isValid(in, ref_file, out_stream, info, lines, duplicates))
 		{
+			out_stream.flush();
 			THROW(ToolFailedException, "VCF check failed - see 'out' file for details!");
 		}
     }
