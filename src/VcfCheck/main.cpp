@@ -27,11 +27,11 @@ public:
 		addFlag("info", "Add general information about the input file to the output.");
 		addFlag("duplicates", "Check for variants occuring twice (input VCF needs to be sorted).");
 
+		changeLog(2026, 11, 13, "Flush the results, even when the tool crashes.");
 		changeLog(2025,  5, 30, "Added parameter 'duplicates'.");
 		changeLog(2019, 12, 13, "Added support for gzipped VCF files.");
 		changeLog(2019, 12, 11, "Added check for invalid characters in INFO column.");
-		changeLog(2018, 12, 3, "Initial implementation.");
-		changeLog(2026, 11, 13, "Flush the results, even when the tool crashes.");
+		changeLog(2018, 12, 3, "Initial implementation.");		
 	}
 
 	virtual void main()
