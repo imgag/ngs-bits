@@ -4,6 +4,10 @@ on: [push, pull_request]
 jobs:
   gcc-build-and-test:
     runs-on: ubuntu-26.04
+    env:
+      GENOME_URL: https://megsap.de/download/genome/GRCh38.fa.gz
+      GENOME_FILE: genome/GRCh38.fa.gz   # relative to the repository checkout
+      GENOME_FA: genome/GRCh38.fa
     services:
       mysql:
         image: mysql:5.7
@@ -29,6 +33,30 @@ jobs:
         sudo rm -f /var/lib/man-db/auto-update
         sudo apt-get update
         sudo apt-get -y install --no-install-recommends wget make g++ git qt6-base-dev qmake6 libqt6sql6 libqt6sql6-mysql libqt6charts6-dev libbz2-dev libqt6svg6-dev liblzma-dev zlib1g-dev libcurl4 libcurl4-openssl-dev ca-certificates libtool pkg-config libxml2-16 libxml2-dev libssl-dev libdeflate-dev qt6-httpserver-dev qt6-websockets-dev unzip tabix
+
+    # ---- Reference genome (kept gzipped) ----
+    # Every branch restores the cache; branches and PRs automatically fall back
+    # to the cache saved on master. Only runs on master save a new cache.
+    # Bump "-v1" in the key to force a fresh download (e.g. if the file changes).
+    - name: Restore reference genome from cache
+      id: genome-cache
+      uses: actions/cache/restore@v6
+      with:
+        path: ${{ env.GENOME_FILE }}
+        key: genome-GRCh38-v1
+
+    - name: Download reference genome
+      if: steps.genome-cache.outputs.cache-hit != 'true'
+      run: |
+        mkdir -p "$(dirname "$GENOME_FILE")"
+        curl -fSL --retry 5 --retry-all-errors -o "$GENOME_FILE" "$GENOME_URL"
+
+    - name: Save reference genome to cache (master only)
+      if: steps.genome-cache.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master'
+      uses: actions/cache/save@v6
+      with:
+        path: ${{ env.GENOME_FILE }}
+        key: ${{ steps.genome-cache.outputs.cache-primary-key }}
 
     - name: Create settings for running tests
       run: .github/workflows/settings.sh

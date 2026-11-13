@@ -1,6 +1,7 @@
 #!/bin/bash
 mkdir ./projects_folder
 touch ./bin/settings.ini
+echo "reference_genome = \"$GITHUB_WORKSPACE/genome/GRCh38.fa\"" >> ./bin/settings.ini
 echo "ngsd_host = \"127.0.0.1\"" >> ./bin/settings.ini
 echo "ngsd_port = 3306" >> ./bin/settings.ini
 echo "ngsd_name = \"test_db\"" >> ./bin/settings.ini
