@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-26.04
     env:
       GENOME_URL: https://megsap.de/download/genome/GRCh38.fa.gz
-      GENOME_FILE: genome/GRCh38.fa.gz   # relative to the repository checkout
+      GENOME_FA_GZ: genome/GRCh38.fa.gz   # relative to the repository checkout
       GENOME_FA: genome/GRCh38.fa
     services:
       mysql:
@@ -42,21 +42,24 @@ jobs:
       id: genome-cache
       uses: actions/cache/restore@v6
       with:
-        path: ${{ env.GENOME_FILE }}
+        path: ${{ env.GENOME_FA_GZ }}
         key: genome-GRCh38-v1
 
     - name: Download reference genome
       if: steps.genome-cache.outputs.cache-hit != 'true'
       run: |
-        mkdir -p "$(dirname "$GENOME_FILE")"
-        curl -fSL --retry 5 --retry-all-errors -o "$GENOME_FILE" "$GENOME_URL"
+        mkdir -p "$(dirname "$GENOME_FA_GZ")"
+        curl -fSL --retry 5 --retry-all-errors -o "$GENOME_FA_GZ" "$GENOME_URL"
 
     - name: Save reference genome to cache (master only)
       if: steps.genome-cache.outputs.cache-hit != 'true' && github.ref == 'refs/heads/master'
       uses: actions/cache/save@v6
       with:
-        path: ${{ env.GENOME_FILE }}
+        path: ${{ env.GENOME_FA_GZ }}
         key: ${{ steps.genome-cache.outputs.cache-primary-key }}
+        
+    - name: Unpack reference genome
+      run: gzip -dc "$GENOME_FA_GZ" > "$GENOME_FA"
 
     - name: Create settings for running tests
       run: .github/workflows/settings.sh
