@@ -160,6 +160,7 @@ private:
 		IS_TRUE(Helper::isNumeric(QString("0.443")));
 		IS_TRUE(Helper::isNumeric(QString("9.146")));
 		IS_TRUE(Helper::isNumeric(QString("1000.414")));
+		IS_TRUE(Helper::isNumeric(QString("01")));
 
 		IS_FALSE(Helper::isNumeric(QString("--10.4494")));
 		IS_FALSE(Helper::isNumeric(QString("0.443s")));
