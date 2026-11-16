@@ -1,10 +1,5 @@
 #Ensembl-style GFF file with transcripts, e.g. from https://ftp.ensembl.org/pub/release-115/gff3/homo_sapiens/Homo_sapiens.GRCh38.115.gff3.gz
 ensembl_gff = ""
 
-#SSL certificates need passed to htslib CURL to access BAM/CRAM files via HTTPS
+#SSL certificates passed to htslib CURL to access BAM/CRAM files via HTTPS
 curl_ca_bundle = ""
-
-#Enables or disables application control via a command API. https://github.com/igvteam/igv/wiki/Batch-commands/32fbbbf3c7b7c79a5e531f03346c4624716422b0
-#This option is used to set the default state of remote control. Passing the `--port` option to the executable will cause this option to be ignored in favour of that parameter.
-#If set to `true` and the `--port` option is not provided, will listen on TCP port 60141
-enable_remote_application_control=false

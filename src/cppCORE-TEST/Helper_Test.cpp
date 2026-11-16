@@ -237,6 +237,22 @@ private:
 			I_EQUAL(exit_code, 0);
 			IS_FALSE(output.join("").trimmed().isEmpty());
 		}
+	}
 
+	TEST_METHOD(isHttpUrl)
+	{
+		IS_TRUE(Helper::isHttpUrl("http://www.google.de"));
+		IS_TRUE(Helper::isHttpUrl("https://www.google.de"));
+		IS_TRUE(Helper::isHttpUrl("https://www.google.de?token=bluff"));
+		IS_FALSE(Helper::isHttpUrl("C:\\test.txt"));
+	}
+
+	TEST_METHOD(removeUrlArguments)
+	{
+		S_EQUAL(Helper::removeUrlArguments("bla?bla"), "bla?bla");
+		S_EQUAL(Helper::removeUrlArguments("http://www.google.de"), "http://www.google.de");
+		S_EQUAL(Helper::removeUrlArguments("https://www.google.de"), "https://www.google.de");
+		S_EQUAL(Helper::removeUrlArguments("http://www.google.de?token=bluff"), "http://www.google.de");
+		S_EQUAL(Helper::removeUrlArguments("https://www.google.de?token=bluff"), "https://www.google.de");
 	}
 };

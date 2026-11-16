@@ -14,7 +14,8 @@ class MainWindow
 
 public:
 	///Constructor
-	MainWindow(QString bind, QWidget* parent = 0);
+	MainWindow(QWidget* parent = 0);
+	void openPort(int port);
 
 private slots:
 	void delayedInitialization();
@@ -22,12 +23,8 @@ private slots:
 	void openDocumentation();
 	void showAboutDialog();
 	void addNRegions();
-	void showNamedColors();
 
-	///Enables/Disables the remote application control API
-	void on_actionEnable_Remote_Application_Control_changed();
-
-	//APICommands
+	//executes an API command
 	void executeApiCommand(ApiCommand cmd);
 
 	void hideSecondarySplit();
@@ -38,18 +35,15 @@ private:
 	Ui::MainWindow ui_;
 	DelayedInitializationTimer init_timer_;
 
+	//API listener and methods to handle API commands
 	CommandServer api_;
-
-	void err(QString header, QString text);
 	void handleGoto(QStringList args);
 	void handleLoad(QStringList args);
 	void handleGenome(QStringList args);
-	void handleSleep();
 	void handleViewAsPairs();
 	void handleColorBy(QStringList args);
 	void handleScreenshot(QStringList args);
 	void handleGroupBy(QStringList args);
-	void stub();
 };
 
 #endif // MAINWINDOW_H

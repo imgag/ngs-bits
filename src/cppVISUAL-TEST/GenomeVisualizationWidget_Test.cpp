@@ -206,6 +206,70 @@ private slots:
 		QVERIFY(context->isHidden());
 	}
 
+	void viewersInitializeFromCachedTranscripts()
+	{
+		const TranscriptList original_transcripts = SharedData::transcripts();
+		const int original_padding = SharedData::settings().transcript_padding;
+		const auto restore = qScopeGuard([&]()
+		{
+			SharedData::setTranscripts(original_transcripts);
+			SharedData::parameters().setInt("transcript padding", original_padding);
+		});
+		SharedData::parameters().setInt("transcript padding", 1);
+		Transcript trans;
+		trans.setName("ENST_CACHED");
+		trans.setGene("CACHED");
+		trans.setSource(Transcript::ENSEMBL);
+		trans.setStrand(Transcript::PLUS);
+		trans.setRegions(BedFile(Chromosome("chr22"), 10, 70));
+		TranscriptList transcripts;
+		transcripts.append(trans);
+		SharedData::setTranscripts(transcripts);
+
+		//Opening another visualization must work without another transcriptsChanged signal.
+		GenomeVisualizationWidget first(nullptr);
+		GenomeVisualizationWidget second(nullptr);
+		auto search = [](GenomeVisualizationWidget& viewer, const QString& query)
+		{
+			viewer.findChild<QLineEdit*>("search")->setText(query);
+			QVERIFY(QMetaObject::invokeMethod(&viewer, "search", Qt::DirectConnection));
+		};
+		for (auto* viewer : {&first, &second})
+		{
+			auto* selector = viewer->findChild<QComboBox*>("chr_selector");
+			QVERIFY(selector);
+			QCOMPARE(selector->count(), SharedData::genome().chromosomes().count() + 1);
+			QCOMPARE(selector->currentText(), QString("All"));
+			selector->setCurrentText("chr22");
+			QCOMPARE(viewer->region().toString(true), QString("chr22:1-100"));
+			for (const QString& query : {QString("cached"), QString("enst_cached")})
+			{
+				viewer->setRegion(Chromosome("chrX"), 1, 80);
+				search(*viewer, query);
+				QCOMPARE(viewer->region().toString(true), QString("chr22:9-71"));
+			}
+		}
+
+		//Replacing the shared transcripts must remove stale gene and transcript names.
+		trans.setName("ENST_NEW");
+		trans.setGene("NEW");
+		trans.setRegions(BedFile(Chromosome("chr22"), 20, 80));
+		transcripts.clear();
+		transcripts.append(trans);
+		SharedData::setTranscripts(transcripts);
+		for (auto* viewer : {&first, &second})
+		{
+			viewer->setRegion(Chromosome("chrX"), 1, 80);
+			for (const QString& query : {QString("CACHED"), QString("ENST_CACHED")})
+			{
+				search(*viewer, query);
+				QCOMPARE(viewer->region().toString(true), QString("chrX:1-80"));
+			}
+			search(*viewer, "NEW");
+			QCOMPARE(viewer->region().toString(true), QString("chr22:19-81"));
+		}
+	}
+
 	void independentViewPositionsAndBamCaches()
 	{
 		GenomeVisualizationWidget second(nullptr);
@@ -859,6 +923,125 @@ private slots:
 		QVERIFY(empty_index.matchingIndices(Chromosome("chr22"), 1, 10).isEmpty());
 	}
 
+	void igvMultipleDatasets()
+	{
+		writeFile("multiple.igv", "Chromosome\tStart\tEnd\tFeature\tFirst\tSecond\tThird\n"
+			"chr22\t20\t21\tfeature\t0.75\t0.25\tinvalid\n"
+			"chr22\t40\t41\tfeature\tinvalid\t0.25\t0.5\n"
+			"chr22\t60\t61\tfeature\t0.75\t0.25\n"
+			"chr22\t70\t71\tfeature\tnan\tinf\tinvalid\n");
+		auto file = FileLoader::loadIgvFile(data_.filePath("multiple.igv"));
+		QVERIFY(file);
+		QCOMPARE(file->datasetNames(), QByteArrayList({"First", "Second", "Third"}));
+		QCOMPARE(file->datasetCount(), 3);
+		QCOMPARE(file->count(), 3);
+		QCOMPARE((*file)[0].value(), 0.75);
+		QCOMPARE((*file)[0].value(1), 0.25);
+		QVERIFY(std::isnan((*file)[0].value(2)));
+		QVERIFY(std::isnan((*file)[1].value()));
+		QCOMPARE((*file)[1].value(2), 0.5);
+		QVERIFY(std::isnan((*file)[2].value(2)));
+
+		//Use two series to check rendering and hit testing of the second dataset in every mode.
+		IgvTrack track(view_.data(), "", "Multiple datasets");
+		const int x0 = SharedData::settings().label_width + 2;
+		track.resize(x0 + 2 + 800, 100);
+		track.setIgvFile(QSharedPointer<IgvFile>::create(QVector<IgvFileLine>{
+			{Chromosome("chr22"), 21, 21, QVector<double>{0.75, 0.25}},
+			{Chromosome("chr22"), 61, 61, QVector<double>{0.75, 0.25}}},
+			QByteArrayList{"Chromosome\tStart\tEnd\tFeature\tFirst\tSecond"}));
+		QCOMPARE(track.sizeHint().height(), 200);
+		track.resize(track.width(), track.sizeHint().height());
+		track.show();
+		QImage image(track.size(), QImage::Format_ARGB32);
+		for (const QByteArray& mode : QByteArrayList{"points", "line plot", "bar chart", "heatmap"})
+		{
+			track.parameters().setString("draw mode", mode);
+			track.render(&image);
+			const int blue_x = x0 + (mode == "line plot" ? 300 : 205);
+			const int second_x = blue_x;
+			const int first_y = 27;
+			const int second_y = mode == "bar chart" ? 180 : 173;
+			const QColor first = image.pixelColor(blue_x, first_y);
+			const QColor second = image.pixelColor(second_x, second_y);
+			QVERIFY2(first.blue() > first.red(), mode.constData());
+			QVERIFY2(second.blue() > second.red(), mode.constData());
+			if (mode != "heatmap") QCOMPARE(first, second);
+			QTest::mouseClick(&track, Qt::LeftButton, Qt::NoModifier,
+				QPoint(mode == "line plot" ? x0 + 200 : second_x, second_y));
+			auto* popup = track.findChild<QDialog*>();
+			QVERIFY2(popup, mode.constData());
+			const QString text = popup->findChild<QLabel*>()->text();
+			QVERIFY(text.contains("First: 0.75"));
+			QVERIFY(text.contains("Second: 0.25"));
+			delete popup;
+		}
+
+		//Missing data must not connect the two valid points of the first series.
+		track.setIgvFile(file);
+		QCOMPARE(track.sizeHint().height(), 300);
+		track.resize(track.width(), track.sizeHint().height());
+		image = QImage(track.size(), QImage::Format_ARGB32);
+		track.parameters().setString("draw mode", "line plot");
+		track.render(&image);
+		QCOMPARE(image.pixelColor(x0 + 300, 27), QColor(Qt::white));
+		QVERIFY(image.pixelColor(x0 + 300, 173).blue() > image.pixelColor(x0 + 300, 173).red());
+
+		//An out-of-range value in the upper row must not draw into or receive clicks in the lower row.
+		track.setIgvFile(QSharedPointer<IgvFile>::create(QVector<IgvFileLine>{
+			{Chromosome("chr22"), 21, 21, QVector<double>{-1.0, 0.75}},
+			{Chromosome("chr22"), 61, 61, QVector<double>{-1.0, 0.75}}}, QByteArrayList{}));
+		track.resize(track.width(), track.sizeHint().height());
+		image = QImage(track.size(), QImage::Format_ARGB32);
+		for (const QByteArray& mode : QByteArrayList{"points", "line plot"})
+		{
+			track.parameters().setString("draw mode", mode);
+			track.render(&image);
+			QCOMPARE(image.pixelColor(x0 + (mode == "points" ? 205 : 300), 188), QColor(Qt::white));
+			QTest::mouseClick(&track, Qt::LeftButton, Qt::NoModifier, QPoint(x0 + 205, 188));
+			QVERIFY(!track.findChild<QDialog*>());
+		}
+	}
+
+	void igvDatasetRowHeightAndLabels()
+	{
+		writeFile("row-height.igv", "Chromosome\tStart\tEnd\tFeature\tFirst\tSecond\nchr22\t20\t21\tfeature\t0.75\t0.25\n");
+		QScopedPointer<IgvTrack> track(IgvTrack::createTrack(view_.data(), data_.filePath("row-height.igv")));
+		QVERIFY(track);
+		track->parameters().setInt("track height", 80);
+		QCOMPARE(track->sizeHint().height(), 160);
+		const int label_width = SharedData::settings().label_width;
+		track->resize(label_width + 804, track->sizeHint().height());
+		QImage image(track->size(), QImage::Format_ARGB32);
+		track->render(&image);
+		//Each dataset name belongs in the left label area at the start of its row.
+		for (int row = 0; row < 2; ++row)
+		{
+			IgvTrack reference(view_.data(), "", row == 0 ? "First" : "Second");
+			reference.parameters().setInt("track height", 80);
+			reference.resize(track->width(), 80);
+			QImage expected(reference.size(), QImage::Format_ARGB32);
+			reference.render(&expected);
+			QCOMPARE(image.copy(0, row * 80, label_width - 2, 80), expected.copy(0, 0, label_width - 2, 80));
+		}
+
+		QString xml;
+		QXmlStreamWriter writer(&xml);
+		track->writeToXml(writer);
+		QDomDocument document;
+		QVERIFY(document.setContent(xml));
+		QStringList errors;
+		QScopedPointer<TrackWidget> restored(TrackWidget::fromXml(document.documentElement(), view_.data(), errors));
+		QVERIFY(errors.isEmpty());
+		QVERIFY(restored);
+		QCOMPARE(restored->sizeHint().height(), 160);
+		//Restoring the session must allow subsequent changes to the per-row height.
+		restored->parameters().setInt("track height", 120);
+		QCOMPARE(restored->sizeHint().height(), 240);
+		restored->resize(track->width(), restored->sizeHint().height());
+		QCOMPARE(restored->height(), 240);
+	}
+
 	void igvPopupUsesRenderedPositionAndBarHeight()
 	{
 		view_->setRegion(Chromosome("chr22"), 1, 80);
@@ -997,7 +1180,7 @@ private slots:
 			"unassigned\t0\tchr22\t10\t60\t10M\t=\t10\t0\tAAAAAAAAAA\tIIIIIIIIII\n"
 			"phase2\t0\tchr22\t10\t60\t10M\t=\t10\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:2\n"
 			"phase1\t0\tchr22\t10\t60\t10M\t=\t10\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:1\n"
-			"unsupported\t0\tchr22\t40\t60\t10M\t=\t40\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:3\n");
+			"phase3\t0\tchr22\t40\t60\t10M\t=\t40\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:i:3\n");
 		{
 			BamReader reader(data_.filePath("phase.sam"));
 			BamWriter writer(data_.filePath("phase.bam"));
@@ -1032,12 +1215,12 @@ private slots:
 			track->parameters().setString("group by", "phase");
 			checkRead(1, 15, "phase1");
 			checkRead(4, 15, "phase2");
-			checkRead(7, 15, "unassigned");
-			checkRead(7, 45, "unsupported");
+			checkRead(7, 45, "phase3");
+			checkRead(10, 15, "unassigned");
 			QImage grouped(track->size(), QImage::Format_ARGB32);
 			track->render(&grouped);
-			for (int y : {0, 42, 84}) QCOMPARE(grouped.pixelColor(x0 + 1, y), QColor(Qt::gray)); // Label boxes.
-			for (int y : {35, 77})
+			for (int y : {0, 42, 84, 126}) QCOMPARE(grouped.pixelColor(x0 + 1, y), QColor(Qt::gray)); // Label boxes.
+			for (int y : {35, 77, 119})
 			{
 				int gray = 0, white = 0;
 				for (int x = x0 + 90; x < x0 + 310; ++x)
@@ -1081,6 +1264,75 @@ private slots:
 		checkRead(1, 15, "assigned-mate");
 		checkRead(1, 35, "assigned-mate");
 		checkRead(4, 15, "phase2");
+		checkRead(7, 15, "conflict");
+		checkRead(7, 35, "conflict");
+	}
+
+	void bamNamedPhaseGroupingAndHitTesting()
+	{
+		writeFile("named-phase.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n"
+			"unassigned\t0\tchr22\t10\t60\t10M\t*\t0\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:Z:Unassigned\n"
+			"hap2\t0\tchr22\t10\t60\t10M\t*\t0\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:Z:AGAP9_hap2\n"
+			"hap1\t0\tchr22\t10\t60\t10M\t*\t0\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:Z:AGAP9_hap1\n"
+			"hap3\t0\tchr22\t10\t60\t10M\t*\t0\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:Z:AGAP9_hap3\n"
+			"missing\t0\tchr22\t40\t60\t10M\t*\t0\t0\tAAAAAAAAAA\tIIIIIIIIII\n");
+		{
+			BamReader reader(data_.filePath("named-phase.sam"));
+			BamWriter writer(data_.filePath("named-phase.bam"));
+			writer.writeHeader(reader);
+			BamAlignment al;
+			while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+		}
+		QCOMPARE(sam_index_build(data_.filePath("named-phase.bam").toUtf8().constData(), 0), 0);
+		QScopedPointer<BamAlignmentTrack> track(BamAlignmentTrack::createTrack(view_.data(), data_.filePath("named-phase.bam"), ""));
+		QVERIFY(track);
+		track->parameters().setString("group by", "phase");
+		track->parameters().setString("color by", "none");
+		track->resize(SharedData::settings().label_width + 4 + 320, 240);
+		track->show();
+		const int x0 = SharedData::settings().label_width + 2;
+		auto checkRead = [&](int row, int pos, const QString& name)
+		{
+			QTest::mouseClick(track.data(), Qt::LeftButton, Qt::NoModifier, QPoint(x0 + (pos - 1) * 4 + 2, row * 14 + 6));
+			auto* popup = track->findChild<QDialog*>();
+			QVERIFY(popup);
+			QVERIFY(popup->findChild<QLabel*>()->text().contains("Name: " + name + "<br/>"));
+			delete popup;
+		};
+		for (bool pairs : {false, true})
+		{
+			track->parameters().setBool("view as pairs", pairs);
+			checkRead(1, 15, "hap1");
+			checkRead(4, 15, "hap2");
+			checkRead(7, 15, "hap3");
+			checkRead(10, 15, "unassigned");
+			checkRead(10, 45, "missing");
+		}
+
+		//Named tags follow the same mate-inheritance and conflict rules as integer tags.
+		writeFile("named-phase-pairs.sam", "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr22\tLN:100\n"
+			"inherited\t65\tchr22\t10\t60\t10M\t=\t30\t30\tAAAAAAAAAA\tIIIIIIIIII\tHP:Z:Unassigned\n"
+			"conflict\t65\tchr22\t10\t60\t10M\t=\t30\t30\tAAAAAAAAAA\tIIIIIIIIII\tHP:Z:AGAP9_hap1\n"
+			"hap2\t0\tchr22\t10\t60\t10M\t*\t0\t0\tAAAAAAAAAA\tIIIIIIIIII\tHP:Z:AGAP9_hap2\n"
+			"inherited\t129\tchr22\t30\t60\t10M\t=\t10\t-30\tAAAAAAAAAA\tIIIIIIIIII\tHP:Z:AGAP9_hap1\n"
+			"conflict\t129\tchr22\t30\t60\t10M\t=\t10\t-30\tAAAAAAAAAA\tIIIIIIIIII\tHP:Z:AGAP9_hap2\n");
+		{
+			BamReader reader(data_.filePath("named-phase-pairs.sam"));
+			BamWriter writer(data_.filePath("named-phase-pairs.bam"));
+			writer.writeHeader(reader);
+			BamAlignment al;
+			while (reader.getNextAlignment(al)) writer.writeAlignment(al);
+		}
+		QCOMPARE(sam_index_build(data_.filePath("named-phase-pairs.bam").toUtf8().constData(), 0), 0);
+		track.reset(BamAlignmentTrack::createTrack(view_.data(), data_.filePath("named-phase-pairs.bam"), ""));
+		QVERIFY(track);
+		track->parameters().setString("group by", "phase");
+		track->parameters().setBool("view as pairs", true);
+		track->resize(SharedData::settings().label_width + 4 + 320, 240);
+		track->show();
+		checkRead(1, 15, "inherited");
+		checkRead(1, 35, "inherited");
+		checkRead(4, 15, "hap2");
 		checkRead(7, 15, "conflict");
 		checkRead(7, 35, "conflict");
 	}

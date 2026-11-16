@@ -29,7 +29,7 @@ class CPPVISUALSHARED_EXPORT VcfTrack : public TrackWidget
 public:
 	VcfTrack(QWidget* parent, QString file_path, QString name);
 	static QByteArray type() { return "VcfTrack"; }
-	static VcfTrack* createTrack(QWidget* parent, QString file_path, QString name);
+	static VcfTrack* createTrack(QWidget* parent, QString file_path, QString name = "");
 	void reloadTrack() override;
 	QSize sizeHint() const override;
 

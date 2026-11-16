@@ -500,6 +500,7 @@ struct CPPNGSDSHARED_EXPORT ProcessedSampleSearchParameters
 	bool add_lab_columns = false;
 	bool add_study_column = false;
 	bool add_patient_id = false;
+	bool add_related = false;
 };
 
 ///Meta data about somatic report configuration (e.g. creation/update, target bed file)

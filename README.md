@@ -1,5 +1,10 @@
 # *ngs-bits* - Short-read and long-read sequencing tools for diagnostics
 
+[![Linux (Qt 6.10)](https://img.shields.io/github/actions/workflow/status/imgag/ngs-bits/linux_machine_gcc_gt_6_10.yml?branch=master&event=push&label=Linux%20Qt%206.10&logo=linux&logoColor=white)](https://github.com/imgag/ngs-bits/actions/workflows/linux_machine_gcc_gt_6_10.yml)
+[![Linux (Qt 6.4)](https://img.shields.io/github/actions/workflow/status/imgag/ngs-bits/linux_machine_gcc_gt_6_4.yml?branch=master&event=push&label=Linux%20Qt%206.4&logo=linux&logoColor=white)](https://github.com/imgag/ngs-bits/actions/workflows/linux_machine_gcc_gt_6_4.yml)
+[![macOS](https://img.shields.io/github/actions/workflow/status/imgag/ngs-bits/mac_machine.yml?branch=master&event=push&label=macOS&logo=apple)](https://github.com/imgag/ngs-bits/actions/workflows/mac_machine.yml)
+[![Windows](https://img.shields.io/github/actions/workflow/status/imgag/ngs-bits/windows_machine.yml?branch=master&event=push&label=Windows)](https://github.com/imgag/ngs-bits/actions/workflows/windows_machine.yml)
+
 ## Downloading ngs-bits
 
 Binaries and Docker containers of *ngs-bits* are available via Bioconda:  

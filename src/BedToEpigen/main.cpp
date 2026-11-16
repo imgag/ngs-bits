@@ -23,14 +23,14 @@ public:
 		addString("sample", "Sample name used in output file header.", false);
 		//optional
 		addInfile("in", "Input modkit (bgzipped) BED file. If unset, read from STDIN.", true);
-		addOutfile("out", "Output FASTA file. If unset, writes to STDOUT.", true);
+		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 	}
 
 	virtual void main()
 	{
 		//load CpG IDs
-		QMap<QByteArray,QByteArray> cpg_ids;
-		QString id_file = getInfile("id_file");
+		QHash<QByteArray,QByteArray> cpg_ids;
+		const QString id_file = getInfile("id_file");
 		QSharedPointer<QFile> id_file_p = Helper::openFileForReading(id_file);
 		bool header_parsed = false;
 		QMap<QByteArray,int> header_items;
@@ -63,10 +63,12 @@ public:
 
 				//parse line
 				QByteArray id = parts.at(header_items.value("Name"));
-				QByteArray strand = parts.at(header_items.value("Strand_FR"));
+				if (!id.startsWith("cg")) continue; //ignore invalid IDs
+				// QByteArray strand = parts.at(header_items.value("Strand_FR"));
 				Chromosome chr(parts.at(header_items.value("CHR")));
 				if (!chr.isValid()) continue; //ignore invalid chromosomes
 				QByteArray chr_str = chr.strNormalized(true);
+				if (chr_str == "chr0") continue; //ignore chromosome 0
 				QByteArray pos = parts.at(header_items.value("MAPINFO"));
 				QByteArray species = parts.at(header_items.value("Species"));
 				QByteArray build = parts.at(header_items.value("Genome_Build"));
@@ -84,10 +86,15 @@ public:
 				}
 
 				// fix mapping info for reverse CpG
-				if (strand == "R") pos = QByteArray::number(pos.toInt() + 1);
+				// if (strand == "R") pos = QByteArray::number(pos.toInt() + 1);
 
 				//store pos->id mapping
-				QByteArray key = chr_str + ":" + pos + "_" + strand;
+				// QByteArray key = chr_str + ":" + pos + "_" + strand;
+				QByteArray key = chr_str + ":" + pos;
+				if (cpg_ids.contains(key) && cpg_ids.value(key) != id)
+				{
+					THROW(ArgumentException, "Duplicate CpG position with different IDs: key: " + key + ", old ID: " + cpg_ids.value(key) + " , new ID: " + id);
+				}
 				cpg_ids.insert(key, id);
 			}
 		}
@@ -126,15 +133,16 @@ public:
 			QByteArray pos = parts.at(2);
 			QByteArray type = parts.at(3);
 			if (type != "m") continue; // ignore non-5mC methylation
-			QByteArray strand = parts.at(5);
-			if (strand == "+") strand = "F";
-			else strand = "R";
-			float methylation_frac = Helper::toDouble(parts.at(10), "Methylation fraction", chr + ":" + pos + "_" + strand) / 100.0;
-
-			QByteArray cpg_position = chr + ":" + pos + "_" + strand;
+			// QByteArray strand = parts.at(5);
+			// if (strand == "+") strand = "F";
+			// else strand = "R";
+			// float methylation_frac = Helper::toDouble(parts.at(10), "Methylation fraction", chr + ":" + pos + "_" + strand) / 100.0;
+			float methylation_frac = Helper::toDouble(parts.at(10), "Methylation fraction", chr + ":" + pos) / 100.0;
+			// QByteArray cpg_position = chr + ":" + pos + "_" + strand;
+			QByteArray cpg_position = chr + ":" + pos;
 			QByteArray cpg_id = cpg_ids.value(cpg_position, "");
 
-			if (cpg_id == "") continue; //no matching illumina ID found -> ignoring CpG
+			if (cpg_id.isEmpty()) continue; //no matching illumina ID found -> ignoring CpG
 			out << cpg_id << "\t" << QByteArray::number(methylation_frac, 'f', 5) << "\n";
 		}
 	}

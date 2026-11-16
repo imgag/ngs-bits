@@ -3,6 +3,8 @@
 #include "Chromosome.h"
 #include "QFile"
 #include <htslib/bgzf.h>
+#include "Helper.h"
+#include "VersatileFile.h"
 
 TabixIndexedFile::TabixIndexedFile()
 	: file_(nullptr)
@@ -27,9 +29,22 @@ void TabixIndexedFile::load(QByteArray filename)
 	if (file_ == nullptr) THROW(FileParseException, "Could not open data file " + filename_);
 
 	//determine index file
-	filename_index_ = filename + ".csi";
-	if (!QFile::exists(filename_index_)) filename_index_ = filename + ".tbi";
-	if (!QFile::exists(filename_index_)) THROW(FileAccessException, "Could not determine tabix index of file " + filename_);
+	if (Helper::isHttpUrl(filename_))
+	{
+		QByteArray url = filename_.split('?')[0];
+		int pos = filename_.indexOf('?');
+		QByteArray args = (pos>=0) ? filename_.mid(pos) : "";
+
+		filename_index_ = url + ".csi" + args;
+		if (!VersatileFile(filename_index_).exists()) filename_index_ = url + ".tbi" + args;
+		if (!VersatileFile(filename_index_).exists()) THROW(FileAccessException, "Could not determine index of URL " + filename_);
+	}
+	else
+	{
+		filename_index_ = filename + ".csi";
+		if (!QFile::exists(filename_index_)) filename_index_ = filename + ".tbi";
+		if (!QFile::exists(filename_index_)) THROW(FileAccessException, "Could not determine index of local file " + filename_);
+	}
 
 	//load index
 	tbx_ = tbx_index_load3(filename.data(), filename_index_.data(), HTS_IDX_SAVE_REMOTE);

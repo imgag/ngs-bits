@@ -395,6 +395,7 @@ void BedTrack::handlePopupRequest(QPointF local_pos, QPointF global_pos)
 
 BedTrack* BedTrack::createTrack(QWidget* parent, QString file_path, QString name)
 {
+	if (name.isEmpty()) name = getDisplayNameFromFilePath(file_path);
 	auto track = std::make_unique<BedTrack>(parent, file_path, name);
 	if (track->load()) return track.release();
 	return nullptr;

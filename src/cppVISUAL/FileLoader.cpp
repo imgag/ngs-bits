@@ -20,12 +20,12 @@ QVector<TrackWidget*> FileLoader::loadTracks(QString file_path, QWidget* parent)
 	QVector<TrackWidget*> output;
 	if (filename.endsWith(".bedpe", Qt::CaseInsensitive) || filename.endsWith(".bedpe.gz", Qt::CaseInsensitive))
 	{
-		output << SvTrack::createTrack(parent, file_path, filename);
+		output << SvTrack::createTrack(parent, file_path);
 		return output;
 	}
 	if (filename.endsWith(".vcf", Qt::CaseInsensitive) || filename.endsWith(".vcf.gz", Qt::CaseInsensitive))
 	{
-		output << VcfTrack::createTrack(parent, file_path, filename);
+		output << VcfTrack::createTrack(parent, file_path);
 		return output;
 	}
 	if (filename.endsWith(".seg", Qt::CaseInsensitive))
@@ -35,18 +35,18 @@ QVector<TrackWidget*> FileLoader::loadTracks(QString file_path, QWidget* parent)
 	}
 	if (filename.endsWith(".bed", Qt::CaseInsensitive) || filename.endsWith(".bed.gz", Qt::CaseInsensitive))
 	{
-		output << BedTrack::createTrack(parent, file_path, filename);
+		output << BedTrack::createTrack(parent, file_path);
 		return output;
 	}
 	if (filename.endsWith(".bam") || filename.endsWith(".cram"))
 	{
-		output << BamCoverageTrack::createTrack(parent, file_path, filename + " coverage");
-		output << BamAlignmentTrack::createTrack(parent, file_path, filename);
+		output << BamCoverageTrack::createTrack(parent, file_path);
+		output << BamAlignmentTrack::createTrack(parent, file_path);
 		return output;
 	}
 	if (filename.endsWith(".igv"))
 	{
-		output << IgvTrack::createTrack(parent, file_path, filename);
+		output << IgvTrack::createTrack(parent, file_path);
 		return output;
 	}
 
@@ -68,7 +68,7 @@ QSharedPointer<IgvFile> FileLoader::loadIgvFile(QString file_path)
 
 	if (!isValidIgvFile(bedfile))
 	{
-		QMessageBox::critical(QApplication::activeWindow(), "Error", file_path + " is not a valid IGV file (header does not contain 5 columns)");
+		QMessageBox::critical(QApplication::activeWindow(), "Error", file_path + " is not a valid IGV file (header must contain at least 5 columns)");
 		return nullptr;
 	}
 
@@ -78,10 +78,18 @@ QSharedPointer<IgvFile> FileLoader::loadIgvFile(QString file_path)
 	{
 		const BedLine& line = (*bedfile)[i];
 		if (line.annotations().count() < 2) continue;
-		bool ok = false;
-		double value = line.annotations()[1].toDouble(&ok);
-		if (!ok) continue;
-		lines.append(IgvFileLine(line.chr(), line.start(), line.end(), value));
+		QVector<double> values;
+		bool has_value = false;
+		for (int column = 1; column < line.annotations().count(); ++column)
+		{
+			bool ok = false;
+			double value = line.annotations()[column].toDouble(&ok);
+			if (!ok || !std::isfinite(value)) value = std::numeric_limits<double>::quiet_NaN();
+			else has_value = true;
+			values.append(value);
+		}
+		if (!has_value) continue;
+		lines.append(IgvFileLine(line.chr(), line.start(), line.end(), std::move(values)));
 	}
 	return QSharedPointer<IgvFile>::create(std::move(lines), bedfile->headers());
 }
@@ -114,7 +122,8 @@ QSharedPointer<SegFile> FileLoader::loadSegFile(QString file_path)
 			continue;
 		}
 		bool ok_start = false, ok_end = false, ok_value = false;
-		const int start = columns[2].toInt(&ok_start);
+		int start = columns[2].toInt(&ok_start);
+		if (ok_start && start == 0) start = 1;
 		const int end = columns[3].toInt(&ok_end);
 		const double value = columns[5].toDouble(&ok_value);
 		const Chromosome chr(columns[1]);

@@ -101,7 +101,7 @@ void VariantTable::customContextMenu(QPoint pos)
 	QAction* a_copy_variant = copy_menu->addAction("Variant");
 	QAction* a_copy_genes = copy_menu->addAction("Genes");
 	QAction* a_cnv_sv = menu.addAction("Show CNVs/SVs in gene");
-	QAction* a_visualize = menu.addAction("Visualize");
+	QAction* a_visualize = menu.addAction(QIcon(":/Icons/GSviewer.png"), "Visualize");
 	menu.addSeparator();
 
 	//add web links
@@ -308,9 +308,9 @@ void VariantTable::customContextMenu(QPoint pos)
 				SharedData::setTranscripts(NGSD().transcripts());
 			}
 
-
 			//show
 			auto dlg = GUIHelper::createDialog(widget, "GSvar visualization");
+			dlg->setWindowIcon(QIcon(":/Icons/GSviewer.png"));
 			dlg->exec();
 		}
 		catch (Exception e)

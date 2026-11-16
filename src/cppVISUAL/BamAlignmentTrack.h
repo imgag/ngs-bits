@@ -61,7 +61,7 @@ public:
 
 	virtual void reloadTrack() override;
 
-	static BamAlignmentTrack* createTrack(QWidget* parent, QString file_path, QString name);
+	static BamAlignmentTrack* createTrack(QWidget* parent, QString file_path, QString name = "");
 
 protected:
 	QList<Parameter> getParameters() const override;

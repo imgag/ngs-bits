@@ -37,7 +37,7 @@ public:
 	static QByteArray type() { return "BedTrack"; }
 
 	//Loads a BED or opens a tabix-indexed BED.GZ. Returns nullptr on failure.
-	static BedTrack* createTrack(QWidget* parent, QString file_path, QString name);
+	static BedTrack* createTrack(QWidget* parent, QString file_path, QString name = "");
 
 	//Sets a non-null, sorted BED file and rebuilds the index and visible rows.
 	void setBedFile(QSharedPointer<BedFile> bedfile);

@@ -66,6 +66,8 @@ GenomeVisualizationWidget::GenomeVisualizationWidget(QWidget* parent)
 
 	//clean session
 	clearSession();
+	//Shared reference data may already be loaded before this viewer is created.
+	updateIndices();
 
 	//Observe child events even when a track consumes them, including newly shown tracks.
 	for (QWidget* child : ui_->track_group_manager->findChildren<QWidget*>()) child->setMouseTracking(true);
@@ -334,6 +336,8 @@ void GenomeVisualizationWidget::updateIndices()
 	ui_->chr_selector->blockSignals(false);
 
 	//init gene and transcript list
+	gene_to_trans_indices_.clear();
+	trans_to_index_.clear();
 	for (int i = 0; i < SharedData::transcripts().size(); ++i)
 	{
 		const Transcript& trans = SharedData::transcripts()[i];

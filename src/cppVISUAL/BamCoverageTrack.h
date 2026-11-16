@@ -72,7 +72,7 @@ public:
 
 	QSize sizeHint() const override;
 
-	static BamCoverageTrack* createTrack(QWidget* parent, QString file_path, QString name);
+	static BamCoverageTrack* createTrack(QWidget* parent, QString file_path, QString name = "");
 
 protected:
 	QList<Parameter> getParameters() const override;

@@ -366,5 +366,6 @@ bool SvTrack::event(QEvent* event)
 
 SvTrack* SvTrack::createTrack(QWidget* parent, QString file_path, QString name)
 {
+	if (name.isEmpty()) name = getDisplayNameFromFilePath(file_path);
 	return new SvTrack(parent, file_path, name);
 }
