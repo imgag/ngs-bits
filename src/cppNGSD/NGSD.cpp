@@ -654,7 +654,7 @@ DBTable NGSD::processedSampleSearch(const ProcessedSampleSearchParameters& p)
 			for(auto it=relations.begin(); it!=relations.end(); ++it)
 			{
 				QStringList samples;
-				for (QString id: it.value())
+				for (const QString& id: it.value())
 				{
 					samples << sampleName(id);
 				}
@@ -1202,7 +1202,16 @@ QString NGSD::sampleId(const QString& filename, bool throw_if_fails)
 	if (ps.contains("/") || ps.contains("\\") || ps.contains(".")) ps = QFileInfo(filename).baseName();
 
 	QStringList parts = ps.split('_');
-	if (parts.count()>1) parts.takeLast();
+	if (parts.count()>1) //more than two parts (usually file names like NA12878_58_expr.tsv) > truncate before processing counter
+	{
+		for (int i=1; i<parts.count(); ++i)
+		{
+			if (parts[i].length()==2 && Helper::isNumeric(parts[i]))
+			{
+				parts.resize(i);
+			}
+		}
+	}
 	QString sample = parts.join('_');
 
 	//get sample ID
@@ -1233,6 +1242,16 @@ QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 	if (ps.contains("/") || ps.contains("\\") || ps.contains(".")) ps = QFileInfo(filename).baseName();
 
 	QStringList parts = ps.split('_');
+	if (parts.count()>2) //more than two parts (usually file names like NA12878_58_expr.tsv) > truncate at processing counter
+	{
+		for (int i=1; i<parts.count(); ++i)
+		{
+			if (parts[i].length()==2 && Helper::isNumeric(parts[i]))
+			{
+				parts.resize(i+1);
+			}
+		}
+	}
 	QString ps_num = parts.takeLast();
 	QString sample = parts.join('_');
 
