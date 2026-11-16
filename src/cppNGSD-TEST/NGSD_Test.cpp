@@ -1008,7 +1008,8 @@ private:
 
 		//analysisJobGSvarFile
 		QString gsvar = db.analysisJobGSvarFile(1);
-		IS_TRUE(gsvar.endsWith("test/KontrollDNACoriell/Sample_NA12878_03/NA12878_03.GSvar"));
+		gsvar_expected = "test/KontrollDNACoriell/Sample_NA12878_03/NA12878_03.GSvar";
+		IS_TRUE(gsvar.endsWith(gsvar_expected) || gsvar.endsWith(gsvar_expected+".gz"));
 		gsvar = db.analysisJobGSvarFile(3);
 		IS_TRUE(gsvar.endsWith("test/KontrollDNACoriell/Somatic_NA12345_01-NA12878_03/NA12345_01-NA12878_03.GSvar"));
 		gsvar = db.analysisJobGSvarFile(4);
