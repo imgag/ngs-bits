@@ -16,7 +16,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Rankes small variants in the context of a patients phenotype using an evidence-based model.");
+		setDescription("Ranks small variants in the context of a patients phenotype using an evidence-based model.");
 		addInfile("in", "Input variant list in GSvar format.", false);
 		addString("hpo_ids", "Comma-separated list of HPO identifiers.", false);
 		addOutfile("out", "Output variant list in GSvar format with rank/score columns.", false);

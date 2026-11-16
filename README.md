@@ -205,4 +205,4 @@ You can open the a qcML file in Firefox and to show a human-readable version of 
 * [FastaMask](doc/tools/FastaMask.md) - Mask regions in a FASTA file with N bases.
 * [HgvsToVcf](doc/tools/HgvsToVcf.md) - Transforms a TSV file with transcript ID and HGVS.c change into a VCF file (needs [NGSD](doc/install_ngsd.md)).
 * [NgsBitsInfo](doc/tools/NgsBitsInfo.md) - Writes general information about ngs-bits to STDOUT.
-* [VariantRanking](doc/tools/VariantRanking/index.md) - Rankes small variants in the context of a patients phenotype using an evidence-based model (needs [NGSD](doc/install_ngsd.md)).
+* [VariantRanking](doc/tools/VariantRanking/index.md) - Ranks small variants in the context of a patients phenotype using an evidence-based model (needs [NGSD](doc/install_ngsd.md)).
