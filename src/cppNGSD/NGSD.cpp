@@ -1199,7 +1199,9 @@ QString NGSD::sampleId(const QString& filename, bool throw_if_fails)
 	QString ps = filename.trimmed();
 
 	//filename > use basename
-	if (ps.contains("/") || ps.contains("\\") || ps.contains(".")) ps = QFileInfo(filename).baseName();
+	if (ps.contains("/")) ps = ps.split("/").last();
+	if (ps.contains("\\")) ps = ps.split("\\").last();
+	if (ps.contains(".")) ps = ps.split(".").first();
 
 	QStringList parts = ps.split('_');
 	if (parts.count()>1) //more than two parts (usually file names like NA12878_58_expr.tsv) > truncate before processing counter
@@ -1239,7 +1241,9 @@ QString NGSD::processedSampleId(const QString& filename, bool throw_if_fails)
 	QString ps = filename.trimmed();
 
 	//filename > use basename
-	if (ps.contains("/") || ps.contains("\\") || ps.contains(".")) ps = QFileInfo(filename).baseName();
+	if (ps.contains("/")) ps = ps.split("/").last();
+	if (ps.contains("\\")) ps = ps.split("\\").last();
+	if (ps.contains(".")) ps = ps.split(".").first();
 
 	QStringList parts = ps.split('_');
 	if (parts.count()>2) //more than two parts (usually file names like NA12878_58_expr.tsv) > truncate at processing counter
