@@ -192,6 +192,7 @@ public:
 		addFlag("debug", "Enable debug output.");
 
 		changeLog(2024,  8, 16, "Initial version.");
+		changeLog(2026, 11, 16, "Fixed crash for chromosomes with a single valid bin.");
 	}
 
 	virtual void main()
@@ -267,7 +268,7 @@ public:
 				}
 				else
 				{
-					chr_indices[line.chr.str()].min = row_count;
+					chr_indices[line.chr.str()] = MinMaxIndex{row_count, row_count};
 				}
 				++row_count;
 			}
