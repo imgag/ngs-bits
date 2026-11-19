@@ -10,5 +10,12 @@ private:
 		COMPARE_FILES("out/CnvReferenceCohort_test01_out.tsv", TESTDATA("data_out/CnvReferenceCohort_test01_out.tsv"));
 		COMPARE_FILES(lastLogFile(), TESTDATA("data_out/CnvReferenceCohort_out.log"));
 	}
+
+	//chromosome with a single valid bin (chr20)
+	TEST_METHOD(test_02)
+	{
+		EXECUTE("CnvReferenceCohort", "-in " + TESTDATA("data_in/CnvReferenceCohort_in2.cov") + " -in_ref " + TESTDATA("data_in/CnvReferenceCohort_in_ref1.cov") + " " + TESTDATA("data_in/CnvReferenceCohort_in_ref2.cov") + " " + TESTDATA("data_in/CnvReferenceCohort_in_ref3.cov.gz") + " -out out/CnvReferenceCohort_test02_out.tsv -cov_max 3");
+		COMPARE_FILES("out/CnvReferenceCohort_test02_out.tsv", TESTDATA("data_out/CnvReferenceCohort_test02_out.tsv"));
+	}
 	
 };

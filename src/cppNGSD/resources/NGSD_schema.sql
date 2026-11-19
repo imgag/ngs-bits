@@ -174,7 +174,7 @@ CREATE  TABLE IF NOT EXISTS `processing_system`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name_short` VARCHAR(50) NOT NULL,
   `name_manufacturer` VARCHAR(100) NOT NULL,
-  `platform` ENUM('n/a','Illumina','MGI','ONT','PacBio', 'Roche') NOT NULL DEFAULT 'n/a',
+  `platform` ENUM('n/a','Illumina','MGI','ONT','PacBio', 'Roche', 'Element') NOT NULL DEFAULT 'n/a',
   `adapter1_p5` VARCHAR(45) NULL DEFAULT NULL,
   `adapter2_p7` VARCHAR(45) NULL DEFAULT NULL,
   `type` ENUM('WGS','WGS (shallow)','WES','Panel','Panel Haloplex','Panel MIPs','RNA','ChIP-Seq', 'cfDNA (patient-specific)', 'cfDNA', 'lrGS') NOT NULL,
@@ -201,7 +201,7 @@ DEFAULT CHARACTER SET = utf8;
 CREATE  TABLE IF NOT EXISTS `device`
 (
   `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NextSeq2000','NovaSeq5000','NovaSeq6000', 'MGI-2000','SequelII','PromethION', 'NovaSeqXPlus', 'Revio', 'DNBSEQ-T7', 'AXELIOS 1') NOT NULL,
+  `type` ENUM('GAIIx','MiSeq','HiSeq2500','NextSeq500','NextSeq2000','NovaSeq5000','NovaSeq6000', 'MGI-2000','SequelII','PromethION', 'NovaSeqXPlus', 'Revio', 'DNBSEQ-T7', 'AXELIOS 1', 'AVITI', 'VITARI') NOT NULL,
   `name` VARCHAR(45) NOT NULL,
   `comment` TEXT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
@@ -219,7 +219,7 @@ CREATE  TABLE IF NOT EXISTS `sequencing_run`
   `id` INT(11) NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NOT NULL,
   `fcid` VARCHAR(45) NULL DEFAULT NULL,
-  `flowcell_type` ENUM('Illumina MiSeq v2','Illumina MiSeq v2 Micro','Illumina MiSeq v2 Nano','Illumina MiSeq v3','Illumina NextSeq High Output','Illumina NextSeq Mid Output','Illumina NovaSeq SP','Illumina NovaSeq S1','Illumina NovaSeq S2','Illumina NovaSeq S4','Illumina NovaSeqX 1.5B','Illumina NovaSeqX 5B','Illumina NovaSeqX 10B','Illumina NovaSeqX 25B','PromethION FLO-PRO002','PromethION FLO-PRO114M','PromethION FLO-PRO114P','PromethION FLO-PRO004RA','SMRTCell 8M','n/a') NOT NULL DEFAULT 'n/a',
+  `flowcell_type` ENUM('Illumina MiSeq v2','Illumina MiSeq v2 Micro','Illumina MiSeq v2 Nano','Illumina MiSeq v3','Illumina NextSeq High Output','Illumina NextSeq Mid Output','Illumina NovaSeq SP','Illumina NovaSeq S1','Illumina NovaSeq S2','Illumina NovaSeq S4','Illumina NovaSeqX 1.5B','Illumina NovaSeqX 5B','Illumina NovaSeqX 10B','Illumina NovaSeqX 25B','PromethION FLO-PRO002','PromethION FLO-PRO114M','PromethION FLO-PRO114P','PromethION FLO-PRO004RA','SMRTCell 8M', 'CloudBreak Low', 'CloudBreak Medium', 'n/a') NOT NULL DEFAULT 'n/a',
   `start_date` DATE NULL DEFAULT NULL,
   `end_date` DATE NULL DEFAULT NULL,
   `device_id` INT(11) NOT NULL,

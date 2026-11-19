@@ -82,7 +82,8 @@ void VariantDetailsDockWidget::setLabelTooltips(const VariantList& vl)
 	ui->label_phylop->setToolTip(vl.annotationDescriptionByName("phyloP").description());
 	ui->label_cadd->setToolTip(vl.annotationDescriptionByName("CADD").description());
 	ui->label_revel->setToolTip(vl.annotationDescriptionByName("REVEL", false).description()); // optional
-	ui->label_alphamissense->setToolTip(vl.annotationDescriptionByName("AlphaMissense", false).description()); // optional (license and support of old
+	ui->label_alphamissense->setToolTip(vl.annotationDescriptionByName("AlphaMissense", false).description()); // optional (license and support of old GSvar files)
+	ui->label_aidiva->setToolTip(vl.annotationDescriptionByName("aiDIVA", false).description()); // optional
 
 	//splicing/regulatory
 	ui->label_maxentscan->setToolTip(vl.annotationDescriptionByName("MaxEntScan").description());
@@ -176,6 +177,7 @@ void VariantDetailsDockWidget::updateVariant(const VariantList& vl, int index)
 	setAnnotation(ui->cadd, vl, index, "CADD");
 	setAnnotation(ui->revel, vl, index, "REVEL");
 	setAnnotation(ui->alphamissense, vl, index, "AlphaMissense");
+    setAnnotation(ui->aidiva, vl, index, "aiDIVA");
 
 	//splicing/regulatory
 	setAnnotation(ui->maxentscan, vl, index, "MaxEntScan");

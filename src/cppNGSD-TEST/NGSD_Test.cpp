@@ -200,6 +200,20 @@ private:
 		I_EQUAL(enum_values.count(), 6);
 		S_EQUAL(enum_values.join(", "), "no abnormalities, tumor cell content too low, quality of tumor DNA too low, DNA quantity too low, heterogeneous sample, contamination");
 
+		//processedSampleId
+		QString ps_id = db.processedSampleId("NA12878_04", false);
+		IS_FALSE(ps_id.isEmpty());
+		ps_id = db.processedSampleId("NA12878_04.GSvar", false);
+		IS_FALSE(ps_id.isEmpty());
+		ps_id = db.processedSampleId("NA12878_04_expr.tsv", false);
+		IS_FALSE(ps_id.isEmpty());
+		ps_id = db.processedSampleId("C:\\folder\\NA12878_04.GSvar", false);
+		IS_FALSE(ps_id.isEmpty());
+		ps_id = db.processedSampleId("/mnt/folder/NA12878_04.GSvar", false);
+		IS_FALSE(ps_id.isEmpty());
+		ps_id = db.processedSampleId("https://megsap.de/folder/NA12878_04.GSvar", false);
+		IS_FALSE(ps_id.isEmpty());
+
 		//processedSampleName
 		QString ps_name = db.processedSampleName(db.processedSampleId("NA12878_03"), false);
 		S_EQUAL(ps_name, "NA12878_03");
@@ -221,6 +235,20 @@ private:
 
 		//normalSample
 		S_EQUAL(db.normalSample(db.processedSampleId("NA12345_01")), "NA12878_03")
+
+		//sampleId
+		QString sample_id = db.sampleId("NA12878", false);
+		IS_FALSE(sample_id.isEmpty());
+		sample_id = db.sampleId("NA12878_04.GSvar", false);
+		IS_FALSE(sample_id.isEmpty());
+		sample_id = db.sampleId("NA12878_04_expr.tsv", false);
+		IS_FALSE(sample_id.isEmpty());
+		sample_id = db.sampleId("C:\\folder\\NA12878_04.GSvar", false);
+		IS_FALSE(sample_id.isEmpty());
+		sample_id = db.sampleId("/mnt/folder/NA12878_04.GSvar", false);
+		IS_FALSE(sample_id.isEmpty());
+		sample_id = db.sampleId("https://megsap.de/folder/NA12878_04.GSvar", false);
+		IS_FALSE(sample_id.isEmpty());
 
 		//nextProcessingId
 		S_EQUAL(db.nextProcessingId(db.sampleId("NA12878")), "5");
@@ -333,7 +361,7 @@ private:
 		S_EQUAL(genes[0], "NON-CODING");
 
 		//getSampleData
-		QString sample_id = db.sampleId("NA12878");
+		sample_id = db.sampleId("NA12878");
 		SampleData sample_data = db.getSampleData(sample_id);
 		S_EQUAL(sample_data.name, "NA12878");
 		S_EQUAL(sample_data.name_external, "ex1");
@@ -766,7 +794,7 @@ private:
 
 		//phenotypes
 		PhenotypeList phenos = db.phenotypes(QStringList());
-		IS_TRUE(!phenos.isEmpty());
+		IS_FALSE(phenos.isEmpty());
 		phenos = db.phenotypes(QStringList() << "aBNOrmality");
 		I_EQUAL(phenos.count(), 1);
 		IS_TRUE(phenos.containsAccession("HP:0000118")); //Phenotypic abnormality
@@ -1008,7 +1036,8 @@ private:
 
 		//analysisJobGSvarFile
 		QString gsvar = db.analysisJobGSvarFile(1);
-		IS_TRUE(gsvar.endsWith("test/KontrollDNACoriell/Sample_NA12878_03/NA12878_03.GSvar"));
+		gsvar_expected = "test/KontrollDNACoriell/Sample_NA12878_03/NA12878_03.GSvar";
+		IS_TRUE(gsvar.endsWith(gsvar_expected) || gsvar.endsWith(gsvar_expected+".gz"));
 		gsvar = db.analysisJobGSvarFile(3);
 		IS_TRUE(gsvar.endsWith("test/KontrollDNACoriell/Somatic_NA12345_01-NA12878_03/NA12345_01-NA12878_03.GSvar"));
 		gsvar = db.analysisJobGSvarFile(4);
@@ -1172,7 +1201,7 @@ private:
 		I_EQUAL(ps_table.rowCount(), 4);
 
 		//reportConfigId
-		QString ps_id = db.processedSampleId("NA12878_03");
+		ps_id = db.processedSampleId("NA12878_03");
 		I_EQUAL(db.reportConfigId(ps_id), -1);
 
 		//setReportConfig
