@@ -17,7 +17,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports genes from the HGNC flat file.");
-		addInfile("in", "HGNC flat file (download https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/hgnc_complete_set_2026-04-07.tsv)", false);
+		addInfile("in", "HGNC flat file (download https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/hgnc_complete_set_2026-10-06.tsv)", false);
 		addInfile("ensembl", "Ensembl gene file (gff3) to resolve duplicate ENSG identifier (same as NGSDImportEnsembl 'in' parameter).", false);
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
@@ -38,7 +38,6 @@ public:
 			query.exec();
 		}
 	}
-
 
 	//Update gene symbols in table with table_name. name for gene symbol column must be "symboL"
 	void updateTable(NGSD& db, QString table_name)
@@ -84,7 +83,6 @@ public:
         out << "  deleted  " << c_del << " entries" << Qt::endl;
 	}
 
-
 	//Get Ensembl - HGNC mapping for duplicate ENSG ids:
 	QMap<QByteArray,QByteArray> getEnsemblHGNCMapping(const QSet<QByteArray>& duplicate_ensg_ids, const QString& ensembl_file_path)
 	{
@@ -127,7 +125,6 @@ public:
 
 		return ensg_hgnc_mapping;
 	}
-
 
 	virtual void main()
 	{
@@ -174,15 +171,15 @@ public:
         out << "Extract duplicate ENSG ids..." << Qt::endl;
 		while (!fp->atEnd())
 		{
-			QByteArray line = fp->readLine().trimmed();
+			QByteArray line = fp->readLine();
+			while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
 			if (line.isEmpty() || line.startsWith("hgnc_id")) continue;
-			QList<QByteArray> parts = line.split('\t');
-			if (parts.count()<11) THROW(FileParseException, "Invalid line (too few values): " + line);
-			// skip lines with no ENSG id
-			if (parts.size() < 20) continue;
-			if (parts[19].trimmed().isEmpty()) continue;
 
-			QByteArray ensg_id = parts[19].trimmed();
+			QList<QByteArray> parts = line.split('\t');
+			if (parts.count() < 20) continue;
+
+			QByteArray ensg_id = parts[18].trimmed();
+			if (ensg_id.isEmpty()) continue;
 
 			if(ensg_ids.contains(ensg_id))
 			{
@@ -195,7 +192,6 @@ public:
 		}
         out << "ENSG IDs used for more than one gene (" << QByteArray::number(duplicate_ensg_ids.size()) << "): " << duplicate_ensg_ids.values().join(", ") << Qt::endl;
 
-
 		//get ENSG->HGNC mapping from ensembl file
         out << "Get ENSG -> HGNC mapping from ensembl file..." << Qt::endl;
 		QMap<QByteArray,QByteArray> ensg_hgnc_mapping;
@@ -204,7 +200,6 @@ public:
 		//final parse for import
         out << "Parse HGNC file and import genes into the NGSD..." << Qt::endl;
 		fp->seek(0);
-		int n_imported = 0;
 
 		//prepare SQL queries
 		SqlQuery gene_query = db.getQuery();
@@ -214,12 +209,12 @@ public:
 
 		while(!fp->atEnd())
 		{
-			QByteArray line = fp->readLine();
+			QByteArray line = fp->readLine().trimmed();
 			while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
-			
+
 			if (line.isEmpty() || line.startsWith("hgnc_id")) continue;
 			QList<QByteArray> parts = line.split('\t');
-			if (parts.count()<11) THROW(FileParseException, "Invalid line (too few values): " + line);
+			if (parts.count() < 20) continue;
 
 			//check status
 			QByteArray status  = parts[5];
@@ -228,7 +223,6 @@ public:
 
 			//check locus
 			QByteArray locus = parts[3];
-			if (locus=="phenotype") continue;
 			if (!valid_types.contains(locus)) THROW(FileParseException, "Unknown locus '" + locus + "' in line: " + line);
 
 			//curate data
@@ -236,24 +230,20 @@ public:
 			QByteArray symbol = parts[1].toUpper();
 
 			//extract Ensembl ID
-			QVariant ensg_id = QVariant();
-			if (parts.size()>19 && !parts[19].trimmed().isEmpty())
-			{
-				ensg_id = QVariant(parts[19].trimmed());
+			QByteArray ensg_id = parts[18].trimmed();
 
-				// remove ENSG id of duplicates if it is not linked in the ensembl file
-				if (duplicate_ensg_ids.contains(ensg_id.toByteArray()))
+			//remove ENSG id of duplicates if it is not linked to the HGNC ID in the Ensembl file
+			if (duplicate_ensg_ids.contains(ensg_id))
+			{
+				if(ensg_hgnc_mapping.value(id) != ensg_id)
 				{
-					if(ensg_hgnc_mapping.value(id) != ensg_id.toByteArray())
-					{
-						ensg_id = QVariant();
-					}
+					ensg_id.clear();
 				}
 			}
 
 			//extract NCBI id (entrez_id)
 			QVariant ncbi_id;
-			QByteArray entrez_id = parts[18].trimmed();
+			QByteArray entrez_id = parts[17].trimmed();
 			if (!entrez_id.isEmpty())
 			{
 				ncbi_id = Helper::toInt(entrez_id, "entrez_id", line);
@@ -264,14 +254,13 @@ public:
 			gene_query.bindValue(1, symbol);
 			gene_query.bindValue(2, parts[2]);
 			gene_query.bindValue(3, locus);
-			gene_query.bindValue(4, ensg_id);
+			gene_query.bindValue(4, ensg_id.isEmpty() ? QVariant() : QVariant(ensg_id));
 			gene_query.bindValue(5, ncbi_id);
 			gene_query.exec();
 			QVariant gene_id = gene_query.lastInsertId();
-			n_imported++;
 
-			addAliases(alias_query, gene_id, parts[10], "previous");
-			addAliases(alias_query, gene_id, parts[8], "synonym");
+			addAliases(alias_query, gene_id, parts[9], "previous");
+			addAliases(alias_query, gene_id, parts[7], "synonym");
 		}
 
         out << "  " << db.getValue("SELECT count(*) FROM gene").toInt() << " gene symbols imported into the NGSD:" << Qt::endl;
