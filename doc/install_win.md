@@ -8,9 +8,18 @@ This manual assumes you have already retrieved a local copy of the [github respo
 
 First, we need to install Qt and some basic dependencies:
 
-* Download and launch [Qt online installer](https://www.qt.io/download-qt-installer-oss). The online installer requires to have a Qt Account: you can create it free of charge [here](https://login.qt.io/login).
-* During the installation you will need to login with your Qt credentials:
-![Qt login form](qt-installer-account.png)
+* Download and launch [Qt online installer](https://www.qt.io/download-qt-installer-oss). The online installer requires to have a Qt Account: you can create it free of charge [here](https://login.qt.io/login). `Note:` The most recent installer (which is 4.11.0) seems to have a bug that does not allow downloading packages, if you are behind a proxy server (most likely it does not apply to all proxy servers). If you are having issues with your proxy server, please consider using the previous version of the online Qt installer. Go to the [archive of historical versions](https://download.qt.io/archive/online_installers/) and download version [4.10.0](https://download.qt.io/archive/online_installers/4.10/qt-online-installer-windows-x64-4.10.0.exe)
+* If you do not have admin rights, start the installer from the command line by running (this also enables some extra logging, which may be helpful for debugging)
+	```
+	set __COMPAT_LAYER=RunAsInvoker
+	qt-online-installer-windows-x64-4.10.0.exe --verbose --logging-rule "ifw.*=true"
+	``` 
+	`Please make sure your user can create folders at the location where you are going to install Qt`. Usually it is `C:\Qt` and you should be fine.
+* Now you will see the installer window. If you have previously installed Qt on your current machine, you may want to remove the installer's cache. If the admin user has previously done the installation for you, the cache folder will be inaccessable and it may cause errors during the new installation. Press `Settings` button at the left bottom corner and go to the `Local cache` section. Here you can set a new cache location or clear the old cache (only if you have access rights for that).
+![Custom Qt installation](qt-installer-settings.png)
+* Now you should be able to proceed with the installation process
+* You will need to login with your Qt credentials at some point:
+![Qt login form](qt-installer-account.png) It means you have to have/create a Qt account (which is free for open source projects). 
 * The installer will also ask if you belong to an organization (as an individual developer, you may leave this field empty): ![Your organization](qt-installer-organization.png)
 * Select the `Custom installation`:
 ![Custom Qt installation](qt-installer-custom.png)
