@@ -61,6 +61,8 @@ public:
     static HttpResponse calculateTargetRegionReadDepth(const HttpRequest& request);
 	/// Creates a list of analysis names for multi-samples
 	static HttpResponse getMultiSampleAnalysisInfo(const HttpRequest& request);
+	/// Annotates a VCF file with aiDIVA score
+	static HttpResponse annotateWithAiDivaScore(const HttpRequest& request);
 	/// Requests a secure token that is needed for the communication with the server
 	static HttpResponse performLogin(const HttpRequest& request);
 	/// Returns information about the session (i.g. login time, user id, for how log it is valid, etc.)

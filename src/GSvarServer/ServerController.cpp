@@ -1317,6 +1317,65 @@ HttpResponse ServerController::getMultiSampleAnalysisInfo(const HttpRequest& req
     response_data.is_downloadable = false;
     return HttpResponse(response_data, body);
 }
+
+HttpResponse ServerController::annotateWithAiDivaScore(const HttpRequest &request)
+{
+	QString ps_id = request.getUrlParams()["ps_id"].trimmed();
+	QString hpo_list = request.getUrlParams()["hpo_list"].trimmed(); // comma-separated hpo terms
+	QString an_aidiva;
+
+	QProcess process;
+	process.setProcessChannelMode(QProcess::MergedChannels);
+	QString tmp_vcf = Helper::tempFileName(".vcf");
+	Log::info("Running megSAP tool an_aidiva_hpo.php for the sample: " + ps_id);
+	process.start("php", QStringList() << PipelineSettings::rootDir() + "/src/Tools/an_aidiva_hpo.php" << "-in" << an_aidiva << "-out" << tmp_vcf << "-hpo_list" << hpo_list << "-threads" << Settings::integer("threads"));
+	bool success = process.waitForFinished(-1);
+	if (!success || process.exitCode()>0)
+	{
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Error while executing an_aidiva_hpo.php: " + process.readAll())));
+	}
+
+	//convert VCF to GSvar
+	QString vcf2gsvar_out = Helper::tempFileName(".GSvar");
+	Log::info("Running megSAP >> vcf2gsvar.php: " + vcf2gsvar_out);
+	QStringList vcf2gsvar_args;
+	vcf2gsvar_args << PipelineSettings::rootDir() + "/src/Tools/vcf2gsvar.php";
+	vcf2gsvar_args << "-in" << tmp_vcf;
+	vcf2gsvar_args << "-out" << vcf2gsvar_out;
+	process.start("php", vcf2gsvar_args);
+	success = process.waitForFinished(-1);
+	if (!success || process.exitCode()>0)
+	{
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Error while executing vcf2gsvar.php: " + process.readAll())));
+	}
+
+	// compress GSvar
+	process.setStandardOutputFile(tmp_gz, QIODevice::Truncate);
+	process.start("bgzip", QStringList() << "-@" << QString::number(Settings::integer("threads")) << "-l" << "9" << "-c" << tmp);
+	bool bgzip_ok = process.waitForStarted() && process.waitForFinished(-1) && process.exitStatus()==QProcess::NormalExit && process.exitCode()==0;
+	QFile::remove(tmp);
+	if (!bgzip_ok)
+	{
+		QString error = process.error()==QProcess::FailedToStart ? "bgzip could not be started (is it installed and in PATH?)" : QString::fromUtf8(process.readAllStandardError()).trimmed();
+		Log::error(EndpointManager::formatResponseMessage(request, "Could not compress the changed GSvar file " + tmp + " with bgzip: " + error));
+		QFile::remove(tmp_gz);
+
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Failed to compress GSvar file: " + error));
+	}
+
+
+	// reading results
+	QSharedPointer<QFile> out_file = Helper::openFileForReading(tmp_tsv, false);
+	QByteArray tsv_data = out_file->readAll();
+
+	BasicResponseData response_data;
+	response_data.length = tsv_data.length();
+	response_data.content_type = ContentType::TEXT_PLAIN;
+	return HttpResponse(response_data, tsv_data);
+
+
+}
+
 HttpResponse ServerController::performLogin(const HttpRequest& request)
 {
 	if (!request.getFormUrlEncoded().contains("name") || !request.getFormUrlEncoded().contains("password"))
