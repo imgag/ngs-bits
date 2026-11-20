@@ -160,15 +160,12 @@ public:
 		//get enum data
 		QStringList valid_types = db.getEnum("gene", "type");
 
-		//debug
-		QSet<QByteArray> ensg_ids;
+		//get duplicate ENSG and NCBI ids
+		out << "Extract duplicate ENSG and NCBI ids..." << Qt::endl;
+		QSet<QByteArray> ids;
 		QSet<QByteArray> duplicate_ensg_ids;
-
-		//parse file
+		QSet<QByteArray> duplicate_entrez_ids;
 		QSharedPointer<QFile> fp = Helper::openFileForReading(getInfile("in"));
-
-		//get duplicate ENSG ids
-        out << "Extract duplicate ENSG ids..." << Qt::endl;
 		while (!fp->atEnd())
 		{
 			QByteArray line = fp->readLine();
@@ -179,18 +176,33 @@ public:
 			if (parts.count() < 20) continue;
 
 			QByteArray ensg_id = parts[18].trimmed();
-			if (ensg_id.isEmpty()) continue;
-
-			if(ensg_ids.contains(ensg_id))
+			if (!ensg_id.isEmpty())
 			{
-				duplicate_ensg_ids.insert(ensg_id);
+				if(ids.contains(ensg_id))
+				{
+					duplicate_ensg_ids.insert(ensg_id);
+				}
+				else
+				{
+					ids.insert(ensg_id);
+				}
 			}
-			else
+
+			QByteArray entrez_id = parts[17].trimmed();
+			if (!entrez_id.isEmpty())
 			{
-				ensg_ids.insert(ensg_id);
+				if(ids.contains(entrez_id))
+				{
+					duplicate_entrez_ids.insert(entrez_id);
+				}
+				else
+				{
+					ids.insert(entrez_id);
+				}
 			}
 		}
-        out << "ENSG IDs used for more than one gene (" << QByteArray::number(duplicate_ensg_ids.size()) << "): " << duplicate_ensg_ids.values().join(", ") << Qt::endl;
+		out << "ENSG IDs used for more than one gene (trying to fix them using Ensembl file): " << duplicate_ensg_ids.values().join(", ") << Qt::endl;
+		out << "NCBI entrez IDs used for more than one gene (ignoring them): " << duplicate_entrez_ids.values().join(", ") << Qt::endl;
 
 		//get ENSG->HGNC mapping from ensembl file
         out << "Get ENSG -> HGNC mapping from ensembl file..." << Qt::endl;
@@ -209,7 +221,7 @@ public:
 
 		while(!fp->atEnd())
 		{
-			QByteArray line = fp->readLine().trimmed();
+			QByteArray line = fp->readLine();
 			while (line.endsWith('\n') || line.endsWith('\r')) line.chop(1);
 
 			if (line.isEmpty() || line.startsWith("hgnc_id")) continue;
@@ -242,11 +254,10 @@ public:
 			}
 
 			//extract NCBI id (entrez_id)
-			QVariant ncbi_id;
 			QByteArray entrez_id = parts[17].trimmed();
-			if (!entrez_id.isEmpty())
+			if (duplicate_entrez_ids.contains(entrez_id))
 			{
-				ncbi_id = Helper::toInt(entrez_id, "entrez_id", line);
+				entrez_id.clear();
 			}
 
 			//insert gene
@@ -255,7 +266,7 @@ public:
 			gene_query.bindValue(2, parts[2]);
 			gene_query.bindValue(3, locus);
 			gene_query.bindValue(4, ensg_id.isEmpty() ? QVariant() : QVariant(ensg_id));
-			gene_query.bindValue(5, ncbi_id);
+			gene_query.bindValue(5, entrez_id.isEmpty() ? QVariant() : QVariant(Helper::toInt(entrez_id, "entrez_id", line)));
 			gene_query.exec();
 			QVariant gene_id = gene_query.lastInsertId();
 
