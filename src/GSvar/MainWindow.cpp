@@ -312,6 +312,7 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.vars_ranking->setMenu(new QMenu());
 	ui_.vars_ranking->menu()->addAction("dominant model", this, SLOT(variantRanking()))->setObjectName("GSvar_v2_dominant");
 	ui_.vars_ranking->menu()->addAction("recessive model", this, SLOT(variantRanking()))->setObjectName("GSvar_v2_recessive");
+	ui_.vars_ranking->menu()->addAction("aiDIVA score", this, SLOT(aiDivaScore()));
 	ui_.vars_af_hist->setMenu(new QMenu());
 	ui_.vars_af_hist->menu()->addAction("Show AF histogram (all small variants)", this, SLOT(showAfHistogram_all()));
 	ui_.vars_af_hist->menu()->addAction("Show AF histogram (small variants after filter)", this, SLOT(showAfHistogram_filtered()));
@@ -1762,6 +1763,44 @@ void MainWindow::openCustomIgvTrack()
     IgvSessionManager::get(0).loadFileInIGV(action->toolTip(), false);
 }
 
+void MainWindow::aiDivaScore()
+{
+	if (processed_sample_id_.isEmpty())
+	{
+		QMessageBox::warning(this, "Processed sample is missing", "You need to load a processed sample first!");
+		return;
+	}
+
+	try
+	{
+		QString query = "SELECT sdi.disease_info FROM processed_sample ps, sample_disease_info sdi LEFT JOIN hpo_term t ON "
+		                "sdi.disease_info=t.hpo_id WHERE sdi.sample_id=ps.sample_id AND sdi.type='HPO term id' AND ps.id=:0";
+
+		QStringList hpo_list = NGSD().getValues(query, processed_sample_id_);
+
+		qDebug() << hpo_list;
+
+		HttpHeaders add_headers;
+		add_headers.insert("Accept", "text/plain");
+		add_headers.insert("Content-type", "application/x-www-form-urlencoded");
+		ServerReply response = HttpRequestHandler().post(ClientHelper::serverApiUrl() + "aidiva_score?token=" + LoginManager::userToken(), QString("ps_id="+processed_sample_id_+"&hpo_list="+hpo_list.join(",")).toUtf8(), add_headers);
+
+		// reloading the currently opened proccessed sample after the successful file overwrite
+		if (response.status_code==201)
+		{
+			loadFile(filename_);
+		}
+	}
+	catch (HttpException& e)
+	{
+		Log::error("Could not preform aiDIVA annotation due to the HTTP error: " + e.message());
+	}
+	catch (DatabaseException& e)
+	{
+		Log::error("Could not preform aiDIVA annotation due to the database error: " + e.message());
+	}
+}
+
 void MainWindow::editVariantValidation(int index)
 {
 	Variant& variant = variants_[index];
@@ -2317,6 +2356,7 @@ bool MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 		}
 
 		loadFile(file);
+		processed_sample_id_ = processed_sample_id;
 		return true;
 	}
 	catch (Exception& e)

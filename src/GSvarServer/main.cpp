@@ -457,6 +457,19 @@ int main(int argc, char **argv)
 						&ServerController::getMultiSampleAnalysisInfo
 					});
 
+	EndpointManager::appendEndpoint(Endpoint{
+						"aidiva_score",
+						QMap<QString, ParamProps>{
+							{"ps_id", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "Processed sample id"}},
+							{"hpo_list", ParamProps{ParamProps::ParamCategory::POST_URL_ENCODED, false, "Comma-speparated list of HPO terms: HP:XXXXXX,HP:XXXXXX"}},
+							{"token", ParamProps{ParamProps::ParamCategory::ANY, false, "Secure token received after a successful login"}}
+						},
+						RequestMethod::POST,
+						ContentType::TEXT_PLAIN,
+						AuthType::USER_TOKEN,
+						"Annotates a VCF file with aiDIVA score",
+						&ServerController::annotateWithAiDivaScore
+					});
 
 	EndpointManager::appendEndpoint(Endpoint{
 						"upload",

@@ -380,6 +380,9 @@ public slots:
 	///Opens a custom track in IGV
 	void openCustomIgvTrack();
 
+	///Annotates a VCF file with aiDIVA score
+	void aiDivaScore();
+
 	///Edit validation status of current variant
 	void editVariantValidation(int index);
 	///Edit comment of current variant
@@ -537,6 +540,7 @@ private:
 
 	//DATA
 	QString filename_;
+	QString processed_sample_id_;
 	VariantList variants_;
 	struct VariantListChange
 	{
