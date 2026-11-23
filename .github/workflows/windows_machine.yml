@@ -32,14 +32,6 @@ jobs:
           install: >-
             git base-devel unzip
             libsqlite libsqlite-devel
-          # Environment packages: pacboy's ":p" adds the prefix of the active
-          # msystem (mingw-w64-ucrt-x86_64-...).
-          # Only the Qt modules the project uses, instead of the full qt6
-          # metapackage (which pulls in WebEngine, Multimedia, 3D, etc.).
-          # Add modules back if the build complains.
-          # htslib and libxml2 also come from MSYS2 here: the zips in htslib/ and
-          # libxml2/ are built for the msvcrt-based MinGW of the Qt installer and
-          # stay for local builds. See msys2_libs in src/base.pri.
           pacboy: >-
             toolchain:p
             ccache:p
@@ -66,10 +58,15 @@ jobs:
 
       # THREADS and QMAKE_BIN are Makefile variables, overridden here.
       # CONFIG+=ccache makes qmake prefix the compiler with ccache.
-      # CONFIG+=msys2_libs uses htslib/libxml2 from MSYS2 (see src/base.pri).
+      # htslib and libxml2 come from MSYS2 here: the zips in htslib/ and libxml2/
+      # stay packed, so the project files' paths into them point nowhere and gcc
+      # finds hts and xml2 in the MSYS2 prefix. Only libxml2 keeps its headers in
+      # a subfolder (include/libxml2/libxml/), which CPATH adds for gcc.
       - name: Build
         run: |
-          make THREADS=$(nproc) QMAKE_BIN="qmake6 CONFIG+=ccache CONFIG+=msys2_libs" build_libs_release build_tools_release build_gui_release build_server_release
+          export CPATH="$(cygpath -m "$MINGW_PREFIX/include/libxml2")"
+          test -f "$MINGW_PREFIX/include/libxml2/libxml/xmlerror.h"
+          make THREADS=$(nproc) QMAKE_BIN="qmake6 CONFIG+=ccache" build_libs_release build_tools_release build_gui_release build_server_release
           ccache -s
 
       # ---- Reference genome + index, from the cache saved on master ----
