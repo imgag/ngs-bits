@@ -114,6 +114,17 @@ else
 	print "Warning: libxml2 folder not found, cannot copy libxml2 DLLs\n";
 }
 
+//copy auxilary files
+foreach(glob("{$bin_folder}\\*.ini") as $file)
+{
+	copy($file, $dest."\\".basename($file));
+}
+foreach(glob("{$bin_folder}\\*.example") as $file)
+{
+	copy($file, $dest."\\".basename($file));
+}
+copy("{$bin_folder}\\GSvar_special_regions.tsv", $dest."\\GSvar_special_regions.tsv");
+copy("{$bin_folder}\\GSvar_qc_cutoffs.xml", $dest."\\GSvar_qc_cutoffs.xml");
 
 //check if tools are executableprint
 print "\n";
