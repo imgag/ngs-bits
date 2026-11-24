@@ -63,8 +63,8 @@ public:
 
 			//process variant lines
 			QByteArrayList parts = line.split('\t');
-			QByteArray ref = parts[VcfFile::REF];
-			QByteArray alt = parts[VcfFile::ALT];
+			QByteArray ref = parts[VcfFile::REF].toUpper();
+			QByteArray alt = parts[VcfFile::ALT].toUpper();
 			if (ref.length()==1 && alt.length()==1) //SNPs do not change during normalization > no need to annotate them
 			{
 				out_p->write(line);
