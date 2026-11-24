@@ -1765,39 +1765,50 @@ void MainWindow::openCustomIgvTrack()
 
 void MainWindow::aiDivaScore()
 {
-	if (processed_sample_id_.isEmpty())
+	if (filename_.isEmpty())
 	{
 		QMessageBox::warning(this, "Processed sample is missing", "You need to load a processed sample first!");
 		return;
 	}
 
-	try
+	if (variants_.type()!=GERMLINE_SINGLESAMPLE)
 	{
-		QString query = "SELECT sdi.disease_info FROM processed_sample ps, sample_disease_info sdi LEFT JOIN hpo_term t ON "
-		                "sdi.disease_info=t.hpo_id WHERE sdi.sample_id=ps.sample_id AND sdi.type='HPO term id' AND ps.id=:0";
+		QMessageBox::warning(this, "Unsupported analysis type", "Only germline single samples are supported!");
+		return;
+	}
 
-		QStringList hpo_list = NGSD().getValues(query, processed_sample_id_);
+	PhenotypeList phenotypes = getPhenotypeList("aiDIVA annotation");
+	if (phenotypes.isEmpty())
+	{
+		QMessageBox::warning(this, "HPO terms are missing", "HPO terms have not been provided!");
+		return;
+	}
 
-		qDebug() << hpo_list;
+	try
+	{		
+		QStringList hpo_list;
+		for (const Phenotype& pt: phenotypes)
+		{
+			hpo_list << pt.accession();
+		}
 
+		QString processed_sample_id = NGSD().processedSampleId(variants_.getSampleHeader().value(0).name);
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
 		add_headers.insert("Content-type", "application/x-www-form-urlencoded");
-		ServerReply response = HttpRequestHandler().post(ClientHelper::serverApiUrl() + "aidiva_score?token=" + LoginManager::userToken(), QString("ps_id="+processed_sample_id_+"&hpo_list="+hpo_list.join(",")).toUtf8(), add_headers);
+		ServerReply response = HttpRequestHandler().post(ClientHelper::serverApiUrl() + "aidiva_score?token=" + LoginManager::userToken(), QString("ps_id="+processed_sample_id+"&hpo_list="+hpo_list.join(",")).toUtf8(), add_headers);
 
 		// reloading the currently opened proccessed sample after the successful file overwrite
 		if (response.status_code==201)
 		{
 			loadFile(filename_);
+			return;
 		}
+		QMessageBox::warning(this, "Annotation error", "aiDIVA annotation failed. The server returned incorrect status code: " + QString::number(response.status_code));
 	}
-	catch (HttpException& e)
-	{
-		Log::error("Could not preform aiDIVA annotation due to the HTTP error: " + e.message());
-	}
-	catch (DatabaseException& e)
-	{
-		Log::error("Could not preform aiDIVA annotation due to the database error: " + e.message());
+	catch (Exception& e)
+	{		
+		QMessageBox::warning(this, "Annotation error", "Could not preform aiDIVA annotation due to the error: " + e.message());
 	}
 }
 
@@ -2355,8 +2366,7 @@ bool MainWindow::openProcessedSampleFromNGSD(QString processed_sample_name, bool
 			file = analysis_info_list[index].analysis_file;
 		}
 
-		loadFile(file);
-		processed_sample_id_ = processed_sample_id;
+		loadFile(file);		
 		return true;
 	}
 	catch (Exception& e)
@@ -6847,24 +6857,7 @@ void MainWindow::variantRanking()
 
 	//init
 	NGSD db;
-	QString ps_name = germlineReportSample();
-
-	PhenotypeList phenotypes = ui_.filters->phenotypes();
-	if (phenotypes.isEmpty())
-	{
-		QString sample_id = db.sampleId(ps_name);
-		phenotypes = db.getSampleData(sample_id).phenotypes;
-		if (phenotypes.isEmpty())
-		{
-			QMessageBox::warning(this, title, "Phenotype data missing. Please set a phenotype filter!");
-			return;
-		}
-		else
-		{
-			int button = QMessageBox::information(this, title, "No phenotype filter set.\nDo you want to use phenotype information of the sample from NGSD?", QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
-			if (button==QMessageBox::No) return;
-		}
-	}
+	PhenotypeList phenotypes = getPhenotypeList(title);
 
 	QApplication::setOverrideCursor(Qt::BusyCursor);
 	try
@@ -7291,4 +7284,26 @@ QString MainWindow::viewerApp(bool only_igv)
 	{
 		return Settings::path("igv_app").trimmed();
 	}
+}
+
+PhenotypeList MainWindow::getPhenotypeList(QString title)
+{
+	NGSD db;
+	QString ps_name = germlineReportSample();
+	PhenotypeList phenotypes = ui_.filters->phenotypes();
+	if (phenotypes.isEmpty())
+	{
+		QString sample_id = db.sampleId(ps_name);
+		phenotypes = db.getSampleData(sample_id).phenotypes;
+		if (phenotypes.isEmpty())
+		{
+			QMessageBox::warning(this, title, "Phenotype data missing. Please set a phenotype filter!");
+		}
+		else
+		{
+			int button = QMessageBox::information(this, title, "No phenotype filter set.\nDo you want to use phenotype information of the sample from NGSD?", QMessageBox::Yes|QMessageBox::No, QMessageBox::Yes);
+			if (button==QMessageBox::No) return PhenotypeList{};
+		}
+	}
+	return phenotypes;
 }

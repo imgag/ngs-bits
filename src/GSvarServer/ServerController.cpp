@@ -1359,8 +1359,7 @@ HttpResponse ServerController::annotateWithAiDivaScore(const HttpRequest &reques
 	// compress GSvar	
 	process.setStandardOutputFile(tmp_gz, QIODevice::Truncate);
 	process.start("bgzip", QStringList() << "-@" << QString::number(Settings::integer("threads")) << "-l" << "9" << "-c" << vcf2gsvar_out);
-	bool bgzip_ok = process.waitForStarted() && process.waitForFinished(-1) && process.exitStatus()==QProcess::NormalExit && process.exitCode()==0;
-	// QFile::remove(tmp);
+	bool bgzip_ok = process.waitForStarted() && process.waitForFinished(-1) && process.exitStatus()==QProcess::NormalExit && process.exitCode()==0;	
 	if (!bgzip_ok)
 	{
 		QString error = process.error()==QProcess::FailedToStart ? "bgzip could not be started (is it installed and in PATH?)" : QString::fromUtf8(process.readAllStandardError()).trimmed();

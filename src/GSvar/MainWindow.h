@@ -528,6 +528,9 @@ protected:
 	//Returns the path to the genome viewer app
 	QString viewerApp(bool only_igv=false);
 
+	/// Returns a list of phenotypes, based on the current filters or sample data
+	PhenotypeList getPhenotypeList(QString title);
+
 private:
 	//GUI
 	Ui::MainWindow ui_;
@@ -539,8 +542,7 @@ private:
 	BackgroundJobDialog* bg_job_dialog_;
 
 	//DATA
-	QString filename_;
-	QString processed_sample_id_;
+	QString filename_;	
 	VariantList variants_;
 	struct VariantListChange
 	{
