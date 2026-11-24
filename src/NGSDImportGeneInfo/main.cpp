@@ -16,11 +16,12 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports gene-specific information into NGSD.");
-		addInfile("constraint", "gnomAD gene contraint file (download and unzip https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1.1/constraint/gnomad.v4.1.1.constraint_metrics.tsv.bgz).", false);
+		addInfile("constraint", "gnomAD gene contraint file (download and unzip https://storage.googleapis.com/gcp-public-data--gnomad/release/4.1.2/constraint/gnomad.v4.1.2.constraint_metrics.tsv.bgz).", false);
 		//optional
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
 
+		changeLog(2026, 11, 23, "Update to gnomAD 4.1.2 constraints.");
 		changeLog(2026,  4, 17, "Update to gnomAD 4.1.1 constraints.");
 		changeLog(2019,  7, 16, "Update to gnomAD 2.1.1 constraints.");
 		changeLog(2016, 11, 23, "First version.");

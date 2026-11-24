@@ -20,7 +20,7 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports Oncotree terms and their relations into the NGSD.");
-		addInfile("tree", "Oncotree JSON file from 'https://raw.githubusercontent.com/cBioPortal/oncotree/refs/heads/master/trees/oncotree_2025_10_03.json'.", false);
+		addInfile("tree", "Oncotree JSON file from 'https://raw.githubusercontent.com/cBioPortal/oncotree/refs/heads/master/trees/oncotree_2026_11_20.json'.", false);
 
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
