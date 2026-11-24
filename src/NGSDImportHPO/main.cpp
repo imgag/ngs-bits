@@ -18,17 +18,17 @@ public:
 	virtual void setup()
 	{
 		setDescription("Imports HPO terms and gene-phenotype relations into the NGSD.");
-		addInfile("obo", "HPO ontology file from https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2026-02-16/hp.obo", false);
-		addInfile("anno", "HPO annotations file from https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2026-02-16/phenotype_to_genes.txt", false);
+		addInfile("obo", "HPO ontology file from https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2026-09-01/hp.obo", false);
+		addInfile("anno", "HPO annotations file from https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2026-09-01/phenotype_to_genes.txt", false);
 
 		//optional
 		addInfile("omim", "OMIM 'morbidmap.txt' file for additional disease-gene information, from https://omim.org/downloads/", true);
 		addInfile("omim_genes", "OMIM 'mim2gene.txt' file for additional disease-gene information, from https://omim.org/downloads/", true);
-		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2026/clinvar_20260329.vcf.gz", true);
-		addInfile("hgmd", "HGMD phenbase file (Manually download 'hgmd_phenbase-2026.1.dump.gz').", true);
-		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2026-02-16/phenotype.hpoa", true);
+		addInfile("clinvar", "ClinVar VCF file for additional disease-gene information. Download and unzip from https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2026/clinvar_20261108.vcf.gz", true);
+		addInfile("hgmd", "HGMD phenbase file (Manually download 'hgmd_phenbase-2026.3.dump.gz').", true);
+		addInfile("hpophen", "HPO 'phenotype.hpoa' file for additional phenotype-disease evidence information. Download from https://github.com/obophenotype/human-phenotype-ontology/releases/download/v2026-09-01/phenotype.hpoa", true);
 		addInfile("gencc", "gencc 'gencc-submissions.tsv' file for additional disease-gene evidence information. (Manually download from https://search.thegencc.org/download).", true);
-		addInfile("g2p", "DDG2P file for additional gene-disease-phenotype evidence information. Download from http://ftp.ebi.ac.uk/pub/databases/gene2phenotype/G2P_data_downloads/2026_03_28/allG2P_2026-03-28.csv.gz", true);
+		addInfile("g2p", "DDG2P file for additional gene-disease-phenotype evidence information. Download from http://ftp.ebi.ac.uk/pub/databases/gene2phenotype/G2P_data_downloads/2026_10_28/allG2P_2026-10-28.csv.gz", true);
 		addFlag("test", "Uses the test database instead of on the production database.");
 		addFlag("force", "If set, overwrites old data.");
 		addFlag("debug", "Enables debug output.");
