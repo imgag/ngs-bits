@@ -14,13 +14,15 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Annotates source variants to info field for a given VCF.");
+		setDescription("Writes variant to info field SOURCE_VAR.");
+		setExtendedDescription(QStringList() << "Used to track the source variant of variants that are modified during variant normalization."
+											 << "Usual tool sequence: VcfStoreSourceVariant, vcfallelicprimitives, VcfBreakMulti, VcfLeftNormalize, VcfPruneSroucesVariant");
 
 		//optional
 		addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
 		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
 
-		changeLog(2025, 12,  5, "Initial implementation.");
+		changeLog(2026, 11, 24, "Initial implementation.");
 	}
 
 	virtual void main()

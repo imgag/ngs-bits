@@ -131,6 +131,8 @@ TOOLS_NGS = \
 	VcfToBed \ 
 	VcfToBedpe \ 
 	VcfToTsv \ 
+	VcfStoreSourceVariant \
+	VcfPruneSourceVariant \
 
 #tools depending on cppNGSD
 TOOLS_NGSD = \
