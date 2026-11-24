@@ -7,6 +7,7 @@
 
 ///Chromosome class that assigns a numeric value to each chromosome string.
 ///The numeric representation is unique for each normalized string representation!
+///Instances share immutable, process-lifetime records; construction and const access are thread-safe.
 class CPPNGSSHARED_EXPORT Chromosome
 {
 	public:
@@ -26,88 +27,91 @@ class CPPNGSSHARED_EXPORT Chromosome
 		///Less-than operator.
 		bool operator<(const Chromosome& rhs) const
 		{
-			return num_ < rhs.num_;
+			return data_->num < rhs.data_->num;
 		}
 		///Greater-than operator.
 		bool operator>(const Chromosome& rhs) const
 		{
-			return num_ > rhs.num_;
+			return data_->num > rhs.data_->num;
 		}
 		///Equal operator.
 		bool operator==(const Chromosome& rhs) const
 		{
-			return num_ == rhs.num_;
+			return data_->num == rhs.data_->num;
 		}
 		///Not-equal operator.
 		bool operator!=(const Chromosome& rhs) const
 		{
-			return num_ != rhs.num_;
+			return data_->num != rhs.data_->num;
 		}
 
 		///Returns if the chromosome is valid (empty string, numeric value 0).
 		bool isValid() const
 		{
-			return num_>0;
+			return data_->num>0;
 		}
 		///Returns if the chromosome is an autosome.
 		bool isAutosome() const
 		{
-			return num_>0 && num_<1001;
+			return data_->num>0 && data_->num<1001;
 		}
         ///Returns if the chromosome is a gonosome, i.e. chrX or chrY.
         bool isGonosome() const
         {
-            return num_==1001 || num_==1002;
+            return data_->num==1001 || data_->num==1002;
         }
         ///Returns if the chromosome is chrX.
         bool isX() const
         {
-            return num_==1001;
+            return data_->num==1001;
         }
         ///Returns if the chromosome is chrY.
         bool isY() const
         {
-            return num_==1002;
+            return data_->num==1002;
         }
         ///Returns if the chromosome is mitochondria.
         bool isM() const
         {
-            return num_==1003;
+            return data_->num==1003;
         }
         ///Returns if the chromosome is a non-special chromosome, i.e. an autosome, a gonosome or mitochondria.
         bool isNonSpecial() const
         {
-            return num_>0 && num_<1004;
+            return data_->num>0 && data_->num<1004;
         }
 
 		///Returns the unchanged string representation.
 		const QByteArray& str() const
 		{
-			return str_;
+			return data_->original;
 		}
 
 		///Returns the normalized string representation (upper-case letters, 'chr' on demand only).
 		QByteArray strNormalized(bool prepend_chr) const
 		{
-			return (prepend_chr ? "chr" : "") + (num2str_cache_.contains(num_) ? num2str_cache_[num_] : normalizedStringRepresentation());
+			return prepend_chr ? "chr" + data_->normalized : data_->normalized;
 		}
 
         //numeric representation (0=invalid, 1-1000=autosome, 1001=X, 1002=Y, 1003=M, 1004+=other non-numeric chromosomes)
 		int num() const
 		{
-			return num_;
+			return data_->num;
 		}
 
 	private:
-		static const QHash<QByteArray, int> str2num_cache_;
-		static const QHash<int, QByteArray> num2str_cache_;
-		QByteArray str_;
-		int num_;
+		//Immutable interned record. Instances contain only a pointer to this data.
+		struct Data
+		{
+			QByteArray original;
+			QByteArray normalized;
+			int num;
+		};
+		struct Pool;
+		const Data* data_;
 
-		///Returns the normalized string representation (no 'chr', upper-case)
-		QByteArray normalizedStringRepresentation() const;
-		///Numeric representation.
-		int numericRepresentation() const;
+		///Returns a stable, process-lifetime record for the trimmed spelling.
+		static const Data* getDataPointer(QByteArrayView chr);
 };
 
 //Required to make Chromosome hashable by Qt, e.g. to use it in QSet or QHash

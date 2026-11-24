@@ -35,6 +35,14 @@ int IGVSession::getPort() const
 	return igv_data_.port;
 }
 
+void IGVSession::setApp(const QString& app)
+{
+	if (igv_data_.executable == app) return;
+	//Command workers hold a reference to igv_data_.
+	waitForDone();
+	igv_data_.executable = app;
+}
+
 void IGVSession::setInitialized(bool is_initialized)
 {
 	if (is_initialized_!=is_initialized)
@@ -146,7 +154,7 @@ bool IGVSession::isIgvRunning()
 	//no commands are executed > try to open a connection
 	QTcpSocket socket;
 	socket.connectToHost(igv_data_.host, igv_data_.port);
-	if (!socket.waitForConnected(1500))
+	if (!socket.waitForConnected(3000))
 	{
 		Log::info("Could not open socket to IGV");
 		return false;

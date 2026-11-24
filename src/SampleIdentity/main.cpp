@@ -28,7 +28,7 @@ public:
 		//optional
 		addOutfile("out", "Output TSV file. If unset, writes to STDOUT.", true);
 		addInt("min_depth",  "Minimum depth to use a SNP for the sample comparison.",  true,  15);
-		addInt("min_snps",  "Minimum SNPs required to comare samples.",  true,  40);
+		addInt("min_snps",  "Minimum SNPs required to compare samples.",  true,  40);
 		addInt("min_identity",  "Minimum identity percentage to show sample pairs in output.",  true,  95);
 		addInt("threads", "Number of threads to calculate Allele frequencies", true, 4);
 		addFloat("min_correlation",  "Minimum correlation to show sample pairs in output.",  true,  0.9);

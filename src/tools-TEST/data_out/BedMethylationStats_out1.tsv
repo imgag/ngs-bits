@@ -1,0 +1,24 @@
+##DESCRIPTION=meth_hp1_avg=average methylation in haplotype 1 (higher mean methylation)
+##DESCRIPTION=meth_hp1_std=standard deviation of methylation in haplotype 1 (higher mean methylation)
+##DESCRIPTION=cov_hp1=average CpG coverage in haplotype 1 (higher mean methylation)
+##DESCRIPTION=meth_hp2_avg=average methylation in haplotype 2 (lower mean methylation)
+##DESCRIPTION=meth_hp2_std=standard deviation of methylation in haplotype 2 (lower mean methylation)
+##DESCRIPTION=cov_hp2=average CpG coverage in haplotype 2 (lower mean methylation)
+##DESCRIPTION=meth_all_avg=average methylation
+##DESCRIPTION=meth_all_std=standard deviation of methylation
+##DESCRIPTION=cov_all=average CpG coverage
+##DESCRIPTION=cohort_mean_hp1=average methylation in cohort in haplotype 1
+##DESCRIPTION=cohort_mean_hp2=average methylation in cohort in haplotype 2
+##DESCRIPTION=cohort_mean_all=average methylation in cohort overall
+##DESCRIPTION=cohort_stdev_hp1=standard deviation in cohort in haplotype 1
+##DESCRIPTION=cohort_stdev_hp2=standard deviation in cohort in haplotype 2
+##DESCRIPTION=cohort_stdev_all=standard deviation in cohort overall
+##DESCRIPTION=zscore_hp1=zscore in haplotype 1
+##DESCRIPTION=zscore_hp2=zscore in haplotype 2
+##DESCRIPTION=zscore_all=zscore overall
+##DESCRIPTION=cohort_size=number of cohort samples in hp1, hp2, all
+#identifier	title	gene symbol	gene chr	gene start	gene end	highlight start	highlight end	filter	meth_hp1_avg	meth_hp1_std	cov_hp1	meth_hp2_avg	meth_hp2_std	cov_hp2	meth_all_avg	meth_all_std	cov_all	cohort_mean_hp1	cohort_stdev_hp1	zscore_hp1	cohort_mean_hp2	cohort_stdev_hp2	zscore_hp2	cohort_mean_all	cohort_stdev_all	zscore_all	cohort_size
+PLAGL1_alt-TSS-DMR	PLAGL1:alt-TSS-DMR	PLAGL1	chr6	143940299	144064599	144006941	144008751	MultiplePhasingBlocks	95.892	10.326	15.790	7.664	23.042	9.503	60.671	14.255	26.315	94.214	0.431	3.889	3.373	1.012	4.241	49.304	7.492	1.517	3,3,3
+GRB10_alt-TSS-DMR	GRB10:alt-TSS-DMR	GRB10	chr7	50590062	50793462	50781029	50783615	PartlyUnphasedRegion	88.011	12.798	24.235	18.674	32.860	16.491	58.457	16.810	41.216	82.365	5.124	1.102	13.268	4.927	1.097	48.668	1.637	5.979	2,2,3
+PEG10_TSS-DMR	PEG10:TSS-DMR	PEG10	chr7	94656225	94669695	94656225	94658648		91.124	21.447	18.924	1.767	9.225	18.765	46.478	13.779	40.874	82.516	8.628	0.998	2.015	2.449	-0.101	46.438	6.794	0.006	3,3,3
+MEST_alt-TSS-DMR	MEST:alt-TSS-DMR	MEST	chr7	130486170	130506465	130490281	130494547	UnphasedRegion	88.869	23.678	19.391	17.252	31.343	18.721	53.746	20.601	38.566	92.416	1.232	-2.880	10.243	6.851	1.023	49.390	3.980	1.094	2,2,3

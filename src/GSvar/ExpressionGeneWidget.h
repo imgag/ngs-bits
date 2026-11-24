@@ -29,8 +29,8 @@ public:
 	~ExpressionGeneWidget();
 
 private slots:
-	void applyFilters(int max_rows=5000);
-	void updateTable(int max_rows=5000);
+	void applyFilters();
+	void updateTable();
 	void copyToClipboard();
 	void showBiotypeContextMenu(QPoint pos);
 	void selectAllBiotypes(bool deselect=false);
@@ -42,6 +42,7 @@ private slots:
 	void showCustomCohortDialog();
 	void toggleUICustomCohort();
 	void toggleCohortStats(bool enable = false);
+	void changeMaxRows();
 
 private:
 	void updateCohort();
@@ -90,6 +91,7 @@ private:
 
 	//status
 	bool filtering_in_progress_ = false;
+	int max_rows_ = 5000;
 
 	static QVector<double> calculateRanks(const QVector<double>& values);
 

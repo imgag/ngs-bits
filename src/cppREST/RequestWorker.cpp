@@ -16,7 +16,7 @@ RequestWorker::RequestWorker(QSslConfiguration ssl_configuration, qintptr socket
 
 void RequestWorker::run()
 {
-    QSslSocket *ssl_socket = new QSslSocket();
+	QSharedPointer<QSslSocket> ssl_socket = QSharedPointer<QSslSocket>(new QSslSocket());
     QTemporaryFile temp_bed_file;
 
     try
@@ -44,8 +44,11 @@ void RequestWorker::run()
 	try
 	{
         ssl_socket->startServerEncryption();
-
-		QByteArray all_request_parts;
+		if (!ssl_socket->waitForEncrypted(params_.socket_encryption_timeout))
+		{
+			Log::error("TLS handshake failed: " + ssl_socket->errorString());
+			return;
+		}
 
 		if (!ssl_socket->isOpen())
 		{
@@ -53,47 +56,65 @@ void RequestWorker::run()
 			return;
 		}
 
-		bool finished_reading_headers = false;
-		bool finished_reading_body = false;
-		qint64 request_headers_size = 0;
-		qint64 request_body_size = 0;
+		QByteArray all_request_parts;
+		qint64 header_end = -1;
+		qint64 content_length = 0;
 
-        while (ssl_socket->waitForReadyRead(params_.socket_read_timeout))
+		while (true)
 		{
-            ssl_socket->waitForEncrypted(params_.socket_encryption_timeout);
+			if (ssl_socket->bytesAvailable()>0)
+			{
+				all_request_parts.append(ssl_socket->readAll());
+			}
 
-			if (!ssl_socket->isEncrypted() || (ssl_socket->state() == QSslSocket::SocketState::UnconnectedState))
+			// Wait until the complete HTTP headers are available.
+			if (header_end<0)
+			{
+				header_end = all_request_parts.indexOf("\r\n\r\n");
+
+				if (header_end>=0)
+				{
+					QByteArray headers = all_request_parts.left(header_end);
+					const QList<QByteArray> lines = headers.split('\n');
+
+					for (const QByteArray& line : lines)
+					{
+						const qsizetype colon = line.indexOf(':');
+						if (colon < 0) continue;
+
+						const QByteArray name = line.left(colon).trimmed();
+						const QByteArray value = line.mid(colon + 1).trimmed();
+
+						if (name.compare("Content-Length", Qt::CaseInsensitive)==0)
+						{
+							bool ok = false;
+							content_length = value.toLongLong(&ok);
+
+							if (!ok || content_length<0)
+							{
+								sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, ContentType::TEXT_PLAIN, "Invalid Content-Length"));
+								return;
+							}
+						}
+					}
+				}
+			}
+
+			// Stop when the headers and complete declared body are available.
+			if (header_end>=0 && all_request_parts.size()>=header_end+4+content_length) break;
+			if (!ssl_socket->waitForReadyRead(params_.socket_read_timeout)) break;
+
+			if (!ssl_socket->isEncrypted() || ssl_socket->state()==QSslSocket::SocketState::UnconnectedState)
 			{
 				Log::error("Connection cannot be continued: " + ssl_socket->errorString());
-				closeConnection(ssl_socket);
 				return;
 			}
+		}
 
-			while(ssl_socket->bytesAvailable())
-			{
-				QByteArray line = ssl_socket->readLine();
-				if ((!finished_reading_headers) && (line.toLower().startsWith("content-length")))
-				{
-					QList<QByteArray> header_parts = line.trimmed().split(':');
-					if (header_parts.size() > 1) request_body_size = header_parts[1].toLongLong();
-				}
-
-				all_request_parts.append(line);
-				if ((line.trimmed().size() == 0) && (!finished_reading_headers))
-				{
-					finished_reading_headers = true;
-					request_headers_size = all_request_parts.size();
-				}
-
-				if ((finished_reading_headers) && ((all_request_parts.size() - request_headers_size) >= request_body_size))
-				{
-					finished_reading_body = true;
-					break;
-				}
-
-			}
-
-			if (finished_reading_body) break;
+		if (header_end<0 || all_request_parts.size()<header_end+4+content_length)
+		{
+			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, ContentType::TEXT_PLAIN, "Incomplete HTTP request"));
+			return;
 		}
 
 		if (all_request_parts.size() == 0)
@@ -104,7 +125,7 @@ void RequestWorker::run()
 		}
 
 		HttpRequest parsed_request;
-		RequestParser *parser = new RequestParser();
+		QSharedPointer<RequestParser> parser = QSharedPointer<RequestParser>(new RequestParser());
 		try
 		{
 			parsed_request = parser->parse(&all_request_parts);
@@ -147,23 +168,23 @@ void RequestWorker::run()
                 user_info = " - requested by " + user_session.user_login + " (" + user_session.user_name + ")";
 			}
 		}
-		QString client_type = "Unknown client";
-		if (!parsed_request.getHeaderByName("User-Agent").isEmpty())
+		QString client_type = " - Unknown client";
+		QString user_agent = parsed_request.getHeaderByName("User-Agent").join(" ").trimmed();
+		if (!user_agent.isEmpty())
 		{
-			if (parsed_request.getHeaderByName("User-Agent")[0].toLower().indexOf("igv") > -1)
+			if (user_agent.contains("igv", Qt::CaseInsensitive))
 			{
-				client_type = "IGV";
+				client_type = " - IGV";
 			}
-			else if ((parsed_request.getHeaderByName("User-Agent")[0].toLower().indexOf("gsvar") > -1) || (parsed_request.getHeaderByName("User-Agent")[0].toLower().indexOf("qt") > -1))
+			else if (user_agent.contains("gsvar", Qt::CaseInsensitive) || user_agent.contains("qt", Qt::CaseInsensitive))
 			{
-				client_type = "GSvar";
+				client_type = " - " + user_agent;
 			}
 			else
 			{
-				client_type = "Browser";
+				client_type = " - Browser: " + user_agent;
 			}
 		}
-		client_type = " - " + client_type;
 
 		if (current_endpoint.authentication_type != AuthType::NONE)
 		{
@@ -293,7 +314,7 @@ void RequestWorker::run()
 						return;
 					}
 
-					if (pos >= (file_size-1)) break;
+					if (pos > (file_size-1)) break;
                     streamed_file->seek(pos);
 
 					if ((pos+chunk_size)>(ranges[i].end+1))
@@ -304,7 +325,7 @@ void RequestWorker::run()
 					if (chunk_size <= 0) break;
                     data = streamed_file->read(chunk_size);
 					sendResponseDataPart(ssl_socket, data);
-					pos = pos + data.size();
+					pos += data.size();
 				}
 				if (is_terminated_) return;
 				if (ranges_count > 1) sendResponseDataPart(ssl_socket, "\r\n");
@@ -404,20 +425,23 @@ QString RequestWorker::intToHex(int input)
 	return QString("%1").arg(input, 10, 16, QLatin1Char('0')).toUpper();
 }
 
-void RequestWorker::closeConnection(QSslSocket* socket)
+void RequestWorker::closeConnection(QSharedPointer<QSslSocket> socket)
 {
 	is_terminated_ = true;
 
-    if ((socket->state() == QSslSocket::SocketState::UnconnectedState) || (socket->state() == QSslSocket::SocketState::ClosingState))
-    {
-        return;
-	}
+	if (!socket || socket->state() == QAbstractSocket::UnconnectedState) return;
 
-    if (socket->bytesToWrite()) socket->waitForBytesWritten(params_.socket_write_timeout); //5000
-    socket->abort();
+	socket->flush();
+	socket->waitForBytesWritten(params_.socket_write_timeout);
+	socket->disconnectFromHost();
+
+	if (socket->state() != QAbstractSocket::UnconnectedState)
+	{
+		socket->waitForDisconnected(params_.socket_write_timeout);
+	}
 }
 
-void RequestWorker::sendResponseDataPart(QSslSocket* socket, const QByteArray& data)
+void RequestWorker::sendResponseDataPart(QSharedPointer<QSslSocket> socket, const QByteArray& data)
 {
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)
 	{
@@ -426,7 +450,7 @@ void RequestWorker::sendResponseDataPart(QSslSocket* socket, const QByteArray& d
 	}
 }
 
-void RequestWorker::sendEntireResponse(QSslSocket* socket, const HttpResponse& response)
+void RequestWorker::sendEntireResponse(QSharedPointer<QSslSocket> socket, const HttpResponse& response)
 {
 	if (response.getStatusCode() > 200) Log::warn("The server returned " + QString::number(response.getStatusCode()) + " - " + HttpUtils::convertResponseStatusToReasonPhrase(response.getStatus()));
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)

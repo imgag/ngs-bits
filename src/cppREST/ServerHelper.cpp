@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QCoreApplication>
 #include <QUuid>
+#include <QRegularExpression>
 
 ServerHelper::ServerHelper()
 {
@@ -183,6 +184,15 @@ QString ServerHelper::getCurrentServerLogFile()
         Log::error("Unknown exception while getting the current server log file name");
         return "default.log";
     }
+}
+
+QSet<QString> ServerHelper::extractProcessSampleNames(const QString &input)
+{
+	const int first_underscore = input.indexOf('_');
+	if (first_underscore == -1) return {};
+	const QString ids = input.mid(first_underscore + 1);
+	QStringList names = ids.split(QRegularExpression("(?<=_[^_]{2})_"), Qt::SkipEmptyParts);
+	return QSet<QString>(names.begin(), names.end());
 }
 
 ServerHelper& ServerHelper::instance()

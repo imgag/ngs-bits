@@ -27,15 +27,7 @@ void FileMetaCache::removeMetadata(QString fullname)
 
 bool FileMetaCache::isInStorageAlready(QString absolute_file_path)
 {
-    QList<QString> keys = instance().metadata_storage_.keys();
-    for (int i = 0; i < keys.count(); i++)
-    {
-        if (instance().metadata_storage_.value(keys[i]).absolute_file_path == absolute_file_path)
-        {
-            return true;
-        }
-    }
-    return false;
+	return instance().metadata_storage_.contains(absolute_file_path);
 }
 
 FileMetadata FileMetaCache::getMetadata(QString absolute_file_path)

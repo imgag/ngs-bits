@@ -1,4 +1,5 @@
 #include "FilterWidget.h"
+#include <QSignalBlocker>
 #include "Settings.h"
 #include "Helper.h"
 #include "NGSD.h"
@@ -90,7 +91,7 @@ void FilterWidget::loadTargetRegions()
 
 void FilterWidget::loadTargetRegions(QComboBox* box)
 {
-	box->blockSignals(true);
+	const QSignalBlocker blocker(box);
 
 	//store old selection
 	QString current = box->currentText();
@@ -138,7 +139,6 @@ void FilterWidget::loadTargetRegions(QComboBox* box)
 	if (current_index==-1) current_index = 1;
 	box->setCurrentIndex(current_index);
 
-	box->blockSignals(false);
 }
 
 void FilterWidget::loadTargetRegionData(TargetRegionInfo& roi, QString name)
@@ -281,9 +281,10 @@ void FilterWidget::updateNGSDSupport()
 
 void FilterWidget::reset(bool clear_roi)
 {
-	blockSignals(true);
-	resetSignalsUnblocked(clear_roi);
-	blockSignals(false);
+	{//do not remove scope - needed by QSignalBlocker
+		const QSignalBlocker blocker(this);
+		resetSignalsUnblocked(clear_roi);
+	}
 
 	emit filtersChanged();
 	if (clear_roi) emit targetRegionChanged();
@@ -577,9 +578,10 @@ void FilterWidget::updateFilterName()
 
 void FilterWidget::customFilterLoaded()
 {
-	ui_.filters->blockSignals(true);
-	ui_.filters->setCurrentIndex(0);
-	ui_.filters->blockSignals(false);
+	{//do not remove scope - needed by QSignalBlocker
+		const QSignalBlocker blocker(ui_.filters);
+		ui_.filters->setCurrentIndex(0);
+	}
 
 	ui_.lab_modified->setHidden(false);
 

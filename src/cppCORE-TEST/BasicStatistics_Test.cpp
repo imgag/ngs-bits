@@ -1799,4 +1799,12 @@ private:
 		F_EQUAL2(BasicStatistics::fishersExactTest(6427, 12691, 10527, 20567, "greater"), 0.711182123, 1e-8);
 
 	}
+
+	TEST_METHOD(fishersExactTest_special_cases)
+	{
+		//no hits
+		F_EQUAL2(BasicStatistics::fishersExactTest(0, 0, 666, 1111, "greater"),1, 1e-8);
+		F_EQUAL2(BasicStatistics::fishersExactTest(0, 0, 666, 1111, "less"),1, 1e-8);
+		F_EQUAL2(BasicStatistics::fishersExactTest(0, 0, 666, 1111, "two-sided"),1, 1e-8);
+	}
 };

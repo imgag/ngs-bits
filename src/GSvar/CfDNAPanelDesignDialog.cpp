@@ -1,4 +1,5 @@
 #include "CfDNAPanelDesignDialog.h"
+#include <QSignalBlocker>
 #include "ui_CfDNAPanelDesignDialog.h"
 #include "GUIHelper.h"
 #include "LoginManager.h"
@@ -951,12 +952,12 @@ void CfDNAPanelDesignDialog::writePanelToFile()
 	}
 
 	//open file save dialog
-	QString vcf_file_path = QFileDialog::getSaveFileName(this, tr("Save cfDNA panel"), QDir::homePath() + QDir::separator() + processed_sample_name_ + ".vcf", tr("VCF (*.vcf);;All Files (*)"));
+	QString vcf_file_path = QFileDialog::getSaveFileName(this, "Save cfDNA panel", QDir::homePath() + QDir::separator() + processed_sample_name_ + ".vcf", "VCF (*.vcf);;All Files (*)");
 	if (!vcf_file_path.toLower().endsWith(".vcf")) vcf_file_path += ".vcf";
 	QString bed_file_path = vcf_file_path.mid(0, vcf_file_path.size() - 4) + ".bed";
 	if(QFile::exists(bed_file_path))
 	{
-		int btn = QMessageBox::warning(this, tr("Confirm save."), QFile(bed_file_path).fileName() + " already exists. \nWould you like to overwrite the file?",
+		int btn = QMessageBox::warning(this, "Confirm save.", QFile(bed_file_path).fileName() + " already exists. \nWould you like to overwrite the file?",
 											   QMessageBox::Yes | QMessageBox::No);
 		if (btn!=QMessageBox::Yes)
 		{
@@ -1015,7 +1016,7 @@ void CfDNAPanelDesignDialog::addVariant()
 
 		//disable sorting
 		ui_->vars->setSortingEnabled(false);
-		ui_->vars->blockSignals(true);
+		const QSignalBlocker vars_blocker(ui_->vars);
 
 		//extend table
 		int col_idx = 0;
@@ -1056,7 +1057,6 @@ void CfDNAPanelDesignDialog::addVariant()
 
 		//re-enable sorting
 		ui_->vars->setSortingEnabled(true);
-		ui_->vars->blockSignals(false);
 	}
 	catch(Exception& e)
 	{
@@ -1146,4 +1146,3 @@ void CfDNAPanelDesignDialog::showHotspotRegions(int state)
 	ui_->hotspot_regions->setVisible(state == Qt::Checked);
 	ui_->l_count_hotspot_regions->setVisible(state == Qt::Checked);
 }
-

@@ -12,9 +12,9 @@
 #include "SomaticReportSettings.h"
 #include "Log.h"
 #include "ClickableLabel.h"
-#include "ImportDialog.h"
 #include "RepeatLocusList.h"
 #include "Background/BackgroundJobDialog.h"
+#include "MultiInstanceHandler.h"
 
 ///Tab type
 enum class TabType
@@ -46,7 +46,7 @@ public:
 	bool isServerRunning();
 
     /// Gets the list of files needed to initialize IGV, reduces the delay before the fist call to IGV
-    void lazyLoadIGVfiles(QString current_file);
+	void lazyLoadIGVfiles(QString current_file);
 
 	///Returns the result of applying filters to the variant list
 	void applyFilters(bool debug_time);
@@ -101,6 +101,8 @@ public slots:
     void updateSecureToken();
 	/// Checks (only in clinet-server mode) if the server is currently running
 	void checkServerAvailability();
+	/// Resets the expiration time for the URLs related to the currently opened sample
+	void updateActiveUrls();
 	/// Checks (only in clinet-server mode) if there is some new information needed to be displayed to the user (e.g. downtimes, maintenance, reboots, updates)
 	void checkUserNotifications();
 	///Loads a variant list. Unloads the variant list if no file name is given
@@ -171,7 +173,9 @@ public slots:
 	void on_actionCohortAnalysis_triggered();
 	void on_actionMaintenance_triggered();
 	void on_actionNotifyUsers_triggered();
-
+	void on_actionDetermineProxy_triggered();
+	void on_actionCheckBamAccess_triggered();
+	void on_actionAnalysisTimePlot_triggered();
 
     ///Gender determination
 	void on_actionGenderXY_triggered();
@@ -223,6 +227,8 @@ public slots:
 	void on_actionCloseMetaDataTabs_triggered();
 	///Import variants
 	void on_actionImportVariants_triggered();
+	///Import users
+	void on_actionImportUsers_triggered();
 	///Clear IGV
 	void on_actionIgvClear_triggered();
 	///Open IGV documentation in browser
@@ -309,6 +315,10 @@ public slots:
 	void on_actionClearLogFile_triggered();
 	///Opens AppData folder of GSvar
 	void on_actionOpenGSvarDataFolder_triggered();
+	///Ping GSvar server
+	void on_actionPingGSvarServer_triggered();
+	///Ping NGSD server
+	void on_actionPingNgsdServer_triggered();
 
 	///Calculate gaps based on current target region filter
 	void calculateGapsByTargetRegionFilter();
@@ -412,9 +422,7 @@ public slots:
 	void createSubPanelFromPhenotypeFilter();
 
 	///Opens a sample based on the processed sample name
-	void openProcessedSampleFromNGSD(QString processed_sample_name, bool search_multi=true);
-	///Opens a sample based on the sample name
-	void openSampleFromNGSD(QString sample_name);
+	bool openProcessedSampleFromNGSD(QString processed_sample_name, bool search_multi=true);
 
 	///Check mendelian error rate of trio.
 	void checkMendelianErrorRate();
@@ -493,6 +501,9 @@ public slots:
 	//Set application style
 	void setStyle(QString name);
 
+	//Opens the given 'gsvar://' URL in the main instance and puts the window on the top
+	void openGSvarUrl(QUrl url);
+
     ///close the app and logout (if in client-sever mode)
 	void closeAndLogout();
 
@@ -509,6 +520,10 @@ protected:
 	QString getFileSelectionItem(QString window_title, QString label_text, QStringList file_list, bool *ok);
     /// Removes a user's session on the server (in client-server mode)
     void performLogout();
+	//Parses command-line arguments and handles them
+	void handleCliArguments();
+	//Returns the path to the genome viewer app
+	QString viewerApp(bool only_igv=false);
 
 private:
 	//GUI
@@ -568,7 +583,10 @@ private:
 	QString displayed_maintenance_message_id_;
 
     //current server version (if in client-server mode)
-    QString server_version_; 
+	QString server_version_;
+
+	// Handling of 'gsvar://' URLs
+	MultiInstanceHandler multi_instance_handler_;
 };
 
 #endif // MAINWINDOW_H

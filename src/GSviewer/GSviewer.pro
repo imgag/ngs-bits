@@ -6,10 +6,6 @@ QTPLUGIN += QSQLMYSQL
 TARGET = GSviewer
 RC_FILE	 = icon.rc
 
-#include NGSD library
-INCLUDEPATH += $$PWD/../cppNGSD
-LIBS += -L$$PWD/../../bin -lcppNGSD
-
 #include VISUAL library
 INCLUDEPATH += $$PWD/../cppVISUAL
 LIBS += -L$$PWD/../../bin -lcppVISUAL
@@ -17,8 +13,12 @@ LIBS += -L$$PWD/../../bin -lcppVISUAL
 RESOURCES += GSviewer.qrc
 
 SOURCES += main.cpp \
+    CommandServer.cpp \
+    TranscriptCache.cpp \
     MainWindow.cpp
 
-HEADERS += MainWindow.h
+HEADERS += MainWindow.h \
+    CommandServer.h \
+    TranscriptCache.h
 
 FORMS += MainWindow.ui

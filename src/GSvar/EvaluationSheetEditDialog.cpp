@@ -104,7 +104,7 @@ void EvaluationSheetEditDialog::checkReviewer()
 {
 	// try to cast to QLineEdit:
 	DBSelector* db_selector = qobject_cast<DBSelector*> (sender());
-	if (db_selector == NULL) return;
+	if (db_selector==nullptr) return;
 
 	// check if reviewer name is valid
 	db_selector->showVisuallyIfValid(true);
@@ -114,7 +114,7 @@ void EvaluationSheetEditDialog::checkNonEmpty()
 {
 	// try to cast to QLineEdit:
 	QLineEdit* line_edit = qobject_cast<QLineEdit*> (sender());
-	if (line_edit == NULL) return;
+	if (line_edit==nullptr) return;
 
 	// set background to red if text is empty
 	line_edit->setStyleSheet(line_edit->text().trimmed().isEmpty() ? "QLineEdit {border: 2px solid red;}": "");

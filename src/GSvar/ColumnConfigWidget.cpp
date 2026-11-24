@@ -256,7 +256,7 @@ void ColumnConfigWidget::exportCurrent()
 		lines << key + " = " + configs_[name].toString();
 
 		//get filename
-		QString filename = QFileDialog::getSaveFileName(this, title, QDir::homePath() + QDir::separator() + key + ".txt", tr("TXT (*.txt);;All Files (*)"));
+		QString filename = QFileDialog::getSaveFileName(this, title, QDir::homePath() + QDir::separator() + key + ".txt", "TXT (*.txt);;All Files (*)");
 		if (filename.isEmpty()) return;
 
 		//store
@@ -287,7 +287,7 @@ void ColumnConfigWidget::exportAll()
 		}
 
 		//get filename
-		QString filename = QFileDialog::getSaveFileName(this, title, QDir::homePath() + QDir::separator() + "column_config_all.txt", tr("TXT (*.txt);;All Files (*)"));
+		QString filename = QFileDialog::getSaveFileName(this, title, QDir::homePath() + QDir::separator() + "column_config_all.txt", "TXT (*.txt);;All Files (*)");
 		if (filename.isEmpty()) return;
 
 		//store
@@ -306,7 +306,7 @@ void ColumnConfigWidget::import()
 	try
 	{
 		//get filename
-		QString filename = QFileDialog::getOpenFileName(this, title, QDir::homePath() + QDir::separator() + ".txt", tr("TXT (*.txt);;All Files (*)"));
+		QString filename = QFileDialog::getOpenFileName(this, title, QDir::homePath() + QDir::separator() + ".txt", "TXT (*.txt);;All Files (*)");
 		if (filename.isEmpty()) return;
 
 		//import column configs

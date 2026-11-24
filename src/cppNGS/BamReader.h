@@ -59,11 +59,7 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		//Copy constructor (makes a deep copy of the alignment > slow)
 		BamAlignment(const BamAlignment& rhs);
 		//Assignment operator
-		BamAlignment& operator=(const BamAlignment& rhs)
-		{
-			aln_ = bam_dup1(rhs.aln_);
-			return *this;
-		}
+		BamAlignment& operator=(const BamAlignment& rhs);
 
 		//Returns the read name
 		QByteArray name() const
@@ -244,6 +240,13 @@ class CPPNGSSHARED_EXPORT BamAlignment
 
 		//Returns a string tag. If the tag is not present, an empty string is returned. If the tag is not a string, i.e. type Z, an exception is thrown.
 		QByteArray tag(const QByteArray& tag) const;
+		//Returns the BAM storage type of a tag, or '\0' if it is absent.
+		char tagType(const QByteArray& tag) const
+		{
+			if (!containsTags()) THROW(ProgrammingException, "BamAlignment does not contain tags, but tagType(QByteArray) used!");
+			const uint8_t* data = bam_aux_get(aln_, tag.constData());
+			return data == nullptr ? '\0' : *data;
+		}
 		//Adds a tag to the alignment.
 		void addTag(const QByteArray& tag, char type, const QByteArray& data);
 		//Returns a integer tag. If the tag is not present, 0 is returned.
@@ -281,14 +284,14 @@ class CPPNGSSHARED_EXPORT BamAlignment
 		  @note If the base is deleted, '-' with quality 255 is returned. If the base is skipped/soft-clipped, '~' with quality -1 is returned.
           @note If 'index_in_read' is set, the index of the position in the read is returned.
         */
-        QPair<char, int> extractBaseByCIGAR(int pos, int* index_in_read=nullptr);
+        QPair<char, int> extractBaseByCIGAR(int pos, int* index_in_read=nullptr) const;
 
 		/**
 		  @brief Returns the indels at a chromosomal position (1-based) or a range when using the @p indel_window parameter.
 		  @note Insertions: The string starts with '+' and then contains the bases (e.g. '+TT'). The position is the base @em before which insersion is located.
 		  @note Deletions: the string starts with '-' and then contains the number of bases (e.g. '-2'). The position is the first deleted base.
 		*/
-		QList<Sequence> extractIndelsByCIGAR(int pos, int indel_window=0);
+		QList<Sequence> extractIndelsByCIGAR(int pos, int indel_window=0) const;
 
 		//Indicates if bases were loaded (for CRAM).
 		bool containsBases() const
@@ -376,6 +379,8 @@ class CPPNGSSHARED_EXPORT BamReader
 		QByteArrayList headerLines() const;
 		//Returns the genome build based on the length of the chr1 (works for human only). Throws an exception if it could not be determined.
 		GenomeBuild build() const;
+		//Checks if BAM is paired-end by checking the first n reads.
+		bool checkIfPairedEnd(int use_reads=200);
 		//Returns general information about a BAM file. Note: it changes the region, thus use before setting a region or re-set region afterwards
 		BamInfo info();
 

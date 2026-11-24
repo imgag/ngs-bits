@@ -67,10 +67,10 @@ void FilterCascadeWidget::editColumnFilter(QString column)
 	{
 		if (filters_[i]->name()!="Column match") continue;
 
-		foreach(const FilterParameter& param, filters_[i]->parameters())
+		foreach(const Parameter& param, filters_[i]->parameters())
 		{
-			if (param.name!="column") continue;
-			if (param.value.toString()!=column) continue;
+			if (param.name()!="column") continue;
+			if (param.value().toString()!=column) continue;
 
 			index = i;
 		}
@@ -139,13 +139,7 @@ void FilterCascadeWidget::setFilters(const FilterCascade& filters)
 	for(int i=0; i<filters_.count(); ++i)
 	{
 		// Variant filter column
-		if (filters_[i]->name()=="Filter columns")
-		{
-			filters_[i]->overrideConstraint("entries", "valid", valid_filter_entries_.join(','));
-		}
-
-		// SV filter column
-		if (filters_[i]->name()=="SV filter columns")
+		if (filters_[i]->name()=="Filter columns" || filters_[i]->name()=="SV filter columns")
 		{
 			filters_[i]->overrideConstraint("entries", "valid", valid_filter_entries_.join(','));
 		}
@@ -210,18 +204,13 @@ void FilterCascadeWidget::addFilter()
 	//create filter
 	QSharedPointer<FilterBase> filter = FilterFactory::create(action->text());
 	// Variant filter column
-	if (filter->name()=="Filter columns")
-	{
-		filter->overrideConstraint("entries", "valid", valid_filter_entries_.join(','));
-	}
-	// SV filter column
-	if (filter->name()=="SV filter columns")
+	if (filter->name()=="Filter columns" || filter->name()=="SV filter columns")
 	{
 		filter->overrideConstraint("entries", "valid", valid_filter_entries_.join(','));
 	}
 
 	//set genome build if the filter contains the parameter
-	if (filter->hasParameter("build", FilterParameterType::STRING))
+	if (filter->hasParameter("build", ParameterType::STRING))
 	{
 		filter->setString("build", GSvarHelper::buildAsString());
 	}

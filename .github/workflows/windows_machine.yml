@@ -1,39 +1,100 @@
 name: Qt 6.10.1 on Windows Server 2025
 
 on: [push, pull_request]
-
 jobs:
   build:
-    runs-on: windows-2025
+    runs-on: windows-2025-vs2026
+    env:
+      # Compiler cache (MSYS2's ccache understands Windows paths)
+      CCACHE_DIR: ${{ github.workspace }}\.ccache
+      CCACHE_MAXSIZE: 2G
+      GENOME_URL: https://megsap.de/download/genome/GRCh38.fa.gz
+      GENOME_FA_GZ: genome/GRCh38.fa.gz
+      GENOME_FA: genome/GRCh38.fa
+      GENOME_FAI_URL: https://megsap.de/download/genome/GRCh38.fa.fai
+      GENOME_FAI: genome/GRCh38.fa.fai
     defaults:
       run:
         shell: msys2 {0}
     steps:
       - uses: actions/checkout@v6
+        with:
+          submodules: recursive   # replaces the separate "Update submodules" step
+
+      # MSYS2 is phasing out MINGW64 (https://www.msys2.org/news/) and has already
+      # dropped qt6-charts/-httpserver/-websockets from it, so CI uses UCRT64.
       - uses: msys2/setup-msys2@v2
         with:
-          msystem: MINGW64
+          msystem: UCRT64
           update: false
           release: true
-          install: git base-devel mingw-w64-x86_64-toolchain mingw-w64-x86_64-zlib mingw-w64-x86_64-bzip2 mingw-w64-x86_64-xz mingw-w64-x86_64-curl mingw-w64-x86_64-dlfcn mingw-w64-x86_64-qt6 mingw-w64-x86_64-libmariadbclient mingw-w64-x86_64-sqlite3 libsqlite libsqlite-devel unzip
-      - name: Update submodules
-        run: git submodule update --recursive --init
-      - name: Unpack htslib
-        working-directory: ./htslib
-        run: unzip htslib_win_64_qt6.zip
-      - name: Copy htslib to bin folder
-        run: (cp htslib/lib/hts.dll.a bin/) && (cp htslib/lib/hts-3.dll bin/) && (cp htslib/lib/libhts.a bin/) && (cp htslib/lib/zlib1.dll bin/)
-      - name: Unpack libxml2
-        working-directory: ./libxml2
-        run: unzip -o libxml2_win_64.zip
-      - name: Copy libxml2 to bin folder
-        run: cp libxml2/libs/* bin/
+          # MSYS-side packages (no environment prefix)
+          install: >-
+            git base-devel unzip
+            libsqlite libsqlite-devel
+          pacboy: >-
+            toolchain:p
+            ccache:p
+            zlib:p bzip2:p xz:p
+            curl:p dlfcn:p
+            libmariadbclient:p sqlite3:p
+            htslib:p libxml2:p
+            qt6-base:p
+            qt6-charts:p
+            qt6-httpserver:p
+            qt6-websockets:p
+            qt6-svg:p
+
+      - name: Restore ccache
+        uses: actions/cache@v6
+        with:
+          path: .ccache
+          # msystem in the key so old MINGW64 objects aren't restored
+          key: ccache-windows-ucrt64-${{ github.run_id }}
+          restore-keys: ccache-windows-ucrt64-
+
       - name: Download test files
         run: make download_test_files
-      - name: Build other dependencies
-        run: make build_libs_release build_tools_release build_gui_release build_server_release
+
+      # THREADS and QMAKE_BIN are Makefile variables, overridden here.
+      # CONFIG+=ccache makes qmake prefix the compiler with ccache.
+      # htslib and libxml2 come from MSYS2 here: the zips in htslib/ and libxml2/
+      # stay packed, so the project files' paths into them point nowhere and gcc
+      # finds hts and xml2 in the MSYS2 prefix. Only libxml2 keeps its headers in
+      # a subfolder (include/libxml2/libxml/), which CPATH adds for gcc.
+      - name: Build
+        run: |
+          export CPATH="$(cygpath -m "$MINGW_PREFIX/include/libxml2")"
+          test -f "$MINGW_PREFIX/include/libxml2/libxml/xmlerror.h"
+          make THREADS=$(nproc) QMAKE_BIN="qmake6 CONFIG+=ccache" build_libs_release build_tools_release build_gui_release build_server_release
+          ccache -s
+
+      # ---- Reference genome + index, from the cache saved on master ----
+      # The Ubuntu 26.04 workflow saves this cache on master; this workflow only
+      # restores it. enableCrossOsArchive lets Windows restore a Linux-made cache.
+      - name: Restore reference genome from cache
+        id: genome-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            ${{ env.GENOME_FA_GZ }}
+            ${{ env.GENOME_FAI }}
+          key: genome-GRCh38-v2
+          enableCrossOsArchive: true
+
+      - name: Download reference genome and index (cache miss)
+        if: steps.genome-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$(dirname "$GENOME_FA_GZ")"
+          curl -fSL --retry 5 --retry-all-errors -o "$GENOME_FA_GZ" "$GENOME_URL"
+          curl -fSL --retry 5 --retry-all-errors -o "$GENOME_FAI" "$GENOME_FAI_URL"
+
+      - name: Unpack reference genome       
+        run: gzip -dc "$GENOME_FA_GZ" > "$GENOME_FA"
+
       - name: Create a settings.ini file for tests
         run: .github/workflows/settings_win_mac.sh
         shell: bash
+
       - name: Run tests
         run: make -k test_lib_windows test_tools_windows

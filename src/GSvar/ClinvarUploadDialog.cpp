@@ -1,9 +1,7 @@
 #include "ClinvarUploadDialog.h"
-#include "HttpHandler.h"
 #include "Settings.h"
 #include "Exceptions.h"
 #include "Helper.h"
-#include "Log.h"
 #include "LoginManager.h"
 #include "GSvarHelper.h"
 #include "GUIHelper.h"
@@ -441,8 +439,7 @@ void ClinvarUploadDialog::upload()
     post_request.insert("actions", actions);
 
 
-    // perform upload
-	static HttpHandler http_handler(false); //static to allow caching of credentials
+	// perform upload
     try
     {
 		//switch on/off testing
@@ -457,7 +454,7 @@ void ClinvarUploadDialog::upload()
         add_headers.insert("SP-API-KEY", api_key);
 
         //post request
-		QByteArray reply = http_handler.post(api_url, QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers);
+		QByteArray reply = HttpRequestHandler().post(api_url, QJsonDocument(post_request).toJson(QJsonDocument::Compact), add_headers).body;
 
         // parse response
         bool success = false;
@@ -937,7 +934,7 @@ bool ClinvarUploadDialog::checkGuiData()
 
 	//check genes
 	QStringList invalid_genes;
-    for (QByteArray gene : gene_set)
+	for (QByteArray gene : std::as_const(gene_set))
 	{
 		gene = gene.trimmed();
 		QByteArray approved_gene_name = NGSD().geneToApproved(gene, false);
@@ -1726,7 +1723,7 @@ QJsonObject ClinvarUploadDialog::createJson()
 						QJsonArray genes;
 						{
 							GeneSet gene_set = NGSD().genesToApproved(GeneSet::createFromStringList(gene_string.replace(";", ",").split(',')));
-                            for (const QByteArray& gene_name : gene_set)
+							for (const QByteArray& gene_name : std::as_const(gene_set))
 							{
 								QJsonObject gene;
 								gene.insert("symbol", QString(gene_name));
@@ -1873,7 +1870,7 @@ QJsonObject ClinvarUploadDialog::createJson()
 							QJsonArray genes;
 							{
 								GeneSet gene_set = NGSD().genesToApproved(GeneSet::createFromStringList(ui_.le_genes_snv1->text().replace(";", ",").split(',')));
-                                for (const QByteArray& gene_name : gene_set)
+								for (const QByteArray& gene_name : std::as_const(gene_set))
 								{
 									QJsonObject gene;
 									gene.insert("symbol", QString(gene_name));
@@ -2088,7 +2085,7 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
             QJsonArray variant_array = variant_set.value("variant").toArray();
             if (variant_array.size() > 0)
             {
-                for (const QJsonValue& variant : variant_array)
+				for (const QJsonValue& variant : std::as_const(variant_array))
                 {
 					VariantType type = VariantType::SNVS_INDELS;
 
@@ -2415,7 +2412,7 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
 			QJsonArray variant_sets = compound_heterozygote_set.value("variantSets").toArray();
 			if (variant_sets.size() == 2)
 			{
-                for (const QJsonValue& variant_set_buffer : variant_sets)
+				for (const QJsonValue& variant_set_buffer : std::as_const(variant_sets))
 				{
 					QJsonObject variant_set_item = variant_set_buffer.toObject();
 					if (variant_set_item.contains("variantSet"))
@@ -2427,7 +2424,7 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
 							QJsonArray variant_array = variant_set.value("variant").toArray();
 							if (variant_array.size() > 0)
 							{
-                                for (const QJsonValue& variant : variant_array)
+								for (const QJsonValue& variant : std::as_const(variant_array))
 								{
 									VariantType type = VariantType::SNVS_INDELS;
 
@@ -2781,7 +2778,7 @@ bool ClinvarUploadDialog::validateJson(const QJsonObject& json, QStringList& err
             QJsonArray condition_array = condition_set.value("condition").toArray();
             if (condition_array.size() > 0)
             {
-                for (const QJsonValue& condition : condition_array)
+				for (const QJsonValue& condition : std::as_const(condition_array))
                 {
                     if (condition.toObject().contains("db"))
                     {
@@ -2938,7 +2935,6 @@ QString ClinvarUploadDialog::getHGVS()
 	}
 	else if(clinvar_upload_data_.variant_type2 == VariantType::CNVS)
 	{
-		Chromosome chr = Chromosome(ui_.cb_chr_cnv2->currentText());
 		hgvs_var2 = ui_.le_start_cnv2->text() + "_" + ui_.le_end_cnv2->text() + ((ui_.le_cn_cnv2->text().toInt() < ui_.le_rcn_cnv2->text().toInt())?"del":"dup");
 	}
 	else if(clinvar_upload_data_.variant_type2 == VariantType::SVS)

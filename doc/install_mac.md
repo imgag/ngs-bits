@@ -1,16 +1,9 @@
 # Running GSvar client application
 
- The Mac version works exclusively on Apple Silicon machines and will not launch on older Intel Macs. At the moment GSvar for Mac is distributed as an individual DMG file (not through the official App Store). It may cause some inconveniences due to the Mac OS privacy and security settings. GSvar needs to be added as an exception, since Mac OS cannot establish or verify where the app comes from. This might change in the future, but for now please follow these steps to launch GSvar:
+ We are currently do not provide any official installation images (DMG) or support for Mac OS. If you need a Mac OS version of the GSvar client app, you should build it yourself from the source code in this repository. You may use our test environment configuration as a starting point:
+https://github.com/imgag/ngs-bits/blob/master/.github/workflows/mac_machine.yml
 
-- Download DMG file
-- Double click on the file, you will see the app container (this may take several minutes, since the operating system will be performing some checks)
-- Copy GSvar to your computer: open the context menu and select `Copy` (or use `Cmd` + `C`)
-![Qt login form](dmg.jpeg)
-- Open `Applications` folder, call the context menu and select `Paste Item` (or use `Cmd` + `V`)
-![Qt login form](apps.jpeg)
-- Launch GSvar from `Applications` folder or using `Spotlight` (press `cmd` + `space` and type `GSvar`). Your security settings may forbid running apps downloaded outside of the App Store. In this case you will have to go to `Privacy & Security` section of the system settings, scroll down to `Security` and select `Anywhere` or `App Store & Known Developers` in the drop-down list next to the `Allow applications from`. If choosing the `App Store & Known Developers` option does not solve the problem, you will need to disable `Gatekeeper` by executing `sudo spctl --master-disable` in the terminal. After that `Anywhere` option will become available. More information is available [`here`](https://support.apple.com/en-us/102445).
-- During the launch GSvar will ask to perform its automatic configuration, press `Yes`. It will generate `settings.ini` file containing settings tuned to your system
-![Qt login form](autoconfig.jpeg)
+However, there is some more work involved in getting a functioning DMG file.
 
 ## IGV installation
 - Download IGV from the [`official page`](https://igv.org/doc/desktop/#DownloadPage/). Choose the `IGV for MacOS (Apple Chip - Java included)` version
@@ -18,7 +11,7 @@
 
 ## Integration with IGV
 
-For more details related to IGV, please see the [`IGV installation page`](GSvar\install_igv.md).
+For more details related to IGV, please see the [`IGV installation page`](GSvar/install_igv.md).
 
 
 # Building ngs-bits from sources MacOS
@@ -49,7 +42,7 @@ Having installed Qt Creator, make sure your Qt installation has been correctly f
 GSvar uses MariaDB as a storage. You don't have to install MySQL/MariaDB server on your machine, you can simply run it in a Docker container instead:
 
 	> docker run -d --name my-own-mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=mypass123 mysql:5.7
-	> docker run --name my-own-phpmyadmin -d --link my-own-mysql:db -p 8081:80 phpmyadmin/phpmyadmin
+	> docker run --name my-own-phpmyadmin -d --link my-own-mysql:db -p 8081:80 phpmyadmin
 
 PhpMyAdmin can now be accessed from a browser at (use `root` as the username and the password from the above):
 
@@ -99,6 +92,8 @@ Following these steps to create a Mac bundle:
     > macdeployqt GSvar.app -dmg -verbose=2 GSvar.app -libpath=REPOSITORY_LOCATION/ngs-bits/bin
     
 It is recommended to have a developer account, which allows distributing your app easier (and even publishing it in the App Store)
+
+There is the script `tools/macos/create_dmg.sh` that allows to do the things listed above automatically.
 
 ## Server update (for cloud instances)
 

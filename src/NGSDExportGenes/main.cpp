@@ -21,7 +21,7 @@ public:
 		addFlag("add_disease_info", "Annotate with disease information from HPO, OrphaNet and OMIM (slow).");
 		addFlag("test", "Uses the test database instead of on the production database.");
 
-		changeLog(2026,  4, 17, "Added genomAD pLI.");
+		changeLog(2026,  4, 17, "Added gnomAD pLI.");
 		changeLog(2021,  4, 13, "Added more information (imprinting, pseudogenes, OrphaNet, OMIM).");
 		changeLog(2019,  9, 20, "Added several columns with gene details.");
 		changeLog(2018,  5,  3 , "First version");

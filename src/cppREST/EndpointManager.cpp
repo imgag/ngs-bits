@@ -110,7 +110,10 @@ HttpResponse EndpointManager::getUserTokenAuthStatus(const HttpRequest& request)
 
 HttpResponse EndpointManager::getDbTokenAuthStatus(const HttpRequest& request)
 {
-    if (!request.getHeaderByName("User-Agent").contains("GSvar"))
+	bool valid_client = false;
+	for (QString item: request.getHeaderByName("User-Agent")) if (item.startsWith("GSvar")) valid_client = true;
+
+	if (!valid_client)
     {
         Log::warn(EndpointManager::formatResponseMessage(request, "Unauthorized entity tried to request the database credentials"));
         return HttpResponse(ResponseStatus::FORBIDDEN, request.getContentType(), EndpointManager::formatResponseMessage(request, "You are not allowed to request the database credentials. This incident will be reported"));
@@ -179,36 +182,35 @@ void EndpointManager::validateInputData(Endpoint* current_endpoint, const HttpRe
     }
 }
 
-void EndpointManager::appendEndpoint(Endpoint new_endpoint)
+void EndpointManager::appendEndpoint(const Endpoint& new_endpoint)
 {
-	if (!instance().endpoint_list_.contains(new_endpoint))
+	const QString endpoint_key = QString("%1:%2").arg(new_endpoint.url.toLower(), HttpUtils::convertMethodTypeToString(new_endpoint.method));
+	if (!instance().endpoint_map_.contains(endpoint_key))
 	{
-		instance().endpoint_list_.append(new_endpoint);
+		instance().endpoint_map_.insert(endpoint_key, new_endpoint);
 	}
 }
 
 Endpoint EndpointManager::getEndpointByUrlAndMethod(const QString& url, const RequestMethod& method)
 {
-	for (int i = 0; i < instance().endpoint_list_.count(); ++i)
-	{
-		if ((instance().endpoint_list_[i].url.toLower() == url.toLower()) &&
-			(instance().endpoint_list_[i].method == method))
-		{
-			return instance().endpoint_list_[i];
-		}
-	}
+	const QString endpoint_key = QString("%1:%2").arg(url.toLower(), HttpUtils::convertMethodTypeToString(method));
+	const auto it = instance().endpoint_map_.constFind(endpoint_key);
 
-	return Endpoint();
+	if (it != instance().endpoint_map_.constEnd()) return it.value();
+
+	return {};
 }
 
 QList<Endpoint> EndpointManager::getEndpointsByUrl(const QString& url)
 {
 	QList<Endpoint> results;
-	for (int i = 0; i < instance().endpoint_list_.count(); ++i)
+	const QString normalized_url = url.toLower();
+
+	for (const Endpoint& endpoint : instance().endpoint_map_)
 	{
-		if (instance().endpoint_list_[i].url.toLower() == url.toLower())
+		if (endpoint.url.toLower() == normalized_url)
 		{
-			results.append(instance().endpoint_list_[i]);
+			results.append(endpoint);
 		}
 	}
 
@@ -217,7 +219,7 @@ QList<Endpoint> EndpointManager::getEndpointsByUrl(const QString& url)
 
 QList<Endpoint> EndpointManager::getEndpointEntities()
 {
-	return instance().endpoint_list_;
+	return instance().endpoint_map_.values();
 }
 
 QString EndpointManager::getEndpointHelpTemplate(QList<Endpoint> endpoint_list)
@@ -234,7 +236,8 @@ QString EndpointManager::getEndpointHelpTemplate(QList<Endpoint> endpoint_list)
 		QList<QString> param_desc {};
 
 		QMapIterator<QString, ParamProps> p(endpoint_list[i].params);
-		while (p.hasNext()) {
+		while (p.hasNext())
+		{
 			p.next();
 			param_names.append(p.key());
 			param_desc.append(p.value().comment);

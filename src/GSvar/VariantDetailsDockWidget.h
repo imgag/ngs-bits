@@ -55,25 +55,14 @@ private slots:
 	void spliceaiContextMenu(QPoint pos);
 
 private:
-	enum Color
-	{
-		NONE,
-		RED,
-		ORANGE,
-		YELLOW,
-		GREEN
-	};
-
 	//Returns the annotation.
 	void setAnnotation(QLabel* label, const VariantList& vl, int index, QString name);
 	//Returns the maximum allele frequency of the variant.
 	double maxAlleleFrequency(const VariantList& vl, int index) const;
-	//Convert color to string.
-	static QString colorToString(Color color);
 	//Format clickable link for a label.
-	static QString formatLink(QString text, QString url, Color bgcolor = NONE);
+	static QString formatLink(QString text, QString url, QString color="");
 	//Format colored text for a label.
-	static QString formatText(QString text, Color bgcolor);
+	static QString formatText(QString text, QString bgcolor);
 
 	//Returns 'nobr' paragraph start for tooltips
 	static QString nobr();
@@ -89,9 +78,6 @@ private:
 	int trans_curr;
 	//Transcript data
 	QList<VariantTranscript> trans_data;
-
-	//
-
 	//GUI
 	Ui::VariantDetailsDockWidget* ui;
 };

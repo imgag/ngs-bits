@@ -8,7 +8,6 @@
 #include <QMessageBox>
 #include <QBuffer>
 #include <QDir>
-#include "HttpHandler.h"
 #include "LoginManager.h"
 
 //struct holding reference data for tumor mutation burden (DOI:10.1186/s13073-017-0424-2)
@@ -500,7 +499,7 @@ void SomaticReportDialog::writeBackSettings()
 		{
 			try
 			{
-				QByteArray response = HttpHandler(true).get(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename);
+				QByteArray response = HttpRequestHandler().get(GlobalServiceProvider::fileLocationProvider().getSomaticIgvScreenshotFile().filename).body;
 				if (!response.isEmpty()) picture.loadFromData(response);
 			}
 			catch (Exception& e)
@@ -648,7 +647,7 @@ void SomaticReportDialog::createIgvScreenshot()
 		session.execute(commands, false);
 		session.waitForDone();
 
-		if (!QFileInfo::exists(screenshot_filename))
+		if (!QFile::exists(screenshot_filename))
         {
 			THROW(Exception, "IGV screenshot was not created!")
         }
@@ -682,7 +681,7 @@ void SomaticReportDialog::createIgvScreenshot()
 
 		try
         {
-            HttpHandler(true).post(ClientHelper::serverApiUrl() + "upload?ps_url_id=" + QUrl(filename_parts[filename_parts.size()-2].toUtf8()).toEncoded() + "&token=" + LoginManager::userToken(), multipart_form);
+			HttpRequestHandler().post(ClientHelper::serverApiUrl() + "upload?ps_url_id=" + QUrl(filename_parts[filename_parts.size()-2].toUtf8()).toEncoded() + "&token=" + LoginManager::userToken(), multipart_form);
 		}
 		catch (Exception& e)
 		{

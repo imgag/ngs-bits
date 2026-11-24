@@ -66,22 +66,22 @@ public:
 	static HttpResponse getDbTokenAuthStatus(const HttpRequest& request);
 
 	static void validateInputData(Endpoint* current_endpoint, const HttpRequest& request);
-	static void appendEndpoint(Endpoint new_endpoint);	
+	static void appendEndpoint(const Endpoint& new_endpoint);
 	static Endpoint getEndpointByUrlAndMethod(const QString& url, const RequestMethod& method);
 	static QList<Endpoint> getEndpointsByUrl(const QString& url);
 	static QList<Endpoint> getEndpointEntities();
 
 	static QString getEndpointHelpTemplate(QList<Endpoint> endpoint_list);
-    static QString formatResponseMessage(const HttpRequest& request, const QString& message);
+	static QString formatResponseMessage(const HttpRequest& request, const QString& message);
 
 protected:
 	EndpointManager();
 
 private:	
-	static EndpointManager& instance();
+	static EndpointManager& instance();	
     static bool hasKey(const QString& key, const QList<QString>& list);
     static bool hasKey(const QString& key, const QMap<QString, QString>& map);
-	QList<Endpoint> endpoint_list_;
+	QHash<QString, Endpoint> endpoint_map_;
 };
 
 #endif // ENDPOINTMANAGER_H

@@ -280,6 +280,22 @@ private:
 		S_EQUAL(db.getValue("SELECT caller FROM re_callset").toString(), "Straglr");
 		S_EQUAL(db.getValue("SELECT caller_version FROM re_callset").toString(), "V1.5.4");
 		S_EQUAL(db.getValue("SELECT call_date FROM re_callset").toDate().toString(Qt::ISODate), "2025-07-16");
+
+		//check import of trgt
+		EXECUTE("NGSDAddVariantsGermline", "-test -debug -no_time -ps NA12878_45 -force -re " + TESTDATA("data_in/NGSDAddVariantsGermline_in9.vcf"));
+		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype").toInt();
+		I_EQUAL(count, 85);
+		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele2 IS NULL").toInt();
+		I_EQUAL(count, 10);
+		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele1 >= 30").toInt();
+		I_EQUAL(count, 6);
+		count = db.getValue("SELECT count(*) FROM repeat_expansion_genotype WHERE allele2 >= 30").toInt();
+		I_EQUAL(count, 11);
+		count = db.getValue("SELECT count(*) FROM re_callset").toInt();
+		I_EQUAL(count, 1);
+		S_EQUAL(db.getValue("SELECT caller FROM re_callset").toString(), "trgt");
+		S_EQUAL(db.getValue("SELECT caller_version FROM re_callset").toString(), "V5.1.0-ec66463");
+		S_EQUAL(db.getValue("SELECT call_date FROM re_callset").toDate().toString(Qt::ISODate), "2026-09-24");
 	}
 
 	TEST_METHOD(QSQ_too_long_bug)

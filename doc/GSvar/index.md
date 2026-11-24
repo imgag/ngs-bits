@@ -25,6 +25,7 @@ Other analysis
 ## Misc
 
 - [IGV integration](igv_integration.md)
+- [GSviewer user guide](../GSviewer/index.md)
 - [Preferred transcripts](preferred_transcripts.md)
 - [Variant publication in ClinVar](variant_publication.md)
 - [Burden test](burden_test.md)

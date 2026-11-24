@@ -60,6 +60,8 @@ private:
 
 	void displayRepeats();
 	void loadMetaDataFromNGSD();
+	//Create missing table cell items. Otherwise null pointers are returned which leads to crashes.
+	void createMissingTableCells();
 	void colorRepeatCountBasedOnCutoffs();
 	void colorRepeatCountConfidenceInterval();
 	void setReportConfigHeaderIcons();

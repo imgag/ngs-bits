@@ -7,6 +7,7 @@
 #include "GlobalServiceProvider.h"
 #include "GeneInfoDBs.h"
 #include "GenomeVisualizationWidget.h"
+#include "SharedData.h"
 #include "ColumnConfig.h"
 #include <QBitArray>
 #include <QApplication>
@@ -69,6 +70,8 @@ void VariantTable::customContextMenu(QPoint pos)
 	//else: standard case: 1 variant selected
 
 	int index = indices[0];
+	QString selected_text;
+	if (!selectedItems().empty()) selected_text = selectedItems().at(0)->text().trimmed();
 
 	if (registered_actions_.count() > 0)
 	{
@@ -98,8 +101,22 @@ void VariantTable::customContextMenu(QPoint pos)
 	QAction* a_copy_variant = copy_menu->addAction("Variant");
 	QAction* a_copy_genes = copy_menu->addAction("Genes");
 	QAction* a_cnv_sv = menu.addAction("Show CNVs/SVs in gene");
-	QAction* a_visualize = menu.addAction("Visualize");
-	a_visualize->setEnabled(Helper::runningInQtCreator());
+	QAction* a_visualize = menu.addAction(QIcon(":/Icons/GSviewer.png"), "Visualize");
+	menu.addSeparator();
+
+	//add web links
+	QMenu* links_sub_menu = menu.addMenu("Open link");
+	bool cell_contains_links = false;
+
+	foreach (const QString& entry, selected_text.split(", "))
+	{
+		if (Helper::isHttpUrl(entry))
+		{
+			links_sub_menu->addAction(entry);
+			cell_contains_links = true;
+		}
+	}
+	if (!cell_contains_links) links_sub_menu->setEnabled(false);
 	menu.addSeparator();
 
 	//Google and Google Scholar
@@ -275,13 +292,40 @@ void VariantTable::customContextMenu(QPoint pos)
 
 	if (action==a_visualize)
 	{
-        QSharedPointer<GenomeData> genome_data(new GenomeData());
-        genome_data->setTranscripts(NGSD().transcripts());
-		GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this);
-        widget->setGenomeData(genome_data);
-		widget->setRegion(variant.chr(), variant.start(), variant.end());
-        auto dlg = GUIHelper::createDialog(widget, "GSviewer");
-		dlg->exec();
+		try
+		{
+			//load BAMs
+			GenomeVisualizationWidget* widget = new GenomeVisualizationWidget(this);
+			widget->setRegion(variant.chr(), variant.start(), variant.end());
+			foreach(const FileLocation& loc, GlobalServiceProvider::fileLocationProvider().getBamFiles(false))
+			{
+				widget->loadFile(loc.filename);
+			}
+
+			//load transcripts
+			if (SharedData::transcripts().isEmpty())
+			{
+				SharedData::setTranscripts(NGSD().transcripts());
+			}
+
+			//show
+			auto dlg = GUIHelper::createDialog(widget, "GSvar visualization");
+			dlg->setWindowIcon(QIcon(":/Icons/GSviewer.png"));
+			dlg->exec();
+		}
+		catch (Exception e)
+		{
+			foreach(const FileLocation& loc, GlobalServiceProvider::fileLocationProvider().getBamFiles(false))
+			{
+				qDebug() << "Attempted to load file" << loc.filename;
+			}
+
+			QMessageBox::warning(QApplication::activeWindow(), "Failed to load a file", "At least one file failed to load. See application logs for a list of attempted loads.\n\t" + e.message());
+		}
+	}
+	else if (parent_menu && parent_menu->title()=="Open link")
+	{
+		QDesktopServices::openUrl(QUrl(action->text()));
 	}
 	else if (parent_menu && (parent_menu->title()=="Google" || parent_menu->title()=="Google Scholar"))
 	{
@@ -457,6 +501,7 @@ void VariantTable::updateTable(VariantList& variants, const FilterResult& filter
 	QStringList col_order;
 	QList<int> anno_index_order;
 	config.getOrder(variants, col_order, anno_index_order);
+
 	for (int i=0; i<col_order.count(); ++i)
 	{
 		QString anno = col_order[i];

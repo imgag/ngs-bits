@@ -31,7 +31,12 @@ To create a [new bioconda release](https://bioconda.github.io/contributor/workfl
 1. Create a new branch
 		
 		> git checkout master
-		> git pull
+		> git fetch origin
+		> git reset --hard origin/master
+		> git clean -fd
+
+1. Create a new branch
+
 		> git checkout -b ngs-bits-[tag]
 		
 1. Make changes
@@ -47,7 +52,7 @@ To create a [new bioconda release](https://bioconda.github.io/contributor/workfl
 # megSAP update
 
 1. Rename and update Apptainer recipe for ngs-bits `megSAP/data/tools/container_recipes/ngs-bits_[tag].sif`
-1. Build container using `php src/IMGAG/build_apptainer_container.php -tool ngs-bits -tag [tag]`.
-1. Deploy the container using `php src/IMGAG/upload_apptainer_container.php -tool ngs-bits -tag [tag] -pw [password]`.
+1. Build container using `php src/IMGAG/container_build.php -tool ngs-bits -tag [tag]`.
+1. Deploy the container using `php src/IMGAG/container_upload.php -tool ngs-bits -tag [tag] -pw [password]`.
 1. Update ngs-bits version in `settings.ini`, `settings.ini.default` and `settings_nightly.ini`.
 1. Test megSAP with the updated ngs-bits container.

@@ -137,42 +137,40 @@ void TrioDialog::updateSampleTable()
 
 void TrioDialog::checkLongread()
 {
-	if (samples_.size() > 0)
+	if (samples_.isEmpty()) return;
+	//check if all samples are either long-read or short-read
+	QSet<bool> is_longread_sample;
+	foreach (const SampleDetails& sample, samples_)
 	{
-		//check if all samples are either long-read or short-read
-		QSet<bool> is_longread_sample;
-		foreach (const SampleDetails& sample, samples_)
+		is_longread_sample.insert(db_.isLongRead(sample.name));
+	}
+	if (is_longread_sample.size() > 1)
+	{
+		QMessageBox::warning(this, "Error in sample selection", "You cannot mix short-read and long-read samples in trio analysis!");
+		samples_.clear();
+	}
+	else
+	{
+		//remove old step entries
+		QList<QWidget*> old_steps;
+		foreach (QWidget* widget, ui_.param_group->findChildren<QWidget *>(QString(), Qt::FindDirectChildrenOnly))
 		{
-			is_longread_sample.insert(db_.isLongRead(sample.name));
+			if (widget->objectName().startsWith("step_")) old_steps.append(widget);
+			if (widget->objectName().isEmpty()) old_steps.append(widget);
 		}
-		if (is_longread_sample.size() > 1)
+		qDeleteAll(old_steps);
+		//update steps
+		if (Helper::setToList(is_longread_sample).at(0))
 		{
-			QMessageBox::warning(this, "Error in sample selection", "You cannot mix short-read and long-read samples in trio analysis!");
-			samples_.clear();
+			SingleSampleAnalysisDialog::addStepsToParameters(steps_lr_, qobject_cast<QFormLayout*>(ui_.param_group->layout()));
+			ui_.annotate_only->setEnabled(false);
+			ui_.annotate_only->setChecked(false);
 		}
 		else
 		{
-			//remove old step entries
-			QList<QWidget*> old_steps;
-			foreach (QWidget* widget, ui_.param_group->findChildren<QWidget *>(QString(), Qt::FindDirectChildrenOnly))
-			{
-				if (widget->objectName().startsWith("step_")) old_steps.append(widget);
-				if (widget->objectName().isEmpty()) old_steps.append(widget);
-			}
-			qDeleteAll(old_steps);
-			//update steps
-			if (is_longread_sample.values().first())
-			{
-				SingleSampleAnalysisDialog::addStepsToParameters(steps_lr_, qobject_cast<QFormLayout*>(ui_.param_group->layout()));
-				ui_.annotate_only->setEnabled(false);
-				ui_.annotate_only->setChecked(false);
-			}
-			else
-			{
-				SingleSampleAnalysisDialog::addStepsToParameters(steps_, qobject_cast<QFormLayout*>(ui_.param_group->layout()));
-				ui_.annotate_only->setEnabled(true);
-			}
-
+			SingleSampleAnalysisDialog::addStepsToParameters(steps_, qobject_cast<QFormLayout*>(ui_.param_group->layout()));
+			ui_.annotate_only->setEnabled(true);
 		}
+
 	}
 }

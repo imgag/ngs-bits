@@ -4,6 +4,7 @@
 #include <QString>
 #include "cppNGSD_global.h"
 #include "HttpRequestHandler.h"
+#include "NGSD.h"
 
 ///NGSD login manager (singleton)
 class CPPNGSDSHARED_EXPORT LoginManager
@@ -24,11 +25,16 @@ public:
 	static QString randomSecret();
 	static QString userPassword();
 
+	//Update user password, if it changes
+	static void setUserPassword(const QString& password);
+
 	//Returns if a user is logged in (and that the NGSD is enabled)
 	static bool active();
 
 	//User is logged in
-	static void login(QString user, QString password, bool test_db = false);
+	static void login(QString user, QString password, bool test_db = false);	
+	//Updates the last login time field
+	static void updateLastLogin(int id, bool test_db = false);
 	//Updates the user's session before it expires
 	static void renewLogin();
 	//Secure token to access the database
@@ -54,6 +60,8 @@ public:
 	static void checkRoleIn(QStringList roles);
 	//Checks if the logged-in user has none of the given roles. If has has, an exception is thrown.
 	static void checkRoleNotIn(QStringList roles);
+	//Returns if the logged-in user can perform the given action.
+	static bool userCanPerformAction(ActionPermission action);
 
 private:
 	LoginManager();

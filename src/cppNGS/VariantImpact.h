@@ -11,8 +11,6 @@ enum class VariantImpact
 	LOW = 1,
 	MODERATE = 2,
 	HIGH = 3
-
-
 };
 
 //Type <-> string conversions

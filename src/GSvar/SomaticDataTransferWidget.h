@@ -2,9 +2,9 @@
 #define SOMATICDATATRANSFERWIDGET_H
 
 #include <QDialog>
-#include "HttpHandler.h"
 #include "NGSD.h"
 #include "DelayedInitializationTimer.h"
+#include "HttpRequestHandler.h"
 
 namespace Ui {
 class SomaticDataTransferWidget;
@@ -29,7 +29,7 @@ private:
 
 	NGSD db_;
 
-	HttpHandler http_handler_;
+	HttpRequestHandler http_handler_;
 
 	//tumor processed sample id
 	QString t_ps_id_;

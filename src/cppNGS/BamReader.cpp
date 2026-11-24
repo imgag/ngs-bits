@@ -3,6 +3,10 @@
 #include "Helper.h"
 #include "VersatileFile.h"
 #include "RefGenomeService.h"
+
+#include <limits>
+#include <new>
+#include <htslib/hts_log.h>
 /*
 External documentation used for the implementation:
 - reading BAM file: https://gist.github.com/PoisonAlien/350677acc03b2fbf98aa
@@ -11,7 +15,6 @@ External documentation used for the implementation:
 - replacing CIGAR data: https://github.com/iontorrent/samtools/blob/master/padding.c
 - replacing base/quality data with different length: https://github.com/samtools/htslib/issues/672
 */
-
 
 BamAlignment::BamAlignment()
 {
@@ -31,12 +34,30 @@ BamAlignment::BamAlignment(const BamAlignment& rhs)
 {
 }
 
+BamAlignment& BamAlignment::operator=(const BamAlignment& rhs)
+{
+	if (this == &rhs) return *this;
+
+	//Duplicate first so that the current alignment remains valid if allocation fails.
+	bam1_t* new_aln = bam_dup1(rhs.aln_);
+	if (new_aln==nullptr) throw std::bad_alloc();
+
+	bam_destroy1(aln_);
+	aln_ = new_aln;
+	length_ = rhs.length_;
+	length_initialized_ = rhs.length_initialized_;
+	loaded_fields_ = rhs.loaded_fields_;
+
+	return *this;
+}
+
 void BamAlignment::setCigarData(const QList<CigarOp>& cigar)
 {
-	//create new CIGAR datastructur for htslib
-	const unsigned int n = cigar.size();
-	uint32_t* cigar2 = new uint32_t[n];
-	for (unsigned int i=0; i<n; ++i)
+	//Create new CIGAR data structure for htslib.
+	if (cigar.size() > std::numeric_limits<uint32_t>::max()) throw std::bad_alloc();
+	const uint32_t n = static_cast<uint32_t>(cigar.size());
+	QVector<uint32_t> cigar2(n);
+	for (uint32_t i=0; i<n; ++i)
 	{
 		cigar2[i] = bam_cigar_gen(cigar[i].Length, cigar[i].Type);
 	}
@@ -44,24 +65,34 @@ void BamAlignment::setCigarData(const QList<CigarOp>& cigar)
 	//write new cigar string
 	if (n != aln_->core.n_cigar)
 	{
-		int o = aln_->core.l_qname + aln_->core.n_cigar * 4;
-		if (aln_->l_data + (n - aln_->core.n_cigar) * 4 > aln_->m_data) {
-			aln_->m_data = aln_->l_data + (n - aln_->core.n_cigar) * 4;
-			kroundup32(aln_->m_data);
-			aln_->data = (uint8_t*)realloc(aln_->data, aln_->m_data);
+		const uint32_t old_n = aln_->core.n_cigar;
+		const int old_tail_offset = aln_->core.l_qname + static_cast<int>(old_n * sizeof(uint32_t));
+		const int tail_size = aln_->l_data - old_tail_offset;
+		const qint64 new_data_size = static_cast<qint64>(aln_->l_data)
+			+ (static_cast<qint64>(n) - old_n) * static_cast<qint64>(sizeof(uint32_t));
+		if (new_data_size < 0 || new_data_size > std::numeric_limits<int>::max()) throw std::bad_alloc();
+
+		if (new_data_size > aln_->m_data)
+		{
+			uint32_t new_capacity = static_cast<uint32_t>(new_data_size);
+			kroundup32(new_capacity);
+			if (new_capacity < new_data_size) throw std::bad_alloc();
+
+			void* resized = realloc(aln_->data, new_capacity);
+			if (resized==nullptr) throw std::bad_alloc();
+			aln_->data = static_cast<uint8_t*>(resized);
+			aln_->m_data = new_capacity;
 		}
-		memmove(aln_->data + aln_->core.l_qname + n * 4, aln_->data + o, aln_->l_data - o);
-		memcpy(aln_->data + aln_->core.l_qname, cigar2, n * 4);
-		aln_->l_data += (n - aln_->core.n_cigar) * 4;
+
+		memmove(aln_->data + aln_->core.l_qname + n * sizeof(uint32_t), aln_->data + old_tail_offset, tail_size);
+		if (n>0) memcpy(aln_->data + aln_->core.l_qname, cigar2.constData(), n * sizeof(uint32_t));
+		aln_->l_data = static_cast<int>(new_data_size);
 		aln_->core.n_cigar = n;
 	}
-	else
+	else if (n>0)
 	{
-		memcpy(aln_->data + aln_->core.l_qname, cigar2, n * 4);
+		memcpy(aln_->data + aln_->core.l_qname, cigar2.constData(), n * sizeof(uint32_t));
 	}
-
-	//delete datastructure
-	delete[] cigar2;
 }
 
 QByteArray BamAlignment::cigarDataAsString(bool expand) const
@@ -304,7 +335,7 @@ void BamAlignment::addTag(const QByteArray& tag, char type, const QByteArray& va
 	}
 }
 
-QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int* index_in_read)
+QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int* index_in_read) const
 {
 	int read_pos = 0;
 	int genome_pos = start()-1;
@@ -373,7 +404,7 @@ QPair<char, int> BamAlignment::extractBaseByCIGAR(int pos, int* index_in_read)
 	THROW(Exception, "Could not find position " + QString::number(pos) + " in read " + name() + " with start position " + QString::number(start()) + "!");
 }
 
-QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window)
+QList<Sequence> BamAlignment::extractIndelsByCIGAR(int pos, int indel_window) const
 {
 	//init
 	QList<Sequence> output;
@@ -464,7 +495,7 @@ void BamReader::init(const QString& bam_file, QString ref_genome)
 	//open file
 	if (fp_==nullptr)
 	{
-		THROW(FileAccessException, "Could not open BAM/CRAM file " + bam_file_);
+		THROW(FileAccessException, "Could not open  " + bam_file_ + ". sam_open returned errno " + QString::number(errno));
 	}
 
 	//apply optimizations
@@ -504,6 +535,13 @@ BamReader::BamReader(const QString& bam_file)
 	: bam_file_(Helper::canonicalPath(bam_file))
 	, fp_(sam_open(bam_file.toUtf8().constData(), "r"))
 {
+	//for debugging - attention the htlib debug output is often only written to stderr when the application closes...
+	if (fp_==nullptr)
+	{
+		hts_set_log_level(HTS_LOG_DEBUG);
+		fp_ = sam_open(bam_file.toUtf8().constData(), "r");
+	}
+
 	init(bam_file);
 }
 
@@ -590,6 +628,24 @@ GenomeBuild BamReader::build() const
 	THROW(Exception, "Could not determine genome build of BAM file '" + bam_file_ + "'!");
 }
 
+bool BamReader::checkIfPairedEnd(int use_reads)
+{
+	int done = 0;
+	clearIterator();
+	BamAlignment al;
+	while (getNextAlignment(al))
+	{
+		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment() || al.isUnmapped()) continue;
+
+		if (al.isPaired()) return true;
+
+		++done;
+		if (done>=use_reads) break;
+	}
+
+	return false;
+}
+
 BamInfo BamReader::info()
 {
 	//we don't need bases and qualities for this method - they are re-enabled at the end
@@ -623,22 +679,8 @@ BamInfo BamReader::info()
 	}
 	catch (...) {}
 
-    //paired end
-	double n_all = 0;
-	double n_paired = 0;
-    clearIterator();
-    BamAlignment al;
-	while (getNextAlignment(al))
-	{
-		if (al.isSecondaryAlignment() || al.isSupplementaryAlignment() || al.isDuplicate() || al.isUnmapped()) continue;
-        if (al.mappingQuality()<20) continue;
-
-		if (al.isPaired()) n_paired += 1.0;
-
-		n_all += 1.0;
-		if (n_all >= 100.0) break;
-	}
-	output.paired_end = n_paired/n_all > 0.1;
+	//paired end
+	output.paired_end = checkIfPairedEnd(100);
 
     //mapper
     QByteArrayList headers = headerLines();
@@ -701,11 +743,12 @@ BamInfo BamReader::info()
     }
 
     //false duplications masked (checks a masked region. Nothing is mapped there if mased. Works for WES/panel as well because of off-target reads).
-    if (output.build=="hg38")
+	if (output.build=="hg38")
 	{
 		try
 		{
 			setRegion("chr21", 5968000, 6160000);
+			BamAlignment al;
 			while(getNextAlignment(al))
 			{
 				output.false_duplications_masked = false;
@@ -774,7 +817,7 @@ const QList<Chromosome>& BamReader::chromosomes() const
 
 const Chromosome& BamReader::chromosome(int chr_id) const
 {
-	if (chr_id>=chrs_.size()) THROW(ArgumentException, "Chromosome ID '" + QString::number(chr_id) + "' out of bounds in BAM/CRAM file " + bam_file_);
+	if (chr_id<0 || chr_id>=chrs_.size()) THROW(ArgumentException, "Chromosome ID '" + QString::number(chr_id) + "' out of bounds in BAM/CRAM file " + bam_file_);
 
 	return chrs_[chr_id];
 }
@@ -1127,3 +1170,5 @@ void BamReader::getIndels(const FastaFileIndex& reference, const Chromosome& chr
 
 	requested_fields_ = requested_fields_before;
 }
+
+

@@ -16,6 +16,11 @@
 #include <QToolButton>
 #include <QApplication>
 #include <QCryptographicHash>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include "ClientHelper.h"
+#include "LoginManager.h"
+#include "ApiCaller.h"
 
 DBEditor::DBEditor(QWidget* parent, QString table, int id)
 	: QWidget(parent)
@@ -205,7 +210,30 @@ void DBEditor::createGUI()
 			layout->addWidget(add_widget, row, 2);
 			add_widget->setObjectName("add_" + field);
 		}
-	}
+
+		// admins can change a project for a given processed sample
+		// other users can change a project only if a processed sample folder is empty
+		if (table_=="processed_sample" && field=="project_id")
+		{
+			try
+			{
+				LoginManager::checkRoleIn(QStringList{"admin"});
+			}
+			catch (Exception& e)
+			{
+				Log::warn("You cannot change the project: " + e.message());
+				RequestUrlParams params;
+				params.insert("ps_id", QString::number(id_).toUtf8());
+				QByteArray reply = ApiCaller().get("processed_sample_files", params, HttpHeaders(), true, false, false);
+				QJsonDocument json_doc = QJsonDocument::fromJson(reply);
+				if (json_doc.isArray())
+				{
+					if (!json_doc.array().isEmpty()) widget->setEnabled(false);
+					widget->setToolTip("The processed sample folder is not empty, you are not allowed to change the project");
+				}
+			}
+		}
+	}	
 }
 
 void DBEditor::fillForm()
@@ -745,6 +773,23 @@ void DBEditor::store()
 		values << salt;
 	}
 
+	if (table_=="processed_sample")
+	{
+		QSet<QString> changed_fields = getChangedFields();
+		if (changed_fields.contains("project_id"))
+		{
+			try
+			{
+				LoginManager::checkRoleIn(QStringList{"admin"});
+				if (QMessageBox::question(this, "Project was changed", "You have changed the project for the current processed sample, it may cauase problems with the access. Are you sure you want to save the changes?", QMessageBox::Yes|QMessageBox::No)==QMessageBox::No) return;
+			}
+			catch (Exception& e)
+			{
+				Log::warn("You cannot change the project: " + e.message());
+			}
+		}
+	}
+
 	//update/insert
 	SqlQuery query = db_.getQuery();
 	try
@@ -780,6 +825,23 @@ void DBEditor::store()
 				query.addBindValue(value=="NULL" ? QVariant() : value);
 			}
 			query.exec();
+		}
+
+		//special handling for "user" table
+		if (table_=="user")
+		{
+			int i = fields.indexOf("user_role");
+			QString role = values[i];
+			if (role=="user_restricted")
+			{
+				db_.getQuery().exec("INSERT IGNORE INTO user_action_permissions (user_id) VALUES ("+QString::number(id_)+")");
+			}
+			else
+			{
+				db_.getQuery().exec("DELETE FROM user_action_permissions WHERE user_id='"+QString::number(id_)+"'");
+			}
+
+			ClientHelper::clearServerUserCache(LoginManager::userToken());
 		}
 	}
 	catch (Exception& e)

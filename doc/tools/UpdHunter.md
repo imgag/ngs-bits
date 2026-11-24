@@ -1,5 +1,5 @@
 ### UpdHunter tool help
-	UpdHunter (2025_12-266-g396e1fe11)
+	UpdHunter (2025_12-290-g2cffd86c1)
 	
 	UPD detection from trio variant data.
 	
@@ -44,9 +44,9 @@
 	  --settings [file]        Settings override file (no other settings files are used).
 	
 ### UpdHunter changelog
-	UpdHunter 2025_12-266-g396e1fe11
+	UpdHunter 2025_12-290-g2cffd86c1
 	
-	2026-05-05 Added parameter 'var_use_special_calls'.
+	2026-05-05 Added parameter 'var_use_special_calls' and fixed bug in handling of exclude regions.
 	2024-06-06 Added optional output file containing informative variants.
 	2020-08-07 VCF files only as input format for variant list.
 	2018-06-11 First working version.

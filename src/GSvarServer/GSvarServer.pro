@@ -23,6 +23,7 @@ SOURCES += \
         ScheduledCacheCleaner.cpp \
         ServerController.cpp \
         ServerWrapper.cpp \
+        XmlImportValidator.cpp \
         main.cpp
 
 # Default rules for deployment.
@@ -37,7 +38,8 @@ HEADERS += \
     QueuingEngineControllerSlurm.h \
     ScheduledCacheCleaner.h \
     ServerController.h \
-    ServerWrapper.h
+    ServerWrapper.h \
+    XmlImportValidator.h
 
 include("../app_cli.pri")
 
@@ -48,6 +50,10 @@ LIBS += -L$$PWD/../../bin -lcppNGSD
 #include REST library
 INCLUDEPATH += $$PWD/../cppREST
 LIBS += -L$$PWD/../../bin -lcppREST
+
+#include cppXML library
+INCLUDEPATH += $$PWD/../cppXML
+LIBS += -L$$PWD/../../bin -lcppXML
 
 RESOURCES += \
     GSvarServer.qrc

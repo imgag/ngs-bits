@@ -70,6 +70,8 @@ void Transcript::setRegions(const BedFile& regions, int coding_start, int coding
 	coding_start_ = coding_start;
 	coding_end_ = coding_end;
 	coding_regions_.clear();
+	utr_5prime_.clear();
+	utr_3prime_.clear();
 
 	//check if coding
 	if (!isCoding()) return;
@@ -100,14 +102,14 @@ void Transcript::setRegions(const BedFile& regions, int coding_start, int coding
 			//part coding and part UTR
 			else
 			{
-				coding_regions_.append(BedLine(region.chr(), std::max(region.start(), coding_start_), std::min(region.end(), coding_end_)));
+				coding_regions_.append(BedLine(chr_, std::max(region.start(), coding_start_), std::min(region.end(), coding_end_)));
 				if (region.start()<coding_start_)
 				{
-					utr_5prime_.append(BedLine(region.chr(), region.start(), coding_start_-1));
+					utr_5prime_.append(BedLine(chr_, region.start(), coding_start_-1));
 				}
 				if (region.end()>coding_end_)
 				{
-					utr_3prime_.append(BedLine(region.chr(), coding_end_+1, region.end()));
+					utr_3prime_.append(BedLine(chr_, coding_end_+1, region.end()));
 				}
 			}
 		}
@@ -130,14 +132,14 @@ void Transcript::setRegions(const BedFile& regions, int coding_start, int coding
 			//part coding and part UTR
 			else
 			{
-				coding_regions_.append(BedLine(region.chr(), std::max(region.start(), coding_end_), std::min(region.end(), coding_start_)));
+				coding_regions_.append(BedLine(chr_, std::max(region.start(), coding_end_), std::min(region.end(), coding_start_)));
 				if (region.start()<coding_end_)
 				{
-					utr_3prime_.append(BedLine(region.chr(), region.start(), coding_end_-1));
+					utr_3prime_.append(BedLine(chr_, region.start(), coding_end_-1));
 				}
 				if (region.end()>coding_start_)
 				{
-					utr_5prime_.append(BedLine(region.chr(), coding_start_+1, region.end()));
+					utr_5prime_.append(BedLine(chr_, coding_start_+1, region.end()));
 				}
 			}
 		}

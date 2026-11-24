@@ -22,9 +22,15 @@ INCLUDEPATH += $$PWD/../GSvarServer
 #include cppTFW library
 INCLUDEPATH += $$PWD/../cppTFW
 
+HEADERS += \
+    ../GSvarServer/ServerController.h \
+    ../GSvarServer/XmlImportValidator.h
+
 SOURCES += \
     Controller_Test.cpp \
     ServerIntegration_Test.cpp \
+    ../GSvarServer/ServerController.cpp \
+    ../GSvarServer/XmlImportValidator.cpp \
     main.cpp
 
 RESOURCES += \

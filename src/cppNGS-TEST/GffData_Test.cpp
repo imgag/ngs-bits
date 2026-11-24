@@ -12,7 +12,7 @@ private:
 
 		//do not skip GENCODE basic
 		settings.include_all = true;
-        GffData gff = GffData::load(TESTDATA("data_in/NGSHelper_loadGffFile_in1.gff3"), settings);
+		GffData gff = GffData::load(TESTDATA("data_in/GffData_loadGffFile_in1.gff3"), settings);
 
 		I_EQUAL(gff.transcripts.count(), 21);
 		IS_TRUE(gff.transcripts.contains("ENST00000578049")); //first valid
@@ -52,7 +52,7 @@ private:
 
 		//skip GENCODE basic
 		settings.include_all = false;
-        gff = GffData::load(TESTDATA("data_in/NGSHelper_loadGffFile_in1.gff3"), settings);
+		gff = GffData::load(TESTDATA("data_in/GffData_loadGffFile_in1.gff3"), settings);
 
 		I_EQUAL(gff.transcripts.count(), 11);
 		IS_TRUE(gff.transcripts.contains("ENST00000578049")); //first valid
@@ -68,7 +68,7 @@ private:
 
 		//do not skip GENCODE basic
 		settings.include_all = true;
-        GffData gff = GffData::load(TESTDATA("data_in/NGSHelper_loadGffFile_in2.gff3.gz"), settings);
+		GffData gff = GffData::load(TESTDATA("data_in/GffData_loadGffFile_in2.gff3.gz"), settings);
 
 		I_EQUAL(gff.transcripts.count(), 21);
 		IS_TRUE(gff.transcripts.contains("ENST00000578049")); //first valid
@@ -80,8 +80,7 @@ private:
 		GffSettings settings;
 		settings.source = "refseq";
 		settings.print_to_stdout = false;
-		settings.include_all = false;
-        GffData gff = GffData::load(TESTDATA("data_in/NGSHelper_loadGffFile_in3.gff3.gz"), settings);
+		GffData gff = GffData::load(TESTDATA("data_in/GffData_loadGffFile_in3.gff3.gz"), settings);
 
 		I_EQUAL(gff.transcripts.count(), 10);
 		I_EQUAL(gff.transcripts.geneCount(), 2);
@@ -128,7 +127,7 @@ private:
 		settings.source = "refseq";
 		settings.print_to_stdout = false;
 		settings.include_all = true;
-        GffData gff = GffData::load(TESTDATA("data_in/NGSHelper_loadGffFile_in3.gff3.gz"), settings);
+		GffData gff = GffData::load(TESTDATA("data_in/GffData_loadGffFile_in3.gff3.gz"), settings);
 
 		I_EQUAL(gff.transcripts.count(), 13);
 		I_EQUAL(gff.transcripts.geneCount(), 2);
@@ -139,4 +138,17 @@ private:
 		IS_TRUE(gff.transcripts.contains("XR_007057951")); //predicted by Gnomon
 	}
 
+	TEST_METHOD(loadGffFile_NGSDExportGff)
+	{
+		GffSettings settings;
+		settings.print_to_stdout = false;
+		GffData gff = GffData::load(TESTDATA("data_in/GffData_loadGffFile_in4.gff3"), settings);
+
+		I_EQUAL(gff.transcripts.count(), 4);
+		I_EQUAL(gff.transcripts.geneCount(), 1);
+		I_EQUAL(gff.transcripts.transcriptCount("BRCA1"), 4);
+		I_EQUAL(gff.transcripts.transcriptCount("RFC1"), 0);
+
+		IS_TRUE(gff.transcripts.contains("ENST00000352993"));
+	}
 };

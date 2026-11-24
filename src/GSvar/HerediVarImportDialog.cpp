@@ -1,9 +1,9 @@
 #include "HerediVarImportDialog.h"
 #include "VcfFile.h"
 #include "GUIHelper.h"
-#include "HttpHandler.h"
 #include "NGSD.h"
 #include "Settings.h"
+#include "HttpRequestHandler.h"
 
 HerediVarImportDialog::HerediVarImportDialog(QWidget* parent)
 	: QDialog(parent)
@@ -28,8 +28,8 @@ void HerediVarImportDialog::import()
 		//load VCF
 		QString url = "https://heredivar.uni-koeln.de/download/vcf/classified?force=True";
 		ui_.output->appendPlainText("Downloading VCF from " + url + " ...");
-		HttpHandler http(false);
-		QByteArray vcf_text = http.get(url);
+		HttpRequestHandler http;
+		QByteArray vcf_text = http.get(url).body;
 
 		ui_.output->appendPlainText("parsing VCF ...");
 		VcfFile vcf;

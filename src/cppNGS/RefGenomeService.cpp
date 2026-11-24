@@ -18,8 +18,8 @@ void RefGenomeService::setReferenceGenome(QString filename)
 const QString& RefGenomeService::getReferenceGenome()
 {
 	//fallback to settings INI if unset
-    if (instance().ref_genome_file_.isEmpty())
-    {
+	if (instance().ref_genome_file_.isEmpty())
+	{
 		QString genome_from_settings = Settings::string("reference_genome", true).trimmed();
 		if (!genome_from_settings.isEmpty())
 		{
@@ -30,14 +30,14 @@ const QString& RefGenomeService::getReferenceGenome()
 	//error if not set
 	if (instance().ref_genome_file_.isEmpty())
 	{
-        THROW(ProgrammingException, "Reference genome file name requested but not set!");
-    }
+		THROW(ProgrammingException, "Reference genome file name requested but not set!");
+	}
 
-    return instance().ref_genome_file_;
+	return instance().ref_genome_file_;
 }
 
 RefGenomeService& RefGenomeService::instance()
 {
-    static RefGenomeService instance;
-    return instance;
+	static RefGenomeService instance;
+	return instance;
 }

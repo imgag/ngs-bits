@@ -36,3 +36,5 @@ SE reads (written)          : 0
 PE reads                    : 160
 PE reads (written)          : 33
 PE reads unmatched (skipped): 2
+Skipped secondary reads     : 0
+Skipped supplementary reads : 0

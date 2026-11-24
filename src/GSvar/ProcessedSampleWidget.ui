@@ -64,6 +64,9 @@
          </property>
          <item>
           <widget class="QToolButton" name="folder_btn">
+           <property name="toolTip">
+            <string>Open sample folder.</string>
+           </property>
            <property name="text">
             <string>...</string>
            </property>
@@ -90,7 +93,7 @@
          <item>
           <widget class="QToolButton" name="open_btn">
            <property name="toolTip">
-            <string>Open GSvar file.</string>
+            <string>Open sample in 'Variants' tab.</string>
            </property>
            <property name="text">
             <string>...</string>
@@ -118,7 +121,7 @@
          <item>
           <widget class="QToolButton" name="analysis_info_btn">
            <property name="toolTip">
-            <string>Show information about the analysis of the sample.</string>
+            <string>Show information about the analysis status of the sample.</string>
            </property>
            <property name="text">
             <string>...</string>
@@ -139,7 +142,7 @@
          <item>
           <widget class="QToolButton" name="igv_btn">
            <property name="toolTip">
-            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add tracks of this processed sample to IGV&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Add tracks of this sample to IGV&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
            </property>
            <property name="text">
             <string>...</string>
@@ -177,6 +180,9 @@
           <widget class="QToolButton" name="rna_btn">
            <property name="enabled">
             <bool>false</bool>
+           </property>
+           <property name="toolTip">
+            <string>Open RNA from same sample (if available).</string>
            </property>
            <property name="text">
             <string/>

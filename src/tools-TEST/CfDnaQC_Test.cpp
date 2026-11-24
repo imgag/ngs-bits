@@ -9,7 +9,7 @@ private:
 	{
 		SKIP_IF_NO_HG38_GENOME();
 
-		EXECUTE("CfDnaQC", "-bam " + TESTDATA("data_in/CfDnaQC_in_cfdna1.bam") + " -cfdna_panel " + TESTDATA("data_in/CfDnaQC_in_panel.bed") + " -build hg19 -out out/CfDnaQC_out1.qcML");
+		EXECUTE("CfDnaQC", "-bam " + TESTDATA("data_in/CfDnaQC_in_cfdna1.bam") + " -cfdna_panel " + TESTDATA("data_in/CfDnaQC_in_panel.bed") + " -out out/CfDnaQC_out1.qcML");
         REMOVE_LINES("out/CfDnaQC_out1.qcML", QRegularExpression("creation "));
         REMOVE_LINES("out/CfDnaQC_out1.qcML", QRegularExpression("<binary>"));
 		COMPARE_FILES("out/CfDnaQC_out1.qcML", TESTDATA("data_out/CfDnaQC_out1.qcML"));
@@ -19,7 +19,7 @@ private:
 	{
 		SKIP_IF_NO_HG38_GENOME();
 
-		EXECUTE("CfDnaQC", "-bam " + TESTDATA("data_in/CfDnaQC_in_cfdna2.bam") + " -cfdna_panel " + TESTDATA("data_in/CfDnaQC_in_panel.bed") + " -build hg19 -out out/CfDnaQC_out2.qcML");
+		EXECUTE("CfDnaQC", "-bam " + TESTDATA("data_in/CfDnaQC_in_cfdna2.bam") + " -cfdna_panel " + TESTDATA("data_in/CfDnaQC_in_panel.bed") + " -out out/CfDnaQC_out2.qcML");
         REMOVE_LINES("out/CfDnaQC_out2.qcML", QRegularExpression("creation "));
         REMOVE_LINES("out/CfDnaQC_out2.qcML", QRegularExpression("<binary>"));
 		COMPARE_FILES("out/CfDnaQC_out2.qcML", TESTDATA("data_out/CfDnaQC_out2.qcML"));
@@ -29,7 +29,7 @@ private:
 	{
 		SKIP_IF_NO_HG38_GENOME();
 
-		EXECUTE("CfDnaQC", "-bam " + TESTDATA("data_in/CfDnaQC_in_cfdna2.bam") + " -cfdna_panel " + TESTDATA("data_in/CfDnaQC_in_panel.bed") + " -build hg19 -txt -out out/CfDnaQC_out2.txt");
+		EXECUTE("CfDnaQC", "-bam " + TESTDATA("data_in/CfDnaQC_in_cfdna2.bam") + " -cfdna_panel " + TESTDATA("data_in/CfDnaQC_in_panel.bed") + " -txt -out out/CfDnaQC_out2.txt");
 		COMPARE_FILES("out/CfDnaQC_out2.txt", TESTDATA("data_out/CfDnaQC_out2.txt"));
 	}
 
@@ -37,7 +37,7 @@ private:
 	{
 		SKIP_IF_NO_HG38_GENOME();
 
-		EXECUTE("CfDnaQC", "-bam " + TESTDATA("data_in/CfDnaQC_in_cfdna1.bam") + " -tumor_bam " + TESTDATA("data_in/CfDnaQC_in_tumor.bam") + " -build hg19 -cfdna_panel " + TESTDATA("data_in/CfDnaQC_in_panel.bed") + " -out out/CfDnaQC_out3.qcML");
+		EXECUTE("CfDnaQC", "-bam " + TESTDATA("data_in/CfDnaQC_in_cfdna1.bam") + " -tumor_bam " + TESTDATA("data_in/CfDnaQC_in_tumor.bam") + " -cfdna_panel " + TESTDATA("data_in/CfDnaQC_in_panel.bed") + " -out out/CfDnaQC_out3.qcML");
         REMOVE_LINES("out/CfDnaQC_out3.qcML", QRegularExpression("creation "));
         REMOVE_LINES("out/CfDnaQC_out3.qcML", QRegularExpression("<binary>"));
 		COMPARE_FILES("out/CfDnaQC_out3.qcML", TESTDATA("data_out/CfDnaQC_out3.qcML"));
@@ -47,7 +47,7 @@ private:
 	{
 		SKIP_IF_NO_HG38_GENOME();
 
-		EXECUTE("CfDnaQC", "-bam " + TESTDATA("data_in/CfDnaQC_in_cfdna1.bam") + " -related_bams " + TESTDATA("data_in/CfDnaQC_in_cfdna2.bam") + " -build hg19 -cfdna_panel " + TESTDATA("data_in/CfDnaQC_in_panel.bed") + " -out out/CfDnaQC_out4.qcML");
+		EXECUTE("CfDnaQC", "-bam " + TESTDATA("data_in/CfDnaQC_in_cfdna1.bam") + " -related_bams " + TESTDATA("data_in/CfDnaQC_in_cfdna2.bam") + " -cfdna_panel " + TESTDATA("data_in/CfDnaQC_in_panel.bed") + " -out out/CfDnaQC_out4.qcML");
         REMOVE_LINES("out/CfDnaQC_out4.qcML", QRegularExpression("creation "));
         REMOVE_LINES("out/CfDnaQC_out4.qcML", QRegularExpression("<binary>"));
 		COMPARE_FILES("out/CfDnaQC_out4.qcML", TESTDATA("data_out/CfDnaQC_out4.qcML"));

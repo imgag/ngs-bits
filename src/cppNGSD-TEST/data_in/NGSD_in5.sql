@@ -16,7 +16,8 @@ INSERT INTO `project` (`id`, `name`, `type`, `internal_coordinator_id`, `analysi
 
 INSERT INTO `sequencing_run` (`id`, `name`, `fcid`, `device_id`, `recipe`, `status`, `flowcell_type`) VALUES
 (1, '#09876', 'FLO3C3LL', 1, '151+19+10+151', 'run_finished', 'Illumina NovaSeqX 10B'),
-(2, '#08765', 'F1O3C311', 1, '151+19+10+151', 'run_finished', 'Illumina NovaSeqX 1.5B');
+(2, '#08765', 'F1O3C311', 1, '151+19+10+151', 'run_finished', 'Illumina NovaSeqX 1.5B'),
+(3, '#04321', 'F1O3CE11', 1, '101+9+9+101', 'run_finished', 'Illumina NovaSeqX 5B');
 
 INSERT INTO `sample` (`id`, `name`, `name_external`, `sample_type`, `species_id`, `gender`, `quality`, `tumor`, `ffpe`, `sender_id`, `comment`, `disease_group`, `disease_status`) VALUES
 (1, 'NA12878', 'ex1', 'DNA', 1, 'female', 'good', 0 ,0, 1, 'comment_s1', 'Diseases of the nervous system', 'Affected'),
@@ -59,4 +60,7 @@ INSERT INTO `processed_sample`(`id`, `sample_id`, `process_id`, `sequencing_run_
 (130, 1, 66, 2, '3', 3, 4, 4, 2, 'n/a', 'WES sample', null),
 (131, 5, 1, 2, '1,2', 5, 6, 5, 2, 'n/a', 'cfDNA sample', null),
 (132, 3, 2, 2, '4', 1, 2, 4, 1, 'n/a', 'WGS Normal sample', null),
-(133, 2, 2, 2, '4', 3, 4, 4, 1, 'n/a', 'WGS Tumor sample', 132);
+(133, 2, 2, 2, '4', 3, 4, 4, 1, 'n/a', 'WGS Tumor sample', 132),
+(134, 1, 30, 3, '1,2', 1, 2, 1, 1, 'n/a', 'WGS sample', null),
+(135, 1, 31, 3, '3,4', 2, 3, 1, 1, 'n/a', 'WGS sample', null),
+(136, 1, 32, 3, '5,6', 4, 5, 1, 1, 'n/a', 'WGS sample', null);

@@ -18,7 +18,7 @@
     <qualityParameter ID="qp0009" name="N50 read length (bp)" description="Minimum read length to reach 50% of sequenced bases." value="10411" cvRef="QC" accession="QC:2000131"/>
     <qualityParameter ID="qp0015" name="median base Q score" description="Median Q score of all bases of the sample." value="32" cvRef="QC" accession="QC:2000144"/>
     <qualityParameter ID="qp0016" name="mode base Q score" description="Most frequent Q score of all bases of the sample." value="34" cvRef="QC" accession="QC:2000145"/>
-    <qualityParameter ID="qp0017" name="median read Q score" description="Median Q score of all reads of the sample." value="31" cvRef="QC" accession="QC:2000146"/>
+    <qualityParameter ID="qp0017" name="median read Q score" description="Median Q score of all reads of the sample." value="32" cvRef="QC" accession="QC:2000146"/>
     <qualityParameter ID="qp0018" name="mode read Q score" description="Most frequent Q score of all reads of the sample." value="33" cvRef="QC" accession="QC:2000147"/>
     <attachment ID="qp0010" name="base distribution plot" description="Base distribution plot per cycle." cvRef="QC" accession="QC:2000011">
     </attachment>

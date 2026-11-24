@@ -94,6 +94,38 @@ private:
 		S_EQUAL(al.bases(), bases);
 		S_EQUAL(al.qualities(), qualities);
 		S_EQUAL(al.cigarDataAsString(), "133M18S");
+
+		//shrink CIGAR data again (regression test for unsigned size underflow)
+		cigar_new.clear();
+		cigar_new.append(CigarOp{BAM_CMATCH, 151});
+		al.setCigarData(cigar_new);
+		S_EQUAL(al.bases(), bases);
+		S_EQUAL(al.qualities(), qualities);
+		S_EQUAL(al.cigarDataAsString(), "151M");
+	}
+
+	TEST_METHOD(BamAlignment_copy_assignment)
+	{
+		BamReader reader(TESTDATA("data_in/panel.bam"));
+		BamAlignment source;
+		do
+		{
+			reader.getNextAlignment(source);
+		}
+		while(source.isUnmapped());
+
+		BamAlignment copy;
+		copy = source;
+		S_EQUAL(copy.name(), source.name());
+		S_EQUAL(copy.bases(), source.bases());
+		S_EQUAL(copy.qualities(), source.qualities());
+		S_EQUAL(copy.cigarDataAsString(), source.cigarDataAsString());
+		I_EQUAL(copy.length(), source.length());
+
+		//self-assignment must preserve the alignment
+		copy = copy;
+		S_EQUAL(copy.name(), source.name());
+		S_EQUAL(copy.bases(), source.bases());
 	}
 
 	TEST_METHOD(BamAlignment_setBases)

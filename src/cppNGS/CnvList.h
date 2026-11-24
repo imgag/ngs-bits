@@ -240,7 +240,7 @@ class CPPNGSSHARED_EXPORT CnvList
 		int findMatch(const CopyNumberVariant& cnv, int copy_number = -1, bool fuzzy_match = false) const;
 
 		///Returns the reference copy number for a given CNV
-		static int determineReferenceCopyNumber(const CopyNumberVariant& cnv, const QString& gender, GenomeBuild build);
+		static int determineReferenceCopyNumber(const CopyNumberVariant& cnv, const QString& gender);
 
 	protected:
 		CnvListType type_;

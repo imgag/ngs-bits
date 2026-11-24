@@ -35,7 +35,9 @@ SOURCES += \
     FileLocationList.cpp \
     FileLocationProviderLocal.cpp \
     FileLocationProviderRemote.cpp \
+    GeneBurdenTest.cpp \
     SqlQuery.cpp\
+    NGSDCache.cpp \
     NGSD.cpp \
     GenLabDB.cpp \
     DBTable.cpp \
@@ -61,7 +63,9 @@ HEADERS += \
     FileLocationProvider.h \
     FileLocationProviderLocal.h \
     FileLocationProviderRemote.h \
+    GeneBurdenTest.h \
     SqlQuery.h \
+    NGSDCache.h \
     NGSD.h \
     GenLabDB.h \
     DBTable.h \
@@ -78,8 +82,11 @@ HEADERS += \
     TumorOnlyReportWorker.h \
     SomaticReportHelper.h \
     SomaticRnaReport.h \
-    SomaticcfDNAReport.h \
-    UserPermissionList.h
+    SomaticcfDNAReport.h
 
 RESOURCES += \
     cppNGSD.qrc
+
+DISTFILES += \
+    resources/CCR80_GRCh38.bed \
+    resources/CCR_supported_genes.txt

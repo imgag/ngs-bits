@@ -463,7 +463,7 @@ public:
 		{
 			db.getQuery().exec("DELETE FROM re_callset WHERE processed_sample_id='" + ps_id + "'");
 
-			QSqlQuery query = db.getQuery();
+			SqlQuery query = db.getQuery();
 			query.exec("DELETE FROM repeat_expansion_genotype WHERE processed_sample_id='" + ps_id + "'");
             out << "Deleted " << query.numRowsAffected() << " previous repeat expansion calls" << Qt::endl;
 		}

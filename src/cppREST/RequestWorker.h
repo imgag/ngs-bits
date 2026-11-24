@@ -6,28 +6,27 @@
 #include <QSslSocket>
 #include <QSslConfiguration>
 #include "ServerHelper.h"
-
 #include "HttpResponse.h"
 
 class CPPRESTSHARED_EXPORT RequestWorker
-    : public QRunnable
+	: public QRunnable
 {
 
 public:
-    explicit RequestWorker(QSslConfiguration ssl_configuration, qintptr socket, RequestWorkerParams params);
-    void run() override;
+	explicit RequestWorker(QSslConfiguration ssl_configuration, qintptr socket, RequestWorkerParams params);
+	void run() override;
 
 private:
 	const int STREAM_CHUNK_SIZE = 1024*10;
 	QString intToHex(int input);
 
-	void closeConnection(QSslSocket* socket);
-    void sendResponseDataPart(QSslSocket *socket, const QByteArray& data);
-    void sendEntireResponse(QSslSocket *socket, const HttpResponse& response);
+	void closeConnection(QSharedPointer<QSslSocket> socket);
+	void sendResponseDataPart(QSharedPointer<QSslSocket> socket, const QByteArray& data);
+	void sendEntireResponse(QSharedPointer<QSslSocket>, const HttpResponse& response);
 
 	QSslConfiguration ssl_configuration_;
 	qintptr socket_;
-    RequestWorkerParams params_;
+	RequestWorkerParams params_;
 	bool is_terminated_;
 };
 

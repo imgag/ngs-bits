@@ -1,20 +1,12 @@
 #ifndef SERVERCONTROLLER_H
 #define SERVERCONTROLLER_H
 
-
 #include "Log.h"
-#include "VariantList.h"
 #include "HttpResponse.h"
 #include "HttpRequest.h"
 #include "EndpointManager.h"
 #include "FastFileInfo.h"
-
-
-struct SampleMetadata
-{
-	SampleHeaderInfo header;
-	AnalysisType type;
-};
+#include "XmlImportValidator.h"
 
 class ServerController
 {
@@ -37,8 +29,12 @@ public:
 	static HttpResponse serveTempUrl(const HttpRequest& request);
 	/// Returns a location object for a file based on its type
 	static HttpResponse locateFileByType(const HttpRequest& request);
+	/// Refreshes lifetimes for all URLs related to the given processed sample
+	static HttpResponse prolongUrl(const HttpRequest& request);
 	/// Returns the location of the processed sample
     static HttpResponse getProcessedSamplePath(const HttpRequest& request);
+	/// Returns a JSON list of files inside a specific processed sample folder
+	static HttpResponse getProcessedSampleFiles(const HttpRequest& request);
 	/// Checks every processed sample folder inside the given project folder: if a processed sample has any files (needed to handle project folder change)
 	static HttpResponse checkProjectFolder(const HttpRequest& request);
 	/// Reads the server configuration and returns a list of locations for all exisitng project types (diagnostic, test, external, research)
@@ -53,8 +49,6 @@ public:
 	static HttpResponse getAnalysisJobLog(const HttpRequest& request);
 	/// Saves changes to a GSvar file
 	static HttpResponse saveProjectFile(const HttpRequest& request);
-	/// Saves qbic files in the folder on the server
-	static HttpResponse saveQbicFiles(const HttpRequest& request);
 	/// Uploads a file to the sample folder (via multipart form POST request)
 	static HttpResponse uploadFile(const HttpRequest& request);
 	/// Uploads a VCF file, annotates it, and converts into GSvar
@@ -96,6 +90,26 @@ public:
 	/// Returns information about the latest available version of the desktop client
 	static HttpResponse getCurrentClientInfo(const HttpRequest& request);
 
+	/// --------- Database editing ---------
+	/// Adds a new project to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addProjectToDb(const HttpRequest& request);
+	/// Adds a new processing system to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addProcessingSystemToDb(const HttpRequest& request);
+	/// Adds a new device to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addDeviceToDb(const HttpRequest& request);
+	/// Adds a new sequencing run to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addSequencingRunToDb(const HttpRequest& request);
+	/// Adds a new sample to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addSampleToDb(const HttpRequest& request);
+	/// Adds a new sample relation to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addSampleRelationToDb(const HttpRequest& request);
+	/// Adds a new processed sample to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addProcessedSampleToDb(const HttpRequest& request);
+	/// Adds a new sender to NGSD database: returns OK (and a corresponding message) on success or error message when fails
+	static HttpResponse addSenderToDb(const HttpRequest& request);
+	/// Adds a new user to NGSD database
+	static HttpResponse addUserToDb(const HttpRequest& request);
+	/// ------------------
 	/// Returns BLAT-like search results for the given sequence (performed with BWA-mem2)
     static HttpResponse performBlatSearch(const HttpRequest& request);
 
@@ -108,6 +122,8 @@ public:
 	/// Removes the cache for user permissions
 	static HttpResponse clearPermissionsCache(const HttpRequest& request);
 
+	/// Inserts new data into a specific table in NGSD (needed for the data import / batch import functionality)
+	static void importDataToNGSD(NGSD& db, const QString& table_name, const QHash<QString, QVariant>& values);
 private:
 	/// Find file/folder name corresponding to the id from a temporary URL
 	static QString findPathForTempUrl(QList<QString> path_parts);
@@ -120,7 +136,7 @@ private:
     static QString getProcessedSampleFile(int ps_id, const PathType& type, const QString& token);
     /// Returns a temporary URL for a file
 	static QString createTempUrl(const QString& file, const QString& token);
-    static QString createTempUrl(FastFileInfo& file_info, const QString& token);
+	static QString createTempUrl(FastFileInfo& file_info, const QString& token, bool id_as_ps_folder = false);
     /// Returns a temporary URL wihtout a parameters (e.g. ?token=123)
     static QString stripParamsFromTempUrl(const QString& url);
 
@@ -131,6 +147,8 @@ private:
     static HttpResponse createStaticFileResponse(const QString& filename, const HttpRequest& request);
 	static HttpResponse createStaticFolderResponse(const QString path, const HttpRequest& request);
 	static HttpResponse createStaticLocationResponse(const QString path, const HttpRequest& request);
+	/// Handles adding new records to the database tables (data import)
+	static HttpResponse addRecordToDbTable(const QString& table_name, const HttpRequest& request);
 };
 
 #endif // SERVERCONTROLLER_H

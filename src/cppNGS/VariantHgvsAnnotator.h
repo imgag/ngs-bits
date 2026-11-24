@@ -102,6 +102,7 @@ struct CPPNGSSHARED_EXPORT VariantConsequence
 	QByteArray toString() const;
 };
 
+//TODO: implement handling of Selenocysteine e.g. in SELENOO (check if Ensembl Gff contains places where STOP is Selenocysteine instead)
 ///Class for generating HGVS nomenclature and variant effect from VCF/GSVar
 class CPPNGSSHARED_EXPORT VariantHgvsAnnotator
 {

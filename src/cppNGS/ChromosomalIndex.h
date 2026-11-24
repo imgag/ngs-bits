@@ -24,12 +24,14 @@ public:
 
 	///Returns a vector of element indices overlapping the given chromosomal range.
 	QVector<int> matchingIndices(const Chromosome& chr, int start, int end) const;
+	QVector<long long> matchingIndicesLong(const Chromosome& chr, int start, int end) const;
 	///Returns the index of the first element in the container that overlaps the given chromosomal range, or -1 if no element overlaps.
 	int matchingIndex(const Chromosome& chr, int start, int end) const;
+	long long matchingIndexLong(const Chromosome& chr, int start, int end) const;
 
 protected:
 	const T& container_;
-	QHash<int, QVector<QPair<int, int> > > index_;
+	QHash<int, QVector<QPair<int, long long> > > index_;
 	int max_length_;
 	int bin_size_;
 	static bool firstOfPairComparator(const QPair<int, int>& a, const QPair<int, int>& b)
@@ -67,24 +69,24 @@ void ChromosomalIndex<T>::createIndex()
 
 	int bin_count = 0;
 	Chromosome last_chr;
-	QVector< QPair<int, int> > chr_indices;
-	for (int i=0; i<container_.count(); ++i)
+	QVector< QPair<int, long long> > chr_indices;
+	for (long long i=0; i<container_.count(); ++i)
 	{
 		if (container_[i].chr()!=last_chr)
 		{
 			if (last_chr.isValid())
 			{
-				chr_indices.append(QPair<int, int>(max,i-1));
+				chr_indices.append(QPair<int, long long>(max,i-1));
 				index_.insert(last_chr.num(), chr_indices);
 			}
 			chr_indices.clear();
-			chr_indices.append(QPair<int, int>(min,i));
+			chr_indices.append(QPair<int, long long>(min,i));
 			last_chr = container_[i].chr();
 			bin_count = 0;
 		}
 		else if (bin_count==bin_size_)
 		{
-			chr_indices.append(QPair<int, int>(container_[i].start(),i));
+			chr_indices.append(QPair<int, long long>(container_[i].start(),i));
 			bin_count = 0;
 		}
 
@@ -94,7 +96,7 @@ void ChromosomalIndex<T>::createIndex()
 	}
 
 	//add last chromosome index
-	chr_indices.append(QPair<int, int>(max,container_.count()-1));
+	chr_indices.append(QPair<int, long long>(max,container_.count()-1));
 	index_.insert(last_chr.num(), chr_indices);
 }
 
@@ -107,12 +109,46 @@ QVector<int> ChromosomalIndex<T>::matchingIndices(const Chromosome& chr, int sta
 	if (!index_.contains(chr.num())) return matches;
 
 	//find start iterator in index
-	const QVector<QPair<int,int> >& pos_array = index_[chr.num()];
-	QVector<QPair<int,int> >::const_iterator it = std::lower_bound(pos_array.begin(), pos_array.end(), QPair<int, int>(start, -1), firstOfPairComparator);
+	const QVector<QPair<int,long long> >& pos_array = index_[chr.num()];
+	QVector<QPair<int,long long> >::const_iterator it = std::lower_bound(pos_array.begin(), pos_array.end(), QPair<int, int>(start, -1), firstOfPairComparator);
 	--it;
 
 	//find start in container
-	int index = it->second;
+	long long index = it->second;
+	while(index>0 && container_[index].start()>=start-max_length_ && container_[index].chr()==chr)
+	{
+		--index;
+	}
+	if (container_[index].chr()!=chr) ++index;
+
+	//find end in container
+	while(index<container_.count() && container_[index].start()<end+max_length_ && container_[index].chr()==chr)
+	{
+		if (container_[index].overlapsWith(start, end))
+		{
+			matches.append(index);
+		}
+		++index;
+	}
+
+	return matches;
+}
+
+template <class T>
+QVector<long long> ChromosomalIndex<T>::matchingIndicesLong(const Chromosome& chr, int start, int end) const
+{
+	QVector<long long> matches;
+
+	//chromosome not found
+	if (!index_.contains(chr.num())) return matches;
+
+	//find start iterator in index
+	const QVector<QPair<int,long long> >& pos_array = index_[chr.num()];
+	QVector<QPair<int,long long> >::const_iterator it = std::lower_bound(pos_array.begin(), pos_array.end(), QPair<int, int>(start, -1), firstOfPairComparator);
+	--it;
+
+	//find start in container
+	long long index = it->second;
 	while(index>0 && container_[index].start()>=start-max_length_ && container_[index].chr()==chr)
 	{
 		--index;
@@ -140,12 +176,44 @@ int ChromosomalIndex<T>::matchingIndex(const Chromosome& chr, int start, int end
 	if (!index_.contains(chr.num())) return -1;
 
 	//find start iterator in index
-	const QVector<QPair<int,int> >& pos_array = index_[chr.num()];
-	QVector<QPair<int,int> >::const_iterator it = std::lower_bound(pos_array.begin(), pos_array.end(), QPair<int, int>(start, -1), firstOfPairComparator);
+	const QVector<QPair<int,long long> >& pos_array = index_[chr.num()];
+	QVector<QPair<int,long long> >::const_iterator it = std::lower_bound(pos_array.begin(), pos_array.end(), QPair<int, int>(start, -1), firstOfPairComparator);
 	--it;
 
 	//find start in container
-	int index = it->second;
+	long long index = it->second;
+	while(index>0 && container_[index].start()>=start-max_length_ && container_[index].chr()==chr)
+	{
+		--index;
+	}
+	if (container_[index].chr()!=chr) ++index;
+
+	//find match
+	while(index<container_.count() && container_[index].start()<end+max_length_ && container_[index].chr()==chr)
+	{
+		if (container_[index].overlapsWith(start, end))
+		{
+			return index;
+		}
+		++index;
+	}
+
+	return -1;
+}
+
+template <class T>
+long long ChromosomalIndex<T>::matchingIndexLong(const Chromosome& chr, int start, int end) const
+{
+	//chromosome not found
+	if (!index_.contains(chr.num())) return -1;
+
+	//find start iterator in index
+	const QVector<QPair<int,long long> >& pos_array = index_[chr.num()];
+	QVector<QPair<int,long long> >::const_iterator it = std::lower_bound(pos_array.begin(), pos_array.end(), QPair<int, int>(start, -1), firstOfPairComparator);
+	--it;
+
+	//find start in container
+	long long index = it->second;
 	while(index>0 && container_[index].start()>=start-max_length_ && container_[index].chr()==chr)
 	{
 		--index;

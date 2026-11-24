@@ -211,6 +211,31 @@ private:
 		I_EQUAL(vl.annotationIndexByName("fathmm-", false, false), 16);
 	}
 
+	TEST_METHOD(prependAnnotations)
+	{
+		VariantList vl;
+		vl.addAnnotation("old1", "old description 1");
+		vl.addAnnotation("old2", "old description 2");
+		vl.append(Variant("chr1", 1, 1, "A", "C", QByteArrayList{"a", "b"}));
+
+		QList<VariantAnnotationDescription> descriptions;
+		descriptions << VariantAnnotationDescription("new1", "new description 1")
+		             << VariantAnnotationDescription("new2", "new description 2");
+		vl.prependAnnotations(descriptions, QByteArrayList{"x", "y"});
+
+		I_EQUAL(vl.annotations().count(), 4);
+		S_EQUAL(vl.annotations().at(0).name(), "new1");
+		S_EQUAL(vl.annotations().at(1).name(), "new2");
+		S_EQUAL(vl.annotations().at(2).name(), "old1");
+		S_EQUAL(vl.annotations().at(3).name(), "old2");
+		S_EQUAL(vl.annotationDescriptions().at(0).description(), "new description 1");
+		S_EQUAL(vl.annotationDescriptions().at(1).description(), "new description 2");
+		S_EQUAL(vl[0].annotations().at(0), "x");
+		S_EQUAL(vl[0].annotations().at(1), "y");
+		S_EQUAL(vl[0].annotations().at(2), "a");
+		S_EQUAL(vl[0].annotations().at(3), "b");
+	}
+
 	//test sort function for TSV files
 	TEST_METHOD(sort2)
 	{
@@ -292,6 +317,19 @@ private:
 
 		//check no variants
 		I_EQUAL(vl2.count(), 0);
+	}
+
+	TEST_METHOD(VariantAnnotationHeader_description_ownership)
+	{
+		VariantAnnotationHeader header("annotation");
+		{
+			VariantAnnotationDescription description("annotation", "original");
+			header.setDescription(description);
+			description.setDescription("changed");
+		}
+
+		S_EQUAL(header.description().name(), "annotation");
+		S_EQUAL(header.description().description(), "original");
 	}
 
 	TEST_METHOD(addAnnotation)

@@ -117,7 +117,7 @@ void VariantOpenDialog::parseVariant(QString format, QString text, const FastaFi
 			//ENST00000302118.5:c.996+97_996+114del
 			NGSD db;
 
-			const QMap<QByteArray, QByteArrayList>& matches = NGSHelper::transcriptMatches(GSvarHelper::build());
+			const QMap<QByteArray, QByteArrayList>& matches = NGSHelper::transcriptMatches();
 
 			int sep_pos = text.indexOf(':');
 			if (sep_pos==-1) THROW(ArgumentException, "Invalid HGVS.c variant '" + text + "' - the format is [transcipt name]:[variant]");

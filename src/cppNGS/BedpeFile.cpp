@@ -169,7 +169,7 @@ BedFile BedpeLine::affectedRegion(bool plus_one) const
 		case StructuralVariantType::BND:
 			// consider pos 1 and pos 2 seperately
 			sv_region.append(BedLine(chr1(), start1() + offset, end1() + offset));
-			sv_region.append(BedLine(chr2(), start2() + offset, end2() + offset));
+			if (chr2()!=".") sv_region.append(BedLine(chr2(), start2() + offset, end2() + offset));
 			break;
 
 		case StructuralVariantType::INS:
@@ -290,11 +290,9 @@ QByteArray BedpeLine::genotypeHumanReadable(const QList<QByteArray>& annotation_
 
 	//convert
 	if (gt=="1/1") return "hom";
-	else if (gt=="0/1") return "het";
-	else if (gt=="1/0") return "het";
+	else if (gt=="0/1" || gt=="1/0" || gt=="./1" || gt=="1/.") return "het";
 	else if (gt=="0/0") return "wt";
-	else if (gt=="") return "n/a";
-	else if (gt=="./.") return "n/a";
+	else if (gt=="" || gt=="./." || gt=="AMBIGUOUS") return "n/a";
 	else THROW(ArgumentException, "Unhandled SV genotype '" + gt + "'!");
 }
 
@@ -640,6 +638,7 @@ QByteArray BedpeFile::build() const
 	//Manta format   : ##reference=file:///tmp/local_ngs_data/GRCh37.fa
 	//DRAGEN format  : ##reference=file:///usr/local/illumina/install/genomes/GRCh38/DRAGEN/10
 	//Sniffles format: ##reference=/tmp/local_ngs_data_GRCh38//GRCh38.fa
+	//Sawfish format : ##reference=file:///tmp/local_ngs_data_GRCh38//GRCh38.fa
 	foreach(const QByteArray& line, headers_)
 	{
 		if (line.startsWith("##reference="))
@@ -664,6 +663,7 @@ QByteArray BedpeFile::caller() const
 	//Manta format   : ##source=GenerateSVCandidates 1.6.0
 	//DRAGEN format  : ##source=DRAGEN_SV
 	//Sniffles format: ##source=Sniffles2_2.0.7
+	//Sawfish format : ##source="sawfish 2.2.1"
 	foreach(const QByteArray& line, headers_)
 	{
 		if (line.startsWith("##source=GenerateSVCandidates"))
@@ -678,6 +678,10 @@ QByteArray BedpeFile::caller() const
 		{
 			return "DRAGEN";
 		}
+		else if (line.startsWith("##source=\"sawfish"))
+		{
+			return "Sawfish";
+		}
 	}
 
 	THROW(FileParseException, "Could not determine caller from " + filename_);
@@ -688,6 +692,7 @@ QByteArray BedpeFile::callerVersion() const
 	//Manta format   : ##source=GenerateSVCandidates 1.6.0
 	//DRAGEN format  : ##DRAGENVersion=<ID=dragen,Version="SW: 4.3.16, HW: 10.131.732">
 	//Sniffles format: ##source=Sniffles2_2.0.7
+	//Sawfish format : ##source="sawfish 2.2.1"
 	foreach(const QByteArray& line, headers_)
 	{
 		if (line.startsWith("##source=GenerateSVCandidates "))
@@ -697,6 +702,10 @@ QByteArray BedpeFile::callerVersion() const
 		else if (line.startsWith("##source=Sniffles2_"))
 		{
 			return line.trimmed().split('_')[1];
+		}
+		else if (line.startsWith("##source=\"sawfish"))
+		{
+			return line.trimmed().replace("\"", "").split(' ')[1];
 		}
 		else if (line.startsWith("##DRAGENVersion="))
 		{
@@ -711,7 +720,7 @@ QByteArray BedpeFile::callerVersion() const
 
 QDate BedpeFile::callingDate() const
 {
-	//Manta/DRAGEN/Sniffles format: ##fileDate=20240127
+	//Manta/DRAGEN/Sniffles/Sawfish format: ##fileDate=20240127
 	foreach(const QByteArray& line, headers_)
 	{
 		if (line.startsWith("##fileDate="))

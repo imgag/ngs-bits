@@ -21,12 +21,12 @@ protected slots:
 	void openVariantList();
 	void deleteSampleData();
 	void amendSampleComments();
+	void setQualityAutomatically();
 	void queueAnalysis();
 	void phenotypeSelection();
 
 private:
 	Ui::SampleSearchWidget ui_;
-	NGSD db_;
 	PhenotypeList phenotypes_;
 };
 
