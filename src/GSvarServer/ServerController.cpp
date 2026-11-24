@@ -1317,6 +1317,79 @@ HttpResponse ServerController::getMultiSampleAnalysisInfo(const HttpRequest& req
     response_data.is_downloadable = false;
     return HttpResponse(response_data, body);
 }
+
+HttpResponse ServerController::annotateWithAiDivaScore(const HttpRequest &request)
+{
+	NGSD db;
+	QString ps_id =  request.getFormUrlEncoded()["ps_id"].toUtf8();
+	QString hpo_list = request.getFormUrlEncoded()["hpo_list"].toUtf8(); // comma-separated hpo terms
+
+	QString ps_folder = db.processedSamplePath(ps_id, PathType::SAMPLE_FOLDER);
+	QString ps_name = db.processedSampleName(ps_id);
+	QStringList found_files = Helper::findFiles(ps_folder, ps_name + "_var_annotated.vcf.gz", false);
+	if (found_files.size()==0) return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "VCF.GZ file annotated with 'an_aidiva' does not exist at: " + ps_folder));
+
+	QProcess process;
+	process.setProcessChannelMode(QProcess::MergedChannels);
+	QString tmp_vcf = Helper::tempFileName(".vcf");
+	Log::info("Running megSAP tool an_aidiva_hpo.php for the sample: " + ps_id);
+	process.start("php", QStringList() << PipelineSettings::rootDir() + "/src/Tools/an_aidiva_hpo.php" << "-in" << found_files[0] << "-out" << tmp_vcf << "-hpo_list" << hpo_list << "-threads" << Settings::string("threads"));
+	bool success = process.waitForFinished(-1);
+	if (!success || process.exitCode()>0)
+	{
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Error while executing an_aidiva_hpo.php: " + process.readAll())));
+	}
+
+	//convert VCF to GSvar
+	QString vcf2gsvar_out = Helper::tempFileName(".GSvar");
+	Log::info("Running megSAP >> vcf2gsvar.php: " + vcf2gsvar_out);
+	QStringList vcf2gsvar_args;
+	vcf2gsvar_args << PipelineSettings::rootDir() + "/src/Tools/vcf2gsvar.php";
+	vcf2gsvar_args << "-in" << tmp_vcf;
+	vcf2gsvar_args << "-out" << vcf2gsvar_out;
+	vcf2gsvar_args << "-aidiva_hpo";
+	process.start("php", vcf2gsvar_args);
+	success = process.waitForFinished(-1);
+	if (!success || process.exitCode()>0)
+	{
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Error while executing vcf2gsvar.php: " + process.readAll())));
+	}
+
+	QString tmp_gz = vcf2gsvar_out + ".gz";
+	// compress GSvar	
+	process.setStandardOutputFile(tmp_gz, QIODevice::Truncate);
+	process.start("bgzip", QStringList() << "-@" << QString::number(Settings::integer("threads")) << "-l" << "9" << "-c" << vcf2gsvar_out);
+	bool bgzip_ok = process.waitForStarted() && process.waitForFinished(-1) && process.exitStatus()==QProcess::NormalExit && process.exitCode()==0;	
+	if (!bgzip_ok)
+	{
+		QString error = process.error()==QProcess::FailedToStart ? "bgzip could not be started (is it installed and in PATH?)" : QString::fromUtf8(process.readAllStandardError()).trimmed();
+		Log::error(EndpointManager::formatResponseMessage(request, "Could not compress the GSvar file " + vcf2gsvar_out + " with bgzip: " + error));
+		QFile::remove(tmp_gz);
+
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Failed to compress GSvar file: " + error));
+	}
+
+	// replace the orignial GSvar.gz with the newly created one
+	QString original_gsvar_file = db.processedSamplePath(ps_id, PathType::GSVAR);
+	QString filename_backup = original_gsvar_file+"_backup";
+	if (!QFile::rename(original_gsvar_file, filename_backup)) return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Failed to backup the GSvar file: " + original_gsvar_file));
+
+	if (!QFile::rename(tmp_gz, original_gsvar_file))
+	{
+		Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename file from : " + tmp_gz + " to " + original_gsvar_file));
+		if (!QFile::rename(filename_backup, original_gsvar_file)) Log::warn(EndpointManager::formatResponseMessage(request, "Could not rename file from : " + filename_backup + " to " + original_gsvar_file));
+
+		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, "Failed to replace the original GSvar file: " + original_gsvar_file));
+	}
+	else
+	{
+		QFile::remove(tmp_gz);
+		QFile::remove(filename_backup);
+	}
+
+	return HttpResponse(ResponseStatus::CREATED, ContentType::TEXT_PLAIN, QString("Annotation with aiDIVA score completed for the processed sample '%1'").arg(ps_id));
+}
+
 HttpResponse ServerController::performLogin(const HttpRequest& request)
 {
 	if (!request.getFormUrlEncoded().contains("name") || !request.getFormUrlEncoded().contains("password"))
