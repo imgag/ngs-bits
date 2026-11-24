@@ -14,7 +14,7 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Writes variant to info field SOURCE_VAR.");
+		setDescription("Writes the variant to info field SOURCE_VAR for variants that are not SNPs.");
 		setExtendedDescription(QStringList() << "Used to track the source variant of variants that are modified during variant normalization."
 											 << "Usual tool sequence: VcfStoreSourceVariant, vcfallelicprimitives, VcfBreakMulti, VcfLeftNormalize, VcfPruneSroucesVariant");
 
@@ -36,10 +36,7 @@ public:
 		}
 		QSharedPointer<QFile> in_p = Helper::openFileForReading(in, true);
 		QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
-		QByteArrayList header_buffer;
-		bool in_header = true;
 		bool info_header_set = false;
-
 		while(!in_p->atEnd())
 		{
 			QByteArray line = in_p->readLine();
@@ -48,72 +45,62 @@ public:
 			if (line.trimmed().isEmpty()) continue;
 
 			//add SOURCE_VAR info header line if not present
-			if (line.startsWith("#") && in_header)
+			if (line.startsWith("#"))
 			{
-				if (line.startsWith("#CHROM"))
+				if (line.startsWith("#CHROM") && !info_header_set)
 				{
-					for (auto &hline : header_buffer)
-					{
-						if (hline.startsWith("##INFO") && !info_header_set)
-						{
-							out_p->write("##INFO=<ID=SOURCE_VAR,Number=A,Type=String,Description=\"Source variant\">\n");
-							info_header_set = true;
-						}
-						out_p->write(hline);
-					}
-
-					out_p->write(line);
-
-					in_header = false;
-					continue;
+					out_p->write("##INFO=<ID=SOURCE_VAR,Number=A,Type=String,Description=\"Source variant before variant normalization.\">\n");
 				}
 
-				if (line.startsWith("##INFO=<ID=SOURCE_VAR"))
+				if (line.startsWith("##INFO=<ID=SOURCE_VAR,"))
 				{
 					info_header_set = true;
 				}
 
-				header_buffer.append(line);
+				out_p->write(line);
 				continue;
 			}
 
-			//split line and extract variant infos
-			QByteArrayList parts = line.trimmed().split('\t');
-			QByteArray info = parts[VcfFile::INFO];
-
-			//handle multiallelic sites
-			QByteArrayList alts = parts[VcfFile::ALT].split(',');
-			QByteArray new_infos = "SOURCE_VAR=" + parts[VcfFile::CHROM] + "_" + parts[VcfFile::POS] + "_" + parts[VcfFile::REF] + "_" + alts[0];
-
-			if (alts.count() > 1)
+			//process variant lines
+			QByteArrayList parts = line.split('\t');
+			QByteArray ref = parts[VcfFile::REF];
+			QByteArray alt = parts[VcfFile::ALT];
+			if (ref.length()==1 && alt.length()==1) //SNPs do not change during normalization > no need to annotate them
 			{
+				out_p->write(line);
+			}
+			else
+			{
+				//handle multiallelic sites
+				QByteArrayList alts = alt.split(',');
+				QByteArray anno = "SOURCE_VAR=" + parts[VcfFile::CHROM] + "_" + parts[VcfFile::POS] + "_" + ref + "_" + alts[0];
 				for (int i = 1; i < alts.count(); i++)
 				{
-					new_infos.append("," + parts[VcfFile::CHROM] + "_" + parts[VcfFile::POS] + "_" + parts[VcfFile::REF] + "_" + alts[i]);
+					anno.append("," + parts[VcfFile::CHROM] + "_" + parts[VcfFile::POS] + "_" + ref + "_" + alts[i]);
 				}
-			}
 
-			//remove old annotation if present
-			if (info.contains("SOURCE_VAR"))
-			{
-				QByteArrayList info_parts = info.trimmed().split(';');
-				QByteArrayList cleaned;
-
-				for (const QByteArray &p : info_parts)
+				//remove previous annotation if present
+				QByteArray info = parts[VcfFile::INFO];
+				if (info.contains("SOURCE_VAR="))
 				{
-					if (!p.startsWith("SOURCE_VAR")) cleaned.append(p);
+					QByteArrayList cleaned;
+					for (const QByteArray& part : info.split(';'))
+					{
+						if (!part.startsWith("SOURCE_VAR=")) cleaned.append(part);
+					}
+					info = cleaned.join(";");
 				}
-				info = cleaned.join(";");
+
+				//add source variant annotation
+				if (info==".") info.clear();
+				if (!info.isEmpty()) info.append(";");
+				info.append(anno);
+
+				parts[VcfFile::INFO] = info;
+
+				//output line
+				out_p->write(parts.join('\t'));
 			}
-
-			//add source variant annotation
-			if (info.isEmpty()) info.append(new_infos);
-			else info.append(";" + new_infos);
-
-			parts[VcfFile::INFO] = info;
-
-			//output line
-			out_p->write(parts.join('\t').append('\n'));
 		}
 	}
 };

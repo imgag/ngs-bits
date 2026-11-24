@@ -15,15 +15,17 @@ public:
 
 	virtual void setup()
 	{
-		setDescription("Prunes source variant annotations, if identical to shown variant.");
+		setDescription("Removes annotated source variant, if unchanged during variant normalization.");
+		setExtendedDescription(QStringList() << "Used to track the source variant of variants that are modified during variant normalization."
+											 << "Usual tool sequence: VcfStoreSourceVariant, vcfallelicprimitives, VcfBreakMulti, VcfLeftNormalize, VcfPruneSroucesVariant");
 
 		//optional
-		addInfile("in", "Input VCF file. If unset, reads from STDIN. Does not support multiallelic variants", true, true);
-		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
+		addInfile("in", "Input VCF file. If unset, reads from STDIN.", true, true);
 		addOutfile("out", "Output VCF list. If unset, writes to STDOUT.", true, true);
-		addFlag("verbose", "Outputs number of source variant annotations deleted due to indel leftalignment");
+		addInfile("ref", "Reference genome FASTA file. If unset 'reference_genome' from the 'settings.ini' file is used.", true, false);
+		addFlag("verbose", "Outputs number of source variant annotations deleted due to indel leftalignment"); //TODO remvove?
 
-		changeLog(2025, 12,  8, "Initial implementation.");
+		changeLog(2026, 11, 24, "Initial implementation.");
 	}
 
 	virtual void main()
@@ -40,7 +42,6 @@ public:
 		{
 			THROW(ArgumentException, "Input and output files must be different when streaming!");
 		}
-		QSharedPointer<QFile> in_p = Helper::openFileForReading(in, true);
 		QSharedPointer<QFile> out_p = Helper::openFileForWriting(out, true);
 
 		//open refererence genome file
@@ -51,6 +52,7 @@ public:
 
 		if (verbose) out_stream << "Source variant annotations deleted due to indel left align: " << Qt::endl;
 
+		QSharedPointer<QFile> in_p = Helper::openFileForReading(in, true);
 		while(!in_p->atEnd())
 		{
 			QByteArray line = in_p->readLine();
