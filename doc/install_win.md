@@ -42,7 +42,7 @@ Just unzip the contents of the ZIP archive into the `ngs-bits\htslib\` folder.
 
 The Qt distribution no longer contains a MySQL plugin, so we need to build it manually:
 
-* Download [MariaDB Connector C 64-bit](https://downloads.mariadb.com/Connectors/c/connector-c-3.4.7/mariadb-connector-c-3.4.7-win64.msi).
+* Download [MariaDB Connector C 64-bit for Windows](https://mariadb.com/downloads/connectors/c-connector/).
 * Run the installer and choose the `Complete` setup type.
 
 Qt community provides some [instructions](https://doc.qt.io/qt-6/sql-driver.html) on how to build the plugin. You may consult their page, if you encounter any issues.  
