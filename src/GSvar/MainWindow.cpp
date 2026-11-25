@@ -1792,11 +1792,11 @@ void MainWindow::aiDivaScore()
 			hpo_list << pt.accession();
 		}
 
-		QString processed_sample_id = NGSD().processedSampleId(variants_.getSampleHeader().value(0).name);
+		QString ps_name = variants_.getSampleHeader().value(0).name;
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
 		add_headers.insert("Content-type", "application/x-www-form-urlencoded");
-		ServerReply response = HttpRequestHandler().post(ClientHelper::serverApiUrl() + "aidiva_score?token=" + LoginManager::userToken(), QString("ps_id="+processed_sample_id+"&hpo_list="+hpo_list.join(",")).toUtf8(), add_headers);
+		ServerReply response = HttpRequestHandler().post(ClientHelper::serverApiUrl() + "aidiva_score?token=" + LoginManager::userToken(), QString("ps_name="+ps_name+"&hpo_list="+hpo_list.join(",")).toUtf8(), add_headers);
 
 		// reloading the currently opened proccessed sample after the successful file overwrite
 		if (response.status_code==201)

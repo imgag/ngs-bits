@@ -1321,11 +1321,12 @@ HttpResponse ServerController::getMultiSampleAnalysisInfo(const HttpRequest& req
 HttpResponse ServerController::annotateWithAiDivaScore(const HttpRequest &request)
 {
 	NGSD db;
-	QString ps_id =  request.getFormUrlEncoded()["ps_id"].toUtf8();
+	QString ps_name =  request.getFormUrlEncoded()["ps_name"].toUtf8();
 	QString hpo_list = request.getFormUrlEncoded()["hpo_list"].toUtf8(); // comma-separated hpo terms
 
+	QString ps_id = db.processedSampleId(ps_name);
 	QString ps_folder = db.processedSamplePath(ps_id, PathType::SAMPLE_FOLDER);
-	QString ps_name = db.processedSampleName(ps_id);
+
 	QStringList found_files = Helper::findFiles(ps_folder, ps_name + "_var_annotated.vcf.gz", false);
 	if (found_files.size()==0) return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "VCF.GZ file annotated with 'an_aidiva' does not exist at: " + ps_folder));
 
