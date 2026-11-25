@@ -10,7 +10,6 @@ struct Parameters
 {
 	QString in;
 	QString out;
-	QString source;
 	int prefetch;
 	int threads;
 	int block_size;
