@@ -74,7 +74,7 @@ public:
 				QByteArray variant = parts[VcfFile::CHROM] + "_" + parts[VcfFile::POS] + "_" + parts[VcfFile::REF].toUpper() + "_" + parts[VcfFile::ALT].toUpper();
 
 				QByteArrayList new_infos;
-				foreach (QByteArray p, info.split(';'))
+				for (QByteArray p : info.split(';'))
 				{
 					if (p.startsWith("SOURCE_VAR="))
 					{

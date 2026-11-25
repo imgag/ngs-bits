@@ -697,6 +697,7 @@ const QMap<QString, FilterBase*(*)()>& FilterFactory::getRegistry()
 		output["Somatic allele frequency"] = &createInstance<FilterSomaticAlleleFrequency>;
 		output["Tumor zygosity"] = &createInstance<FilterTumorOnlyHomHet>;
 		output["GSvar score/rank"] = &createInstance<FilterGSvarScoreAndRank>;
+		output["aiDIVA score/rank"] = &createInstance<FilterAIDivaScoreAndRank>;
 		output["CNV size"] = &createInstance<FilterCnvSize>;
 		output["CNV regions"] = &createInstance<FilterCnvRegions>;
 		output["CNV copy-number"] = &createInstance<FilterCnvCopyNumber>;
@@ -5073,9 +5074,9 @@ FilterGSvarScoreAndRank::FilterGSvarScoreAndRank()
 {
 	name_ = "GSvar score/rank";
 	type_ = VariantType::SNVS_INDELS;
-	description_ = QStringList() << "Filter based GSvar score/rank.";
+	description_ = QStringList() << "Filter based on GSvar score/rank.";
 	initParameters({
-		Parameter("top", "Show top X rankging variants only.", ParameterType::INT, {{ConstraintType::MIN, "1"}})
+		Parameter("top", "Show top X ranking variants only.", ParameterType::INT, {{ConstraintType::MIN, "1"}})
 	}, {
 		{"top", 10}
 	});
@@ -5099,6 +5100,48 @@ void FilterGSvarScoreAndRank::apply(const VariantList& variants, FilterResult& r
 
 	int top = getInt("top");
 	int i_rank = annotationColumn(variants, "GSvar_rank");
+	for(int i=0; i<variants.count(); ++i)
+	{
+		if(!result.flags()[i]) continue;
+
+		const QByteArray& rank = variants[i].annotations()[i_rank];
+		if(rank.isEmpty() || rank.toInt()>top)
+		{
+			result.flags()[i] = false;
+		}
+	}
+}
+
+FilterAIDivaScoreAndRank::FilterAIDivaScoreAndRank()
+{
+	name_ = "aiDIVA score/rank";
+	type_ = VariantType::SNVS_INDELS;
+	description_ = QStringList() << "Filter based on aiDIVA score/rank.";
+	initParameters({
+		Parameter("top", "Show top X ranking variants only.", ParameterType::INT, {{ConstraintType::MIN, "1"}})
+	}, {
+					   {"top", 10}
+				   });
+
+	checkIsRegistered();
+}
+
+QString FilterAIDivaScoreAndRank::toText() const
+{
+	QString text = name();
+
+	int top = getInt("top");
+	text += " top=" + QString::number(top);
+
+	return text;
+}
+
+void FilterAIDivaScoreAndRank::apply(const VariantList& variants, FilterResult& result) const
+{
+	if (!enabled_) return;
+
+	int top = getInt("top");
+	int i_rank = annotationColumn(variants, "aiDIVA_rank");
 	for(int i=0; i<variants.count(); ++i)
 	{
 		if(!result.flags()[i]) continue;

@@ -15,6 +15,7 @@
 #include <QUrlQuery>
 #include <QTime>
 #include <QNetworkProxy>
+#include <QProgressDialog>
 #include "ExternalToolDialog.h"
 #include "ReportDialog.h"
 #include <QInputDialog>
@@ -310,9 +311,9 @@ MainWindow::MainWindow(QWidget *parent)
 	ui_.report_btn->menu()->addSeparator();
 	ui_.report_btn->menu()->addAction("Transfer somatic data to MTB", this, SLOT(transferSomaticData()) );
 	ui_.vars_ranking->setMenu(new QMenu());
-	ui_.vars_ranking->menu()->addAction("dominant model", this, SLOT(variantRanking()))->setObjectName("GSvar_v2_dominant");
-	ui_.vars_ranking->menu()->addAction("recessive model", this, SLOT(variantRanking()))->setObjectName("GSvar_v2_recessive");
-	ui_.vars_ranking->menu()->addAction("aiDIVA score", this, SLOT(aiDivaScore()));
+	ui_.vars_ranking->menu()->addAction("GSvar - dominant model", this, SLOT(variantRanking()))->setObjectName("GSvar_v2_dominant");
+	ui_.vars_ranking->menu()->addAction("GSvar - recessive model", this, SLOT(variantRanking()))->setObjectName("GSvar_v2_recessive");
+	ui_.vars_ranking->menu()->addAction("aiDIVA", this, SLOT(aiDivaScore()));
 	ui_.vars_af_hist->setMenu(new QMenu());
 	ui_.vars_af_hist->menu()->addAction("Show AF histogram (all small variants)", this, SLOT(showAfHistogram_all()));
 	ui_.vars_af_hist->menu()->addAction("Show AF histogram (small variants after filter)", this, SLOT(showAfHistogram_filtered()));
@@ -1765,50 +1766,48 @@ void MainWindow::openCustomIgvTrack()
 
 void MainWindow::aiDivaScore()
 {
-	if (filename_.isEmpty())
-	{
-		QMessageBox::warning(this, "Processed sample is missing", "You need to load a processed sample first!");
-		return;
-	}
+	if (filename_.isEmpty()) return;
+	if (!LoginManager::active()) return;
+	if (!ClientHelper::isClientServerMode()) return;
 
-	if (variants_.type()!=GERMLINE_SINGLESAMPLE)
-	{
-		QMessageBox::warning(this, "Unsupported analysis type", "Only germline single samples are supported!");
-		return;
-	}
-
-	PhenotypeList phenotypes = getPhenotypeList("aiDIVA annotation");
-	if (phenotypes.isEmpty())
-	{
-		QMessageBox::warning(this, "HPO terms are missing", "HPO terms have not been provided!");
-		return;
-	}
+	//init
+	QString title = "Ranking variants with aiDIVA";
 
 	try
-	{		
-		QStringList hpo_list;
-		for (const Phenotype& pt: phenotypes)
-		{
-			hpo_list << pt.accession();
-		}
+	{
+		//checks
+		if (variants_.type()!=GERMLINE_SINGLESAMPLE) THROW(Exception, "Only germline single sample anlyses are supported!");
+
+		//get data we need
+		PhenotypeList phenotypes = getPhenotypeList(title);
+		if (phenotypes.isEmpty()) return;
 
 		QString processed_sample_id = NGSD().processedSampleId(variants_.getSampleHeader().value(0).name);
+
+		//show progress dialog
+		QSharedPointer<QProgressDialog> dlg = GUIHelper::progressDialog(this, "Performing aiDIVA scoring/ranking", 0, 1, false);
+
+		//call GSverServer end-point
 		HttpHeaders add_headers;
 		add_headers.insert("Accept", "text/plain");
 		add_headers.insert("Content-type", "application/x-www-form-urlencoded");
-		ServerReply response = HttpRequestHandler().post(ClientHelper::serverApiUrl() + "aidiva_score?token=" + LoginManager::userToken(), QString("ps_id="+processed_sample_id+"&hpo_list="+hpo_list.join(",")).toUtf8(), add_headers);
+		QByteArray data = "ps_id="+processed_sample_id.toUtf8()+"&hpo_list="+phenotypes.toString(",", PhenotypeList::ACCESSION).toUtf8();
+		ServerReply response = HttpRequestHandler().post(ClientHelper::serverApiUrl() + "aidiva_score?token=" + LoginManager::userToken(), data, add_headers);
 
-		// reloading the currently opened proccessed sample after the successful file overwrite
+		//reloading the currently opened proccessed sample after the successful file overwrite
 		if (response.status_code==201)
 		{
 			loadFile(filename_);
-			return;
 		}
-		QMessageBox::warning(this, "Annotation error", "aiDIVA annotation failed. The server returned incorrect status code: " + QString::number(response.status_code));
+		else THROW(Exception, "aiDIVA annotation failed. The server returned incorrect status code: " + QString::number(response.status_code));
+
+		//update variant list
+		ui_.filters->reset(true);
+		ui_.filters->setFilter("aiDIVA score/rank");
 	}
 	catch (Exception& e)
 	{		
-		QMessageBox::warning(this, "Annotation error", "Could not preform aiDIVA annotation due to the error: " + e.message());
+		QMessageBox::warning(this, title, "Could not perform aiDIVA annotation due to the error: " + e.message());
 	}
 }
 
@@ -3259,7 +3258,8 @@ void MainWindow::on_actionAbout_triggered()
 		{
 			add_info += "<br>&nbsp;&nbsp;version: " + server_info.version + " (" + server_info.date + ")";
 			add_info += "<br>&nbsp;&nbsp;start time: " + server_info.server_start_time.toString("yyyy-MM-dd hh:mm:ss");
-			add_info += "<br>&nbsp;&nbsp;API URL: " + server_info.server_url;
+			QString url = "https://" + server_info.server_url + ":" + Settings::string("server_port");
+			add_info += "<br>&nbsp;&nbsp;API URL: <a href='"+url+"'>"+url+"</a>";
 			add_info += "<br>&nbsp;&nbsp;API version: " + server_info.api_version;
 			add_info += "<br>&nbsp;&nbsp;operating system: " + server_info.operating_system;
 			add_info += "<br>&nbsp;&nbsp;architecture: " + server_info.architecture;
@@ -6851,19 +6851,17 @@ void MainWindow::variantRanking()
 	if (filename_.isEmpty()) return;
 	if (!LoginManager::active()) return;
 
-	//determine title
+	//init
 	QString algorithm = sender()->objectName();
 	QString title = "Ranking variants with algorithm '" + algorithm + "'";
-
-	//init
 	NGSD db;
-	PhenotypeList phenotypes = getPhenotypeList(title);
 
-	QApplication::setOverrideCursor(Qt::BusyCursor);
 	try
 	{
 		//create phenotype list
 		QHash<Phenotype, BedFile> phenotype_rois;
+		PhenotypeList phenotypes = getPhenotypeList(title);
+		if (phenotypes.isEmpty()) return;
 		for (const Phenotype& pheno : std::as_const(phenotypes))
 		{
 			//pheno > genes
@@ -6889,8 +6887,6 @@ void MainWindow::variantRanking()
 		ui_.filters->reset(true);
 		ui_.filters->setFilter("GSvar score/rank");
 
-		QApplication::restoreOverrideCursor();
-
 		//show warnings
 		if (result.warnings.count()>0)
 		{
@@ -6899,7 +6895,6 @@ void MainWindow::variantRanking()
 	}
 	catch(Exception& e)
 	{
-		QApplication::restoreOverrideCursor();
 		QMessageBox::warning(this, title, "An error occurred:\n" + e.message());
 	}
 }
@@ -7288,12 +7283,11 @@ QString MainWindow::viewerApp(bool only_igv)
 
 PhenotypeList MainWindow::getPhenotypeList(QString title)
 {
-	NGSD db;
-	QString ps_name = germlineReportSample();
 	PhenotypeList phenotypes = ui_.filters->phenotypes();
 	if (phenotypes.isEmpty())
 	{
-		QString sample_id = db.sampleId(ps_name);
+		NGSD db;
+		QString sample_id = db.sampleId(germlineReportSample());
 		phenotypes = db.getSampleData(sample_id).phenotypes;
 		if (phenotypes.isEmpty())
 		{

@@ -8,7 +8,6 @@
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QMessageBox>
-#include <QProgressDialog>
 #include <QStandardPaths>
 #include <QTableWidget>
 #include <QUrl>
@@ -23,6 +22,7 @@
 #include <TrackGroupManager.h>
 #include "TrackWidget.h"
 #include "TranscriptCache.h"
+#include "GUIHelper.h"
 
 MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent)
@@ -81,12 +81,7 @@ void MainWindow::delayedInitialization()
 		timer.start();
 		{
 			QString gff_file = Settings::string("ensembl_gff");
-			QProgressDialog progress_dialog("loading gene/transcript Gff file: " + gff_file, QString(), 0, 0, this);
-			progress_dialog.setWindowModality(Qt::ApplicationModal);
-			progress_dialog.setCancelButton(nullptr);
-			progress_dialog.setMinimumDuration(0);
-			progress_dialog.show();
-			QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
+			QSharedPointer<QProgressDialog> progress_dialog = GUIHelper::progressDialog(this, "Loading gene/transcript Gff file: " + gff_file, 0, 0);
 
 			SharedData::setTranscripts(TranscriptCache::load(gff_file));
 		}
@@ -104,11 +99,7 @@ void MainWindow::addNRegions()
 	try
 	{
 		//show progress dialog
-		QProgressDialog progress_dialog("Finding N regions in the reference genome...", "Cancel", 0, 27, this);
-		progress_dialog.setWindowModality(Qt::ApplicationModal);
-		progress_dialog.setCancelButton(nullptr);
-		progress_dialog.setMinimumDuration(0);
-		progress_dialog.show();
+		QSharedPointer<QProgressDialog> progress_dialog = GUIHelper::progressDialog(this, "Finding N regions in the reference genome...", 0, 27);
 
 		//determine N regions
 		QSharedPointer<BedFile> regions(new BedFile());
@@ -116,7 +107,7 @@ void MainWindow::addNRegions()
 		for (const Chromosome& chr : SharedData::genome().chromosomes())
 		{
 			++chr_num;
-			progress_dialog.setValue(chr_num);
+			progress_dialog->setValue(chr_num);
 
 			const int length = SharedData::genome().lengthOf(chr);
 			int n_start = 0;

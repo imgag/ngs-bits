@@ -62,8 +62,15 @@ public:
 	//Sort elements by accession.
 	void sortByAccession();
 
+	//String conversion modes
+	enum StringMode
+	{
+		ACCESSION,
+		ACCESSION_AND_NAME,
+		NAME
+	};
 	//Converts the phenotype list to a string. By default contains only the name. The accession can be prepended using @p add_accession.
-	QString toString(QString separator = "; ", bool add_accession=false) const;
+	QString toString(QString separator="; ", StringMode mode=NAME) const;
 
 protected:
 	QSet<QByteArray> accessions_;

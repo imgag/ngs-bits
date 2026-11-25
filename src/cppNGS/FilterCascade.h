@@ -611,6 +611,17 @@ class CPPNGSSHARED_EXPORT FilterGSvarScoreAndRank
 		void apply(const VariantList& variants, FilterResult& result) const override;
 };
 
+//Filter for top variants in GSvar ranking.
+class CPPNGSSHARED_EXPORT FilterAIDivaScoreAndRank
+	: public FilterBase
+{
+public:
+	FilterAIDivaScoreAndRank();
+	QString toText() const override;
+	void apply(const VariantList& variants, FilterResult& result) const override;
+};
+
+
 //Filter for tumor/normal allele frequency
 class CPPNGSSHARED_EXPORT FilterSomaticAlleleFrequency
 	: public FilterBase

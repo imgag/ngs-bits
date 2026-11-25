@@ -143,7 +143,7 @@ void RequestWorker::run()
 		Endpoint current_endpoint = EndpointManager::getEndpointByUrlAndMethod(parsed_request.getPath(), parsed_request.getMethod());
 		if (current_endpoint.action_func == nullptr)
 		{
-			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, error_type, "This action cannot be processed"));
+			sendEntireResponse(ssl_socket, HttpResponse(ResponseStatus::BAD_REQUEST, error_type, "Unknown API end-point called!"));
 			return;
 		}
 
