@@ -21,7 +21,7 @@ jobs:
         with:
           submodules: recursive   # replaces the separate "Update submodules" step
 
-      # MSYS2 is phasing out MINGW64 (https://www.msys2.org/news/) and has already
+      # MSYS2 is phasing out MINGW64 and has already
       # dropped qt6-charts/-httpserver/-websockets from it, so CI uses UCRT64.
       - uses: msys2/setup-msys2@v2
         with:
@@ -31,13 +31,12 @@ jobs:
           # MSYS-side packages (no environment prefix)
           install: >-
             git base-devel unzip
-            libsqlite libsqlite-devel
           pacboy: >-
             toolchain:p
             ccache:p
             zlib:p bzip2:p xz:p
             curl:p dlfcn:p
-            libmariadbclient:p sqlite3:p
+            libmariadbclient:p
             htslib:p libxml2:p
             qt6-base:p
             qt6-charts:p
