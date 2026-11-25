@@ -87,5 +87,4 @@ private:
 			COMPARE_FILES(out_file, TESTDATA("data_out/VcfAnnotateConsequence_out1.vcf"));
 		}
 	}
-
 };
