@@ -16,18 +16,19 @@ First, we need to install Qt and some basic dependencies:
 	``` 
 	`Please make sure your user can create folders at the location where you are going to install Qt`. Usually it is `C:\Qt` and you should be fine. Extra arguments enable the output of debug information to the terminal.
 * Now you will see the installer window. If you have previously installed Qt on your current machine, you may want to remove the installer's cache. If the admin user has previously done the installation for you, the cache folder will be inaccessable and it may cause errors during the new installation. Press `Settings` button at the left bottom corner and go to the `Local cache` section. Here you can set a new cache location or clear the old cache (only if you have access rights for that).
-![Qt installer settings](qt-installer-settings.png)
+
+	![Qt installer settings](qt-installer-settings.png)
 * Now you should be able to proceed with the installation process
 * You will need to log in with your Qt credentials. This means you need to have or create a Qt account, which is free for open-source projects.
 
   ![Qt login form](qt-installer-account.png)
-* You will need to login with your Qt credentials at some point. It means you have to have/create a Qt account (which is free for open source projects)
-![Qt login form](qt-installer-account.png)
 * The installer will also ask if you belong to an organization (as an individual developer, you may leave this field empty): ![Your organization](qt-installer-organization.png)
 * Select the `Custom installation`:
-![Custom Qt installation](qt-installer-custom.png)
+
+	![Custom Qt installation](qt-installer-custom.png)
 * Qt Creator (we recommend choosing the latest stable version and avoid release candidates, unless you really need them), Qt 6.8.3 (select all components, since we will need most), MinGW 13.1.0, CMake, Ninja:
-![Selection Qt components](qt-installer-components.png)
+
+	![Selection Qt components](qt-installer-components.png)
 * The installation may take a while, since the installer downloads everything from the server. The list of packages may look slightly different at any given time, since it is an online installer and it gets the most recent information from the server (e.g. package versions may diverge from the screenshots, packages may be grouped differently, etc.).
 
 ### Unpack htslib
@@ -46,7 +47,7 @@ Just unzip the contents of the ZIP archive into the `ngs-bits\htslib\` folder.
 The Qt distribution no longer contains a MySQL plugin, so we need to build it manually:
 
 * Download [MariaDB Connector C 64-bit for Windows](https://mariadb.com/downloads/connectors/c-connector/).
-* Run the installer and choose the `Complete` setup type.
+* Run the installer and choose the `Complete` setup type. You need to have admin rights for the installation.
 
 Qt community provides some [instructions](https://doc.qt.io/qt-6/sql-driver.html) on how to build the plugin. You may consult their page, if you encounter any issues.  
 We have summarized the tutorial, here:
