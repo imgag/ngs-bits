@@ -79,21 +79,31 @@ public:
 					if (p.startsWith("SOURCE_VAR="))
 					{
 						//source variant and current variant match
-						QByteArray source_variant = p.mid(11);
-						if (source_variant == variant) continue;
+						QByteArrayList source_variants = p.mid(11).split(',');
+						bool match = false;
+						foreach(const QByteArray& source_variant, source_variants)
+						{
+							if (source_variant == variant) match = true;
+						}
+						if (match) continue;
 
 						//source variants are not left-normalized. Check if the variant is the same when left-normalizing the source variant
-						QByteArrayList source_variant_parts = source_variant.split('_');
-						if (source_variant_parts.count()!=4) THROW(ToolFailedException , "Source variant with part count other than 4 found in line: " + line);
+						match = false;
+						foreach(const QByteArray& source_variant, source_variants)
+						{
+							QByteArrayList source_variant_parts = source_variant.split('_');
+							if (source_variant_parts.count()!=4) THROW(ToolFailedException , "Source variant with part count other than 4 found in line: " + line);
 
-						int pos = Helper::toInt(source_variant_parts[1], "VCF position");
-						VcfLine var_source(source_variant_parts[0], pos, source_variant_parts[2].toUpper(), QList<Sequence>() << source_variant_parts[3].toUpper());
-						var_source.leftNormalize(reference);
+							int pos = Helper::toInt(source_variant_parts[1], "VCF position");
+							VcfLine var_source(source_variant_parts[0], pos, source_variant_parts[2].toUpper(), QList<Sequence>() << source_variant_parts[3].toUpper());
+							var_source.leftNormalize(reference);
 
-						source_variant_parts[1] = QByteArray::number(var_source.start());
-						source_variant_parts[2] = var_source.ref().toUpper();
-						source_variant_parts[3] = var_source.altString().toUpper();
-						if (source_variant_parts.join('_') == variant) continue;
+							source_variant_parts[1] = QByteArray::number(var_source.start());
+							source_variant_parts[2] = var_source.ref().toUpper();
+							source_variant_parts[3] = var_source.altString().toUpper();
+							if (source_variant_parts.join('_') == variant) match=true;
+						}
+						if (match) continue;
 					}
 
 					new_infos.append(p);
