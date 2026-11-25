@@ -1325,7 +1325,7 @@ HttpResponse ServerController::annotateWithAiDivaScore(const HttpRequest &reques
 	QString hpo_list = request.getFormUrlEncoded()["hpo_list"].toUtf8(); // comma-separated hpo terms
 
 	QString ps_id = db.processedSampleId(ps_name);
-	QString ps_folder = db.processedSamplePath(ps_id, PathType::SAMPLE_FOLDER);
+	QString ps_folder = db.processedSamplePath(ps_id, PathType::SAMPLE_FOLDER);	
 
 	QStringList found_files = Helper::findFiles(ps_folder, ps_name + "_var_annotated.vcf.gz", false);
 	if (found_files.size()==0) return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "VCF.GZ file annotated with 'an_aidiva' does not exist at: " + ps_folder));
@@ -1333,7 +1333,7 @@ HttpResponse ServerController::annotateWithAiDivaScore(const HttpRequest &reques
 	QProcess process;
 	process.setProcessChannelMode(QProcess::MergedChannels);
 	QString tmp_vcf = Helper::tempFileName(".vcf");
-	Log::info("Running megSAP tool an_aidiva_hpo.php for the sample: " + ps_id);
+	Log::info("Running megSAP tool an_aidiva_hpo.php for the sample: " + ps_name);
 	process.start("php", QStringList() << PipelineSettings::rootDir() + "/src/Tools/an_aidiva_hpo.php" << "-in" << found_files[0] << "-out" << tmp_vcf << "-hpo_list" << hpo_list << "-threads" << Settings::string("threads"));
 	bool success = process.waitForFinished(-1);
 	if (!success || process.exitCode()>0)
