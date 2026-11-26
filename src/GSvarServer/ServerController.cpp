@@ -1330,12 +1330,17 @@ HttpResponse ServerController::annotateWithAiDivaScore(const HttpRequest &reques
 	QStringList found_files = Helper::findFiles(ps_folder, ps_name + "_var_annotated.vcf.gz", false);
 	if (found_files.size()==0) return HttpResponse(ResponseStatus::NOT_FOUND, request.getContentType(), EndpointManager::formatResponseMessage(request, "VCF.GZ file annotated with 'an_aidiva' does not exist at: " + ps_folder));
 
+	QElapsedTimer timer;
+	timer.start();
+
 	QProcess process;
 	process.setProcessChannelMode(QProcess::MergedChannels);
 	QString tmp_vcf = Helper::tempFileName(".vcf");
 	Log::info("Running megSAP tool an_aidiva_hpo.php for the sample: " + ps_name);
 	process.start("php", QStringList() << PipelineSettings::rootDir() + "/src/Tools/an_aidiva_hpo.php" << "-in" << found_files[0] << "-out" << tmp_vcf << "-hpo_list" << hpo_list << "-threads" << Settings::string("threads"));
 	bool success = process.waitForFinished(-1);
+	Log::perf("an_aidiva_hpo.php took: ", timer);
+	timer.start();
 	if (!success || process.exitCode()>0)
 	{
 		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Error while executing an_aidiva_hpo.php: " + process.readAll())));
@@ -1351,6 +1356,8 @@ HttpResponse ServerController::annotateWithAiDivaScore(const HttpRequest &reques
 	vcf2gsvar_args << "-aidiva_hpo";
 	process.start("php", vcf2gsvar_args);
 	success = process.waitForFinished(-1);
+	Log::perf("vcf2gsvar.php took: ", timer);
+	timer.start();
 	if (!success || process.exitCode()>0)
 	{
 		return HttpResponse(ResponseStatus::INTERNAL_SERVER_ERROR, HttpUtils::detectErrorContentType(request.getHeaderByName("User-Agent")), EndpointManager::formatResponseMessage(request, QString("Error while executing vcf2gsvar.php: " + process.readAll())));
@@ -1360,7 +1367,9 @@ HttpResponse ServerController::annotateWithAiDivaScore(const HttpRequest &reques
 	// compress GSvar	
 	process.setStandardOutputFile(tmp_gz, QIODevice::Truncate);
 	process.start("bgzip", QStringList() << "-@" << QString::number(Settings::integer("threads")) << "-l" << "9" << "-c" << vcf2gsvar_out);
-	bool bgzip_ok = process.waitForStarted() && process.waitForFinished(-1) && process.exitStatus()==QProcess::NormalExit && process.exitCode()==0;	
+	bool bgzip_ok = process.waitForStarted() && process.waitForFinished(-1) && process.exitStatus()==QProcess::NormalExit && process.exitCode()==0;
+	Log::perf("bgzip took: ", timer);
+	timer.start();
 	if (!bgzip_ok)
 	{
 		QString error = process.error()==QProcess::FailedToStart ? "bgzip could not be started (is it installed and in PATH?)" : QString::fromUtf8(process.readAllStandardError()).trimmed();
@@ -1387,6 +1396,9 @@ HttpResponse ServerController::annotateWithAiDivaScore(const HttpRequest &reques
 		QFile::remove(tmp_gz);
 		QFile::remove(filename_backup);
 	}
+
+	Log::perf("Replacing GSvar file took: ", timer);
+
 
 	return HttpResponse(ResponseStatus::CREATED, ContentType::TEXT_PLAIN, QString("Annotation with aiDIVA score completed for the processed sample '%1'").arg(ps_id));
 }
