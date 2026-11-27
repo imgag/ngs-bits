@@ -22,7 +22,8 @@ public:
 		QHttpServer server;
 		QTcpServer listener;
 		IS_TRUE(listener.listen(QHostAddress::LocalHost));
-		IS_TRUE(server.bind(&listener));
+		server.bind(&listener);
+		IS_TRUE(server.servers().contains(&listener));
 
 		QJsonObject payload;
 		QByteArray authorization;
