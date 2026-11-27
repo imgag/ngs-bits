@@ -1,7 +1,8 @@
 # Installation of the NGSD
 
 NGSD is an acronym for the *next generation sequencing database*.  
-The NGSD manages samples, runs, variants, QC data as well as basic data data like genes and transcripts .
+The NGSD manages samples, runs, variants, QC data as well as basic data data like genes and transcripts.  
+**Note:** Gene/Transcripts coordinates are based on GRCh38 coordinates from Ensembl.  
 
 This document describes the installation of the NGSD database.
 The installation instructions are based on Ubuntu 20.04 LTS, but should work similarly on other Linux distributions.
