@@ -65,7 +65,8 @@ public:
 		QHttpServer server;
 		QTcpServer listener;
 		IS_TRUE(listener.listen(QHostAddress::LocalHost));
-		IS_TRUE(server.bind(&listener));
+		server.bind(&listener);
+		IS_TRUE(server.servers().contains(&listener));
 
 		bool has_authorization = false;
 		qsizetype message_count = 0;
@@ -91,7 +92,8 @@ public:
 		QHttpServer server;
 		QTcpServer listener;
 		IS_TRUE(listener.listen(QHostAddress::LocalHost));
-		IS_TRUE(server.bind(&listener));
+		server.bind(&listener);
+		IS_TRUE(server.servers().contains(&listener));
 		server.route("/v1/chat/completions", QHttpServerRequest::Method::Post, []()
 		{
 			return QHttpServerResponse("text/plain", "private prompt", QHttpServerResponder::StatusCode::TooManyRequests);
@@ -117,7 +119,8 @@ public:
 		QHttpServer server;
 		QTcpServer listener;
 		IS_TRUE(listener.listen(QHostAddress::LocalHost));
-		IS_TRUE(server.bind(&listener));
+		server.bind(&listener);
+		IS_TRUE(server.servers().contains(&listener));
 		server.route("/v1/chat/completions", QHttpServerRequest::Method::Post, []()
 		{
 			return QHttpServerResponse("application/json", R"({"choices":[]})");
