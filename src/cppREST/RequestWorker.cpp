@@ -21,12 +21,12 @@ void RequestWorker::run()
 
     try
     {
-        ssl_socket->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
-        if (!ssl_socket)
-        {
-            Log::error("Could not create a socket: " + ssl_socket->errorString());
-            return;
-        }
+
+		// if (!ssl_socket)
+		// {
+		//     Log::error("Could not create a socket: " + ssl_socket->errorString());
+		//     return;
+		// }
         ssl_socket->setSslConfiguration(ssl_configuration_);
 
         if (!ssl_socket->setSocketDescriptor(socket_))
@@ -34,6 +34,8 @@ void RequestWorker::run()
             Log::error("Could not set a socket descriptor: " + ssl_socket->errorString());
             return;
         }
+		ssl_socket->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
+		ssl_socket->setSocketOption(QAbstractSocket::LowDelayOption, 1);
     }
     catch (...)
     {
