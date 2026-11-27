@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <QSortFilterProxyModel>
 #include <QStringListModel>
+#include "LoginManager.h"
 
 SubpanelDesignDialog::SubpanelDesignDialog(QWidget *parent)
 	: QDialog(parent)
@@ -211,7 +212,7 @@ void SubpanelDesignDialog::storePanel()
 	SqlQuery query = db.getQuery();
 	query.prepare("INSERT INTO `subpanels`(`name`, `created_by`, `created_date`, `mode`, `extend`, `genes`, `roi`, `archived`) VALUES (:0,:1,:2,:3,:4,:5,:6,0)");
 	query.bindValue(0, name);
-	query.bindValue(1, db.userId(Helper::userName()));
+	query.bindValue(1, db.userId(LoginManager::userName()));
 	query.bindValue(2, QDate::currentDate().toString(Qt::ISODate));
 	query.bindValue(3, ui_.mode->currentText());
 	query.bindValue(4, ui_.flanking->currentText());
@@ -267,7 +268,7 @@ QString SubpanelDesignDialog::getName(bool with_suffix) const
 		{
 			output += "_" + ui_.transcripts->currentText() + "Transcripts";
 		}
-		output += "_" + Helper::userName() + "_" + QDate::currentDate().toString("yyyyMMdd");
+		output += "_" + LoginManager::userName() + "_" + QDate::currentDate().toString("yyyyMMdd");
 	}
 
 	return output;

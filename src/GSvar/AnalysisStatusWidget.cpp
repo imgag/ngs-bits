@@ -669,7 +669,7 @@ void AnalysisStatusWidget::applyFilters()
 	//user filter
 	if (ui_.f_mine->isChecked())
 	{
-		QString f_user = Helper::userName();
+		QString f_user = LoginManager::userName();
 		for (int r=0; r<ui_.analyses->rowCount(); ++r)
 		{
 			QTableWidgetItem* item = ui_.analyses->item(r, 1);

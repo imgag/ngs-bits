@@ -3393,7 +3393,7 @@ void MainWindow::storeSomaticReportConfig()
 	//store
 	try
 	{
-		db.setSomaticReportConfig(ps_tumor_id, ps_normal_id, somatic_report_settings_.report_config, variants_, cnvs_, svs_, somatic_control_tissue_variants_, Helper::userName());
+		db.setSomaticReportConfig(ps_tumor_id, ps_normal_id, somatic_report_settings_.report_config, variants_, cnvs_, svs_, somatic_control_tissue_variants_, LoginManager::userName());
 	}
 	catch (Exception& e)
 	{
@@ -3987,7 +3987,7 @@ void MainWindow::generateReportSomaticRTF()
 	//store somatic report config in NGSD
 	if(!dlg.skipNGSD())
 	{
-		db.setSomaticReportConfig(ps_tumor_id, ps_normal_id, somatic_report_settings_.report_config, variants_, cnvs_, svs_, somatic_control_tissue_variants_, Helper::userName());
+		db.setSomaticReportConfig(ps_tumor_id, ps_normal_id, somatic_report_settings_.report_config, variants_, cnvs_, svs_, somatic_control_tissue_variants_, LoginManager::userName());
 	}
 
 	QString destination_path; //path to rtf file
@@ -5304,7 +5304,7 @@ void MainWindow::exportVCF()
 
 		//store
 		QString folder = Settings::path("gsvar_variant_export_folder", true);
-		QString file_name = folder + QDir::separator() + QFileInfo(filename_).baseName() + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".vcf";
+		QString file_name = folder + QDir::separator() + QFileInfo(filename_).baseName() + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + LoginManager::userName() + ".vcf";
 
 		file_name = QFileDialog::getSaveFileName(this, "Export VCF", file_name, "VCF (*.vcf);;All files (*.*)");
 		if (file_name!="")
@@ -5355,7 +5355,7 @@ void MainWindow::exportHerediCareVCF()
 		if (id.isEmpty()) return;
 
 		//get export file name from user
-		QString file_name = Settings::path("gsvar_variant_export_folder", true) + QDir::separator() + id + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".vcf";
+		QString file_name = Settings::path("gsvar_variant_export_folder", true) + QDir::separator() + id + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + LoginManager::userName() + ".vcf";
 		file_name = QFileDialog::getSaveFileName(this, title, file_name, "VCF (*.vcf);;All files (*.*)");
 		if (file_name.isEmpty()) return;
 
@@ -5451,7 +5451,7 @@ void MainWindow::exportGSvar()
 
 		//store
 		QString folder = Settings::path("gsvar_variant_export_folder", true);
-		QString file_name = folder + QDir::separator() + QFileInfo(filename_).baseName() + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + Helper::userName() + ".GSvar";
+		QString file_name = folder + QDir::separator() + QFileInfo(filename_).baseName() + "_export_" + QDate::currentDate().toString("yyyyMMdd") + "_" + LoginManager::userName() + ".GSvar";
 
 		file_name = QFileDialog::getSaveFileName(this, "Export GSvar", file_name, "VCF (*.GSvar);;All files (*.*)");
 		if (file_name!="")

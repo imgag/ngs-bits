@@ -379,7 +379,7 @@ void DBTableAdministration::importStudySamples()
 		{
 			++c_imported;
 			SqlQuery query = db.getQuery();
-			query.exec("INSERT INTO study_sample (study_id, processed_sample_id, study_sample_idendifier) VALUES ("+QString::number(study_id)+", "+QString::number(ps_id)+", 'GenLab import by "+Helper::userName()+" on "+QDate::currentDate().toString()+"')");
+			query.exec("INSERT INTO study_sample (study_id, processed_sample_id, study_sample_idendifier) VALUES ("+QString::number(study_id)+", "+QString::number(ps_id)+", 'GenLab import by "+LoginManager::userName()+" on "+QDate::currentDate().toString()+"')");
 		}
 	}
 
