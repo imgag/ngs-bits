@@ -267,8 +267,14 @@ void RequestWorker::run()
 				return;
 			}
 
-			sendResponseDataPart(ssl_socket, response.getStatusLine());
-			sendResponseDataPart(ssl_socket, response.getHeaders());
+			QByteArray out;
+
+			out.append(response.getStatusLine());
+			out.append(response.getHeaders());
+			sendResponseDataPart(ssl_socket, out);
+
+			// sendResponseDataPart(ssl_socket, response.getStatusLine());
+			// sendResponseDataPart(ssl_socket, response.getHeaders());
 
 			quint64 pos = 0;
             quint64 file_size = streamed_file->size();
@@ -300,10 +306,16 @@ void RequestWorker::run()
 				pos = ranges[i].start;
 				if (ranges_count > 1)
 				{
-					sendResponseDataPart(ssl_socket, "--"+response.getBoundary()+"\r\n");
-					sendResponseDataPart(ssl_socket, "Content-Type: application/octet-stream\r\n");
-					sendResponseDataPart(ssl_socket, "Content-Range: bytes " + QByteArray::number(ranges[i].start) + "-" + QByteArray::number(ranges[i].end) + "/" + QByteArray::number(file_size) + "\r\n");
-					sendResponseDataPart(ssl_socket, "\r\n");
+					out.append("--"+response.getBoundary()+"\r\n");
+					out.append("Content-Type: application/octet-stream\r\n");
+					out.append("Content-Range: bytes " + QByteArray::number(ranges[i].start) + "-" + QByteArray::number(ranges[i].end) + "/" + QByteArray::number(file_size) + "\r\n");
+					out.append("\r\n");
+
+					sendResponseDataPart(ssl_socket, out);
+					// sendResponseDataPart(ssl_socket, "--"+response.getBoundary()+"\r\n");
+					// sendResponseDataPart(ssl_socket, "Content-Type: application/octet-stream\r\n");
+					// sendResponseDataPart(ssl_socket, "Content-Range: bytes " + QByteArray::number(ranges[i].start) + "-" + QByteArray::number(ranges[i].end) + "/" + QByteArray::number(file_size) + "\r\n");
+					// sendResponseDataPart(ssl_socket, "\r\n");
 				}
 				while(pos<(ranges[i].end+1))
 				{
@@ -355,8 +367,11 @@ void RequestWorker::run()
 					if (transfer_encoding_chunked)
 					{
 						// Should be used for chunked transfer (without content-lenght)
-						sendResponseDataPart(ssl_socket, intToHex(data.size()).toUtf8()+"\r\n");
-						sendResponseDataPart(ssl_socket, data.append("\r\n"));
+						out.append(intToHex(data.size()).toUtf8()+"\r\n");
+						out.append(data.append("\r\n"));
+						sendResponseDataPart(ssl_socket,out);
+						// sendResponseDataPart(ssl_socket, intToHex(data.size()).toUtf8()+"\r\n");
+						// sendResponseDataPart(ssl_socket, data.append("\r\n"));
 					}
 					else
 					{
@@ -371,8 +386,11 @@ void RequestWorker::run()
 			// Should be used for chunked transfer (without content-lenght)
 			if (transfer_encoding_chunked)
 			{
-				sendResponseDataPart(ssl_socket, "0\r\n");
-				sendResponseDataPart(ssl_socket, "\r\n");
+				out.append("0\r\n");
+				out.append("\r\n");
+				sendResponseDataPart(ssl_socket, out);
+				// sendResponseDataPart(ssl_socket, "0\r\n");
+				// sendResponseDataPart(ssl_socket, "\r\n");
 			}
 
 			closeConnection(ssl_socket);
@@ -455,9 +473,15 @@ void RequestWorker::sendEntireResponse(QSharedPointer<QSslSocket> socket, const 
 	if (response.getStatusCode() > 200) Log::warn("The server returned " + QString::number(response.getStatusCode()) + " - " + HttpUtils::convertResponseStatusToReasonPhrase(response.getStatus()));
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)
 	{
-		socket->write(response.getStatusLine());
-		socket->write(response.getHeaders());
-		socket->write(response.getPayload());
+		QByteArray out;
+		out.append(response.getStatusLine());
+		out.append(response.getHeaders());
+		out.append(response.getPayload());
+		socket->write(out);
+
+		// socket->write(response.getStatusLine());
+		// socket->write(response.getHeaders());
+		// socket->write(response.getPayload());
 	}
 	closeConnection(socket);
 }
