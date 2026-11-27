@@ -48,7 +48,7 @@ void ChunkProcessor::run()
 				//append header line for new annotation
 				if (line.startsWith("#CHROM"))
 				{
-					lines_new.append("##INFO=<ID=" + settings_.tag + ",Number=.,Type=String,Description=\"Consequence annotations from VcfAnnotateConsequence. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp\">\n");
+					lines_new.append("##INFO=<ID=" + settings_.tag + ",Number=.,Type=String,Description=\"Consequence annotations from VcfAnnotateConsequence. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp|FLAGS\">\n");
 				}
 				lines_new.append(line + "\n");
 				continue;
@@ -210,6 +210,15 @@ QByteArray ChunkProcessor::hgvsNomenclatureToString(const QByteArray& allele, co
 	QByteArray hgvs_p = hgvs.hgvs_p;
 	hgvs_p.replace("=", "%3D");
 	output << hgvs_p;
+
+	//transcript flags
+	QByteArrayList flags;
+	if (t.isGencodeBasicTranscript()) flags << "GB";
+	if (t.isGencodePrimaryTranscript()) flags << "GP";
+	if (t.isEnsemblCanonicalTranscript()) flags << "EC";
+	if (t.isManeSelectTranscript()) flags << "MS";
+	if (t.isManePlusClinicalTranscript()) flags << "MC";
+	output << flags.join('&');
 
 	return output.join('|');
 }
