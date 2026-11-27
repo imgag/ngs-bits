@@ -306,6 +306,7 @@ void RequestWorker::run()
 				pos = ranges[i].start;
 				if (ranges_count > 1)
 				{
+					out.clear();
 					out.append("--"+response.getBoundary()+"\r\n");
 					out.append("Content-Type: application/octet-stream\r\n");
 					out.append("Content-Range: bytes " + QByteArray::number(ranges[i].start) + "-" + QByteArray::number(ranges[i].end) + "/" + QByteArray::number(file_size) + "\r\n");
@@ -367,6 +368,7 @@ void RequestWorker::run()
 					if (transfer_encoding_chunked)
 					{
 						// Should be used for chunked transfer (without content-lenght)
+						out.clear();
 						out.append(intToHex(data.size()).toUtf8()+"\r\n");
 						out.append(data.append("\r\n"));
 						sendResponseDataPart(ssl_socket,out);
@@ -386,6 +388,7 @@ void RequestWorker::run()
 			// Should be used for chunked transfer (without content-lenght)
 			if (transfer_encoding_chunked)
 			{
+				out.clear();
 				out.append("0\r\n");
 				out.append("\r\n");
 				sendResponseDataPart(ssl_socket, out);
