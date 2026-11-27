@@ -1,10 +1,31 @@
 #include "RequestParser.h"
-#include <QRegularExpression>
+#include <QSet>
+#include <cstring>
 #include "Settings.h"
 #include "Log.h"
 #include "Exceptions.h"
 #include "HttpUtils.h"
 #include "ServerHelper.h"
+
+namespace
+{
+const QByteArray HEADER_TERMINATOR = QByteArrayLiteral("\r\n\r\n");
+
+// Headers whose values may legitimately contain commas and must NOT be split into a list.
+const QSet<QByteArray>& nonListHeaders()
+{
+	static const QSet<QByteArray> headers {
+		"date", "expires", "last-modified", "if-modified-since", "if-unmodified-since",
+		"user-agent", "cookie", "set-cookie", "authorization", "referer", "host"
+	};
+	return headers;
+}
+
+inline bool hasBytesAt(const QByteArray& data, int pos, const char* literal, int length)
+{
+	return pos >= 0 && pos + length <= data.size() && std::memcmp(data.constData() + pos, literal, length) == 0;
+}
+}
 
 RequestParser::RequestParser()
 {
@@ -12,232 +33,291 @@ RequestParser::RequestParser()
 
 HttpRequest RequestParser::parse(QByteArray *request) const
 {
-    HttpRequest parsed_request;
+	HttpRequest parsed_request;
 
-    if (Settings::boolean("show_raw_request", true))
-    {
-        Log::info(*request);
-    }
-
-	QList<QByteArray> body = getRawRequestHeaders(*request);	
-	for (int i = 0; i < body.count(); ++i)
+	// NOTE: if Settings::boolean() hits QSettings/disk, cache this value at startup.
+	if (Settings::boolean("show_raw_request", true))
 	{
-		// First line with method type and URL
-		if (i == 0)
+		Log::info(*request);
+	}
+
+	// Locate the header block once; only this part is ever split into lines.
+	const int header_end = request->indexOf(HEADER_TERMINATOR);
+	if (header_end == -1) THROW(Exception, "HTTP header terminator not found");
+	const int body_start = header_end + HEADER_TERMINATOR.size();
+
+	QString content_type_header;
+
+	auto addHeaderValue = [&](const QByteArray& name, const QByteArray& value)
+	{
+		parsed_request.addHeader(name, value);
+		if (content_type_header.isEmpty() && name == "content-type") content_type_header = QString::fromUtf8(value);
+	};
+
+	// ---- Header block (request line + headers) ----
+	int pos = 0;
+	bool first_line = true;
+	while (pos <= header_end)
+	{
+		int eol = request->indexOf('\n', pos);
+		if (eol == -1 || eol > header_end) eol = header_end;
+		const QByteArray line = request->mid(pos, eol - pos).trimmed();
+		pos = eol + 1;
+
+		if (first_line)
 		{
-			QList<QByteArray> request_info = body[i].split(' ');
-			if (request_info.length() < 2)
+			first_line = false;
+
+			// "METHOD SP TARGET SP VERSION"
+			const int method_end = line.indexOf(' ');
+			if (method_end <= 0) THROW(Exception, "Cannot process the request. Probably the URL is missing or incorrect");
+
+			int target_start = method_end + 1;
+			while (target_start < line.size() && line[target_start] == ' ') ++target_start;
+			int target_end = line.indexOf(' ', target_start);
+			if (target_end == -1) target_end = line.size();
+			if (target_end <= target_start) THROW(Exception, "Cannot process the request. Probably the URL is missing or incorrect");
+
+			parsed_request.setMethod(inferRequestMethod(line.left(method_end).toUpper()));
+
+			const QByteArray target = line.mid(target_start, target_end - target_start);
+
+			// Path only (query string excluded, so '/' inside parameter values cannot leak into path items).
+			const int query_pos = target.indexOf('?');
+			const QByteArray raw_path = (query_pos == -1) ? target : target.left(query_pos);
+
+			// Collapse repeated slashes
+			QByteArray collapsed;
+			collapsed.reserve(raw_path.size());
+			for (int i = 0; i < raw_path.size(); ++i)
 			{
-				THROW(Exception, "Cannot process the request. Probably the URL is missing or incorrect");
-				return parsed_request;
+				if (raw_path[i] == '/' && !collapsed.isEmpty() && collapsed.endsWith('/')) continue;
+				collapsed.append(raw_path[i]);
 			}
-			parsed_request.setMethod(inferRequestMethod(request_info[0].toUpper()));
 
-			QString path = QString(request_info[1]);
-			path.replace(QRegularExpression("/+"), "/");
-			QList<QString> path_items = path.split('/');
-
+			const QList<QString> path_items = QString::fromUtf8(collapsed).split('/');
 			parsed_request.setPrefix(getRequestPrefix(path_items));
 			parsed_request.setPath(getRequestPath(path_items));
 			parsed_request.setPathItems(getRequestPathParams(path_items));
-			parsed_request.setUrlParams(getVariables(getVariableSequence(request_info[1])));
+			parsed_request.setUrlParams(getVariables(getVariableSequence(target)));
 			continue;
 		}
 
-		// Reading headers and params
-		int header_separator = body[i].indexOf(':');
-		int param_separator = body[i].indexOf('=');
-		if ((header_separator == -1) && (param_separator == -1) && (body[i].length() > 0))
+		if (line.isEmpty()) continue;
+
+		const int header_separator = line.indexOf(':');
+		if (header_separator == -1)
 		{
-			THROW(Exception, "Malformed element: " + body[i]);
-			return parsed_request;
+			// Preserves old behaviour: lines containing '=' but no ':' are silently ignored.
+			if (line.indexOf('=') == -1) THROW(Exception, "Malformed element: " + line);
+			continue;
 		}
 
-		if (header_separator > -1)
+		const QByteArray name = line.left(header_separator).trimmed().toLower();
+		const QByteArray value = line.mid(header_separator + 1).trimmed();
+		if (value.isEmpty()) continue;
+
+		if (nonListHeaders().contains(name))
 		{
-			QList<QByteArray> header_values = body[i].mid(header_separator+1).trimmed().split(',');
-			for (int h = 0; h < header_values.count(); ++h)
-			{
-				if (header_values[h].trimmed().length() == 0) continue;
-				parsed_request.addHeader(body[i].left(header_separator).toLower(), header_values[h].trimmed());
-			}
+			addHeaderValue(name, value);
+			continue;
+		}
+
+		// List-style header: split on commas
+		int start = 0;
+		while (true)
+		{
+			const int comma = value.indexOf(',', start);
+			const int end = (comma == -1) ? value.size() : comma;
+			const QByteArray item = value.mid(start, end - start).trimmed();
+			if (!item.isEmpty()) addHeaderValue(name, item);
+			if (comma == -1) break;
+			start = comma + 1;
 		}
 	}
 
-	const QByteArray separator = "\r\n\r\n";
-	const int header_end = request->indexOf(separator);
-
-	if (header_end == -1) THROW(Exception, "HTTP header terminator not found");
-
-	parsed_request.setBody(request->mid(header_end + separator.size()));
+	// ---- Content type ----
 	parsed_request.setContentType(ContentType::TEXT_HTML); // default type, if the header is not found
 
-	if (parsed_request.getHeaders().contains("content-type"))
+	QByteArray multipart_boundary;
+	if (!content_type_header.isEmpty())
 	{
-		QList<QString> headers = parsed_request.getHeaders()["content-type"];
-		if (headers.isEmpty()) return parsed_request;
+		const QList<QString> parts = content_type_header.split(';');
+		const QString content_type = parts[0].trimmed();
+		const ContentType type = HttpUtils::getContentTypeFromString(content_type);
+		parsed_request.setContentType(type);
 
-		QList<QString> content_type_header_list = headers[0].split(";");
-		QString content_type;
-		if (content_type_header_list.count() > 1)
-        {
-            content_type = content_type_header_list[0];
-			QString boundary = "--" + content_type_header_list[1].trimmed().replace("boundary=", "", Qt::CaseInsensitive).replace("\"", "");
-
-			// Parse mutipart form data request
-			if ((HttpUtils::getContentTypeFromString(content_type) == ContentType::MULTIPART_FORM_DATA) && (!boundary.isEmpty()))
+		if (type == ContentType::MULTIPART_FORM_DATA)
+		{
+			for (int i = 1; i < parts.count(); ++i)
 			{
-				QByteArray form_body = parsed_request.getBody();				
-				QList<QByteArray> multipart_list;
+				const QString param = parts[i].trimmed();
+				if (!param.startsWith("boundary=", Qt::CaseInsensitive)) continue;
 
-				// Getting starting positions of all boundaries from the multipart request body
-				QList<int> boundary_start_positions = getBoundaryStartPositions(form_body, boundary);
-
-				for (int p = 0; p < boundary_start_positions.count(); p++)
-				{
-					const int item_start = boundary_start_positions[p] + boundary.length();
-					int item_end;
-
-					if (p+1 < boundary_start_positions.count())
-					{
-						item_end = boundary_start_positions[p+1];
-					}
-					else
-					{
-						item_end = form_body.length();
-					}
-
-					// The CRLF immediately before the next boundary belongs
-					// to the multipart framing, not to the part's content.
-					if (item_end >= 2 && form_body.mid(item_end - 2, 2) == "\r\n") item_end -= 2;
-
-					const int item_length = item_end - item_start;
-					if (item_length < 0) THROW(Exception, "Invalid multipart boundary positions");
-
-					QByteArray multipart_item = form_body.mid(item_start, item_length);
-
-					// The closing boundary is followed by "--".
-					if (multipart_item.startsWith("--")) continue;
-
-					if (multipart_item!="--")
-                    {
-                        if (!multipart_item.toLower().contains("content-type"))
-						{
-							// Parse form paramenters (i.e. form fields)
-							int name_pos = multipart_item.toLower().indexOf("name");
-							multipart_item = multipart_item.mid(name_pos, multipart_item.length() - name_pos);
-
-							// Get parameter value
-							QString param_value;
-							int value_start = multipart_item.indexOf(empty_line.toUtf8());
-							if (value_start > -1)
-							{
-								param_value = multipart_item.mid(value_start+empty_line.length(), multipart_item.length()-(value_start+empty_line.length())).trimmed();
-							}
-
-							// Get parameter name
-							QString param_key;
-							int key_start = multipart_item.indexOf("=");
-							if (key_start > -1)
-							{
-								param_key = multipart_item.mid(key_start, value_start - key_start).trimmed();
-								if (param_key.startsWith("=\"")) param_key = param_key.remove(0,2);
-								if (param_key.endsWith("\"")) param_key = param_key.remove(param_key.length()-1,1);
-							}
-
-							if ((!param_key.isEmpty()) && (!param_value.isEmpty())) parsed_request.addFormDataParam(param_key, param_value);
-						}
-						else
-						{
-                            // Parse file related content
-                            if (parsed_request.getMultipartFileName().isEmpty())
-                            {
-                                parsed_request.setMultipartFileName(getMultipartFileName(multipart_item));
-                                parsed_request.setMultipartFileContent(getMultipartFileContent(multipart_item));
-                            }
-						}
-						multipart_list.append(multipart_item);
-					}
-				}
+				QString boundary = param.mid(9);
+				boundary.remove('"');
+				if (!boundary.isEmpty()) multipart_boundary = "--" + boundary.toUtf8();
+				break;
 			}
 		}
-		else
-		{
-			content_type = headers[0];
-		}
-		parsed_request.setContentType(HttpUtils::getContentTypeFromString(content_type));
 	}
 
-	if (parsed_request.getContentType() == ContentType::APPLICATION_X_WWW_FORM_URLENCODED)
+	// ---- Body ----
+	if (!multipart_boundary.isEmpty())
 	{
-		parsed_request.setFormUrlEncoded(getVariables(parsed_request.getBody()));
+		// Parsed in place; the full body is deliberately NOT copied into the request.
+		// If other code needs getBody() for multipart requests, add:
+		//   parsed_request.setBody(request->mid(body_start));
+		parseMultipart(*request, body_start, multipart_boundary, parsed_request);
+	}
+	else
+	{
+		const QByteArray body = request->mid(body_start);
+		parsed_request.setBody(body);
+
+		if (parsed_request.getContentType() == ContentType::APPLICATION_X_WWW_FORM_URLENCODED)
+		{
+			parsed_request.setFormUrlEncoded(getVariables(body));
+		}
 	}
 
 	return parsed_request;
 }
 
-QList<QByteArray> RequestParser::getRawRequestHeaders(const QByteArray& input) const
+void RequestParser::parseMultipart(const QByteArray& data, int body_start, const QByteArray& boundary, HttpRequest& request) const
 {
-	QList<QByteArray> output;
-	QList<QByteArray> request_items = input.split(end_of_line);
-	for (int i = 0; i < request_items.count(); ++i)
-	{
-		if (request_items.value(i).trimmed().isEmpty()) return output;
-		output.append(request_items.value(i).trimmed());
-	}
-	return output;
-}
+	const QList<int> starts = getBoundaryStartPositions(data, body_start, boundary);
+	bool file_taken = false;
 
-QByteArray RequestParser::getRequestBody(const QByteArray& input) const
-{
-	QByteArray output;
-	QList<QByteArray> request_items = input.split(end_of_line);
-	bool passed_headers = false;
-	for (int i = 0; i < request_items.count(); ++i)
+	for (int p = 0; p < starts.count(); ++p)
 	{
-		if (request_items[i].trimmed().isEmpty()) passed_headers = true;
-		if (passed_headers)
+		const int item_start = starts[p] + boundary.size();
+		int item_end = (p + 1 < starts.count()) ? starts[p + 1] : data.size();
+
+		// The CRLF right before the next boundary belongs to the framing, not to the part.
+		if (item_end >= 2 && hasBytesAt(data, item_end - 2, "\r\n", 2)) item_end -= 2;
+
+		if (item_end < item_start) THROW(Exception, "Invalid multipart boundary positions");
+
+		// Closing boundary ("--" after the marker)
+		if (hasBytesAt(data, item_start, "--", 2)) continue;
+
+		// Only the (small) part header block is searched and copied.
+		const int part_header_end = data.indexOf(HEADER_TERMINATOR, item_start);
+		if (part_header_end == -1 || part_header_end + HEADER_TERMINATOR.size() > item_end) continue;
+
+		const int content_start = part_header_end + HEADER_TERMINATOR.size();
+		const int content_length = item_end - content_start;
+
+		const QByteArray part_headers = data.mid(item_start, part_header_end - item_start);
+		const bool is_file = part_headers.toLower().contains("content-type");
+
+		if (!is_file)
 		{
-			output.append(request_items[i]);
-			output.append(end_of_line);
+			// Plain form field
+			const QString key = QString::fromUtf8(getPartHeaderParam(part_headers, "name="));
+			const QString value = QString::fromUtf8(data.constData() + content_start, content_length).trimmed();
+			if (!key.isEmpty() && !value.isEmpty()) request.addFormDataParam(key, value);
+		}
+		else if (request.getMultipartFileName().isEmpty())
+		{
+			// Only the first file is kept (as before). The payload is copied exactly once.
+			request.setMultipartFileName(QString::fromUtf8(getPartHeaderParam(part_headers, "filename=")));
+			request.setMultipartFileContent(data.mid(content_start, content_length));
+			file_taken = true;
 		}
 	}
 
-	return output.trimmed();
+	Q_UNUSED(file_taken)
 }
 
-QList<QByteArray> RequestParser::getKeyValuePair(const QByteArray& input) const
+QList<int> RequestParser::getBoundaryStartPositions(const QByteArray& data, int from, const QByteArray& marker) const
 {
-	QList<QByteArray> result;
-	if (input.indexOf('=')>-1) result = input.split('=');
+	QList<int> positions;
+	int pos = from;
 
-	return result;
+	while ((pos = data.indexOf(marker, pos)) != -1)
+	{
+		const int marker_end = pos + marker.size();
+		const bool at_body_start = (pos == from);
+		const bool preceded_by_crlf = hasBytesAt(data, pos - 2, "\r\n", 2);
+		const bool followed_by_crlf = hasBytesAt(data, marker_end, "\r\n", 2);
+		const bool closing_boundary = hasBytesAt(data, marker_end, "--", 2);
+		if ((at_body_start || preceded_by_crlf) && (followed_by_crlf || closing_boundary)) positions.append(pos);
+
+		pos = marker_end;
+	}
+
+	return positions;
+}
+
+// Extracts e.g. name="x" or filename="y" from a part's header block.
+// `key` must be lowercase and include the '=' (e.g. "name="). Does not match "filename=" when asked for "name=".
+QByteArray RequestParser::getPartHeaderParam(const QByteArray& part_headers, const QByteArray& key) const
+{
+	const QByteArray lower = part_headers.toLower(); // ASCII lowercase: same length/offsets as the original
+	int from = 0;
+
+	while (true)
+	{
+		const int pos = lower.indexOf(key, from);
+		if (pos == -1) return QByteArray();
+
+		const char before = (pos == 0) ? ' ' : lower[pos - 1];
+		if (before != ' ' && before != ';' && before != '\t' && before != '\n')
+		{
+			from = pos + 1;
+			continue;
+		}
+
+		const int value_start = pos + key.size();
+		if (value_start < part_headers.size() && part_headers[value_start] == '"')
+		{
+			const int end = part_headers.indexOf('"', value_start + 1);
+			if (end == -1) return QByteArray();
+			return part_headers.mid(value_start + 1, end - value_start - 1);
+		}
+
+		int end = value_start;
+		while (end < part_headers.size() && part_headers[end] != ';' && part_headers[end] != '\r' && part_headers[end] != '\n') ++end;
+		return part_headers.mid(value_start, end - value_start).trimmed();
+	}
 }
 
 QMap<QString, QString> RequestParser::getVariables(const QByteArray& input) const
 {
-	QMap<QString, QString> url_vars {};
-	QList<QByteArray> var_list = input.split('&');
+	QMap<QString, QString> vars;
+	const int size = input.size();
+	int start = 0;
 
-	for (int i = 0; i < var_list.count(); ++i)
+	while (start < size)
 	{
-		QList<QByteArray> pair = getKeyValuePair(var_list[i]);
-		if (pair.length()==2) url_vars.insert(pair[0], pair[1]);
+		int amp = input.indexOf('&', start);
+		if (amp == -1) amp = size;
+
+		const QByteArray segment = input.mid(start, amp - start);
+		const int eq = segment.indexOf('='); // split on the FIRST '=' only, so values may contain '='
+		if (eq > 0)
+		{
+			vars.insert(QString::fromUtf8(segment.constData(), eq), QString::fromUtf8(segment.constData() + eq + 1, segment.size() - eq - 1));
+		}
+
+		start = amp + 1;
 	}
 
-	return url_vars;
+	return vars;
 }
 
 QByteArray RequestParser::getVariableSequence(const QByteArray& url) const
 {
-	QByteArray var_string;
-	if (url.indexOf('?') == -1) return var_string;
-	return url.split('?')[1];
+	const int q = url.indexOf('?');
+	if (q == -1) return QByteArray();
+	return url.mid(q + 1);
 }
 
 QString RequestParser::getRequestPrefix(const QList<QString>& path_items) const
 {
-	if (path_items.count()>1)
+	if (path_items.count() > 1)
 	{
 		return ServerHelper::getUrlWithoutParams(path_items[1]);
 	}
@@ -246,7 +326,7 @@ QString RequestParser::getRequestPrefix(const QList<QString>& path_items) const
 
 QString RequestParser::getRequestPath(const QList<QString>& path_items) const
 {
-	if (path_items.count()>2)
+	if (path_items.count() > 2)
 	{
 		return ServerHelper::getUrlWithoutParams(path_items[2]);
 	}
@@ -256,102 +336,27 @@ QString RequestParser::getRequestPath(const QList<QString>& path_items) const
 QList<QString> RequestParser::getRequestPathParams(const QList<QString>& path_items) const
 {
 	QList<QString> params {};
-	if (path_items.count()>3)
+	for (int p = 3; p < path_items.count(); ++p)
 	{
-		for (int p = 3; p < path_items.count(); ++p)
-		{
-			if (!path_items[p].trimmed().isEmpty())
-			{
-				QString current_item = path_items[p].trimmed();
-				int param_separator = current_item.indexOf("?");
-				if (param_separator > -1)
-				{
-					current_item = current_item.left(param_separator);
-				}
-				if (current_item.length() == 0) continue;
-				params.append(current_item);
-			}
-		}
+		QString current_item = path_items[p].trimmed();
+		const int param_separator = current_item.indexOf('?');
+		if (param_separator > -1) current_item = current_item.left(param_separator);
+		if (current_item.isEmpty()) continue;
+		params.append(current_item);
 	}
 	return params;
 }
 
 RequestMethod RequestParser::inferRequestMethod(const QByteArray& input) const
 {
-	if (input.toUpper() == QByteArrayLiteral("GET"))
-	{
-		return RequestMethod::GET;
-	}
-	if (input.toUpper() == QByteArrayLiteral("POST"))
-	{
-		return RequestMethod::POST;
-	}
-	if (input.toUpper() == QByteArrayLiteral("DELETE"))
-	{
-		return RequestMethod::DELETE;
-	}
-	if (input.toUpper() == QByteArrayLiteral("PUT"))
-	{
-		return RequestMethod::PUT;
-	}
-	if (input.toUpper() == QByteArrayLiteral("PATCH"))
-	{
-		return RequestMethod::PATCH;
-	}
-	if (input.toUpper() == QByteArrayLiteral("HEAD"))
-	{
-		return RequestMethod::HEAD;
-	}
+	const QByteArray method = input.toUpper();
+
+	if (method == "GET") return RequestMethod::GET;
+	if (method == "POST") return RequestMethod::POST;
+	if (method == "DELETE") return RequestMethod::DELETE;
+	if (method == "PUT") return RequestMethod::PUT;
+	if (method == "PATCH") return RequestMethod::PATCH;
+	if (method == "HEAD") return RequestMethod::HEAD;
 
 	THROW(ArgumentException, "Unsupported request method");
-}
-
-QList<int> RequestParser::getBoundaryStartPositions(const QByteArray& form, const QString& boundary) const
-{
-	QList<int> positions;
-	const QByteArray marker = boundary.toUtf8();
-	int pos = 0;
-
-	while ((pos = form.indexOf(marker, pos)) != -1)
-	{
-		const int marker_end = pos + marker.size();
-		const bool at_body_start = (pos == 0);
-		const bool preceded_by_crlf = (pos >= 2 && form.mid(pos - 2, 2) == "\r\n");
-		const bool followed_by_crlf = (form.mid(marker_end, 2) == "\r\n");
-		const bool closing_boundary = (form.mid(marker_end, 2) == "--");
-		if ((at_body_start || preceded_by_crlf) && (followed_by_crlf || closing_boundary)) positions.append(pos);
-
-		pos = marker_end;
-	}
-
-	return positions;
-}
-
-QString RequestParser::getMultipartFileName(const QByteArray& multipart_item) const
-{
-	QByteArray key = "filename=\"";
-	int start = multipart_item.indexOf(key);
-	if (start == -1) return "";
-
-	start += key.size();
-	int end = multipart_item.indexOf('"', start);
-	if (end == -1) return "";
-
-	return QString::fromLatin1(multipart_item.mid(start, end - start));
-}
-
-QByteArray RequestParser::getMultipartFileContent(const QByteArray& multipart_item) const
-{
-	const QByteArray separator = empty_line.toUtf8();
-	const int content_start = multipart_item.indexOf(separator);
-
-	if (content_start == -1) return QByteArray();
-
-	QByteArray content = multipart_item.mid(content_start + separator.size());
-
-	// Remove the CRLF framing immediately before the next boundary,
-	// but only if it is actually present.
-	if (content.endsWith("\r\n")) content.chop(2);
-
-	return content;
 }
