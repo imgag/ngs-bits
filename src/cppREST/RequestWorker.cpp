@@ -475,7 +475,7 @@ void RequestWorker::sendResponseDataPart(QSharedPointer<QSslSocket> socket, cons
 
 void RequestWorker::sendEntireResponse(QSharedPointer<QSslSocket> socket, const HttpResponse& response)
 {
-	if (response.getStatusCode() > 200) //Log::warn("The server returned " + QString::number(response.getStatusCode()) + " - " + HttpUtils::convertResponseStatusToReasonPhrase(response.getStatus()));
+	if (response.getStatusCode() > 200) Log::warn("The server returned " + QString::number(response.getStatusCode()) + " - " + HttpUtils::convertResponseStatusToReasonPhrase(response.getStatus()));
 	if (socket->state() != QSslSocket::SocketState::UnconnectedState)
 	{
 		QByteArray out;
