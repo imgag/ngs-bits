@@ -11,4 +11,5 @@ SOURCES += \
         VersatileFile_Test.cpp \
         VersatileTextStream_Test.cpp \
         HttpRequestHandler_Test.cpp \
+        LlmClient_Test.cpp \
         main.cpp
